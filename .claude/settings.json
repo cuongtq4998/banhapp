@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --test:*)",
+      "Bash(npm test:*)",
+      "Bash(tools/ddagent/bin/ddagent status:*)",
+      "Bash(tools/ddagent/bin/ddagent doctor:*)",
+      "Bash(xcodebuild -list:*)",
+      "Bash(xcodebuild -project BanhApp.xcodeproj -scheme BanhApp build:*)",
+      "Bash(xcodebuild -project BanhApp.xcodeproj -scheme BanhApp test:*)"
+    ],
+    "deny": [
+      "Read(./.claude/settings.local.json)"
+    ]
+  },
+  "env": {
+    "DDAGENT_MOCK": "1"
+  }
+}
