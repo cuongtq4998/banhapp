@@ -10,7 +10,7 @@
 
 ## Context
 
-With minimum iOS 17 and Android API 26 (proposed in ADR-0005), real glass or blur is only available on iOS 26 and newer and Android 12 (API 31) and newer. The design system defines a fallback for the other devices. The question is whether a paid or third-party blur library may be used on Android below the native blur level.
+With minimum iOS 17 and Android API 26 (Accepted in ADR-0005) [v1.1 | 2026-10-25], real glass or blur is only available on iOS 26 and newer and Android 12 (API 31) and newer. The design system defines a fallback for the other devices. The question is whether a paid or third-party blur library may be used on Android below the native blur level.
 
 ## Decision Drivers
 

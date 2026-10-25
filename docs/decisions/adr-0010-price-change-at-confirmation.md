@@ -3,7 +3,8 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0010 |
-| Status   | Proposed (pending owner choice; escalated: changes visible business behaviour) |
+| Version  | 1.1 |
+| Status   | Accepted (owner decision: reject with 409 `PRICE_CHANGED`, customer re-reviews) [v1.1 | 2026-10-25] |
 | Date     | 2026-10-25 |
 | Decider  | Product owner (recommendation by atlas-architect) |
 | Based on | PRD BR-5, BR-6, AC-14, AC-23; UI TQ-4 and key `MSG_PRICE_CHANGED` |
@@ -26,9 +27,9 @@ BR-5 says prices are those shown at review. BR-6 says an order keeps the prices 
 | B. Accept at the reviewed price | The server stores the prices the client saw | No friction; honours BR-6 for the customer | The client would send prices (breaks the rule that clients never send computed values); the shop may sell at an outdated price; abuse by keeping a stale review open |
 | C. Accept at the current price silently | The server stores current prices | Simple | The customer is quoted a different total than shown; violates BR-5 |
 
-## Decision (recommended: option A)
+## Decision (option A, accepted) [v1.1 | 2026-10-25]
 
-Option A. The request carries `expected_total_vnd` (the total shown on the review); it is an acknowledgement, not a value the server trusts. On mismatch the response is 409 `PRICE_CHANGED` carrying the current `items` (price per product), `delivery_fee_vnd` and `total_vnd`; no order and no capacity change is made. The order stores the server's prices at the moment of acceptance, which equal the prices the customer last saw (BR-6, AC-23). Written into api.md and order-lifecycle.md against this option. Until the owner decides, the UI copy `MSG_PRICE_CHANGED` stays as proposed (Vietnamese: "Giá đã thay đổi. Vui lòng xem lại đơn hàng.").
+Option A. The request carries `expected_total_vnd` (the total shown on the review); it is an acknowledgement, not a value the server trusts. On mismatch the response is 409 `PRICE_CHANGED` carrying the current `items` (price per product), `delivery_fee_vnd` and `total_vnd`; no order and no capacity change is made. The order stores the server's prices at the moment of acceptance, which equal the prices the customer last saw (BR-6, AC-23). Written into api.md and order-lifecycle.md against this option. The UI copy `MSG_PRICE_CHANGED` stays as proposed (Vietnamese: "Giá đã thay đổi. Vui lòng xem lại đơn hàng.").
 
 ## Consequences
 
@@ -46,3 +47,10 @@ Option A. The request carries `expected_total_vnd` (the total shown on the revie
 ## Links
 
 Related: ADR-0008.
+
+## Change log
+
+| Version | Date | Change |
+| ------- | ---- | ------ |
+| 1.0 | 2026-10-25 | Proposed. |
+| 1.1 | 2026-10-25 | Accepted by the owner. |

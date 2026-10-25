@@ -3,7 +3,8 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0004 |
-| Status   | Proposed (pending owner choice; escalated: hard to reverse) |
+| Version  | 1.1 |
+| Status   | Accepted (owner approved `docs/`, `backend/`, `ios/`, `android/`; `contracts/` added for shared fixtures and the Swift contracts package) [v1.1 | 2026-10-25] |
 | Date     | 2026-10-25 |
 | Decider  | Product owner (recommendation by atlas-architect) |
 | Based on | CLAUDE.md (current layout); ADR-0001, ADR-0006 |
@@ -26,9 +27,9 @@ The repository has an Xcode project at the root (`BanhApp/`, `BanhAppTests/`, `B
 | B. Monorepo, leave the Xcode project at the root, add `android/`, `backend/` beside it | No move | Root mixes iOS files with other components; the iOS app has no folder of its own |
 | C. Separate repositories per component | Independent releases and access | Contract drift; cross-repo PRs; docs split; harder for the agent pipeline |
 
-## Decision (recommended: option A)
+## Decision (option A, accepted) [v1.1 | 2026-10-25]
 
-Monorepo with `ios/`, `android/`, `backend/`, `contracts/` (sample request and response fixtures used by all three test suites), `docs/`, `tools/`. Documents already use these paths. A git move preserves history. Update of CLAUDE.md and rules is a task for the orchestrator after the owner decides (atlas cannot edit them).
+Monorepo with `ios/`, `android/`, `backend/`, `contracts/` (sample request and response fixtures used by all three test suites), `docs/`, `tools/`. Documents already use these paths. A git move preserves history. `contracts/` holds `fixtures/` (JSON) and `swift/` (the `BanhContracts` SwiftPM package, ADR-0001) [v1.1 | 2026-10-25]. Update of CLAUDE.md and rules is a task for the orchestrator after the owner decides (atlas cannot edit them).
 
 ## Consequences
 
@@ -46,3 +47,10 @@ Monorepo with `ios/`, `android/`, `backend/`, `contracts/` (sample request and r
 ## Links
 
 Related: ADR-0001, ADR-0006.
+
+## Change log
+
+| Version | Date | Change |
+| ------- | ---- | ------ |
+| 1.0 | 2026-10-25 | Proposed. |
+| 1.1 | 2026-10-25 | Accepted by the owner. |

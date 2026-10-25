@@ -2,14 +2,14 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.0 |
+| Version      | 1.1 |
 | Last updated | 2026-10-25 |
 | Status       | Draft |
 | Owner        | atlas-architect |
 | Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; design/design-system.md v1.0 |
 | Related      | data-model.md; api.md; order-lifecycle.md; auth.md; deployment.md; docs/decisions/ |
 
-Items that depend on a pending owner choice are marked "pending owner choice" and are written against the architect's recommended option: backend language (ADR-0001), database (ADR-0002), hosting (ADR-0003), repository layout (ADR-0004), minimum OS versions (ADR-0005), price-change rule (ADR-0010).
+All owner decisions are recorded: Swift with Vapor (ADR-0001), PostgreSQL (ADR-0002), free trial hosting (ADR-0003, Accepted for the trial; returns to Proposed if a card or cost appears), repository layout (ADR-0004), iOS 17 and Android API 26 (ADR-0005), reject and re-review on price change (ADR-0010). [v1.1 | 2026-10-25]
 
 ## 1. Purpose & Scope
 
@@ -50,18 +50,20 @@ The shop has no screen in this slice; it learns of orders from the database (ope
 
 | Name | Responsibility | Technology | Repo path | Talks to |
 | ---- | -------------- | ---------- | --------- | -------- |
-| iOS customer app | Nine screens S-1 to S-9, order flow, local cache and draft (FR-1 to FR-19) | Swift, SwiftUI, iOS 17+ (pending owner choice); Liquid Glass on iOS 26+ | `ios/BanhApp/` (tests `ios/BanhAppTests/`, `ios/BanhAppUITests/`; layout pending owner choice, ADR-0004) | Backend API, Zalo, dialer |
-| Android customer app | Same screens and flow | Kotlin, Jetpack Compose, Material3 Expressive, API 26+ (pending owner choice) | `android/app/` | Backend API, Zalo, dialer |
-| Backend API | Serves catalog and availability, validates and creates orders, enforces rules and rate limits | TypeScript, Node.js, Fastify, zod, `pg` (ADR-0001, pending owner choice) | `backend/src/` | PostgreSQL |
-| Database | Stores configuration, orders, daily counters, audit events; enforces constraints and triggers | PostgreSQL 16+ (ADR-0002, pending owner choice) | Migrations `backend/db/migrations/`, seed `backend/db/seed/` | Backend API, backup job |
+| iOS customer app | Nine screens S-1 to S-9, order flow, local cache and draft (FR-1 to FR-19) | Swift, SwiftUI, iOS 17+ (ADR-0005); Liquid Glass on iOS 26+, material blur on iOS 17 to 25 [v1.1 | 2026-10-25] | `ios/BanhApp/` (tests `ios/BanhAppTests/`, `ios/BanhAppUITests/`; ADR-0004) | Backend API, Zalo, dialer |
+| Android customer app | Same screens and flow | Kotlin, Jetpack Compose, Material3 Expressive, API 26+ (ADR-0005); blur on Android 12+, opaque cards below [v1.1 | 2026-10-25] | `android/app/` | Backend API, Zalo, dialer |
+| Backend API | Serves catalog and availability, validates and creates orders, enforces rules and rate limits | Swift 6, Vapor 4, Fluent with PostgreSQL driver and raw SQL for the order transaction (ADR-0001) [v1.1 | 2026-10-25] | `backend/Sources/App/` (tests `backend/Tests/AppTests/`, package `backend/Package.swift`, `backend/Dockerfile`) | PostgreSQL |
+| Database | Stores configuration, orders, daily counters, audit events; enforces constraints and triggers | PostgreSQL 16+ (ADR-0002, Accepted) | Migrations `backend/db/migrations/`, seed `backend/db/seed/` | Backend API, backup job |
 | Static assets | Product images, logo, privacy page | Files served by the backend | `backend/assets/` | Apps (via API host) |
 | Contract fixtures | Shared sample requests, responses and validation cases used by all test suites | JSON files | `contracts/fixtures/` | Backend tests, iOS tests, Android tests |
-| Backup job | Nightly encrypted dump to separate storage | GitHub Actions scheduled workflow, `pg_dump`, `age` | `.github/workflows/db-backup.yml` | Database, backup storage |
+| Contracts package [v1.1 | 2026-10-25] | Codable request, response and error-code types shared by backend and iOS (optional for iOS; fixtures stay the contract) | SwiftPM library `BanhContracts`, Foundation only | `contracts/swift/` | Backend, iOS app |
+| Backend image [v1.1 | 2026-10-25] | The built container, produced in CI (never on the host) | Multi-stage Dockerfile, `linux/amd64`, public image on GHCR | `backend/Dockerfile`, `.github/workflows/backend.yml` | CI, host |
+| Backup job | Nightly encrypted dump to separate storage | GitHub Actions scheduled workflow, `pg_dump`, `age`, private GitHub repository as storage [v1.1 | 2026-10-25] | `.github/workflows/db-backup.yml` | Database, backup storage |
 | CI pipeline | Builds and tests the three components | GitHub Actions | `.github/workflows/` | Repository |
 
 Developer tooling `tools/ddagent/` is not part of the system.
 
-Component repo paths use the recommended monorepo layout (ADR-0004). Until the owner decides, the existing Xcode project stays at the repository root.
+Component repo paths use the monorepo layout of ADR-0004 (Accepted) [v1.1 | 2026-10-25]. The existing Xcode project moves into `ios/` (orchestrator task; CLAUDE.md and `.claude/rules/swift.md` paths follow).
 
 ## 4. Key Flows
 
@@ -122,9 +124,9 @@ Full structure: data-model.md.
 | ------- | ------- | -------------- | ----------------- |
 | Zalo (app, or web page via link) | Customer contacts the shop (FR-2, FR-12) | None (public link) | If the link cannot be opened: toast `ERR_OPEN_ZALO`; the phone button still works. If Zalo is not installed, the link opens the web page (unverified, ADR-0015) |
 | Phone dialer (`tel:`) | Customer calls the shop | None | If it cannot open: toast `ERR_OPEN_PHONE` |
-| Managed PostgreSQL host | Stores data | Connection string in `DATABASE_URL` | API returns 503 `SERVICE_UNAVAILABLE`; apps keep entered data and offer retry (FR-17); free plans may pause idle compute, the first request after idle can be slower (deployment.md section 7) |
-| App hosting (container platform) | Runs the API | Platform account | Outage: apps show load or send errors; cached catalog still shows; customers can contact the shop by phone or Zalo |
-| Backup storage | Holds encrypted dumps | Access key pair in CI secrets | Backup run fails: alert to the operator; no effect on customers |
+| Managed PostgreSQL host (Neon free plan, ADR-0003) | Stores data | Connection string in `DATABASE_URL` | API returns 503 `SERVICE_UNAVAILABLE`; apps keep entered data and offer retry (FR-17); the free database suspends after 5 idle minutes and the first query can take a few seconds (deployment.md section 7) [v1.1 | 2026-10-25] |
+| App hosting (Render free web service, ADR-0003) | Runs the API image | Platform account | Sleeps after 15 idle minutes, about 1 minute to wake: apps wake it at launch, use the cached catalog meanwhile and retry orders with the same key; outage: apps show load or send errors; customers can contact the shop by phone or Zalo [v1.1 | 2026-10-25] |
+| Backup storage (private GitHub repository) | Holds encrypted dumps | Deploy key in CI secrets [v1.1 | 2026-10-25] | Backup run fails: alert to the operator; no effect on customers |
 | GitHub Actions | CI and backup schedule | Repository secrets | Delayed builds or backups; alert when a nightly run fails |
 | Apple App Store, Google Play | Distribution | Developer accounts (owner) | Store review delay does not affect installed apps |
 
@@ -146,13 +148,13 @@ Every arrow in section 2 appears in sections 3 or 6.
 | Attribute | Target | Basis |
 | --------- | ------ | ----- |
 | Order submission result | At most 10 s from tap to confirmation or error (client timeout 10 s) | PRD section 8 |
-| `POST /v1/orders` server time | p95 at most 1 s with a warm database; at most 5 s after a database cold start | Estimate; cold start duration unverified |
+| `POST /v1/orders` server time | p95 at most 1 s with a warm server and database; after a database resume at most 5 s; after a server sleep up to about 60 s on the free trial host (not met; the apps cope by retrying with the same key, ADR-0003) [v1.1 | 2026-10-25] | Estimate; resume time from Neon docs, server wake from Render docs |
 | `GET /v1/catalog`, `GET /v1/availability` server time | p95 at most 500 ms | Estimate |
-| Availability of the API | 99.5% per month (about 3.6 hours of downtime) | Single instance, estimate |
+| Availability of the API | 99.5% per month on the paid path (about 3.6 hours of downtime); the free trial has no target [v1.1 | 2026-10-25] | Single instance, estimate |
 | Expected load | Up to 100 orders per day, up to 2,000 app opens per day, peak 5 requests per second | Small shop assumption, unverified; design margin ten times |
 | Correctness | 0 orders accepted beyond the daily limit, under 50 parallel requests in test | G-2, AC-22 |
 | Data durability | Backup every 24 hours (recovery point 24 h); restore within 4 hours (recovery time) | deployment.md section 6 |
-| Cost | About USD 7 per month hosting (estimate) | ADR-0003 |
+| Cost | USD 0 during the trial; about USD 7 to 27 per month on the paid always-on path (estimate) [v1.1 | 2026-10-25] | ADR-0003 |
 | Accessibility | WCAG 2.2 AA contrast 4.5:1; dynamic type | PRD section 8 |
 
 ## 9. Constraints & Assumptions
@@ -162,7 +164,7 @@ Every arrow in section 2 appears in sections 3 or 6.
 - Payment is outside the app; the API has no payment data (FR-19).
 - Order handling by the shop is outside this slice; staff read orders via the database or later via the staff slice.
 - Assumed: shop timezone UTC+7 with no daylight saving time (A-1).
-- Assumed: Neon-like free database terms and Render-like prices stay as researched (ADR-0003, unverified over time).
+- Assumed: the free Neon and Render terms stay as researched on 2026-10-25 (ADR-0003, unverified over time). No spend during the new-project phase (owner). [v1.1 | 2026-10-25]
 
 ## 10. Extension Points for Later Slices
 
@@ -175,20 +177,34 @@ Every arrow in section 2 appears in sections 3 or 6.
 | Push notifications | Not prepared beyond staff identity; needs a new ADR |
 | More shops | `shop_id` on every table |
 
-## 11. Decision Index
+## 11. Slice Plan [v1.1 | 2026-10-25]
+
+Order of end-to-end slices. A slice is done when its acceptance criteria pass on both apps and the backend, with contract fixtures in `contracts/fixtures/` agreeing across the three test suites. Each slice is a pull request (or a short series) that touches every component listed; the contract is fixed in api.md and data-model.md before the slice starts. Nothing in a later slice is needed to test an earlier one.
+
+| # | Slice | Components touched | Contract needed | FR / AC covered | Done when |
+| - | ----- | ------------------ | --------------- | --------------- | --------- |
+| 0 | Walking skeleton | Repo move to `ios/`, `android/`, `backend/`, `contracts/`; backend package with `/healthz`; Dockerfile; CI (build, test, image to GHCR, deploy hook); Neon project and Render service; migration `0001_init.sql` and sample seed; iOS and Android empty shells at the new minimum OS | `GET /healthz` (api.md 4.4); data-model.md migrations (section 8); deployment.md | Enabler (ADR-0004, ADR-0005) | The image runs on the host, `/healthz` answers, migrations apply, CI is green for all three components |
+| 1 | Read-only catalogue and shop info | Backend: `GET /v1/catalog` with ETag, `/assets/*`, `/privacy`; tables `shop`, `shop_setting`, `product`, `district`, `delivery_slot`; iOS and Android: S-1 launch, S-2 home with Zalo and phone buttons, S-3 product list, S-4 detail (order button present, flow opens an empty S-5 stub), catalogue cache and offline copy | `GET /v1/catalog` (api.md 4.1), shared schemas (api.md 3), fixtures `catalog-*.json`; error codes `RATE_LIMITED`, `SERVICE_UNAVAILABLE` | FR-1, FR-2, FR-3, FR-4 (entry), FR-14, FR-19; AC-1 to AC-5, AC-21, AC-27, AC-29 | Both apps show the four sample cakes from the backend, work offline from cache (up to 7 days), and the contact buttons open Zalo and the dialer |
+| 2 | Availability and order building | Backend: `GET /v1/availability`, rules for lead time, horizon, remaining capacity (`day_load`), Vietnam date; apps: S-5 cakes, S-6 date and time, S-7 recipient and address, S-8 review (confirm disabled or stubbed), draft persistence, client-side validation and total | `GET /v1/availability` (api.md 4.2); fixtures for dates and capacity; validation rules of ADR-0009 shared as fixtures | FR-5 to FR-10, FR-13, FR-15, FR-18; AC-6 to AC-14, AC-18, AC-24, AC-26 | A customer can walk S-5 to S-8 with correct selectable dates and a correct total; going back keeps data |
+| 3 | Order creation | Backend: `POST /v1/orders`, one transaction (counter `UPDATE`, order, items, event), idempotency, price check, rate limits (IP and phone), order code, error catalogue; apps: S-8 confirm, sending state, all error states, same-key retry, price-changed re-review, timeout handling | `POST /v1/orders` (api.md 4.3), error catalogue (api.md 5); order-lifecycle.md sections 3 to 6; fixtures for success, replay, each error | FR-9 to FR-11 (server side), FR-13, FR-16, FR-17; AC-9, AC-13, AC-15, AC-16, AC-19, AC-20, AC-22, AC-23 | 50 parallel requests never oversell (AC-22); replay returns the stored order; every error code reaches the right UI state with data kept |
+| 4 | Confirmation and launch readiness | Apps: S-9 confirmation with code and contact buttons, return to S-2, clearing the draft; backend: ordering switch, alerts, log policy checks, privacy page text; operations: nightly encrypted backup, restore test, uptime monitor, store listings, privacy forms, real shop data replacing sample rows | api.md 4.5; deployment.md sections 4, 6, 7; launch checklist | FR-11 (screen), FR-12, FR-14, FR-19; AC-15, AC-17, AC-25, AC-27 | Launch checklist complete; end-to-end test on staging with a real device on each platform |
+
+Parallel work inside a slice: backend and the two apps start together from the contract and fixtures; the apps may use fixtures as a stub server until the backend endpoint lands. Slices 1 and 2 may overlap on the apps once slice 0 is done, but slice 3 waits for slice 2 on the backend (availability and capacity reads feed the order check). Testers write each slice's test cases from its acceptance criteria and the fixtures before development ends.
+
+## 12. Decision Index
 
 | ADR | Decision | Status |
 | --- | -------- | ------ |
-| [ADR-0001](../decisions/adr-0001-backend-language-framework.md) | Backend: TypeScript, Node.js, Fastify | Proposed |
-| [ADR-0002](../decisions/adr-0002-database.md) | PostgreSQL | Proposed |
-| [ADR-0003](../decisions/adr-0003-hosting.md) | Container PaaS plus managed Postgres, about USD 7 per month | Proposed |
-| [ADR-0004](../decisions/adr-0004-repository-layout.md) | Monorepo with `ios/`, `android/`, `backend/`, `contracts/` | Proposed |
-| [ADR-0005](../decisions/adr-0005-minimum-os-versions.md) | iOS 17 and Android API 26 | Proposed |
+| [ADR-0001](../decisions/adr-0001-backend-language-framework.md) | Backend: Swift with Vapor (owner) | Accepted |
+| [ADR-0002](../decisions/adr-0002-database.md) | PostgreSQL (owner) | Accepted |
+| [ADR-0003](../decisions/adr-0003-hosting.md) | Free trial hosting: Render free container plus Neon free Postgres; paid path recorded | Accepted for the trial |
+| [ADR-0004](../decisions/adr-0004-repository-layout.md) | Monorepo with `ios/`, `android/`, `backend/`, `contracts/` | Accepted |
+| [ADR-0005](../decisions/adr-0005-minimum-os-versions.md) | iOS 17 and Android API 26 | Accepted |
 | [ADR-0006](../decisions/adr-0006-native-vs-single-codebase.md) | Two native apps | Accepted |
 | [ADR-0007](../decisions/adr-0007-mobile-architecture.md) | Mobile architecture | Accepted |
 | [ADR-0008](../decisions/adr-0008-daily-limit-concurrency-idempotency.md) | Daily-limit counter and idempotency key | Accepted |
 | [ADR-0009](../decisions/adr-0009-order-code-and-input-validation.md) | Order code, phone, lengths, quantity bound | Accepted |
-| [ADR-0010](../decisions/adr-0010-price-change-at-confirmation.md) | Reject and re-review on price change | Proposed |
+| [ADR-0010](../decisions/adr-0010-price-change-at-confirmation.md) | Reject and re-review on price change | Accepted |
 | [ADR-0011](../decisions/adr-0011-offline-caching-and-draft.md) | Catalog cache and persisted draft | Accepted |
 | [ADR-0012](../decisions/adr-0012-blur-glass-fallback.md) | Native glass/blur, solid fallback, no paid library | Accepted |
 | [ADR-0013](../decisions/adr-0013-configuration-source-and-sample-data.md) | Configuration in tables, sample flag | Accepted |
@@ -197,22 +213,25 @@ Every arrow in section 2 appears in sections 3 or 6.
 
 Mapping of the open technical questions: Q-T1 to ADR-0008; Q-T2 to ADR-0013; Q-T3 and TQ-1 to ADR-0005; Q-T4 to deployment.md section 4; Q-T5 to ADR-0003; Q-T6 and TQ-5, TQ-6 to ADR-0009; TQ-2 to ADR-0015; TQ-3 and TQ-7 to ADR-0011; TQ-4 to ADR-0010; TQ-8 to ADR-0012.
 
-## 12. Risks & Open Questions / Change log
+## 13. Risks & Open Questions / Change log
 
 | ID | Risk or question | Impact | Mitigation |
 | -- | ---------------- | ------ | ---------- |
-| R-1 | Free database plan terms change or cold start is slow | Cost or slower first order | Alert; upgrade path to a paid plan (ADR-0003) |
+| R-1 | Free plan terms change; server sleep (about 1 minute) and database suspend slow the first request after idle | Slower or timed-out first order, possible forced cost | Apps wake the server at launch, same-key retry, alerts; paid upgrade path (ADR-0003) |
 | R-2 | Zalo web link behaviour without the app is unverified | Contact flow | Device test before release; phone button remains |
 | R-3 | Store accounts and review (owner fees, new personal Google Play accounts may need closed testing before production, unverified) | Release date | Start accounts early (deployment.md section 9) |
 | R-4 | Retention period for personal data not stated (BR-12); Vietnamese personal data law may apply (unverified) | Compliance, privacy page text | Owner states the period; legal review recommended |
 | R-5 | Ordering rules duplicated in two apps | Drift | Server authority, shared fixtures |
-| R-6 | Pending owner choices (six ADRs) | Paths and technology may change | Documents are written against the recommended options |
+| R-6 | Server-side Swift: small ecosystem, slow release builds, Linux differences, Vapor 5 migration ahead | Delivery speed, hiring, later slices (SMS, push) | Build in CI with caching, test on Linux per pull request, pin versions, yearly upgrade review (ADR-0001) |
+| R-8 | The API host name is compiled into the apps | A host change after release needs an app update | Custom domain before store release (launch cost, owner) |
+| R-9 | Free-tier hosting is not for real customers' orders (no backups on the host, sleep) | Lost or missed orders | Trial only; nightly encrypted dump; move to the paid path before launch (ADR-0003) |
 | R-7 | Material3 Expressive APIs may be experimental in the stable library | API churn | Opt-in, pinned version, wrapper components (ADR-0007) |
 
 | ID | Question | Why it matters | Blocking | Class | Status | Answer |
 | -- | -------- | -------------- | -------- | ----- | ------ | ------ |
-| AR-Q1 | Owner decisions on ADR-0001 to 0005 and 0010 | Developers start after the decisions (the Ready gate requires Accepted ADRs for new technology) | Yes for forge-dev start | technical and business | Open (owner) | |
+| AR-Q1 | Owner decisions on ADR-0001 to 0005 and 0010 | Developers start after the decisions | No longer | technical and business | Closed 2026-10-25: all decided; ADR-0003 stays conditional on no card or cost appearing | Owner |
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version. |
+| 1.1 | 2026-10-25 | Owner decisions applied: Swift and Vapor, PostgreSQL, free trial hosting, layout, minimum OS, price change. Components, integrations, quality targets, risks updated. Slice plan added (section 11). |
