@@ -50,3 +50,13 @@ Add `--mock` or `DDAGENT_MOCK=1` to run without Xcode (use this for development 
 - `backend.js` — `realBackend` (xcodebuild/xcrun, with retry on transient CoreSimulator errors) and `mockBackend` share one interface; new backend operations must be implemented in both.
 - `lanes.js` — per-agent exclusive hold on one *existing* simulator (never created). At most `DDAGENT_MAX_LANES` (4) lanes; further `lane acquire` calls block FIFO until a release or idle expiry (`DDAGENT_LANE_TTL_MIN`, never while a job runs). `run --lane` resolves to the lane's simulator, and `pool.js` prefers the slot already bound to that simulator, so one agent keeps reusing the same DerivedData. See `.claude/skills/ddagent-lane`.
 - `store.js` — single-writer JSON state (`state.json`, schema-versioned, atomic debounced writes); only the daemon touches it.
+
+## Agent pipeline (`/feature`)
+
+Features are built by a pipeline of subagents orchestrated from this session. Read `docs/process/README.md` before working on it; document standards are in `docs/process/standards/`.
+
+- Agents: `scribe-requirements` (PRD), `canvas-ui` (UI spec), `atlas-architect` (system docs, ADRs), `forge-dev` (code), `probe-qa` (tests). Definitions are in `.claude/agents/`; the entry point is `/feature <business description>`.
+- The product owner provides business intent only. Agents decide technical matters, research them and record sources. Ask the owner only for money, security or customer data, hard-to-reverse choices, or differing business behavior; ask everything in one batch.
+- The owner approves exactly two points: the requirements and the final pull request. Agents never merge.
+- The repository is **public**: never write secrets, tokens, real hostnames, account IDs or real personal data into code, docs, commits or pull requests. Use placeholders and fake data; configuration through variable names in `.env.example`.
+- Documents are in English, edited in place with version labels `[vX.Y | YYYY-MM-DD]` on changed lines.
