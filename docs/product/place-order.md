@@ -2,9 +2,9 @@
 
 | Field        | Value                                                        |
 | ------------ | ------------------------------------------------------------ |
-| Version      | 1.1                                                          |
+| Version      | 1.2                                                          |
 | Last updated | 2026-10-25                                                   |
-| Status       | In review                                                    |
+| Status       | Approved [v1.2 | 2026-10-25]                                 |
 | Owner        | scribe-requirements                                          |
 | Based on     | docs/pipeline/place-order/00-request.md (2026-10-25)         |
 | Related      | UI mockups (reference only): https://claude.ai/artifact/HcWoUjBbqA9B1WUvZ3RKCb |
@@ -83,11 +83,11 @@ All numeric and list values are shop parameters. The system shall read them as c
 | BR-2 | Lead time: the receiving date shall be at least LEAD_DAYS calendar days after the order date; LEAD_DAYS is 2. Days are counted in calendar days with no daily cut-off time: an order placed at any time on day D can be received from D+2. [v1.1 | 2026-10-25] |
 | BR-3 | Delivery area: delivery is only to districts on the served list. The delivery fee is the flat fee of the district chosen; there is no free delivery. The district list and fees are provided by the shop. [v1.1 | 2026-10-25] |
 | BR-4 | Minimum quantity: the total number of cakes in one order shall be at least MIN_QTY; MIN_QTY is 2. There is no maximum per order other than the remaining amount of the chosen date (BR-1). [v1.1 | 2026-10-25] |
-| BR-5 | Order total = sum of (current price x quantity) for each cake + delivery fee. Prices are those shown at the time of review. Currency is Vietnamese dong (VND), amounts in whole dong (rounding is not needed when prices are whole dong). [v1.1 | 2026-10-25] |
+| BR-5 | Order total = sum of (current price x quantity) for each cake + delivery fee. Prices are those shown at the time of review. Currency is Vietnamese dong (VND), amounts in whole dong (confirmed by the owner; no rounding is needed). [v1.2 | 2026-10-25] |
 | BR-6 | Prices may change; an order keeps the prices shown to the customer at confirmation. |
 | BR-7 | Identity: no account. An order is identified by its order code and holds the name, phone number, address and note given. [v1.1 | 2026-10-25] |
 | BR-8 | Booking horizon: the receiving date shall be no more than MAX_DAYS_AHEAD (30) calendar days after the order date. [v1.1 | 2026-10-25] |
-| BR-9 | Cancellation and capacity: when an order is later cancelled by the shop, its cakes count again toward the remaining amount of its receiving date. Cancellation itself is outside this slice. [v1.1 | 2026-10-25] |
+| BR-9 | Cancellation and capacity: when an order is later cancelled by the shop, its cakes count again toward the remaining amount of its receiving date. Cancellation itself is outside this slice, so this rule is testable only once cancellation exists. [v1.2 | 2026-10-25] |
 | BR-10 | Uniform rules: the same limit, lead time, slots and fees apply on every date; no closed days or special dates in this slice. [v1.1 | 2026-10-25] |
 | BR-11 | Slot capacity: delivery time slots have no capacity of their own; capacity is counted per day only (BR-1). [v1.1 | 2026-10-25] |
 | BR-12 | Contact data retention: name, phone number and address are kept only while needed to fulfil the order. The concrete period will be stated by the owner later (see 12.1). [v1.1 | 2026-10-25] |
@@ -125,8 +125,8 @@ Parameter names (LEAD_DAYS, DAILY_LIMIT, MIN_QTY, MAX_DAYS_AHEAD) stand for the 
 | AC-25 | FR-11 | Given an order is confirmed, then the confirmation text says the order is received and the shop will contact the customer, and does not say the order is accepted or guaranteed. [v1.1 | 2026-10-25] |
 | AC-26 | FR-18 | Given the order flow, when the customer enters a note of 200 characters, then it is accepted and shown on the review; when 201 characters are entered, then the extra character is rejected with a message next to the field; when no note is entered, then the order can still be confirmed. [v1.1 | 2026-10-25] |
 | AC-27 | FR-19 | Given any screen of the app including the review and confirmation, then no payment note, payment method or payment instruction is shown. [v1.1 | 2026-10-25] |
-| AC-28 | BR-1, BR-9 | Given a date with a cake count at the limit, when an order for that date is cancelled (by whatever means exist), then the date's remaining amount increases by the order's cakes and the date can be selected again for orders that fit. [v1.1 | 2026-10-25] |
-| AC-29 | FR-2, FR-3 | Given the shop has not yet supplied prices, shop name, greeting, Zalo or phone, then the values shown are sample values that are marked as sample data in the data source, and no real personal data appears. [v1.1 | 2026-10-25] |
+| AC-28 | BR-1, BR-9 | Given a date with a cake count at the limit, when an order for that date is cancelled (by whatever means exist), then the date's remaining amount increases by the order's cakes and the date can be selected again for orders that fit. Testable only once cancellation exists (a later feature). [v1.2 | 2026-10-25] |
+| AC-29 | FR-2, FR-3 | Given the shop has not yet supplied sample-covered values (prices, districts, slot times, shop name, greeting, Zalo, phone), then the values used are sample values marked as sample only in the data source; the app shows no visible "sample" marker; and no real personal data appears. [v1.2 | 2026-10-25] |
 
 ## 8. Non-functional
 
@@ -177,7 +177,7 @@ Business questions are for the product owner; technical questions are for the ar
 | Q-5 | Which districts are served and what is the fee for each? Is delivery ever free? | BR-3, AC-11, BR-5. | No | business | Answered [v1.1 | 2026-10-25] | Flat fee per district, no free delivery. List and fees are shop parameters, see 12.1. [v1.1 | 2026-10-25] |
 | Q-6 | Which delivery time slots exist? Do they differ by weekday or have own capacity? | FR-7, AC-10. | No | business | Answered [v1.1 | 2026-10-25] | A short fixed list of slots, same every day, capacity counted per day only. Slot times are a shop parameter, see 12.1. [v1.1 | 2026-10-25] |
 | Q-7 | After confirming, is the order a request the shop may still decline? | Confirmation text. | No | business | Answered [v1.1 | 2026-10-25] | Wording: "order received, the shop will contact you"; not "accepted" (FR-11, AC-25). [v1.1 | 2026-10-25] |
-| Q-8 | What are the four cake prices, shop name, greeting, Zalo and phone? | FR-2, FR-3, BR-5. | No | business | Answered [v1.1 | 2026-10-25] | Sample placeholders marked as sample data until the shop supplies them (AC-29); see 12.1. [v1.1 | 2026-10-25] |
+| Q-8 | What are the four cake prices, shop name, greeting, Zalo and phone? | FR-2, FR-3, BR-5. | No | business | Answered [v1.1 | 2026-10-25] | Sample placeholders, marked as sample only in the data source (no visible marker in the app), until the shop supplies them (AC-29); see 12.1. [v1.2 | 2026-10-25] |
 | Q-9 | How does the customer pay; should the app show a payment note? | Customer expectation. | No | business | Answered [v1.1 | 2026-10-25] | Payment happens outside the app; no payment note is shown (FR-19). [v1.1 | 2026-10-25] |
 | Q-10 | How far ahead may a customer order? | Date picker range. | No | business | Answered [v1.1 | 2026-10-25] | Up to 30 days ahead (BR-8). [v1.1 | 2026-10-25] |
 | Q-11 | Are there special dates with different rules? | Date availability. | No | business | Answered [v1.1 | 2026-10-25] | None in this slice; uniform rules (BR-10). [v1.1 | 2026-10-25] |
@@ -193,7 +193,7 @@ Business questions are for the product owner; technical questions are for the ar
 
 ### 12.1 Launch data to be provided by the shop [v1.1 | 2026-10-25]
 
-These values are configuration, not requirements. They do not block approval of this document; they are needed before launch. Until supplied, clearly marked sample values are used (AC-29). [v1.1 | 2026-10-25]
+These values are configuration, not requirements. They do not block approval of this document; they are needed before launch. Until supplied, sample values marked as sample in the data source are used; the app shows no sample marker (AC-29). The retention period remains launch data still to be supplied. [v1.2 | 2026-10-25]
 
 | Item | Used by | Status |
 | ---- | ------- | ------ |
@@ -210,3 +210,4 @@ These values are configuration, not requirements. They do not block approval of 
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version (Draft). |
 | 1.1 | 2026-10-25 | Owner accepted proposed defaults for Q-1 to Q-14; all marked Answered. Changed FR-4, FR-6, FR-7, FR-9, FR-10, FR-11; added FR-18, FR-19. Changed BR-1 to BR-5, BR-7; added BR-8 to BR-12. Changed AC-5, AC-7 to AC-11, AC-13, AC-15; added AC-24 to AC-29. Changed G-2, non-goals, assumptions (A-3 removed, A-4, A-5 changed, A-8 added), privacy and dependencies text. Added section 12.1 launch data. Status In review. |
+| 1.2 | 2026-10-25 | Owner approved v1.1 and confirmed: currency VND in whole dong (BR-5, now a confirmed fact); sample values marked as sample only in the data source, no visible marker in the app (AC-29, Q-8, 12.1). Added testability note to AC-28 (BR-9 needs cancellation to exist). Status Approved. |
