@@ -15,9 +15,20 @@ Argument: `$ARGUMENTS`. Either a plain description of a feature or product (new 
 2. Write `docs/pipeline/<slug>/00-request.md` with: Type (`new-project` or `change`), Title, Description (the owner's words, verbatim), Who benefits, Constraints, Existing docs. Do not invent facts; leave unknowns empty.
 3. Create `docs/pipeline/<slug>/run.md`: current stage, round counter, approvals, pending question batch, log.
 
-## 1. Run a stage
+## 1. Run a stage (always in its own worktree)
 
-For each stage, delegate to the named subagent using the Agent tool (subagent types: `scribe-requirements`, `canvas-ui`, `atlas-architect`, `forge-dev`, `probe-qa`). Subagents start with empty context: your prompt must name the slug, the input files to read and the output files to write. Before delegating, check the Ready gate of the previous document. Afterwards, verify the output files exist and follow the header block. Update `run.md` and commit with a message starting with the agent name (`git add` only the files that stage produced).
+Every stage runs in a separate git worktree and branch; see "Worktrees" in `docs/process/README.md`. For stage `<n>` and agent `<agent>`:
+
+1. Make sure `feature/<slug>` has everything from earlier stages committed (`git status` clean on the feature branch). Never start a stage from uncommitted files.
+2. Create the worktree from the feature branch tip:
+   `git worktree add -b stage/<slug>/<n>-<agent> .claude/worktrees/<slug>/<n>-<agent> feature/<slug>`
+3. Delegate to the subagent with the Agent tool (types: `scribe-requirements`, `canvas-ui`, `atlas-architect`, `forge-dev`, `probe-qa`). Do **not** use the Agent tool's built-in `isolation` option: it starts from the default branch and would not contain earlier documents. Subagents start with empty context, so the prompt names: the slug, the **absolute worktree path** (all work must stay inside it), the input files to read, the output files to write, and the Ready gate you checked.
+4. Verify in the worktree: output files exist and follow the header block; `git -C <worktree> status --short` lists only files inside the agent's allowed paths (see README "Write ownership"); the main checkout is unchanged. Reject the stage (keep the worktree for inspection) otherwise.
+5. Commit in the worktree with `git -C <worktree> add` (only the stage's files) and a message starting with the agent name. Agents never run git.
+6. Merge into the feature branch from the main checkout: `git merge --no-ff stage/<slug>/<n>-<agent>`. Then `git worktree remove .claude/worktrees/<slug>/<n>-<agent>` and `git branch -d stage/<slug>/<n>-<agent>`. On a merge conflict, stop and report; it means write ownership was violated.
+7. Update `docs/pipeline/<slug>/run.md` on the feature branch and commit it.
+
+Stage 4 may fan out into parallel `forge-dev` instances (one worktree per component) as described in the README. Fix rounds create new worktrees from the current tip.
 
 If custom agent types are not available in this session, run the stage with a general-purpose agent and tell it to adopt the instructions in `.claude/agents/<name>.md`.
 
@@ -52,3 +63,4 @@ Between the two gates (requirements approval and final PR) proceed without askin
 - Everything the agents need is in files, not in your memory.
 - Report real results; never claim a check passed without running it.
 - One commit per completed stage. Do not force push or rewrite history.
+- At the start of `continue`, run `git worktree list` and `git worktree prune`; resume or remove leftover stage worktrees deliberately.

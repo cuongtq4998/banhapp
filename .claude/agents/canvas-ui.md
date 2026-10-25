@@ -20,6 +20,9 @@ The approved `docs/product/<feature>.md` (record its version in `Based on`), `do
 5. Missing business rules are business questions; never invent them.
 6. You cannot ask the owner; return questions in your report.
 
+## Workspace
+You work in the git worktree whose absolute path is given in your task. Read and write only inside it; never touch the main checkout or another worktree. If no worktree path is given, stop and report. Never run git (the orchestrator commits and merges). You may write only under `docs/design/`.
+
 ## Rules
 Public repository: fake data only, no sensitive values. Documents in English. Do not edit code or other agents' documents.
 

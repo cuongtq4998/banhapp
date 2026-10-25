@@ -58,8 +58,46 @@ Business questions always go to the owner. Technical questions are answered by t
 - `probe-qa` finds a code defect: back to `forge-dev`. Maximum three rounds; after that the orchestrator asks the owner.
 - `probe-qa` finds behavior that contradicts or is missing from the requirements: the orchestrator asks `scribe-requirements` to clarify. Business questions go on to the owner.
 
+## Worktrees (isolation)
+
+Every subagent works in its **own git worktree** on its **own branch**, so two agents never write to the same checkout and cannot conflict.
+
+| Item | Rule |
+| ---- | ---- |
+| Integration branch | `feature/<slug>`: the feature's trunk; only the orchestrator merges into it |
+| Stage branch | `stage/<slug>/<n>-<agent>` (for example `stage/place-order/1-scribe`), created from the **current tip** of `feature/<slug>` |
+| Worktree path | `.claude/worktrees/<slug>/<n>-<agent>` (git-ignored) |
+| Create | `git worktree add -b stage/<slug>/<n>-<agent> .claude/worktrees/<slug>/<n>-<agent> feature/<slug>` |
+| Work | The agent receives the absolute worktree path and uses only paths inside it |
+| Commit | The orchestrator commits in the worktree (`git -C <path> ...`); agents never run git |
+| Merge | After checking the output, the orchestrator merges the stage branch into `feature/<slug>` with `--no-ff`, then removes the worktree and deletes the stage branch |
+| Failed stage | Keep the worktree and branch for inspection; do not merge |
+
+Why not the built-in `isolation: worktree` option: it starts from the default branch, not from the feature branch, so the agent would not see the previous stage's documents. The orchestrator therefore creates the worktree explicitly after committing the previous stage.
+
+### Write ownership (prevents merge conflicts)
+
+| Agent | May write only |
+| ----- | -------------- |
+| `scribe-requirements` | `docs/product/` |
+| `canvas-ui` | `docs/design/` |
+| `atlas-architect` | `docs/system/`, `docs/decisions/` |
+| `forge-dev` | Code in the component folders named in `docs/system/architecture.md`, `docs/engineering/` |
+| `probe-qa` | `docs/test/`, test folders |
+| orchestrator | `docs/pipeline/`, merges |
+
+After each stage the orchestrator lists the changed files in the stage worktree and rejects the stage if any lies outside the agent's allowed paths, or if the main checkout changed.
+
+### Parallelism
+
+- **Different features** run in parallel: each has its own `feature/<slug>` branch and worktrees.
+- **Stages inside a feature** run in sequence, because each needs the previous document.
+- **Stage 4 may fan out** after the API and data contracts are `Accepted`: one `forge-dev` per component (`4-forge-backend`, `4-forge-ios`, `4-forge-android`), each in its own worktree and writing only its own component folder. Instances do not edit shared documents; they report needed document changes, which one final `forge-dev` pass applies. Merge the backend first, then the clients.
+- **Fix rounds** use new worktrees (`5-probe-r1`, `4-forge-fix-r1`, ...) taken from the current tip.
+- Each worktree has its own build products: expect a cold build per worktree, and take simulator lanes through `ddagent` (maximum four).
+
 ## Git and pull request
 
-- Branch `feature/<slug>`, one commit per completed stage (message begins with the agent name).
-- The pipeline ends by pushing the branch and opening a pull request. Agents never merge.
+- One commit per completed stage, made by the orchestrator in the stage worktree (message begins with the agent name).
+- The pipeline ends by pushing `feature/<slug>` (stage branches stay local) and opening a pull request. Agents never merge.
 - The repository is public: no sensitive data in files, commits or pull request text.

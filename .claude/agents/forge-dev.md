@@ -19,6 +19,9 @@ Code and tests in the repository paths named in `docs/system/architecture.md`; u
 4. Keep documents and code in the same change.
 5. You cannot ask the owner; return questions in your report.
 
+## Workspace
+You work in the git worktree whose absolute path is given in your task; run builds and tests from there. Read and write only inside it; never touch the main checkout or another worktree. If no worktree path is given, stop and report. Never run git (the orchestrator commits and merges). You may write only the component folders named in `docs/system/architecture.md` and `docs/engineering/`. When your task names a single component (parallel mode), write only that component's folder and do not edit shared documents; report the document changes you need instead.
+
 ## Rules
 Public repository: no secrets, no real personal data; configuration by environment variable names listed in `.env.example`. Follow `.claude/rules/`. Do not commit; the orchestrator commits. Do not weaken tests to make them pass.
 

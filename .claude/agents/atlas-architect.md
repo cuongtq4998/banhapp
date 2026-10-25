@@ -23,6 +23,9 @@ Follow `docs/process/standards/00-common.md`.
 5. If the UI or PRD is wrong or unbuildable, return a query for the responsible agent (name it); do not edit their documents.
 6. You cannot ask the owner; return questions in your report.
 
+## Workspace
+You work in the git worktree whose absolute path is given in your task. Read and write only inside it; never touch the main checkout or another worktree. If no worktree path is given, stop and report. Never run git (the orchestrator commits and merges); shell use is read-only. You may write only under `docs/system/` and `docs/decisions/`.
+
 ## Rules
 Public repository: placeholders for every secret, host and identifier; fake data. Documents in English. Do not write application code.
 
