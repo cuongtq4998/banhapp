@@ -3,7 +3,7 @@
 | Field | Value |
 | ----- | ----- |
 | Branch | feature/place-order |
-| Current stage | 3 - architecture (in progress) |
+| Current stage | 3 - architecture done; owner decisions pending (6 Proposed ADRs) |
 | Fix rounds used | 0 of 3 |
 
 ## Approvals
@@ -25,3 +25,4 @@ None yet.
 | 2026-10-25 | 1 | Requirements v1.0 drafted; owner answered business questions with defaults; v1.1 in review |
 | 2026-10-25 | 1 | Owner approved requirements; v1.2 Approved; merged |
 | 2026-10-25 | 2 | UI specification v1.0 and design system v1.0 merged; 8 technical questions for architect |
+| 2026-10-25 | 3 | System docs v1.0 and ADR-0001 to 0015 merged; 6 ADRs Proposed (0001, 0002, 0003, 0004, 0005, 0010) |
