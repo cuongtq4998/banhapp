@@ -40,15 +40,23 @@ Agents return reports containing questions and queries. Never ask the owner piec
 - **Technical question for another agent:** route it to that agent and pass the answer back; or let the asking agent research. No owner involvement.
 - **Escalate to the owner only** if the matter (1) costs money, (2) affects security or customer data, (3) is hard to reverse, or (4) changes visible business behavior depending on the option, or if it is a business question. Gather everything from the stage into a single `AskUserQuestion` batch with a recommended option and the reasoning. Record the answers in the document through the owning agent.
 
-## 3. Stages and gates
+## 3. Phases and gates
 
-1. `scribe-requirements` writes `docs/product/<slug>.md`. Resolve questions, then **GATE: the owner approves the requirements** (summarize FRs, ACs and assumptions; ask to approve). Set Status `Approved` through the agent.
-2. `canvas-ui` writes the UI specification.
-3. `atlas-architect` writes system documents and ADRs. Proposed ADRs that meet an escalation condition go to the owner in one batch.
-4. `forge-dev` implements and tests.
-5. `probe-qa` verifies. Defect routing:
-   - `dev` defects: back to `forge-dev`, then `probe-qa` again. **Maximum 3 rounds**; if still failing, ask the owner.
-   - `requirements` defects: ask `scribe-requirements` to clarify; business questions go to the owner. Changed requirements go through the stages again from the affected one.
+**Phase A: requirements.** `scribe-requirements` writes `docs/product/<slug>.md`. Resolve questions, then **GATE: the owner approves the requirements** (summarize FRs, ACs and assumptions; ask to approve). Set Status `Approved` through the agent.
+
+**Phase B: concurrent start** (right after the gate; separate worktree per agent, all registered with the guard):
+- `canvas-ui`: UI specification.
+- `atlas-architect`: system documents and ADRs. Proposed ADRs meeting an escalation condition go to the owner in one batch.
+- `probe-qa` (early mode): test plan from the PRD and drafts, plus a review of all documents for contradictions and untestable items.
+- `forge-dev` (early mode): feasibility review, slice plan, migration steps; no code.
+Merge each stage when it finishes and passes the scope check. Merge order does not matter (write ownership is disjoint).
+
+**Phase C: question routing and sync.** Collect the questions and queries from every report. Route each to the owning agent (see README "Question routing"), run that agent in a new worktree to update its document in place, merge it, then resync every still-running or later consumer: `git -C <consumer worktree> merge feature/<slug>` and tell it which labelled lines changed. A question that bounced more than twice, or that meets an escalation condition, goes to the owner in one batch. Repeat until no blocking question remains.
+
+**Phase D: implementation and verification.** Start only when the Ready gates hold (PRD Approved; UI without blocking questions; data model, API and workflows complete; ADRs for the technology involved Accepted). `forge-dev` implements slice by slice (parallel instances per component allowed); `probe-qa` converts its plan to executable tests and runs them on a fixed commit. Defect routing:
+- `dev` defects: back to `forge-dev`, then `probe-qa` retests on the new commit. **Maximum 3 rounds**; if still failing, ask the owner.
+- `requirements` defects: ask `scribe-requirements` to clarify; business questions go to the owner. Changed requirements flow through Phase C again.
+- Document gaps found by either agent: Phase C.
 
 Between the two gates (requirements approval and final PR) proceed without asking the owner unless an escalation condition applies.
 

@@ -25,6 +25,11 @@ Code and tests in the repository paths named in `docs/system/architecture.md`; u
 4. Keep documents and code in the same change.
 5. You cannot ask the owner; return questions in your report.
 
+## Modes
+- **Early review** (when your task says so; documents are still Draft): write no code. Review the documents for feasibility, ambiguity and contradictions, propose the slice plan and migration steps, list what you need from developers' point of view (test mode, seed data, clock control), and route every question to the agent that owns the answer (`scribe-requirements`, `canvas-ui`, `atlas-architect`, or the owner).
+- **Implement** (Ready gates hold): build slice by slice. Unit tests go in the component's own test target; the `qa/` folders belong to `probe-qa`.
+- **Fix round**: fix the defects routed `dev`; report which. When a defect is really a document problem, return it as a question for the owning agent instead of working around it.
+
 ## Workspace
 You work in the git worktree whose absolute path is given in your task; run builds and tests from there. Read and write only inside it; never touch the main checkout or another worktree. If no worktree path is given, stop and report. Never run git (the orchestrator commits and merges). You may write only the component folders named in `docs/system/architecture.md` and `docs/engineering/`. When your task names a single component (parallel mode), write only that component's folder and do not edit shared documents; report the document changes you need instead.
 
