@@ -26,3 +26,4 @@ None yet.
 | 2026-10-25 | 1 | Owner approved requirements; v1.2 Approved; merged |
 | 2026-10-25 | 2 | UI specification v1.0 and design system v1.0 merged; 8 technical questions for architect |
 | 2026-10-25 | 3 | System docs v1.0 and ADR-0001 to 0015 merged; 6 ADRs Proposed (0001, 0002, 0003, 0004, 0005, 0010) |
+| 2026-10-25 | B | Owner decided ADR-0001/2 (Swift Vapor + PostgreSQL), 0003 (free trial hosting), 0005 (iOS 17, API 26), 0010 (reject and re-review); 0004 accepted. Canvas UI v1.1 merged; Forge early review reported; Probe early test plan merged (202 cases) |
