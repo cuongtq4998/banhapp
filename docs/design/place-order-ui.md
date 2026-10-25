@@ -2,7 +2,7 @@
 
 | Field        | Value                                                                 |
 | ------------ | --------------------------------------------------------------------- |
-| Version      | 1.0                                                                   |
+| Version      | 1.1                                                                   |
 | Last updated | 2026-10-25                                                            |
 | Status       | Draft                                                                 |
 | Owner        | canvas-ui                                                             |
@@ -34,6 +34,8 @@ Placeholders in text: `{n}`, `{min}`, `{max}`, `{days}`, `{amount}`, `{date}`, `
 | Material 3 Expressive in Compose: `ButtonGroup`, `FloatingToolbar`, `FlexibleBottomAppBar`, `LoadingIndicator`, `MaterialExpressiveTheme`, large flexible top app bar; some APIs experimental in 1.4.0 alpha builds | https://proandroiddev.com/material-3-expressive-design-a-new-era-9ea77959a262 ; https://proandroiddev.com/material-3-expressive-design-a-new-era-part-2-6a93483c98b0 | 2026-10-25 | Medium (third-party) |
 | Official Material 3 Expressive guidance (stable status, motion scheme) | https://m3.material.io/blog/building-with-m3-expressive | 2026-10-25 | Unverified (page unreadable) |
 
+[v1.1 | 2026-10-25] Fixed by the owner: minimum iOS 17 and Android 8.0 (API 26). Real glass or blur exists only on iOS 26 and later and Android 12 (API 31) and later (ADR-0012, Accepted). Both fallbacks are specified in section 6. Zalo and phone link behaviour: ADR-0015.
+
 Decisions that follow: glass is used for cards and the floating bar only; all long text sits on cards with contrast kept at 4.5:1; every glass surface has the `material.fallback` rendering. The system date pickers are not used for the date step because capacity-based unavailability must be shown per date (unverified that native pickers cannot do this; the custom `DateGrid` is the specified behaviour either way).
 
 ## 3. User Flow
@@ -43,7 +45,8 @@ flowchart TD
     A[App start] --> S1[S-1 Launch]
     S1 --> S2[S-2 Home]
     S2 -->|View products| S3[S-3 Product list]
-    S2 -->|Place order| S5[S-5 Choose cakes]
+    S2 -->|Place order, new draft| S5[S-5 Choose cakes]
+    S2 -->|Place order, saved draft: restored data| S5
     S2 -->|Zalo / Phone| EXT[Zalo app / phone dialer]
     S3 --> S4[S-4 Cake detail]
     S4 -->|Order this cake, qty 1| S5
@@ -60,13 +63,15 @@ flowchart TD
     S8E -->|change choice| S5
     S8E -->|change choice| S6
     S8E -->|change choice| S7
+    SEND -->|409 PRICE_CHANGED| S8P[S-8 updated prices, MSG_PRICE_CHANGED, confirm enabled]
+    S8P -->|Confirm again| SEND
     SEND -->|offline / server error / timeout| S8N[S-8 not-sent message, data kept]
     S8N -->|Retry| SEND
     S9 -->|Home| S2
     S9 -->|Zalo / Phone| EXT
 ```
 
-Entry points: app start (S-1); S-4 starts the flow with that cake at quantity 1 (FR-4); S-2 starts the flow with no cake chosen. Exit points: S-9 to S-2; leaving the flow from step 1 with the back control returns to the previous screen and discards flow data. Flow data is kept for the whole time the customer moves between steps (FR-15).
+Entry points: app start (S-1); S-4 starts the flow with that cake at quantity 1 (FR-4); S-2 starts the flow with no cake chosen, or, [v1.1 | 2026-10-25] when a saved draft exists (kept up to 24 hours, also after the system ended the app; ADR-0011), with the restored draft data, with no prompt. Entry from S-4 always starts a new draft with that cake at quantity 1 and replaces any saved draft. Exit points: S-9 to S-2; leaving the flow from step 1 with the back control returns to the previous screen and discards flow data. Flow data is kept for the whole time the customer moves between steps (FR-15).
 
 Step count after "Place order": 4 steps (cakes, date and time, recipient, review) plus the confirmation, within G-1 (at most 6).
 
@@ -115,7 +120,7 @@ Common layout (all screens): `AppBackground` behind everything. `TopBar` at the 
 
 - Purpose: entry point (FR-2).
 - Entry/Exit: from S-1 and from S-9. Exits to S-3 (View products), S-5 (Place order), the Zalo app or the phone dialer.
-- Layout, top to bottom: `LogoMark` (Small) with shop name in `type.title.large`; greeting in `type.body` inside a `GlassCard`; a row of two `ContactButton` (Zalo, Phone); `BottomActionBar` with `PrimaryButton` "Place order" above `SecondaryButton` "View products".
+- Layout, top to bottom: `LogoMark` (Small) with shop name in `type.title.large`; greeting in `type.body` inside a `GlassCard`; a row of two `ContactButton` (Zalo, Phone; [v1.1 | 2026-10-25] the Zalo button shows a generic chat icon plus the word "Zalo", never the Zalo brand mark, ADR-0015); `BottomActionBar` with `PrimaryButton` "Place order" above `SecondaryButton` "View products".
 - Data shown: shop name, short greeting (both from shop data, no marker).
 - Actions:
 
@@ -124,16 +129,16 @@ Common layout (all screens): `AppBackground` behind everything. `TopBar` at the 
 | Tap Zalo | Opens Zalo with the shop contact (AC-3). If it cannot open, `Toast` with `ERR_OPEN_ZALO`. | FR-2 |
 | Tap Phone | Opens the dialer with the shop number (AC-3). If it cannot open, `Toast` with `ERR_OPEN_PHONE`. | FR-2 |
 | Tap View products | Go to S-3. | FR-2, FR-3 |
-| Tap Place order | Go to S-5 with no cake chosen. | FR-2 |
+| Tap Place order | [v1.1 | 2026-10-25] If a saved draft exists, go to S-5 with the restored data and no prompt. Otherwise go to S-5 with no cake chosen. | FR-2, FR-15 |
 
 - States:
 
 | State | Behaviour |
 | ----- | --------- |
 | Default | All six elements visible. |
-| Loading | Shop information is being loaded: skeleton for name and greeting (`StateView` Loading); contact and order buttons visible but disabled. |
+| Loading | Only when there is no cache: skeleton for name and greeting (`StateView` Loading); contact and order buttons visible but disabled. |
 | Empty | N/A: shop information is required data; a missing value is treated as Error. |
-| Error | Shop information could not be loaded: `StateView` Error with `HOME_ERR` and `COMMON_RETRY`; all four action buttons disabled (their targets need the same data). Technical question TQ-3 covers whether cached data may be used offline. |
+| Error | [v1.1 | 2026-10-25] Shown only when shop information could not be loaded and there is no cache (cache is valid up to 7 days, ADR-0011): `StateView` Error with `HOME_ERR` and `COMMON_RETRY`; all four action buttons disabled. When a cache exists, the cached data is shown at once (Default), refreshed in the background, and a failed refresh is silent. |
 | Disabled | Contact buttons are disabled while Loading and Error. The "Place order" and "View products" buttons follow the same rule. |
 | Success | N/A: no submit on this screen. |
 
@@ -151,9 +156,9 @@ Common layout (all screens): `AppBackground` behind everything. `TopBar` at the 
 | State | Behaviour |
 | ----- | --------- |
 | Default | Four cards. |
-| Loading | Four skeleton cards (`StateView` Loading). |
+| Loading | [v1.1 | 2026-10-25] Only when there is no cache: four skeleton cards (`StateView` Loading). With a cache, cached cards show at once. |
 | Empty | N/A: the product set is fixed at four. Fewer than four returned is treated as Error. |
-| Error | `StateView` Error with `PRODUCTS_ERR` and `COMMON_RETRY`. A single failed picture shows a placeholder icon in the image frame (label `PRODUCT_IMG_FAILED`) while the card stays tappable. |
+| Error | [v1.1 | 2026-10-25] Only when there is no cache: `StateView` Error with `PRODUCTS_ERR` and `COMMON_RETRY`. With a cache, a failed refresh is silent. A single failed picture shows a placeholder icon in the image frame (label `PRODUCT_IMG_FAILED`) while the card stays tappable. |
 | Disabled | N/A: cards are always tappable once shown. |
 | Success | N/A: no submit. |
 
@@ -173,7 +178,7 @@ Common layout (all screens): `AppBackground` behind everything. `TopBar` at the 
 | Default | As above. |
 | Loading | Skeleton for picture and text if the data is not yet available (for example after a restore); the button is disabled. |
 | Empty | N/A: a detail is reached only from an existing card. |
-| Error | Picture failed: placeholder and `PRODUCT_IMG_FAILED`, button still enabled. Data failed: `StateView` Error with `PRODUCTS_ERR` and `COMMON_RETRY`. |
+| Error | Picture failed: placeholder and `PRODUCT_IMG_FAILED`, button still enabled. [v1.1 | 2026-10-25] Data failed and no cache: `StateView` Error with `PRODUCTS_ERR` and `COMMON_RETRY`; with a cache the cached cake is shown and a failed refresh is silent. |
 | Disabled | The order button is disabled while Loading or Data-failed. |
 | Success | N/A: no submit. |
 
@@ -182,14 +187,14 @@ Common layout (all screens): `AppBackground` behind everything. `TopBar` at the 
 ### 5.5 S-5 Order step 1: Choose cakes
 
 - Purpose: choose a quantity for each of the four cakes (FR-5).
-- Entry/Exit: from S-2 (no cake), S-4 (that cake at 1), or from S-6 and S-8 via back or Edit. Exit to S-6, or back to the previous screen.
+- Entry/Exit: from S-2 (no cake, or the restored draft with its quantities when a saved draft exists, [v1.1 | 2026-10-25] no prompt), S-4 (new draft, that cake at 1), or from S-6 and S-8 via back or Edit. Exit to S-6, or back to the previous screen.
 - Layout: `TopBar` (`FLOW_TITLE`, back); `StepIndicator` ("Step 1 of 4", `STEP_LABEL` and `STEP1`); one `GlassCard` containing four rows: thumbnail, name, price (`type.body.strong`), `QuantityStepper`; a summary `GlassCard` with `QTY_TOTAL` and `QTY_SUBTOTAL`; `InlineMessage` (Info) with `QTY_MIN_HINT` when total is below MIN_QTY; `BottomActionBar` with `PrimaryButton` `COMMON_NEXT`.
 - Data shown: for each cake name, price, quantity; total number of cakes; cakes subtotal (sum of price x quantity, BR-5).
 - Actions:
 
 | Action | Result | FR |
 | ------ | ------ | -- |
-| Plus / minus on a stepper | Quantity changes by 1; minimum 0. Totals update. | FR-5 |
+| Plus / minus on a stepper | Quantity changes by 1; minimum 0, [v1.1 | 2026-10-25] maximum 99 per cake. At 99 the plus button is disabled with no message. Totals update. | FR-5 |
 | Tap `COMMON_NEXT` | Go to S-6. Enabled only when total is at least MIN_QTY. | FR-5, FR-10 |
 | Back | Return to the previous screen (see section 3). | FR-15 |
 
@@ -200,11 +205,11 @@ Common layout (all screens): `AppBackground` behind everything. `TopBar` at the 
 | Default | Quantities as chosen; the hint `QTY_MIN_HINT` is visible while the total is below MIN_QTY. |
 | Loading | Product names and prices not yet available: skeleton rows, steppers and Next disabled. |
 | Empty | Total is 0 (nothing chosen): all steppers at 0, the hint is shown, Next disabled. This is the normal first state from "Place order". |
-| Error | Products could not be loaded: `StateView` Error with `PRODUCTS_ERR` and `COMMON_RETRY`. |
-| Disabled | Next is disabled while the total is below MIN_QTY (the hint explains why, AC-13); minus is disabled at 0. |
+| Error | [v1.1 | 2026-10-25] Products could not be loaded and there is no cache: `StateView` Error with `PRODUCTS_ERR` and `COMMON_RETRY`. With a cache, cached prices are shown and a failed refresh is silent (the server price check on confirm is the final guard, ADR-0010). |
+| Disabled | Next is disabled while the total is below MIN_QTY (the hint explains why, AC-13); minus is disabled at 0; [v1.1 | 2026-10-25] plus is disabled at 99 for that cake, silently (input-safety bound, ADR-0009; the limit is configuration `max_qty_per_cake`, not shown). |
 | Success | N/A: no submit. |
 
-- Validation: rule MIN_QTY (BR-4) with message `ERR_MIN_QTY`, shown as the persistent hint `QTY_MIN_HINT` here and as a blocking message on S-8 (FR-10, AC-13). No upper limit in the UI beyond the remaining amount of the date (BR-4); see TQ-5 for a technical input bound.
+- Validation: rule MIN_QTY (BR-4) with message `ERR_MIN_QTY`, shown as the persistent hint `QTY_MIN_HINT` here and as a blocking message on S-8 (FR-10, AC-13). [v1.1 | 2026-10-25] No business upper limit beyond the remaining amount of the date (BR-4); the stepper stops at 99 per cake as an input bound (ADR-0009), without a message.
 - Note: when the customer changes quantities after choosing a date, S-6 re-checks the chosen date (section 5.6).
 
 ### 5.6 S-6 Order step 2: Date and time
@@ -274,7 +279,9 @@ Common layout (all screens): `AppBackground` behind everything. `TopBar` at the 
 | ----- | ---- | ----------- |
 | Name | Required | `ERR_NAME_REQUIRED` |
 | Phone | Required | `ERR_PHONE_REQUIRED` |
-| Phone | Must be a valid number; format rules are a technical question (TQ-6, Q-T6) | `ERR_PHONE_INVALID` |
+| Phone | [v1.1 | 2026-10-25] Must be a Vietnamese mobile number (ADR-0009): spaces, dots, hyphens and parentheses are ignored; a leading `+84` or `84` is read as `0`; valid when 10 digits, `0` then `3`, `5`, `7`, `8` or `9`. Landlines and foreign numbers are invalid. | `ERR_PHONE_INVALID` |
+| Name | [v1.1 | 2026-10-25] At most 100 characters (input limit, no message) | none |
+| Address | [v1.1 | 2026-10-25] At most 250 characters (input limit, no message) | none |
 | Address | Required | `ERR_ADDRESS_REQUIRED` |
 | District | Required, from the served list | `ERR_DISTRICT_REQUIRED` |
 | Note | Optional, at most 200 characters | `ERR_NOTE_MAX` |
@@ -302,8 +309,8 @@ Keyboards and input hints: name uses the name keyboard with sentence capitalisat
 | Default | Review shown, confirm enabled. |
 | Loading | Sending: confirm shows a spinner and `BTN_SENDING`, disabled; Edit controls and back are disabled until the result. |
 | Empty | N/A: S-5 prevents reaching review with fewer than MIN_QTY cakes; a cleared date leads back to S-6 before review. |
-| Error | Two kinds, shown in the top `InlineMessage` (Error), flow data kept in both: (a) Rule not met, confirm blocked until fixed (FR-10): `ERR_MIN_QTY`, `ERR_DATE_CAPACITY` (also the message when another customer took the capacity, AC-9, AC-22), `ERR_DATE_LEAD`, `ERR_DATE_HORIZON`, `ERR_DISTRICT_UNSERVED`; each has an action button that opens the step to fix (S-5, S-6 or S-7, using `DATE_EMPTY_ACTION` for quantity and `ACTION_CHOOSE_DATE`, `ACTION_CHOOSE_DISTRICT`). (b) Not sent: `ERR_OFFLINE`, `ERR_SERVER` or `ERR_TIMEOUT` with `COMMON_RETRY`; no confirmation screen appears (AC-20). Pending: `MSG_PRICE_CHANGED` (TQ-4). |
-| Disabled | Confirm is disabled while Loading and while a rule error is shown (kind a). After the customer fixes it and returns, confirm is enabled again. Confirm stays enabled after a kind b error so retry is possible. |
+| Error | Two kinds, shown in the top `InlineMessage` (Error), flow data kept in both: (a) Rule not met, confirm blocked until fixed (FR-10): `ERR_MIN_QTY`, `ERR_DATE_CAPACITY` (also the message when another customer took the capacity, AC-9, AC-22), `ERR_DATE_LEAD`, `ERR_DATE_HORIZON`, `ERR_DISTRICT_UNSERVED`, and [v1.1 | 2026-10-25] `ERR_PRODUCT_UNAVAILABLE` (action opens S-5 with `DATE_EMPTY_ACTION`) and `ERR_SLOT_UNAVAILABLE` (action opens S-6 with `ACTION_CHOOSE_SLOT`); each has an action button that opens the step to fix (S-5, S-6 or S-7, using `DATE_EMPTY_ACTION` for quantity and `ACTION_CHOOSE_DATE`, `ACTION_CHOOSE_DISTRICT`). (b) Not sent: `ERR_OFFLINE`, `ERR_SERVER`, `ERR_TIMEOUT` or [v1.1 | 2026-10-25] `ERR_RATE_LIMITED` with `COMMON_RETRY`; no confirmation screen appears (AC-20). (c) [v1.1 | 2026-10-25] Price changed (server answers 409 `PRICE_CHANGED` with the new prices; ADR-0010, owner decision: the order is rejected and the customer re-reviews): nothing was sent; the cake rows, line prices, fee and total are replaced with the new values at once (changed amounts are highlighted for the session of this screen with `color.warningContainer` behind the value, and spoken in the alert), `InlineMessage` (Info, announced as an alert) shows `MSG_PRICE_CHANGED`, and `BTN_CONFIRM` stays enabled so the customer confirms again at the new total. The message clears when the customer taps Edit or confirms. |
+| Disabled | Confirm is disabled while Loading and while a rule error is shown (kind a). After the customer fixes it and returns, confirm is enabled again. Confirm stays enabled after a kind b or kind c message so retry or re-confirm is possible. For `ERR_RATE_LIMITED` the retry button stays enabled (the server may answer again; the customer decides). |
 | Success | On received: transition to S-9 (see 5.9). No intermediate success state is shown on S-8. |
 
 - Validation: all ordering rules BR-1 to BR-4 and BR-8 are checked at confirmation time (FR-10); the messages are the keys above. Field validation was done on S-7.
@@ -339,28 +346,38 @@ Keyboards and input hints: name uses the name keyboard with sentence capitalisat
 
 | Situation | Where | Behaviour |
 | --------- | ----- | --------- |
-| Data load fails (shop info, products, availability, districts) | S-2, S-3, S-4, S-5, S-6, S-7 | `StateView` Error or `InlineMessage` with the screen's key and `COMMON_RETRY`. Retry reloads only the failed data; entered flow data stays. |
+| Data load fails (shop info, products, availability, districts) | S-2, S-3, S-4, S-5, S-6, S-7 | `StateView` Error or `InlineMessage` with the screen's key and `COMMON_RETRY`. Retry reloads only the failed data; entered flow data stays. [v1.1 | 2026-10-25] On S-2 to S-5 shop data, products and districts come from the cache when one exists (up to 7 days) and the Error state shows only without a cache. Availability (S-6) is never cached: offline there shows `DATE_ERR` with retry (ADR-0011). |
 | No connection while loading | Same | Same pattern; the message names the network (`ERR_NETWORK_LOAD`). Nothing is entered into the order that depends on missing data. |
 | No connection while sending | S-8 | `ERR_OFFLINE`, entered data kept, retry available (AC-20). |
-| Server error or timeout while sending | S-8 | `ERR_SERVER` or `ERR_TIMEOUT`, entered data kept, retry available (FR-17). |
+| Server error or timeout while sending | S-8 | `ERR_SERVER` or `ERR_TIMEOUT`, entered data kept, retry available (FR-17). [v1.1 | 2026-10-25] Too many requests: `ERR_RATE_LIMITED`, same handling. |
+| Price changed while sending | S-8 | [v1.1 | 2026-10-25] Updated review plus `MSG_PRICE_CHANGED`, confirm enabled (section 5.8). |
+| Product or time slot no longer offered | S-8 | [v1.1 | 2026-10-25] `ERR_PRODUCT_UNAVAILABLE` (fix on S-5) or `ERR_SLOT_UNAVAILABLE` (fix on S-6); catalog is refreshed first. |
 | Connection returns | Any | No automatic send. The customer taps retry. A visible load error retries on `COMMON_RETRY` only. |
-| App goes to background and returns | S-5 to S-8 | Flow data kept while the app process lives. Restoration after the process ends is not specified (TQ-7). |
+| App goes to background and returns | S-5 to S-8 | Flow data kept. [v1.1 | 2026-10-25] The draft is also saved on the device and survives the system ending the app, for up to 24 hours without change; it is restored when the customer taps "Place order" on S-2 (no prompt) and deleted after a confirmed order (ADR-0011). |
 
 ## 6. Platform Notes
 
-Identical on both platforms unless listed. Technology below follows section 2; minimum OS versions are not decided here (TQ-1).
+Identical on both platforms unless listed. Technology below follows section 2. [v1.1 | 2026-10-25] Minimum versions (owner decision): iOS 17 and Android 8.0 (API 26). Three rendering levels exist per platform; layout, sizes, copy and behaviour are identical in all of them.
+
+| Level | iOS | Android |
+| ----- | --- | ------- |
+| Full | iOS 26 and later: Liquid Glass on cards, bars and glass button styles | Android 12 (API 31) and later: Material 3 Expressive with translucent tonal cards (`color.surface.glass`) over natively blurred background blobs |
+| Fallback | iOS 17 to 25: material blur. Cards and bars use `material.fallback` (system ultra-thin material over `color.surface.solid`) with the hairline `color.surface.stroke`; buttons use plain filled (`PrimaryButton`) and tonal (`SecondaryButton`) styles in place of glass styles; no morphing between glass shapes | Android 8.0 to 11 (API 26 to 30): opaque cards. Cards and bar use `color.surface.solid` at 94% with no blur, `elevation` shadows kept; background blobs stay as flat soft gradients (no blur) |
+| Accessibility override | Reduce Transparency or Increase Contrast on any version: `material.fallback` with higher-contrast stroke | Reduced transparency or high-contrast text on any version: `color.surface.solid` |
+
+The fallback levels keep text contrast of at least 4.5:1 by design (opaque or near-opaque surfaces). No paid or third-party blur library is used (ADR-0012).
 
 | Topic | iOS | Android |
 | ----- | --- | ------- |
 | UI technology | SwiftUI; Liquid Glass (`glassEffect` inside `GlassEffectContainer`, glass button styles) on iOS 26 and later | Jetpack Compose; Material 3 Expressive (`MaterialExpressiveTheme`, `ButtonGroup`, floating toolbar or flexible bottom app bar, `LoadingIndicator`) |
-| Fallback | Before iOS 26: `material.fallback` with the same layout; also used when Reduce Transparency is on | Without blur support or with reduced transparency: `material.fallback` (opaque tonal surface) |
+| Fallback | [v1.1 | 2026-10-25] iOS 17 to 25: `material.fallback` with the same layout; also used when Reduce Transparency is on | Android 8.0 to 11, or reduced transparency: `material.fallback` (opaque card surface) |
 | Logo container | Rounded square | Organic blob shape |
 | Top bar | Large title collapsing to inline, native back with swipe-back | Large flexible top app bar, system back and predictive back |
 | Bottom action bar | Floating glass bar | Floating toolbar / flexible bottom app bar, stays above gesture or button navigation |
 | District picker | Sheet with list | Modal bottom sheet with list |
 | Steppers | Capsule with two buttons | `ButtonGroup` around a value |
 | Loading | Skeleton, system spinner for the confirm button | Skeleton, `LoadingIndicator` for the confirm button |
-| Zalo and phone | Open by URL scheme to Zalo and the `tel` scheme; the exact link forms and whether Zalo needs a store fallback are technical (TQ-2) | Same via intents |
+| Zalo and phone | [v1.1 | 2026-10-25] Zalo opens as a web link `https://zalo.me/<number>` and phone as `tel:` (ADR-0015); the Zalo button uses a generic chat icon (system symbol) plus the word "Zalo" | Same; generic chat icon (Material Symbol) plus the word "Zalo" |
 | Haptics and motion | See section 7 | See section 7 |
 
 ## 7. Motion & Haptics
@@ -441,7 +458,7 @@ All display text is Vietnamese. Data-source values (shop name, greeting, cake na
 | `NOTE_COUNTER` | {n}/200 | S-7 |
 | `ERR_NAME_REQUIRED` | Vui lòng nhập họ và tên. | S-7 |
 | `ERR_PHONE_REQUIRED` | Vui lòng nhập số điện thoại. | S-7 |
-| `ERR_PHONE_INVALID` | Số điện thoại không hợp lệ. | S-7 |
+| `ERR_PHONE_INVALID` | [v1.1 | 2026-10-25] Vui lòng nhập số điện thoại di động Việt Nam (10 số, ví dụ 09xx xxx xxx). | S-7 |
 | `ERR_ADDRESS_REQUIRED` | Vui lòng nhập địa chỉ giao hàng. | S-7 |
 | `ERR_DISTRICT_REQUIRED` | Vui lòng chọn quận/huyện. | S-7 |
 | `ERR_NOTE_MAX` | Ghi chú tối đa 200 ký tự. | S-7 |
@@ -465,17 +482,21 @@ All display text is Vietnamese. Data-source values (shop name, greeting, cake na
 | `ERR_DISTRICT_UNSERVED` | Cửa hàng chưa giao đến khu vực này. Vui lòng chọn quận/huyện khác. | S-8 |
 | `ACTION_CHOOSE_DATE` | Chọn ngày khác | S-8 |
 | `ACTION_CHOOSE_DISTRICT` | Chọn khu vực khác | S-8 |
+| `ACTION_CHOOSE_SLOT` | [v1.1 | 2026-10-25] Chọn giờ khác | S-8 |
+| `ERR_PRODUCT_UNAVAILABLE` | [v1.1 | 2026-10-25] Có bánh trong đơn hiện không còn được bán. Vui lòng chọn lại bánh. | S-8 |
+| `ERR_SLOT_UNAVAILABLE` | [v1.1 | 2026-10-25] Khung giờ nhận bánh bạn chọn không còn khả dụng. Vui lòng chọn giờ khác. | S-8 |
+| `ERR_RATE_LIMITED` | [v1.1 | 2026-10-25] Đơn hàng chưa được gửi vì có quá nhiều yêu cầu. Thông tin của bạn vẫn được giữ lại. Vui lòng đợi một lát rồi thử lại. | S-8 |
 | `ERR_OFFLINE` | Đơn hàng chưa được gửi vì không có kết nối mạng. Thông tin của bạn vẫn được giữ lại. | S-8 |
 | `ERR_SERVER` | Đơn hàng chưa được gửi do có lỗi. Thông tin của bạn vẫn được giữ lại. Vui lòng thử lại. | S-8 |
 | `ERR_TIMEOUT` | Đơn hàng chưa được gửi vì mất quá nhiều thời gian. Thông tin của bạn vẫn được giữ lại. Vui lòng thử lại. | S-8 |
-| `MSG_PRICE_CHANGED` | PENDING (see TQ-4). Proposed: Giá đã thay đổi. Vui lòng xem lại đơn hàng. | S-8 |
+| `MSG_PRICE_CHANGED` | [v1.1 | 2026-10-25] Giá đã thay đổi nên đơn hàng chưa được gửi. Vui lòng xem lại giá và tổng cộng mới, rồi bấm xác nhận lại. | S-8 |
 | `CONF_TITLE` | Đã nhận đơn hàng | S-9 |
 | `CONF_CODE_LABEL` | Mã đơn hàng | S-9 |
 | `CONF_CODE_A11Y` | Mã đơn hàng {code} | S-9 |
 | `CONF_MESSAGE` | Cửa hàng đã nhận được đơn của bạn và sẽ liên hệ với bạn. Khi cần, bạn có thể nhắn Zalo hoặc gọi điện cho cửa hàng và cho biết mã đơn hàng. | S-9 |
 | `CONF_BTN_HOME` | Về trang chủ | S-9 |
 
-Copy check: no key contains payment wording (FR-19); `CONF_MESSAGE` says received and contact, not accepted (AC-25). Keys marked PENDING are not final.
+Copy check: no key contains payment wording (FR-19); `CONF_MESSAGE` says received and contact, not accepted (AC-25). [v1.1 | 2026-10-25] No key is pending; all error codes of api.md section 5 that need display text have a key (`ERR_PRODUCT_UNAVAILABLE`, `ERR_SLOT_UNAVAILABLE`, `ERR_RATE_LIMITED` added; other codes use `ERR_SERVER`). `HOME_BTN_ZALO` stays the plain word "Zalo".
 
 ## 9. Accessibility
 
@@ -521,28 +542,28 @@ FR to screens. "X" means the screen implements or shows the requirement.
 
 Non-FR items covered: privacy sentence before confirmation (PRD section 8, Privacy) on S-8; accessibility and performance (PRD section 8) in sections 5.8 and 9; AC-29 (no visible sample marker) in the global rules. ACs mapped to screens: AC-1 S-1; AC-2, AC-3 S-2; AC-4 S-3; AC-5 S-4 and S-5; AC-6 S-5, S-8; AC-7, AC-8, AC-10, AC-24 S-6; AC-9, AC-13, AC-22 S-8; AC-11, AC-12, AC-26 S-7; AC-14, AC-18, AC-19, AC-20 S-8; AC-15, AC-16, AC-17, AC-25 S-9; AC-21 all; AC-27 all.
 
-Every FR is traced. No screen element is without an FR; the PRD items BR-1 to BR-12 appear only through the FRs above. AC-23 (price kept after change) and AC-28 (cancellation) have no UI.
+Every FR is traced. No screen element is without an FR; the PRD items BR-1 to BR-12 appear only through the FRs above. AC-28 (cancellation) has no UI. [v1.1 | 2026-10-25] AC-23 (price kept after change) is covered on S-8 by the re-review on `PRICE_CHANGED` (section 5.8).
 
 ## 11. Assets
 
 - Mockups: reference only, private link recorded in the PRD header. The text of this document is authoritative.
 - Pictures of the four cakes and the logo: fake placeholder images supplied with launch data; no real customer data in any asset. No exported images are stored in the repository yet.
-- Icons: native system symbols on iOS and Material Symbols on Android (Zalo and phone icons: the Zalo brand mark use is a technical question, TQ-2).
+- Icons: native system symbols on iOS and Material Symbols on Android [v1.1 | 2026-10-25] The Zalo button uses a generic chat icon (SF Symbol / Material Symbol) with the word "Zalo"; the Zalo logo is not used (ADR-0015).
 
 ## 12. Open Questions / Change log
 
-Business questions: none. Copy is final except the key marked PENDING.
+Business questions: none. [v1.1 | 2026-10-25] Copy is final; no key is pending. All technical questions are answered (below).
 
 | ID | Question | Why it matters | Blocking | Class | Status | Answer |
 | -- | -------- | -------------- | -------- | ----- | ------ | ------ |
-| TQ-1 | Minimum iOS and Android versions (Liquid Glass needs iOS 26; Material 3 Expressive needs a Compose Material3 release that may still be alpha or experimental) | Decides how much fallback rendering is built (same as PRD Q-T3 and design-system DS-Q1) | No | technical | Open (architect) | |
-| TQ-2 | How are Zalo and the dialer opened (link forms, behaviour when Zalo is not installed), and may the Zalo brand mark be used | AC-3, FR-2, FR-12 | No | technical | Open (architect) | |
-| TQ-3 | May shop information and products be cached for offline display on S-2 to S-4, or must they always be loaded fresh | Error state of S-2 and S-3 (config source is Q-T2) | No | technical | Open (architect) | |
-| TQ-4 | If a price changed between the review and the confirmation (BR-5, BR-6), is the order rejected with a re-review, or accepted at the reviewed price | Possible new message `MSG_PRICE_CHANGED` and S-8 behaviour | No | technical | Open (architect) | |
-| TQ-5 | Is there a technical upper bound for one cake's quantity (input safety)? The UI assumes none besides date capacity, with a stepper capped at 99 only if the architect confirms | S-5 stepper behaviour | No | technical | Open (architect) | |
-| TQ-6 | Phone number validation rules, maximum lengths of name and address, and order code format and length (display width of `OrderCodeDisplay`) | S-7 validation, S-9 layout (same as Q-T6) | No | technical | Open (architect) | |
-| TQ-7 | Should the in-progress order survive the app being closed by the system | FR-15 scope on process death | No | technical | Open (architect) | |
-| TQ-8 | Is a paid or third-party blur library allowed for Android below the version where native blur exists | Fallback cost (DS-Q2) | No | technical | Open (architect) | |
+| TQ-1 | Minimum iOS and Android versions (Liquid Glass needs iOS 26; Material 3 Expressive needs a Compose Material3 release that may still be alpha or experimental) | Decides how much fallback rendering is built (same as PRD Q-T3 and design-system DS-Q1) | No | technical | Closed [v1.1 | 2026-10-25] | iOS 17 and Android 8.0 (API 26), owner decision (ADR-0005); fallbacks in section 6 |
+| TQ-2 | How are Zalo and the dialer opened (link forms, behaviour when Zalo is not installed), and may the Zalo brand mark be used | AC-3, FR-2, FR-12 | No | technical | Closed [v1.1 | 2026-10-25] | ADR-0015: web link and `tel:`; no brand mark, generic chat icon plus "Zalo" |
+| TQ-3 | May shop information and products be cached for offline display on S-2 to S-4, or must they always be loaded fresh | Error state of S-2 and S-3 (config source is Q-T2) | No | technical | Closed [v1.1 | 2026-10-25] | ADR-0011: cache up to 7 days; Error only without cache |
+| TQ-4 | If a price changed between the review and the confirmation (BR-5, BR-6), is the order rejected with a re-review, or accepted at the reviewed price | Possible new message `MSG_PRICE_CHANGED` and S-8 behaviour | No | technical | Closed [v1.1 | 2026-10-25] | Owner: rejected, re-review (409 `PRICE_CHANGED`, ADR-0010) |
+| TQ-5 | Is there a technical upper bound for one cake's quantity (input safety)? | S-5 stepper behaviour | No | technical | Closed [v1.1 | 2026-10-25] | 99 per cake, silent (ADR-0009) |
+| TQ-6 | Phone number validation rules, maximum lengths of name and address, and order code format and length (display width of `OrderCodeDisplay`) | S-7 validation, S-9 layout (same as Q-T6) | No | technical | Closed [v1.1 | 2026-10-25] | ADR-0009: Vietnamese mobile; name 100, address 250; code `BT-` plus 6 characters (9 wide) |
+| TQ-7 | Should the in-progress order survive the app being closed by the system | FR-15 scope on process death | No | technical | Closed [v1.1 | 2026-10-25] | ADR-0011: yes, 24 hours, restored without prompt |
+| TQ-8 | Is a paid or third-party blur library allowed for Android below the version where native blur exists | Fallback cost (DS-Q2) | No | technical | Closed [v1.1 | 2026-10-25] | ADR-0012: no; opaque cards below Android 12 |
 
 Assumptions: launch screen time 1.0 to 2.0 s; slots appear as a list and dates as a month grid; the district is chosen from a sheet; leaving the flow from step 1 discards flow data without a confirmation dialog (no FR asks for one).
 
@@ -551,3 +572,4 @@ Assumptions: launch screen time 1.0 to 2.0 s; slots appear as a list and dates a
 | Version | Date | Change |
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version, based on product/place-order.md v1.2. |
+| 1.1 | 2026-10-25 | Minimum iOS 17 / Android 8.0 with both fallbacks (section 6); cache-first Error rules on S-2 to S-5; saved-draft restore from S-2; S-8 price-change behaviour and final `MSG_PRICE_CHANGED`; new keys `ERR_PRODUCT_UNAVAILABLE`, `ERR_SLOT_UNAVAILABLE`, `ERR_RATE_LIMITED`, `ACTION_CHOOSE_SLOT`; Zalo button generic icon plus word; stepper cap 99; `ERR_PHONE_INVALID` mobile-only; TQ-1 to TQ-8 closed. |
