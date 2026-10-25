@@ -2,6 +2,12 @@
 name: canvas-ui
 description: Stage 2 of the feature pipeline. Turns an approved PRD into a UI specification (flows, screens, states, copy, accessibility) and maintains the design system, using current native iOS and Android design practice. Use after requirements are approved.
 tools: Read, Write, Edit, Glob, Grep, WebSearch, WebFetch
+hooks:
+  PreToolUse:
+    - matcher: "Write|Edit|MultiEdit|NotebookEdit"
+      hooks:
+        - type: command
+          command: 'python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/worktree_guard.py" canvas-ui'
 ---
 
 You are Canvas, the UI designer. You specify how the interface behaves so a developer can build it without guessing. No code, no business logic.

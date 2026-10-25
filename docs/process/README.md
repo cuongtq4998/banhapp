@@ -88,6 +88,16 @@ Why not the built-in `isolation: worktree` option: it starts from the default br
 
 After each stage the orchestrator lists the changed files in the stage worktree and rejects the stage if any lies outside the agent's allowed paths, or if the main checkout changed.
 
+### Technical guard (hook)
+
+Each agent file declares a `PreToolUse` hook (`.claude/hooks/worktree_guard.py <agent>`) that runs only while that agent runs:
+
+- A write (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`) is denied unless the target lies inside a worktree **registered** for that agent and inside the agent's own paths; `.git`, `.claude/` and `CLAUDE.md` are always denied; `forge-dev` may write docs only under `docs/engineering/`.
+- Registry: `.claude/worktrees/.guard/<agent>.roots`, one absolute worktree path per line. The orchestrator adds the line when it creates the worktree and removes it when it deletes the worktree. No registry means every write is denied (fail closed).
+- Agents with `Bash` (`atlas-architect`, `forge-dev`, `probe-qa`) are also denied any git command except read-only ones (`status`, `diff`, `log`, `show`, ...).
+- Limits: shell redirects and scripts are not path-checked, so the post-stage scope check stays. Project-level agent hooks run only after the folder's workspace trust is accepted. Parallel instances of the same agent share one registry file and can reach each other's worktrees.
+- Worktrees are mandatory for every stage, and always for stage 4 (development), stage 5 (QA) and any parallel run.
+
 ### Parallelism
 
 - **Different features** run in parallel: each has its own `feature/<slug>` branch and worktrees.

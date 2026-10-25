@@ -22,10 +22,11 @@ Every stage runs in a separate git worktree and branch; see "Worktrees" in `docs
 1. Make sure `feature/<slug>` has everything from earlier stages committed (`git status` clean on the feature branch). Never start a stage from uncommitted files.
 2. Create the worktree from the feature branch tip:
    `git worktree add -b stage/<slug>/<n>-<agent> .claude/worktrees/<slug>/<n>-<agent> feature/<slug>`
+2b. **Register the worktree for the guard hook** (without this the agent cannot write): `mkdir -p .claude/worktrees/.guard && echo "<absolute worktree path>" >> .claude/worktrees/.guard/<agent>.roots`.
 3. Delegate to the subagent with the Agent tool (types: `scribe-requirements`, `canvas-ui`, `atlas-architect`, `forge-dev`, `probe-qa`). Do **not** use the Agent tool's built-in `isolation` option: it starts from the default branch and would not contain earlier documents. Subagents start with empty context, so the prompt names: the slug, the **absolute worktree path** (all work must stay inside it), the input files to read, the output files to write, and the Ready gate you checked.
 4. Verify in the worktree: output files exist and follow the header block; `git -C <worktree> status --short` lists only files inside the agent's allowed paths (see README "Write ownership"); the main checkout is unchanged. Reject the stage (keep the worktree for inspection) otherwise.
 5. Commit in the worktree with `git -C <worktree> add` (only the stage's files) and a message starting with the agent name. Agents never run git.
-6. Merge into the feature branch from the main checkout: `git merge --no-ff stage/<slug>/<n>-<agent>`. Then `git worktree remove .claude/worktrees/<slug>/<n>-<agent>` and `git branch -d stage/<slug>/<n>-<agent>`. On a merge conflict, stop and report; it means write ownership was violated.
+6. Merge into the feature branch from the main checkout: `git merge --no-ff stage/<slug>/<n>-<agent>`. Then `git worktree remove .claude/worktrees/<slug>/<n>-<agent>`, `git branch -d stage/<slug>/<n>-<agent>`, and delete that worktree's line from `.claude/worktrees/.guard/<agent>.roots`. On a merge conflict, stop and report; it means write ownership was violated.
 7. Update `docs/pipeline/<slug>/run.md` on the feature branch and commit it.
 
 Stage 4 may fan out into parallel `forge-dev` instances (one worktree per component) as described in the README. Fix rounds create new worktrees from the current tip.
