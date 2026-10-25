@@ -57,6 +57,7 @@ Features are built by a pipeline of subagents orchestrated from this session. Re
 
 - Agents: `scribe-requirements` (PRD), `canvas-ui` (UI spec), `atlas-architect` (system docs, ADRs), `forge-dev` (code), `probe-qa` (tests). Definitions are in `.claude/agents/`; the entry point is `/feature <business description>`.
 - The product owner provides business intent only. Agents decide technical matters, research them and record sources. Ask the owner only for money, security or customer data, hard-to-reverse choices, or differing business behavior; ask everything in one batch.
+- After each completed step, commit and push `feature/<slug>` (scan the unpushed diff for sensitive data first; the repo is public).
 - The owner approves exactly two points: the requirements and the final pull request. Agents never merge.
 - The repository is **public**: never write secrets, tokens, real hostnames, account IDs or real personal data into code, docs, commits or pull requests. Use placeholders and fake data; configuration through variable names in `.env.example`.
 - Documents are in English, edited in place with version labels `[vX.Y | YYYY-MM-DD]` on changed lines.

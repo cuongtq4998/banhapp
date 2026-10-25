@@ -28,6 +28,7 @@ Every stage runs in a separate git worktree and branch; see "Worktrees" in `docs
 5. Commit in the worktree with `git -C <worktree> add` (only the stage's files) and a message starting with the agent name. Agents never run git.
 6. Merge into the feature branch from the main checkout: `git merge --no-ff stage/<slug>/<n>-<agent>`. Then `git worktree remove .claude/worktrees/<slug>/<n>-<agent>`, `git branch -d stage/<slug>/<n>-<agent>`, and delete that worktree's line from `.claude/worktrees/.guard/<agent>.roots`. On a merge conflict, stop and report; it means write ownership was violated.
 7. Update `docs/pipeline/<slug>/run.md` on the feature branch and commit it.
+8. **Push after every completed step** (the owner's standing instruction): scan the unpushed commits first (`git diff @{u}..HEAD -U0`, looking for keys, tokens, passwords, connection strings, real hosts and IPs, real phone numbers or names; the repository is public), fix any hit, then `git push origin feature/<slug>`. Stage branches stay local. A step is a merged stage, an owner decision recorded in documents, or a process change.
 
 Stage 4 may fan out into parallel `forge-dev` instances (one worktree per component) as described in the README. Fix rounds create new worktrees from the current tip.
 

@@ -147,5 +147,6 @@ Each agent file declares a `PreToolUse` hook (`.claude/hooks/worktree_guard.py <
 ## Git and pull request
 
 - One commit per completed stage, made by the orchestrator in the stage worktree (message begins with the agent name).
+- After every completed step the orchestrator scans the unpushed commits for sensitive data and **pushes `feature/<slug>`** to GitHub. Stage branches stay local.
 - The pipeline ends by pushing `feature/<slug>` (stage branches stay local) and opening a pull request. Agents never merge.
 - The repository is public: no sensitive data in files, commits or pull request text.
