@@ -17,18 +17,55 @@ All documents follow `standards/00-common.md`. Folder layout: `docs/product`, `d
 ## Flow
 
 ```mermaid
-flowchart LR
+flowchart TD
   Owner([Product owner]) -->|/feature description| Req[scribe-requirements]
   Req -->|PRD| G1{{Owner approves PRD}}
   G1 --> UI[canvas-ui]
-  UI --> Arch[atlas-architect]
-  Arch --> Dev[forge-dev]
-  Dev --> QA[probe-qa]
+  G1 --> Arch[atlas-architect]
+  G1 --> QA0[probe-qa: test plan and review]
+  G1 --> Dev0[forge-dev: feasibility review]
+  Dev0 -->|questions| Router{{Orchestrator routes}}
+  QA0 -->|questions| Router
+  Arch -->|queries| Router
+  UI -->|queries| Router
+  Router -->|requirement| Req
+  Router -->|screen or copy| UI
+  Router -->|technical| Arch
+  Router -->|business or escalation| Owner
+  Arch -->|contracts and ADRs Accepted| Dev[forge-dev: implement by slice]
+  UI -->|UI no blocking questions| Dev
+  Dev --> QA[probe-qa: run tests on a fixed commit]
   QA -->|code defect, max 3 rounds| Dev
-  QA -->|requirement mismatch| Req
+  QA -->|requirement mismatch| Router
   QA -->|verdict pass| PR[[Pull request]]
   PR --> G2{{Owner reviews and merges}}
 ```
+
+## Concurrent start
+
+Development and QA do not wait for design and architecture to finish. Right after the owner approves the PRD, four agents start at once, each in its own worktree:
+
+| Agent | Early mode (documents still draft) | Output |
+| ----- | ---------------------------------- | ------ |
+| `canvas-ui` | Writes the UI specification | `docs/design/` |
+| `atlas-architect` | Designs architecture, data, API, ADRs | `docs/system/`, `docs/decisions/` |
+| `probe-qa` | Writes the test plan from the PRD acceptance criteria, UI states and API drafts, and reviews all documents for contradictions and untestable items | `docs/test/`, plus questions |
+| `forge-dev` | Reviews feasibility, proposes the slice plan and migration steps; writes no code yet | Report with questions |
+
+Questions return to the orchestrator, which sends each to the agent that owns the answer (see Question routing). That agent **updates its document in place** (version bump, labelled lines, change log). The orchestrator then tells every consumer to resync: it merges the new `feature/<slug>` tip into the consumer's stage branch (`git -C <worktree> merge feature/<slug>`) and points the consumer at the labelled lines.
+
+Implementation starts only when the "Ready gate" conditions hold: PRD `Approved`; UI without blocking questions; data model, API and workflows complete; every ADR for the technology involved `Accepted`. Then `forge-dev` builds slice by slice (parallel instances per component allowed) while `probe-qa` turns its plan into executable tests and runs them against a fixed commit. A defect report names the commit it was found on; the fix is merged, then `probe-qa` retests on the new commit.
+
+### Question routing
+
+| Question is about | Goes to | Result |
+| ----------------- | ------- | ------ |
+| What the product should do, business rules, acceptance criteria | `scribe-requirements` (and the owner for business choices) | PRD updated |
+| Screens, states, copy, accessibility | `canvas-ui` | UI document updated |
+| Data, API, workflows, security, technology | `atlas-architect` | System documents or ADR updated |
+| Money, security or customer data, hard to reverse, visible business behavior | Owner (one batch) | Answer recorded by the owning agent |
+
+A question that bounces between agents more than twice goes to the owner.
 
 ## Orchestration
 
@@ -40,7 +77,7 @@ The main Claude Code session orchestrates (skill `.claude/skills/feature`). Suba
 
 ## Gates
 
-Only two gates need the owner: **PRD approval** and the **final pull request**. Between them agents proceed on their own. A stage starts only when the previous document meets its "Ready gate" in its standard.
+Only two gates need the owner: **PRD approval** and the **final pull request**. Between them agents proceed on their own. The "Ready gate" in each standard controls when **implementation** may start; it does not stop agents from reviewing and planning early.
 
 ## Escalation to the owner
 
@@ -55,7 +92,8 @@ Business questions always go to the owner. Technical questions are answered by t
 
 ## Loops
 
-- `probe-qa` finds a code defect: back to `forge-dev`. Maximum three rounds; after that the orchestrator asks the owner.
+- `probe-qa` finds a code defect: back to `forge-dev`. Maximum three rounds (a round is report, fix, retest); after that the orchestrator asks the owner.
+- `forge-dev` or `probe-qa` finds a question, gap or contradiction in a document: it is routed to the owning agent, which updates the document; consumers resync. No round limit, except the bounce rule under Question routing.
 - `probe-qa` finds behavior that contradicts or is missing from the requirements: the orchestrator asks `scribe-requirements` to clarify. Business questions go on to the owner.
 
 ## Worktrees (isolation)

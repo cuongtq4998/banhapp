@@ -29,7 +29,9 @@ ALLOWED = {
     "scribe-requirements": [r"^docs/product/"],
     "canvas-ui": [r"^docs/design/"],
     "atlas-architect": [r"^docs/system/", r"^docs/decisions/"],
-    "probe-qa": [r"^docs/test/", r"(^|/)([A-Za-z]*[Tt]ests?|androidTest)/"],
+    # QA code lives in a separate qa/ folder per component so it never collides
+    # with the developer's unit tests (forge-dev may not write qa/).
+    "probe-qa": [r"^docs/test/", r"(^|/)qa/"],
     "forge-dev": None,
 }
 PROTECTED = [r"^\.git(/|$)", r"^\.claude/", r"^CLAUDE\.md$"]
@@ -92,6 +94,8 @@ def check_write(tool_input):
         if rel.startswith("docs/") and not rel.startswith("docs/engineering/"):
             deny("Guard: forge-dev may write docs only under docs/engineering/. "
                  "Report other document changes to the orchestrator.")
+        if re.search(r"(^|/)qa/", rel):
+            deny("Guard: qa/ folders belong to probe-qa; put unit tests in the component's own test target.")
         return
     if not any(re.search(p, rel) for p in allowed):
         deny("Guard: agent '%s' may not write '%s'. Allowed: %s" % (AGENT, rel, ", ".join(allowed) or "none"))

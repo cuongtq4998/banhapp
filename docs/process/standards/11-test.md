@@ -29,3 +29,5 @@ Update trigger: the feature or its requirements change, or a test round runs. Ed
 3. Each case is repeatable by someone else. Data is fake.
 4. The verdict is Pass only when all Must ACs pass and no open defect has high severity.
 5. Maximum three test-and-fix rounds before the orchestrator asks the product owner.
+6. Early mode: the plan exists before the code. Mark results `Not run`; record which documents (and versions) the plan is based on, and update the plan when they change.
+7. Execute mode: every result and defect names the commit it was observed on. Executable QA tests live in a `qa/` folder per component; developer unit tests stay in the component's own test target.
