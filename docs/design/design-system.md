@@ -2,7 +2,7 @@
 
 | Field        | Value                                                                 |
 | ------------ | --------------------------------------------------------------------- |
-| Version      | 1.0                                                                   |
+| Version      | 1.1                                                                   |
 | Last updated | 2026-10-25                                                            |
 | Status       | Draft                                                                 |
 | Owner        | canvas-ui                                                             |
@@ -110,7 +110,7 @@ All text scales with the system setting (iOS up to the largest accessibility siz
 | `elevation.card` | Glass cards | Liquid Glass regular, soft shadow 0/8 blur 24 at 10% | Tonal surface level 1 plus blurred translucent fill where supported, shadow 2 dp |
 | `elevation.bar` | Floating bottom action bar | Liquid Glass regular, floats 8 pt above the safe area | Floating toolbar, tonal level 3, floats 8 dp above navigation bar inset |
 | `elevation.sheet` | Sheets, pickers | System sheet material | Modal bottom sheet, tonal level 1 |
-| `material.fallback` | Glass fallback | `Material` (ultra thin) over `color.surface.solid` | `color.surface.solid` at 94% without blur |
+| `material.fallback` | Glass fallback [v1.1 | 2026-10-25] (iOS 17 to 25; Android 8.0 to 11 and any version with reduced transparency) | `Material` (ultra thin) over `color.surface.solid`, hairline `color.surface.stroke` | `color.surface.solid` at 94% without blur (opaque card) |
 
 ### 2.6 Motion
 
@@ -136,7 +136,8 @@ Platform mapping column gives the native building block (names are indicative; t
 | `BottomActionBar` | Floating bar holding the screen's primary (and secondary) action | One or two buttons stacked | Default, Disabled action, Loading action | Floating Liquid Glass bar | Floating toolbar or flexible bottom app bar (M3 Expressive) |
 | `PrimaryButton` | Main action | Full width | Default, Pressed, Disabled, Loading | Prominent glass button style, tinted `color.primary`, capsule | Filled button, stadium, `color.primary` |
 | `SecondaryButton` | Alternative action | Full width | Default, Pressed, Disabled | Glass button style (non-prominent) | Tonal button (`color.primaryContainer`) |
-| `ContactButton` | Zalo or phone shortcut | Zalo, Phone (icon plus label) | Default, Pressed, Disabled | Glass capsule with label | Tonal button in a `ButtonGroup` |
+| `ContactButton` | Zalo or phone shortcut | Zalo (generic chat icon plus the word "Zalo"; no brand mark, ADR-0015) [v1.1 | 2026-10-25], Phone (phone icon plus label) | Default, Pressed, Disabled | Glass capsule with label; `material.fallback` capsule on iOS 17 to 25 | Tonal button in a `ButtonGroup` |
+| `QuantityStepper` limits | [v1.1 | 2026-10-25] Value from 0 to 99; plus disabled at 99 with no message | | | | |
 | `ProductCard` | Product in list | List row with `size.thumb` image, name, description (two lines max), price | Default, Pressed, Loading (skeleton), Image failed | `GlassCard` tappable | `GlassCard` tappable, expressive shape on image |
 | `QuantityStepper` | Choose quantity 0 and up | Minus, value, plus | Default, Min (minus disabled at 0), Pressed | Custom capsule with two buttons; value is a label | Button group with two icon buttons around a label |
 | `StepIndicator` | "Step n of 4" | Text plus progress segments | Current, done | Segmented capsule | Segmented progress (linear) |
@@ -154,8 +155,10 @@ Platform mapping column gives the native building block (names are indicative; t
 
 Fallbacks for older systems:
 
-- iOS before the Liquid Glass release: `GlassCard`, `BottomActionBar` and glass buttons render with `material.fallback`; layout and sizes stay identical. Which versions are supported is a technical question (see Open Questions).
-- Android without `RenderEffect` blur, or with "remove animations" or reduced transparency: `color.surface.solid`, no blur, same layout.
+- [v1.1 | 2026-10-25] Minimum versions (owner decision, ADR-0005): iOS 17 and Android 8.0 (API 26).
+- iOS 17 to 25 (before Liquid Glass): `GlassCard` and `BottomActionBar` render with `material.fallback` (system material blur over `color.surface.solid`, hairline stroke); `PrimaryButton` is a filled capsule in `color.primary`, `SecondaryButton` and `ContactButton` are material capsules; no glass morphing between shapes. Layout and sizes stay identical. iOS 26 and later: Liquid Glass.
+- Android 12 (API 31) and later: translucent tonal cards over natively blurred background blobs. Android 8.0 to 11 (API 26 to 30): opaque cards and bar with `color.surface.solid` at 94%, no blur, blobs as flat soft gradients, same layout. No paid or third-party blur library (ADR-0012).
+- Reduce Transparency, Increase Contrast, remove animations or high-contrast text on any version: `material.fallback`.
 
 ## 4. Motion & Haptics
 
@@ -188,11 +191,12 @@ Component specifics are in the feature document.
 
 | ID | Question | Why it matters | Blocking | Class | Status | Answer |
 | -- | -------- | -------------- | -------- | ----- | ------ | ------ |
-| DS-Q1 | Minimum iOS and Android versions (Liquid Glass needs iOS 26; Material 3 Expressive depends on the Compose Material3 release) | Decides how much of the fallback is built | No | technical | Open (architect, same as Q-T3 in the PRD) | |
-| DS-Q2 | Is paid or third-party UI tooling allowed (for example a blur library for Android below API 31)? | Fallback cost | No | technical | Open (architect) | |
+| DS-Q1 | Minimum iOS and Android versions (Liquid Glass needs iOS 26; Material 3 Expressive depends on the Compose Material3 release) | Decides how much of the fallback is built | No | technical | Closed [v1.1 | 2026-10-25] | iOS 17 and Android 8.0 (API 26), owner decision; ADR-0005 |
+| DS-Q2 | Is paid or third-party UI tooling allowed (for example a blur library for Android below API 31)? | Fallback cost | No | technical | Closed [v1.1 | 2026-10-25] | No; native only (ADR-0012) |
 
 ## 7. Change log
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version created with the place-order feature. |
+| 1.1 | 2026-10-25 | Minimum OS versions fixed (iOS 17, Android 8.0) and fallbacks defined per level; `material.fallback` applicability; `ContactButton` Zalo uses generic icon plus word; stepper range 0 to 99; DS-Q1 and DS-Q2 closed. |
