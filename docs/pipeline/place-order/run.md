@@ -3,7 +3,7 @@
 | Field | Value |
 | ----- | ----- |
 | Branch | feature/place-order |
-| Current stage | 2 - UI specification (in progress) |
+| Current stage | 3 - architecture (in progress) |
 | Fix rounds used | 0 of 3 |
 
 ## Approvals
@@ -24,3 +24,4 @@ None yet.
 | 2026-10-25 | 0 | Request written; branch created |
 | 2026-10-25 | 1 | Requirements v1.0 drafted; owner answered business questions with defaults; v1.1 in review |
 | 2026-10-25 | 1 | Owner approved requirements; v1.2 Approved; merged |
+| 2026-10-25 | 2 | UI specification v1.0 and design system v1.0 merged; 8 technical questions for architect |
