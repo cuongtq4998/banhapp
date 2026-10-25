@@ -2,9 +2,9 @@
 
 | Field        | Value                                                        |
 | ------------ | ------------------------------------------------------------ |
-| Version      | 1.0                                                          |
+| Version      | 1.1                                                          |
 | Last updated | 2026-10-25                                                   |
-| Status       | Draft                                                        |
+| Status       | In review                                                    |
 | Owner        | scribe-requirements                                          |
 | Based on     | docs/pipeline/place-order/00-request.md (2026-10-25)         |
 | Related      | UI mockups (reference only): https://claude.ai/artifact/HcWoUjBbqA9B1WUvZ3RKCb |
@@ -22,17 +22,19 @@ The shop sells traditional Vietnamese sticky-rice cakes (banh tet) on pre-order 
 ### Goals
 
 - G-1: A customer can go from app launch to a confirmed order in at most 6 steps after tapping "Place order" (cakes, date and time, address, review, confirm) without creating an account.
-- G-2: No accepted order breaks any ordering rule (BR-1 to BR-4): 0 orders accepted that exceed the daily limit, violate lead time, target an unserved district or fall below the minimum quantity.
+- G-2: No accepted order breaks any ordering rule (BR-1 to BR-4, BR-8): 0 orders accepted that exceed the daily limit, violate lead time or the 30-day horizon, target an unserved district or fall below the minimum quantity. [v1.1 | 2026-10-25]
 - G-3: Every confirmed order gets an order code that the customer can quote to the shop.
 
 ### Non-goals
 
-- Online payment (undecided; see Q-9).
+- Online payment and any payment text in the app; payment happens outside the app (Q-9, answered). [v1.1 | 2026-10-25]
 - Order tracking, status display or cancellation in the app.
 - Customer accounts, login, order history.
 - Staff and owner features: login by phone with one-time code, order list and statuses (New, Confirmed, Completed, Cancelled), owner configuration of products, prices, districts and fees, daily limit, time slots, shop information, staff; push notifications.
 - Pickup at the shop (only delivery to the door is requested).
 - More than the four products, or product variations.
+- Special dates (e.g. Tet) with different limits, lead times or closed days: rules apply uniformly in this slice (Q-11). [v1.1 | 2026-10-25]
+- Free delivery or delivery fee discounts. [v1.1 | 2026-10-25]
 
 ## 4. Users & Scenarios
 
@@ -54,38 +56,45 @@ Scenarios:
 | FR-1 | The system shall show a logo-only launch screen on app start, then the home screen. | Must |
 | FR-2 | The system shall show on the home screen the shop name, a short greeting, a Zalo contact button, a phone contact button, a "View products" button and a "Place order" button. | Must |
 | FR-3 | The system shall list the four cakes, each with picture, name, short description and current price. | Must |
-| FR-4 | The system shall show a detail view for each cake with a button that starts an order including that cake. | Must |
+| FR-4 | The system shall show a detail view for each cake with a button that starts an order including that cake at quantity 1. [v1.1 | 2026-10-25] | Must |
 | FR-5 | The system shall let the customer choose a quantity per cake for any of the four cakes in one order. | Must |
-| FR-6 | The system shall let the customer choose a receiving date; dates that are full (BR-1) or earlier than the lead time (BR-2) shall not be selectable. | Must |
-| FR-7 | The system shall let the customer choose a receiving time from the shop's delivery time slots. | Must |
+| FR-6 | The system shall let the customer choose a receiving date; dates that cannot hold the whole order (BR-1), are earlier than the lead time (BR-2) or are later than the booking horizon (BR-8) shall not be selectable. [v1.1 | 2026-10-25] | Must |
+| FR-7 | The system shall let the customer choose a receiving time from one fixed list of delivery time slots that is the same for every date. [v1.1 | 2026-10-25] | Must |
 | FR-8 | The system shall collect the customer's name, phone number and delivery address, and the district from the served list (BR-3). | Must |
-| FR-9 | The system shall show a review of the order before confirmation: cakes, quantities, line prices, delivery fee, total, date, time, name, phone and address. | Must |
-| FR-10 | The system shall block confirmation and tell the customer the reason in Vietnamese when any ordering rule (BR-1 to BR-4) is not met. | Must |
-| FR-11 | The system shall, on confirmation, record the order and show only a confirmation screen with a unique order code. | Must |
+| FR-9 | The system shall show a review of the order before confirmation: cakes, quantities, line prices, delivery fee, total, date, time, name, phone, address and note if entered. [v1.1 | 2026-10-25] | Must |
+| FR-10 | The system shall block confirmation and tell the customer the reason in Vietnamese when any ordering rule (BR-1 to BR-4, BR-8) is not met. [v1.1 | 2026-10-25] | Must |
+| FR-11 | The system shall, on confirmation, record the order and show only a confirmation screen with a unique order code and a message that the order is received and the shop will contact the customer (not that it is accepted). [v1.1 | 2026-10-25] | Must |
 | FR-12 | The system shall show Zalo and phone contact buttons on the confirmation screen. | Should |
 | FR-13 | The system shall validate required fields (name, phone, address, district) and show the error next to the field. | Must |
 | FR-14 | The system shall show all customer-facing text in Vietnamese. | Must |
 | FR-15 | The system shall let the customer return to a previous step in the order flow without losing entered data. | Should |
 | FR-16 | The system shall prevent one confirmation tap sequence from creating duplicate orders (repeated taps or retry create at most one order). | Must |
 | FR-17 | The system shall show a clear message and keep entered data when the order cannot be sent (no connection or server error). | Must |
+| FR-18 | The system shall let the customer enter one optional free-text order note of at most 200 characters and shall keep it with the order. [v1.1 | 2026-10-25] | Should |
+| FR-19 | The system shall show no payment information or payment instruction anywhere in the app. [v1.1 | 2026-10-25] | Must |
 
 ## 6. Business Rules
 
-All values are shop parameters (not yet provided; see Open Questions). The system shall read them as configuration, not as fixed values in the requirements.
+All numeric and list values are shop parameters. The system shall read them as configuration, not as fixed values in the requirements. Values already decided are stated here; values the shop must still supply are in "Launch data to be provided by the shop" (section 12.1). [v1.1 | 2026-10-25]
 
 | ID | Rule |
 | -- | ---- |
-| BR-1 | Daily limit: the total number of cakes accepted for one receiving date shall not exceed DAILY_LIMIT. A date where the limit is reached cannot be chosen. An order that would push a date over the limit shall not be accepted (see Q-2 for counting scope and partial availability). |
-| BR-2 | Lead time: the receiving date shall be at least LEAD_DAYS (N) days after the order date. How a day is counted is Q-4. |
-| BR-3 | Delivery area: delivery is only to districts on the served list. The delivery fee is the fee of the district chosen. |
-| BR-4 | Minimum quantity: the total number of cakes in one order shall be at least MIN_QTY. |
-| BR-5 | Order total = sum of (current price x quantity) for each cake + delivery fee. Prices are those shown at the time of review. Currency and rounding: Q-8. |
+| BR-1 | Daily limit: one shared total of cakes of all four products per receiving date shall not exceed DAILY_LIMIT. A date is selectable only if its remaining amount (DAILY_LIMIT minus cakes already accepted for that date) is at least the total number of cakes in the order. An order that would push a date over the limit shall not be accepted. A cancelled order returns its cakes to the date's remaining amount (BR-9). The value of DAILY_LIMIT is provided by the shop. [v1.1 | 2026-10-25] |
+| BR-2 | Lead time: the receiving date shall be at least LEAD_DAYS calendar days after the order date; LEAD_DAYS is 2. Days are counted in calendar days with no daily cut-off time: an order placed at any time on day D can be received from D+2. [v1.1 | 2026-10-25] |
+| BR-3 | Delivery area: delivery is only to districts on the served list. The delivery fee is the flat fee of the district chosen; there is no free delivery. The district list and fees are provided by the shop. [v1.1 | 2026-10-25] |
+| BR-4 | Minimum quantity: the total number of cakes in one order shall be at least MIN_QTY; MIN_QTY is 2. There is no maximum per order other than the remaining amount of the chosen date (BR-1). [v1.1 | 2026-10-25] |
+| BR-5 | Order total = sum of (current price x quantity) for each cake + delivery fee. Prices are those shown at the time of review. Currency is Vietnamese dong (VND), amounts in whole dong (rounding is not needed when prices are whole dong). [v1.1 | 2026-10-25] |
 | BR-6 | Prices may change; an order keeps the prices shown to the customer at confirmation. |
-| BR-7 | Identity: no account. An order is identified by its order code and holds the name, phone number and address given. |
+| BR-7 | Identity: no account. An order is identified by its order code and holds the name, phone number, address and note given. [v1.1 | 2026-10-25] |
+| BR-8 | Booking horizon: the receiving date shall be no more than MAX_DAYS_AHEAD (30) calendar days after the order date. [v1.1 | 2026-10-25] |
+| BR-9 | Cancellation and capacity: when an order is later cancelled by the shop, its cakes count again toward the remaining amount of its receiving date. Cancellation itself is outside this slice. [v1.1 | 2026-10-25] |
+| BR-10 | Uniform rules: the same limit, lead time, slots and fees apply on every date; no closed days or special dates in this slice. [v1.1 | 2026-10-25] |
+| BR-11 | Slot capacity: delivery time slots have no capacity of their own; capacity is counted per day only (BR-1). [v1.1 | 2026-10-25] |
+| BR-12 | Contact data retention: name, phone number and address are kept only while needed to fulfil the order. The concrete period will be stated by the owner later (see 12.1). [v1.1 | 2026-10-25] |
 
 ## 7. Acceptance Criteria
 
-Parameter names (LEAD_DAYS, DAILY_LIMIT, MIN_QTY) stand for the shop's values; test data uses fake values agreed at test time.
+Parameter names (LEAD_DAYS, DAILY_LIMIT, MIN_QTY, MAX_DAYS_AHEAD) stand for the shop's configured values; DAILY_LIMIT and other launch data use fake values agreed at test time. [v1.1 | 2026-10-25]
 
 | ID | Checks | Given / When / Then |
 | -- | ------ | ------------------- |
@@ -93,17 +102,17 @@ Parameter names (LEAD_DAYS, DAILY_LIMIT, MIN_QTY) stand for the shop's values; t
 | AC-2 | FR-2 | Given the home screen, then shop name, greeting, Zalo button, phone button, "View products" and "Place order" are visible. |
 | AC-3 | FR-2 | Given the home screen, when the Zalo or phone button is tapped, then the device opens Zalo or the phone dialer with the shop's number. |
 | AC-4 | FR-3 | Given "View products" is tapped, then exactly four cakes are listed, each with picture, name, description and price. |
-| AC-5 | FR-4 | Given a cake detail, when its order button is tapped, then the order flow opens with that cake at quantity 1 (default, see Q-13). |
+| AC-5 | FR-4 | Given a cake detail, when its order button is tapped, then the order flow opens with that cake at quantity 1. [v1.1 | 2026-10-25] |
 | AC-6 | FR-5 | Given the cake step, when quantities 2, 0, 3, 0 are entered, then the review lists only the two cakes with quantity above 0. |
-| AC-7 | FR-6, BR-2 | Given today is D and LEAD_DAYS is N, when the date picker opens, then no date earlier than D+N can be selected. |
-| AC-8 | FR-6, BR-1 | Given a date already holds DAILY_LIMIT cakes, when the date picker opens, then that date cannot be selected. |
-| AC-9 | FR-10, BR-1 | Given a date has R cakes remaining and the order has more than R cakes, when the customer tries to proceed, then the order is not confirmed and the message states the rule broken. |
-| AC-10 | FR-7 | Given a date is chosen, then only the shop's time slots are offered and one must be chosen to proceed. |
-| AC-11 | FR-8, BR-3 | Given the address step, when a district is chosen, then the delivery fee for that district is shown; a district not on the list cannot be chosen. |
+| AC-7 | FR-6, BR-2 | Given today is D, when the date picker opens, then no date earlier than D+2 can be selected, whatever the time of day. [v1.1 | 2026-10-25] |
+| AC-8 | FR-6, BR-1 | Given a date has R cakes remaining and the order has more than R cakes, when the date picker opens, then that date cannot be selected; a date with R at least the order size can be selected. [v1.1 | 2026-10-25] |
+| AC-9 | FR-10, BR-1 | Given a date was selectable and by confirmation time fewer cakes remain than the order has, when the customer tries to confirm, then the order is not confirmed and the message says the date no longer has enough capacity. [v1.1 | 2026-10-25] |
+| AC-10 | FR-7, BR-11 | Given the time step, then the same fixed list of slots is offered for any chosen date, one must be chosen to proceed, and choosing a slot does not change which dates are available. [v1.1 | 2026-10-25] |
+| AC-11 | FR-8, BR-3 | Given the address step, when a district is chosen, then the flat delivery fee for that district is shown and no free-delivery case exists; a district not on the list cannot be chosen. [v1.1 | 2026-10-25] |
 | AC-12 | FR-13 | Given a required field is empty or the phone number is not a valid number, when the customer proceeds, then an error appears next to the field and the flow does not advance. |
-| AC-13 | FR-10, BR-4 | Given total quantity is below MIN_QTY, when the customer tries to confirm, then confirmation is blocked and the minimum is stated. |
+| AC-13 | FR-10, BR-4 | Given total quantity is 1, when the customer tries to confirm, then confirmation is blocked and the minimum of 2 cakes is stated; given total quantity 2 or more within the day's remaining amount, no quantity error appears. [v1.1 | 2026-10-25] |
 | AC-14 | FR-9, BR-5 | Given 2 of cake A at price a, 1 of cake B at price b and district fee f, when the review is shown, then the total equals 2a + b + f. |
-| AC-15 | FR-11, BR-7 | Given a valid order, when the customer confirms, then only a confirmation screen with an order code appears, with no tracking or cancel option, and the order is stored with the entered name, phone and address. |
+| AC-15 | FR-11, BR-7 | Given a valid order, when the customer confirms, then only a confirmation screen with an order code appears, with no tracking or cancel option, and the order is stored with the entered name, phone, address and note. [v1.1 | 2026-10-25] |
 | AC-16 | FR-11 | Given two confirmed orders, then their order codes differ. |
 | AC-17 | FR-12 | Given the confirmation screen, then Zalo and phone buttons are visible and work as in AC-3. |
 | AC-18 | FR-15 | Given the customer is on the review step with data entered, when going back to the cake step and forward again, then all entered data is still present. |
@@ -112,12 +121,18 @@ Parameter names (LEAD_DAYS, DAILY_LIMIT, MIN_QTY) stand for the shop's values; t
 | AC-21 | FR-14 | Given any screen or error message, then its text is in Vietnamese. |
 | AC-22 | BR-1 | Given two customers confirm at the same time when only enough capacity remains for one, then exactly one order is accepted and the other is told the date is no longer available. |
 | AC-23 | BR-6 | Given a price changes after an order was confirmed, then the confirmed order still shows the price at confirmation. |
+| AC-24 | FR-6, BR-8 | Given today is D, when the date picker opens, then no date later than D+30 can be selected, and D+30 itself can be selected if capacity allows. [v1.1 | 2026-10-25] |
+| AC-25 | FR-11 | Given an order is confirmed, then the confirmation text says the order is received and the shop will contact the customer, and does not say the order is accepted or guaranteed. [v1.1 | 2026-10-25] |
+| AC-26 | FR-18 | Given the order flow, when the customer enters a note of 200 characters, then it is accepted and shown on the review; when 201 characters are entered, then the extra character is rejected with a message next to the field; when no note is entered, then the order can still be confirmed. [v1.1 | 2026-10-25] |
+| AC-27 | FR-19 | Given any screen of the app including the review and confirmation, then no payment note, payment method or payment instruction is shown. [v1.1 | 2026-10-25] |
+| AC-28 | BR-1, BR-9 | Given a date with a cake count at the limit, when an order for that date is cancelled (by whatever means exist), then the date's remaining amount increases by the order's cakes and the date can be selected again for orders that fit. [v1.1 | 2026-10-25] |
+| AC-29 | FR-2, FR-3 | Given the shop has not yet supplied prices, shop name, greeting, Zalo or phone, then the values shown are sample values that are marked as sample data in the data source, and no real personal data appears. [v1.1 | 2026-10-25] |
 
 ## 8. Non-functional
 
 - Language: Vietnamese for all customer text.
 - Platforms: iOS and Android phones. Look and feel is native: Liquid Glass on iOS, Material 3 Expressive on Android (design-level; minimum OS versions are Q-T3).
-- Privacy: the app collects name, phone number and address. It shall tell the customer what is collected and why before confirmation, and shall not collect more than the order needs. Store listings require a privacy disclosure (Q-T4). Apple's guideline requires that apps not force sign-in unless account features need it, which matches the no-account decision (source S-2).
+- Privacy: the app collects name, phone number, address and an optional note. It shall tell the customer what is collected and why before confirmation, and shall not collect more than the order needs. Data is kept only while needed for fulfilment (BR-12). Store listings require a privacy disclosure (Q-T4). Apple's guideline requires that apps not force sign-in unless account features need it, which matches the no-account decision (source S-2). [v1.1 | 2026-10-25]
 - Accessibility: text scales with the system font size; every control has a text label for screen readers; contrast meets WCAG 2.2 AA (4.5:1 for body text). Reasoning: public consumer app, store expectations (unverified as a store requirement).
 - Performance: the order submission shall give the customer a result (confirmation or error) within 10 seconds on a normal mobile connection, otherwise show an error (FR-17). Target value proposed; owner may adjust.
 - Cost: low running cost for a small shop (constraint, no number given; see Q-T5).
@@ -125,8 +140,8 @@ Parameter names (LEAD_DAYS, DAILY_LIMIT, MIN_QTY) stand for the shop's values; t
 ## 9. Impact & Dependencies
 
 - Staff and owner features (later): will read the orders created here and supply the values for products, prices, districts, fees, daily limit and slots. Until they exist, those values must come from another source (Q-T2).
-- Daily limit counting depends on how later cancellations affect capacity (Q-2, Q-12).
-- Payment feature (later, undecided): this slice must not collect payment details.
+- Daily limit counting depends on cancellations returning cakes (BR-9); cancellation is a later feature. [v1.1 | 2026-10-25]
+- Payment feature (later, undecided): this slice shows no payment text and must not collect payment details. [v1.1 | 2026-10-25]
 - Design canvas mockups: reference only; this document is authoritative.
 - External apps: Zalo and the device phone dialer.
 
@@ -134,40 +149,41 @@ Parameter names (LEAD_DAYS, DAILY_LIMIT, MIN_QTY) stand for the shop's values; t
 
 - A-1: Shop timezone is Vietnam (UTC+7); all dates and times are in it.
 - A-2: One order has one delivery date, time and address.
-- A-3: The daily limit counts all cakes of all four products together (Q-2 asks to confirm).
-- A-4: Orders are binding requests; the shop contacts or is contacted via Zalo/phone afterwards. The confirmation screen should not promise acceptance beyond "order received" until the owner answers Q-7.
-- A-5: Payment is settled outside the app (e.g. on delivery) until decided.
+- A-3: Removed in v1.1: confirmed by the owner as BR-1 (one shared total). [v1.1 | 2026-10-25]
+- A-4: Orders are requests; the shop contacts or is contacted via Zalo/phone afterwards. The confirmation says "order received, the shop will contact you" (FR-11). [v1.1 | 2026-10-25]
+- A-5: Payment is settled outside the app; the app shows no payment note (FR-19). [v1.1 | 2026-10-25]
 - A-6: Customers are in Vietnam; phone numbers are Vietnamese format (validation rule is Q-T6).
 - A-7: Sample and test data are fake.
+- A-8: The date's "order date" for BR-2 and BR-8 is the day the order is confirmed, in the shop timezone (A-1). [v1.1 | 2026-10-25]
 
 ## 11. Research & Sources
 
 | ID | Claim | Source (URL) | Read on | Confidence |
 | -- | ----- | ------------ | ------- | ---------- |
-| S-1 | Bakeries typically set lead times of about 24-72 hours for standard and custom items, longer for large custom orders; a firm daily cut-off time (often evening or early afternoon) is used for planning, and weekend limits are suggested to prevent overbooking. This informs Q-1, Q-2, Q-4. | https://roseperl.com/?p=22183 ; https://support.breadltd.co.uk/hc/en-us/articles/4415109505810-What-are-your-order-cut-off-times ; https://findhomegrown.com/blog/order-cutoff-times-food-business | 2026-10-25 | Low to medium (vendor and shop pages, no authoritative standard) |
+| S-1 | Bakeries typically set lead times of about 24-72 hours for standard and custom items, longer for large custom orders; a firm daily cut-off time (often evening or early afternoon) is used for planning, and weekend limits are suggested to prevent overbooking. This informed Q-1, Q-2, Q-4 (decided: 2 calendar days, no cut-off). | https://roseperl.com/?p=22183 ; https://support.breadltd.co.uk/hc/en-us/articles/4415109505810-What-are-your-order-cut-off-times ; https://findhomegrown.com/blog/order-cutoff-times-food-business | 2026-10-25 | Low to medium (vendor and shop pages, no authoritative standard) |
 | S-2 | Apple App Review Guideline 5.1.1: apps should not require sign-in or personal data unless relevant to core functionality; checkout may need identity details. Taken from forum quotations, not the guideline page. | https://developer.apple.com/forums/thread/835254 | 2026-10-25 | Low (secondhand; verify on the official guideline page) |
 | S-3 | Google Play Data safety requirements: not found in research. | not found | 2026-10-25 | Unverified |
 
 ## 12. Open Questions
 
-Business questions are for the product owner; technical questions are for the architect (atlas-architect). Recommended defaults are suggestions only, not decisions.
+Business questions are for the product owner; technical questions are for the architect (atlas-architect). No business question is open or blocking. [v1.1 | 2026-10-25]
 
 | ID | Question | Why it matters | Blocking | Class | Status | Answer |
 | -- | -------- | -------------- | -------- | ----- | ------ | ------ |
-| Q-1 | What is N, the minimum lead days between ordering and receiving? Default proposed: 2 days (S-1: 48 hours is common for baked goods that need preparation). | BR-2, AC-7. | Yes | business | Open | |
-| Q-2 | What is the daily cake limit, and does it count all four cakes together or per cake? Default proposed: one shared total. When a date has fewer cakes left than the customer wants, show the date as selectable only if the remaining amount covers the order (default), or let them reduce the order? | BR-1, AC-8, AC-9. | Yes | business | Open | |
-| Q-3 | What is the minimum total quantity per order? Default proposed: 2 cakes, to be confirmed by delivery cost. Also: is there a maximum per order? | BR-4, AC-13. | Yes | business | Open | |
-| Q-4 | How is lead time counted: whole days from the order date, or is there a daily cut-off time (e.g. orders after 18:00 count as the next day)? Default proposed: calendar days, no cut-off, simplest (S-1 shows cut-offs are common). | BR-2 edge cases. | No | business | Open | |
-| Q-5 | Which districts are served and what is the fee for each? Is delivery ever free above some amount? Default proposed: flat fee per district, no free delivery. | BR-3, AC-11, BR-5. | Yes | business | Open | |
-| Q-6 | Which delivery time slots exist (e.g. morning, afternoon) or can the customer pick any time? Do slots differ by weekday, and do slots have their own capacity? Default proposed: a short fixed list of slots, same every day, capacity only per day. | FR-7, AC-10. | Yes | business | Open | |
-| Q-7 | After confirming, is the order a request the shop may still decline (so wording says "received" rather than "accepted")? Default proposed: wording "order received, the shop will contact you". | Confirmation text, expectation of customers. | No | business | Open | |
-| Q-8 | What are the four cake prices (and currency/rounding in VND), and shop name, greeting, Zalo and phone contacts? Default proposed: placeholders marked as sample data until provided. | FR-2, FR-3, BR-5. | Yes (to ship; not to design) | business | Open | |
-| Q-9 | How does the customer pay in this period (cash on delivery, bank transfer on request)? Should the app display a payment note? Default proposed: show a short note "pay on delivery" only if the owner confirms; otherwise no payment text. | Customer expectation; deposit rules may affect the daily limit. | No | business | Open | |
-| Q-10 | How far ahead may a customer order (maximum days ahead)? Default proposed: 30 days. | Date picker range. | No | business | Open | |
-| Q-11 | Are there special dates (e.g. Tet, when demand is very high) with different limits, lead times or closed days? Default proposed: out of this slice; rules apply uniformly, closed days handled later by owner configuration. | Date availability. | No | business | Open | |
-| Q-12 | When staff later cancel an order, should its cakes return to the daily limit? Default proposed: yes. | BR-1 correctness over time. | No | business | Open | |
-| Q-13 | Can the customer add a note (e.g. delivery instructions, gift message)? Default quantity when starting from a cake detail: 1. Default proposed: one optional free-text note, 200 characters max. | FR-8, AC-5. | No | business | Open | |
-| Q-14 | Is the customer's contact data kept for how long, and who may see it? Default proposed: kept as long as the shop needs for fulfilment; owner states a period. | Privacy notice text. | No | business | Open | |
+| Q-1 | What is N, the minimum lead days between ordering and receiving? | BR-2, AC-7. | No | business | Answered [v1.1 | 2026-10-25] | N = 2 calendar days (BR-2). [v1.1 | 2026-10-25] |
+| Q-2 | What is the daily cake limit, and does it count all four cakes together or per cake? What if a date has fewer cakes left than wanted? | BR-1, AC-8, AC-9. | No | business | Answered [v1.1 | 2026-10-25] | One shared daily total across all four cakes. A date is selectable only if its remaining amount covers the order. The number is a shop parameter (DAILY_LIMIT), see 12.1. [v1.1 | 2026-10-25] |
+| Q-3 | What is the minimum total quantity per order, and is there a maximum? | BR-4, AC-13. | No | business | Answered [v1.1 | 2026-10-25] | Minimum 2 cakes; no maximum other than the day's remaining amount. [v1.1 | 2026-10-25] |
+| Q-4 | How is lead time counted: whole days or with a daily cut-off? | BR-2 edge cases. | No | business | Answered [v1.1 | 2026-10-25] | Calendar days, no daily cut-off. [v1.1 | 2026-10-25] |
+| Q-5 | Which districts are served and what is the fee for each? Is delivery ever free? | BR-3, AC-11, BR-5. | No | business | Answered [v1.1 | 2026-10-25] | Flat fee per district, no free delivery. List and fees are shop parameters, see 12.1. [v1.1 | 2026-10-25] |
+| Q-6 | Which delivery time slots exist? Do they differ by weekday or have own capacity? | FR-7, AC-10. | No | business | Answered [v1.1 | 2026-10-25] | A short fixed list of slots, same every day, capacity counted per day only. Slot times are a shop parameter, see 12.1. [v1.1 | 2026-10-25] |
+| Q-7 | After confirming, is the order a request the shop may still decline? | Confirmation text. | No | business | Answered [v1.1 | 2026-10-25] | Wording: "order received, the shop will contact you"; not "accepted" (FR-11, AC-25). [v1.1 | 2026-10-25] |
+| Q-8 | What are the four cake prices, shop name, greeting, Zalo and phone? | FR-2, FR-3, BR-5. | No | business | Answered [v1.1 | 2026-10-25] | Sample placeholders marked as sample data until the shop supplies them (AC-29); see 12.1. [v1.1 | 2026-10-25] |
+| Q-9 | How does the customer pay; should the app show a payment note? | Customer expectation. | No | business | Answered [v1.1 | 2026-10-25] | Payment happens outside the app; no payment note is shown (FR-19). [v1.1 | 2026-10-25] |
+| Q-10 | How far ahead may a customer order? | Date picker range. | No | business | Answered [v1.1 | 2026-10-25] | Up to 30 days ahead (BR-8). [v1.1 | 2026-10-25] |
+| Q-11 | Are there special dates with different rules? | Date availability. | No | business | Answered [v1.1 | 2026-10-25] | None in this slice; uniform rules (BR-10). [v1.1 | 2026-10-25] |
+| Q-12 | When staff later cancel an order, do its cakes return to the daily limit? | BR-1 over time. | No | business | Answered [v1.1 | 2026-10-25] | Yes (BR-9). [v1.1 | 2026-10-25] |
+| Q-13 | Can the customer add a note? Default quantity from a cake detail? | FR-8, AC-5. | No | business | Answered [v1.1 | 2026-10-25] | One optional note, 200 characters max (FR-18); default quantity 1 (FR-4). [v1.1 | 2026-10-25] |
+| Q-14 | How long is contact data kept and who may see it? | Privacy notice text. | No | business | Answered [v1.1 | 2026-10-25] | Kept while needed for fulfilment (BR-12); the retention period will be stated by the owner later, see 12.1. [v1.1 | 2026-10-25] |
 | Q-T1 | How is the daily limit enforced so that two simultaneous orders cannot both exceed it (AC-22), and how is a duplicate submission detected (AC-19)? | FR-16, BR-1. | No | technical | Open (architect) | |
 | Q-T2 | Until owner configuration exists, where do products, prices, districts, fees, limits and slots come from, and how will later staff features take them over without changing this slice? | Dependency on later features. | No | technical | Open (architect) | |
 | Q-T3 | Which minimum iOS and Android versions are targeted, given Liquid Glass and Material 3 Expressive availability? | Native look vs reach. | No | technical | Open (architect) | |
@@ -175,8 +191,22 @@ Business questions are for the product owner; technical questions are for the ar
 | Q-T5 | What hosting and running-cost ceiling fits a small shop? | Constraint "low cost". | No | technical | Open (architect) | |
 | Q-T6 | Phone number validation rules (Vietnamese formats, international numbers allowed?) and order code format (readable, not guessable)? | FR-8, FR-11. | No | technical | Open (architect) | |
 
+### 12.1 Launch data to be provided by the shop [v1.1 | 2026-10-25]
+
+These values are configuration, not requirements. They do not block approval of this document; they are needed before launch. Until supplied, clearly marked sample values are used (AC-29). [v1.1 | 2026-10-25]
+
+| Item | Used by | Status |
+| ---- | ------- | ------ |
+| DAILY_LIMIT: number of cakes per day (shared across all four) | BR-1 | To be provided |
+| Served districts and flat delivery fee for each (VND) | BR-3, BR-5 | To be provided |
+| Delivery time slot list (start and end times, same every day) | FR-7 | To be provided |
+| Prices of the four cakes (VND) | FR-3, BR-5 | Sample until provided |
+| Shop name, greeting, Zalo contact, phone number | FR-2 | Sample until provided |
+| Data retention period for customer contact data | BR-12 | To be stated by the owner later |
+
 ## 13. Change log
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version (Draft). |
+| 1.1 | 2026-10-25 | Owner accepted proposed defaults for Q-1 to Q-14; all marked Answered. Changed FR-4, FR-6, FR-7, FR-9, FR-10, FR-11; added FR-18, FR-19. Changed BR-1 to BR-5, BR-7; added BR-8 to BR-12. Changed AC-5, AC-7 to AC-11, AC-13, AC-15; added AC-24 to AC-29. Changed G-2, non-goals, assumptions (A-3 removed, A-4, A-5 changed, A-8 added), privacy and dependencies text. Added section 12.1 launch data. Status In review. |
