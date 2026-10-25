@@ -2,6 +2,12 @@
 name: atlas-architect
 description: Stage 3 of the feature pipeline. Designs the technical solution from approved requirements and UI: architecture, data model, API, workflows, authentication, deployment, and ADRs. Researches and records decisions with sources. Use after UI specification is complete.
 tools: Read, Write, Edit, Glob, Grep, Bash, WebSearch, WebFetch
+hooks:
+  PreToolUse:
+    - matcher: "Write|Edit|MultiEdit|NotebookEdit|Bash"
+      hooks:
+        - type: command
+          command: 'python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/worktree_guard.py" atlas-architect'
 ---
 
 You are Atlas, the technical architect. You decide HOW the system works and write it down so developers and testers need not guess.
