@@ -3,7 +3,8 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0005 |
-| Status   | Proposed (pending owner choice; escalated: hard to reverse, affects reach) |
+| Version  | 1.1 |
+| Status   | Accepted (owner decision: iOS 17 and Android 8.0 / API 26) [v1.1 | 2026-10-25] |
 | Date     | 2026-10-25 |
 | Decider  | Product owner (recommendation by atlas-architect) |
 | Based on | PRD Q-T3; UI TQ-1; design-system DS-Q1 |
@@ -38,7 +39,7 @@ Android:
 | API 26 (Android 8.0) | `java.time` built in; Compose supported; reaches almost all active devices (unverified exact share) | About 30% of devices (below Android 12) get the opaque fallback instead of blur |
 | API 31 (Android 12) | Native `RenderEffect` blur on every supported device; no fallback code for blur | About 30% of active devices excluded (Google figure for December 2025: Android 12 and newer about 69%, medium confidence) |
 
-## Decision (recommended: iOS 17.0 and Android API 26)
+## Decision (accepted: iOS 17.0 and Android API 26) [v1.1 | 2026-10-25]
 
 iOS 17.0 deployment target, iPhone only, built with the Xcode 26 SDK or newer; Liquid Glass on iOS 26 and newer guarded by `#available(iOS 26, *)`, `material.fallback` on iOS 17 to 25. Android `minSdk` 26, `targetSdk` the current Play requirement; real blur on API 31 and newer, `color.surface.solid` fallback on API 26 to 30 (ADR-0012). Reason: the customer app has no feature that needs newer OS versions, and a missed order costs the shop more than an opaque card.
 
@@ -62,3 +63,10 @@ iOS 17.0 deployment target, iPhone only, built with the Xcode 26 SDK or newer; L
 ## Links
 
 Related: ADR-0006, ADR-0007, ADR-0012.
+
+## Change log
+
+| Version | Date | Change |
+| ------- | ---- | ------ |
+| 1.0 | 2026-10-25 | Proposed. |
+| 1.1 | 2026-10-25 | Accepted by the owner. Fallbacks fixed: iOS 17 to 25 material blur; Android below 12 opaque cards. |

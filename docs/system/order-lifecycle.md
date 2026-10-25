@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.0 |
+| Version      | 1.1 |
 | Last updated | 2026-10-25 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -65,7 +65,7 @@ Steps:
 | Total cakes below minimum | 422 `MIN_QTY`; S-8 blocks confirm and links to S-5 | BR-4, AC-13 |
 | Midnight passes during the flow so the date is now too soon or too far | 422 `DATE_LEAD` / `DATE_HORIZON` (order date taken at confirmation, A-8) | BR-2, BR-8, FR-10 |
 | District deactivated | 422 `DISTRICT_UNSERVED` | BR-3 |
-| Price or fee changed | 409 `PRICE_CHANGED` with new values; the app updates the review; the customer confirms again (pending ADR-0010) | BR-5, BR-6, AC-23 |
+| Price or fee changed | 409 `PRICE_CHANGED` with new values; the app updates the review; the customer confirms again (ADR-0010 Accepted) [v1.1 | 2026-10-25] | BR-5, BR-6, AC-23 |
 | No connection | Request never leaves; `ERR_OFFLINE`; data kept; retry uses the same key | FR-17, AC-20 |
 | Timeout or lost response (order may exist) | `ERR_TIMEOUT`; retry with the same key returns 200 replay with the same code; no second order | FR-16, AC-19 |
 | Customer taps Confirm twice | The UI is inert after the first tap; if two requests still arrive, the unique key resolves it | FR-16 |
@@ -140,8 +140,9 @@ Each flow step above traces to FR-9, FR-10, FR-11, FR-13, FR-16, FR-17, FR-18 an
 
 | ID | Question | Why it matters | Blocking | Class | Status | Answer |
 | -- | -------- | -------------- | -------- | ----- | ------ | ------ |
-| OL-Q1 | Price-change behaviour (ADR-0010) | Alternate flow "Price or fee changed" | No | business | Pending owner choice | |
+| OL-Q1 | Price-change behaviour (ADR-0010) | Alternate flow "Price or fee changed" | No | business | Closed: owner accepted reject and re-review (2026-10-25) | Owner |
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version. |
+| 1.1 | 2026-10-25 | ADR-0010 accepted; no flow change. |

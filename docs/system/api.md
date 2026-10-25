@@ -2,14 +2,14 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.0 |
+| Version      | 1.1 |
 | Last updated | 2026-10-25 |
 | Status       | Draft |
 | Owner        | atlas-architect |
 | Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; data-model.md v1.0 |
 | Related      | order-lifecycle.md; auth.md; ADR-0008, ADR-0009, ADR-0010, ADR-0011, ADR-0014 |
 
-Pending owner choice: ADR-0010 (price change). This document is written against its recommended option A (`expected_total_vnd`, error `PRICE_CHANGED`).
+Decided: ADR-0010 is Accepted by the owner: option A, reject with `PRICE_CHANGED` and let the customer re-review (`expected_total_vnd` stays). [v1.1 | 2026-10-25] Backend framework is Vapor (ADR-0001); the conventions below are implemented as Vapor middleware. [v1.1 | 2026-10-25]
 
 ## 1. Conventions
 
@@ -25,9 +25,9 @@ Pending owner choice: ADR-0010 (price change). This document is written against 
 | Idempotency | `POST /v1/orders` only (section 4.3). `GET` is safe |
 | Pagination | Not used (all lists are short and fixed) |
 | Rate limits | Table below; excess answers 429 `RATE_LIMITED` with `Retry-After` (seconds) |
-| Body limit | 8 KB; larger answers 413 `PAYLOAD_TOO_LARGE` |
-| Client timeouts | Order submission 10 s; reads 15 s (ADR-0007) |
-| Unknown fields | Ignored in responses by clients; rejected with `VALIDATION_FAILED` in requests (typos must not pass silently) |
+| Body limit | 8 KB (Vapor `maxSize` on the route); larger answers 413 `PAYLOAD_TOO_LARGE` |
+| Client timeouts | Order submission 10 s; reads 15 s (ADR-0007). On the free trial host the first request after idle can take about 1 minute: the apps retry reads once and retry orders with the same key (ADR-0003) [v1.1 | 2026-10-25] |
+| Unknown fields | Ignored in responses by clients; rejected with `VALIDATION_FAILED` in requests (typos must not pass silently); Swift `Codable` ignores unknown keys, so the backend checks the key set before decoding [v1.1 | 2026-10-25] |
 
 Rate limits (per client IP, in-memory limiter; numbers are configuration, defaults shown):
 
@@ -221,7 +221,7 @@ Example response:
 
 ### 4.4 GET /healthz
 
-Role: anonymous. Returns 200 `{ "status": "ok" }` when the process runs and a trivial database query succeeds within 2 s; otherwise 503 `{ "status": "degraded" }`. `Cache-Control: no-store`. No data about orders. Used by the host health check and the uptime monitor. Rate limit group: reads.
+Role: anonymous. Shallow (default): returns 200 `{ "status": "ok" }` when the process runs, with no database query, so monitors never wake the free database. With `?deep=1`: also runs a trivial database query within 2 s; otherwise 503 `{ "status": "degraded" }` [v1.1 | 2026-10-25]. `Cache-Control: no-store`. No data about orders. Used by the host health check and the uptime monitor. Rate limit group: reads.
 
 ### 4.5 GET /privacy
 
@@ -241,7 +241,7 @@ Static product images and the logo; `Cache-Control: public, max-age=86400`. Imag
 | DATE_HORIZON | 422 | Date too far | `ERR_DATE_HORIZON`, action `ACTION_CHOOSE_DATE` |
 | DATE_CAPACITY | 409 | Date no longer holds the order (AC-9, AC-22) | `ERR_DATE_CAPACITY`, action `ACTION_CHOOSE_DATE` |
 | DISTRICT_UNSERVED | 422 | District not served or inactive | `ERR_DISTRICT_UNSERVED`, action `ACTION_CHOOSE_DISTRICT` |
-| PRICE_CHANGED | 409 | Server total differs from `expected_total_vnd` (ADR-0010, pending) | Replace prices from `details`, return to the review, show `MSG_PRICE_CHANGED`, confirm enabled |
+| PRICE_CHANGED | 409 | Server total differs from `expected_total_vnd` (ADR-0010, Accepted) | Replace prices from `details`, return to the review, show `MSG_PRICE_CHANGED`, confirm enabled |
 | PRODUCT_UNAVAILABLE | 409 | A product is unknown or inactive | Refresh the catalog, go to S-5. Message key needed: `ERR_PRODUCT_UNAVAILABLE` (query to canvas-ui) |
 | SLOT_UNAVAILABLE | 409 | The slot is unknown or inactive | Refresh the catalog, go to S-6 (message key needed: `ERR_SLOT_UNAVAILABLE`, query to canvas-ui) |
 | IDEMPOTENCY_KEY_REQUIRED | 400 | Header missing | Client defect; show `ERR_SERVER` |
@@ -262,7 +262,7 @@ All 5xx and network failures keep all entered data (FR-17).
 - Inside `v1`: additive only (new optional request fields, new response fields, new error codes, new enum values for `reason`). Clients ignore unknown response fields and treat unknown error codes as `INTERNAL_ERROR` behaviour.
 - A breaking change creates `/v2` and keeps `/v1` until the store statistics show old app versions are gone (a rule of thumb: at least 90 days after the new app release, unverified).
 - `X-App-Version` and `X-Platform` are logged to see which versions call the API.
-- The price acknowledgement field (`expected_total_vnd`) and `PRICE_CHANGED` exist only if ADR-0010 option A is chosen; a different decision before release removes them.
+- The price acknowledgement field (`expected_total_vnd`) and `PRICE_CHANGED` are final (ADR-0010 Accepted) [v1.1 | 2026-10-25].
 - Staff endpoints will live under `/v1/staff` and need new documents sections; they will not change the customer endpoints.
 
 ## 7. Traceability check
@@ -274,8 +274,9 @@ Every endpoint above is in the index with FRs. Every data field used traces to d
 | ID | Question | Why it matters | Blocking | Class | Status | Answer |
 | -- | -------- | -------------- | -------- | ----- | ------ | ------ |
 | API-Q1 | Message keys for `PRODUCT_UNAVAILABLE`, `SLOT_UNAVAILABLE`, `RATE_LIMITED` | Client text by code | No | technical | Query to canvas-ui | |
-| API-Q2 | Price-change behaviour (ADR-0010) | `expected_total_vnd`, `PRICE_CHANGED` | No | business | Pending owner choice | |
+| API-Q2 | Price-change behaviour (ADR-0010) | `expected_total_vnd`, `PRICE_CHANGED` | No | business | Closed: owner accepted option A (2026-10-25) | Owner |
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version. |
+| 1.1 | 2026-10-25 | ADR-0010 accepted; Vapor implementation notes; shallow and deep health check; trial-host timeout note. |

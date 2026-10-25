@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.0 |
+| Version      | 1.1 |
 | Last updated | 2026-10-25 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -63,8 +63,10 @@ Names only; values live in the host's secret store and local `.env` files (not c
 | `DATABASE_MIGRATION_URL` | Migration role connection | CI and operator machine only |
 | `BACKUP_DATABASE_URL` | Read-only role for dumps | CI secret store |
 | `BACKUP_AGE_PUBLIC_KEY` | Encrypts dumps (public key, not secret, but environment-specific) | CI variable |
-| `BACKUP_STORAGE_ACCESS_KEY_ID`, `BACKUP_STORAGE_SECRET_ACCESS_KEY` | Upload dumps | CI secret store |
+| `BACKUP_REPO_DEPLOY_KEY` | Push encrypted dumps to the private backup repository (write access to that repository only) [v1.1 | 2026-10-25] | CI secret store |
 | Backup decryption private key | Restore | Owner's offline password manager, never in the host or the repository |
+| Container image on GHCR | Public package; contains no secrets or data (ADR-0003) [v1.1 | 2026-10-25] | Registry |
+| `RENDER_DEPLOY_HOOK_STAGING`, `RENDER_DEPLOY_HOOK_PRODUCTION` | Anyone with the URL can trigger a deploy [v1.1 | 2026-10-25] | CI secret store |
 | Later: SMS provider key, token signing key | Staff login | Host secret store |
 
 Rotation: database passwords on staff change or suspected leak; at least once a year (recommendation).
@@ -94,3 +96,4 @@ Rotation: database passwords on staff change or suspected leak; at least once a 
 | Version | Date | Change |
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version (customer slice; staff login placeholder). |
+| 1.1 | 2026-10-25 | Backup storage secret replaced by a deploy key; deploy hook secrets; public image note. |

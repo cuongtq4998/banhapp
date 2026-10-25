@@ -3,56 +3,84 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0003 |
-| Status   | Proposed (pending owner choice; escalated: costs money, holds customer data) |
-| Date     | 2026-10-25 |
-| Decider  | Product owner (recommendation by atlas-architect) |
+| Version  | 1.1 |
+| Status   | Accepted for the trial phase, free plans only (owner direction: no spend during the new-project phase). Becomes Proposed again if any step asks for a payment card or a recurring cost [v1.1 | 2026-10-25] |
+| Date     | 2026-10-25 (v1.1 2026-10-25) |
+| Decider  | Product owner (direction); atlas-architect (choice within it) |
 | Based on | PRD Q-T5 and non-functional "Cost"; ADR-0001, ADR-0002 |
 
 ## Context
 
-The shop wants low cost and simple operation. The backend must answer an order within 10 seconds (PRD section 8) and hold personal data of customers in Vietnam. No cost ceiling was given (Q-T5). Customers and the shop are in Vietnam, so a nearby region (Singapore) lowers latency.
+The owner wants a free option to run a trial first; no spend during the new-project phase [v1.1 | 2026-10-25]. The stack is a Swift (Vapor) Docker container and PostgreSQL (ADR-0001, ADR-0002). The order must answer within 10 seconds (PRD section 8), which free plans that sleep can break on the first request after idle. Customers are in Vietnam; Singapore is the nearest region.
 
 ## Decision Drivers
 
-- Monthly cost, and no hidden idle shutdowns that break the 10-second target.
-- Little operations work (no server patching).
-- Managed backups or an easy way to make them.
-- Region close to Vietnam; data kept to one provider region.
+- Zero cost and no payment card.
+- Runs a prebuilt Docker image (Swift builds are too slow and heavy for a free builder, ADR-0001).
+- A database that does not expire.
+- Reversible: only an image and `DATABASE_URL` tie the system to a host.
 
-## Options Considered
+## Options Considered (all researched 2026-10-25; limits change, re-check before use)
 
-Cost figures are estimates from public pages (see Sources) and must be re-checked at purchase.
+| Option | Cost, card | Limits | Verdict |
+| ------ | ---------- | ------ | ------- |
+| A. Render free web service (Docker image) + Neon free Postgres | USD 0. Render: no card stated on its free page and per a comparison article (medium). Neon: card requirement not confirmed from official page (unverified) | Render: 750 instance-hours per workspace per month, 512 MB, spins down after 15 minutes without traffic, wake about 1 minute, ephemeral disk, one instance, 5 GB bandwidth, outbound SMTP blocked. Public GHCR images can be deployed (linux/amd64), no auto-deploy on push: use the deploy hook. Singapore is a Render region; free availability there not stated (unverified). Neon: 1 GB storage, 100 CU-hours per month (about 400 hours of the 0.25 CU compute), suspend after 5 minutes idle (about 0.5 s to a few seconds to resume), 6-hour restore window, no stated expiry, Singapore (`aws-ap-southeast-1`) available | **Recommended** |
+| B. Render free Postgres | USD 0 | Expires 30 days after creation, 14 days grace then deleted, no backups | Rejected (expiry) |
+| C. Koyeb free | Card required since February 2026 ($29 pre-authorisation hold) per a comparison article (medium) | Web service Frankfurt or Washington only; database 5 compute-hours per month | Rejected (card, region) |
+| D. Fly.io, Google Cloud Run, Oracle Cloud, Azure Container Apps | Card required (comparison article, medium) | | Rejected (card) |
+| E. Railway | $5 trial then $1 per month credit, shared with Postgres | Pauses when credit ends | Rejected (not sustainable) |
+| F. SnapDeploy / Back4App | Free containers | 100 hours per month; database paid; 60-minute runs | Rejected |
+| G. Paid always-on (upgrade path) | About USD 7 per month for Render Starter (estimate); Neon paid plan with auto-suspend off, about USD 15 to 20 more (estimate) | None of the sleep problems | Later, owner approval |
 
-| Option | Estimated cost | Pros | Cons |
-| ------ | -------------- | ---- | ---- |
-| A. Container PaaS always-on instance (Render Starter, Singapore region) plus managed Postgres on Neon free plan | About USD 7 per month | Simple Git-based deploys; always-on API; free database with scale-to-zero; TLS included | Database cold start after 5 idle minutes; free database limits (0.5 GB) and plan terms may change; two vendors |
-| B. Same as A but Neon Launch plan with idle suspend disabled | About USD 7 plus about USD 15 to 20 per month (pay-as-you-go compute, estimate) | No database cold start | Higher cost |
-| C. Supabase Pro (Postgres and hosting of the API as functions or separate host) | USD 25 per month plus API host | Single vendor for database and auth (useful for later staff login) | Highest cost; free plan pauses after a week idle, so unusable for production |
-| D. One small VPS (about USD 5 per month) running API and Postgres | About USD 5 per month | Cheapest, one bill | The shop operates the OS, patches and backups; single point of failure |
-| E. Cloudflare Workers plus D1 | About USD 5 per month or free | Cheapest managed | Conflicts with ADR-0001 option A and ADR-0002 option A |
-| F. Free web service tier of a PaaS | USD 0 | Free | Spins down after 15 idle minutes with about one minute restart: breaks the 10-second target; rejected |
+## Decision [v1.1 | 2026-10-25]
 
-## Decision (recommended: option A)
+Trial setup, zero cost: **Render free web service running the backend image** (built in GitHub Actions, published as a public image on GHCR, deployed by calling the Render deploy hook) and **Neon free Postgres project in Singapore**. The repository is public and contains no secrets, so a public image is acceptable; the image must contain no data or credentials. Secrets are set only in the host dashboards. Status is Accepted because both services are free and, per the sources above, create accounts without a card. **Stop condition:** if creating either account asks for a payment card, or a free limit changes into a charge, the status returns to Proposed and the owner decides.
 
-API on a container PaaS instance (always on) in a Singapore region, database on managed Postgres free plan in the same region, scheduled encrypted dumps to separate object storage (deployment.md section 6). Move to option B if cold starts hurt (alert in deployment.md section 7). Estimated total about USD 7 per month plus store fees (deployment.md section 9). Provider names are the recommendation; the repository documents only variable names, so a provider change is a configuration change.
+Trade-offs the owner accepts, and how the system copes:
+
+| Trade-off | Effect | Coping |
+| --------- | ------ | ------ |
+| Render sleeps after 15 idle minutes, wake about 1 minute | First request after idle can take about 60 s, beyond the 10 s order timeout | The apps request the catalog at launch (S-1, FR-1), which wakes the server while the customer browses; reads have a 15 s timeout, and the app retries the catalog once automatically and shows the cached copy meanwhile (ADR-0011); an order sent on a cold server shows `ERR_TIMEOUT` and the same-key retry returns the stored result or creates the order once (AC-19). A real customer rarely orders in under 15 idle minutes after opening the app |
+| Neon suspends after 5 idle minutes | First query after idle adds about 0.5 s to a few seconds | Covered by the order timeout; `/healthz` does not touch the database (so monitors never keep the database awake and never burn CU-hours) |
+| 100 Neon CU-hours per month | A 24/7 awake database would need about 186 CU-hours | No keep-alive on the database; sized for a trial |
+| 750 Render hours per workspace | One always-awake service fits (744 hours); two always-awake services do not | Staging service sleeps; optional keep-warm pings only for the production service and only in business hours (Render's terms on pings not verified; off by default) |
+| No backups on Render; Neon 6-hour restore window only | Data loss risk | Nightly encrypted dump to a private GitHub repository (free, deployment.md section 6) |
+| Free terms are not a contract | Plan may change | Alerts; the upgrade path below |
+| Default hostname on the host's domain | The API base URL is compiled into the apps | For the trial use the host-provided name; before store release the owner should decide a custom domain (launch cost) so the host can change without an app update |
+
+Upgrade path to paid always-on (owner approval needed): (1) Render Starter instance (about USD 7 per month, estimate) for the API, no code change; (2) Neon paid plan with auto-suspend disabled (about USD 15 to 20 more, estimate) or any managed Postgres: change `DATABASE_URL`, restore from a dump; (3) optionally a custom domain. Trigger: alert on order p95 over 8 s, storage over 80%, CU-hours over 80%, or launch with real customers.
+
+Launch costs, listed and not decided here: Apple Developer Program (about USD 99 per year, unverified), Google Play registration (about USD 25 once, unverified), custom domain (about USD 10 to 15 per year, unverified), paid hosting from the upgrade path.
 
 ## Consequences
 
-- Positive: cost is predictable and low; no server maintenance.
-- Negative: free database terms are not a contract; plan changes may force a paid plan.
-- Follow-up: owner approves the monthly cost and creates the accounts (owner task); privacy policy states the data location (Singapore region, unverified until the account is created); retention period (BR-12) is still owed by the owner.
+- Positive: USD 0 for the trial; no accounts with a card.
+- Negative: slow first request after idle; free limits can change; a real-customer launch should move to the paid path.
+- Follow-up: the owner creates the accounts (owner task); privacy policy states the data location (Singapore, unverified until created); retention period (BR-12) is still owed.
 
 ## Sources
 
 | Claim | Source (URL) | Read on | Confidence |
 | ----- | ------------ | ------- | ---------- |
-| Render Starter about USD 7 per month, 0.5 vCPU, 512 MB; free web services idle after 15 minutes and restart takes about a minute | https://render.com/articles/how-much-does-cloud-application-hosting-cost-for-small-businesses | 2026-10-25 | Medium |
-| Neon free plan and Launch plan idle suspend after 5 minutes (Launch can disable); Launch compute about USD 0.106 per CU-hour | https://neon.com/pricing | 2026-10-25 | Medium |
-| Supabase Pro USD 25 per month; free plan pauses after 1 week | https://supabase.com/pricing.md | 2026-10-25 | Medium |
-| Workers Paid plan USD 5 per month minimum | https://developers.cloudflare.com/workers/platform/pricing/ | 2026-10-25 | Medium |
-| Singapore regions offered by Render and Neon | Not fetched | 2026-10-25 | Unverified |
-| VPS price of about USD 5 per month | Not researched | 2026-10-25 | Unverified |
+| Render free web service: 750 hours, spin down after 15 minutes, about 1 minute wake, ephemeral disk, one instance; free Postgres 1 GB, expires after 30 days, 14 days grace, no backups | https://render.com/docs/free | 2026-10-25 | High |
+| Render regions include Singapore (free availability not stated) | https://render.com/docs/regions | 2026-10-25 | Medium |
+| Render deploys public images from any registry (GHCR), linux/amd64, deploy hook, no auto-deploy on push | https://render.com/docs/deploy-an-image | 2026-10-25 | High |
+| Neon free plan: 1 GB per project, 100 CU-hours, suspend after 5 minutes, 6-hour restore | https://neon.com/docs/introduction/plans | 2026-10-25 | High |
+| Neon Singapore region `aws-ap-southeast-1` | https://neon.com/docs/introduction/regions | 2026-10-25 | High |
+| Neon resume time 500 ms to a few seconds | Search result of Neon connection latency docs (https://neon.com/docs/connect/connection-latency) | 2026-10-25 | Medium |
+| No card for Render; card for Koyeb (since February 2026), Cloud Run, Oracle, Azure, Fly.io after trial; Railway $1 monthly credit; Render bandwidth 5 GB | https://snapdeploy.dev/blog/free-cloud-deployment-platforms-2026-comparison (secondary, vendor of a competing service) | 2026-10-25 | Medium |
+| Koyeb pricing page shows no free web plan, free Postgres 5 hours | https://www.koyeb.com/pricing | 2026-10-25 | Medium |
+| Neon needs no card for the free plan | Not confirmed from an official page | 2026-10-25 | Unverified |
+| Render Starter about USD 7 per month | https://render.com/articles/how-much-does-cloud-application-hosting-cost-for-small-businesses | 2026-10-25 | Medium |
+| Store and domain fees | Not researched | 2026-10-25 | Unverified |
 
 ## Links
 
 Related: ADR-0001, ADR-0002, ADR-0004.
+
+## Change log
+
+| Version | Date | Change |
+| ------- | ---- | ------ |
+| 1.0 | 2026-10-25 | Proposed, paid always-on recommended (about USD 7 per month). |
+| 1.1 | 2026-10-25 | Owner asked for a free trial: free Render plus Neon recommended and Accepted for the trial; coping measures, stop condition and upgrade path. |
