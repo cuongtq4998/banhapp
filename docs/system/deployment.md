@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.2 |
+| Version      | 1.3 |
 | Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | atlas-architect (design), forge-dev (keeps it true) |
@@ -59,6 +59,10 @@ Startup warning for sample rows (ADR-0013): the check that logs a warning when `
 Pipeline (GitHub Actions, free for public repositories; macOS runner minutes for public repositories are free, unverified). The Swift backend is built only in CI, never on the host: a release build is slow and memory-heavy (ADR-0001). [v1.1 | 2026-10-25]
 
 CI files [v1.2 | 2026-10-26]: `.github/workflows/backend.yml` (job `test` on `ubuntu-latest` in a `swift:6.2-noble` container with a `postgres:16` service: build, tests, `migrate --yes`, sample seed applied twice; job `image`: image build on pull requests, push to GHCR on main; job `deploy-staging`), `.github/workflows/ios.yml` and `.github/workflows/android.yml`; each is path-filtered to its component. `ubuntu-latest` is Ubuntu 24.04. The workflows do not yet include SwiftLint, a nightly backup or a production job; those arrive with their slices.
+
+Backend CI checks [v1.3 | 2026-10-26]: the `test` job runs `swift test` with `DATABASE_MIGRATION_URL` pointing at the service container, so the database tests of the same `AppTests` target run (without the variable they skip). That variable must never point at staging, production or any database holding data: the tests apply migrations and roll back each test, but a throwaway database is the rule. After the tests the job builds the release binary, starts it with `APP_ENV=local` against the service container and checks the shallow `GET /healthz` (`"status":"ok"`) and the deep `GET /healthz?deep=1` (needs the database), then stops it. A broken release build, startup or database wiring fails the pull request before the image job.
+
+Android CI [v1.3 | 2026-10-26]: `android.yml` installs no packages through the setup action (its licence step exits 1 on the preview-SDK prompt); a step accepts licences with `sdkmanager --licenses` and installs `platforms;android-37` and `build-tools;36.0.0` (compileSdk 37 for Compose 1.12, ADR-0007).
 
 iOS runner [v1.2 | 2026-10-26]: `ios.yml` runs on `macos-latest` (macOS 26) and selects the newest installed Xcode, but the project file needs Xcode 27 and GitHub now offers an Xcode 27 image under the label `xcode-27` (generally available since 2026-10-15). Use `runs-on: xcode-27` (dev query).
 
@@ -183,3 +187,4 @@ Paid always-on path (when real customers order):
 | 1.0 | 2026-10-25 | First version. |
 | 1.1 | 2026-10-25 | Swift/Vapor image build in CI, GHCR and deploy hook, free trial hosting (Render, Neon), shallow and deep health checks, GitHub backup repository, costs restructured. |
 | 1.2 | 2026-10-26 | After slice 0: CI files and runners, which health endpoint each consumer uses, `DATABASE_URL` optional locally, variables read only from later slices, sample-row warning moved to slice 4. |
+| 1.3 | 2026-10-26 | CI: release binary smoke test, database tests in the `AppTests` target (throwaway database only), Android platform 37 and explicit licence step. |

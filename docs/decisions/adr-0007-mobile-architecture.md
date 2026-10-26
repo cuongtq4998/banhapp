@@ -43,8 +43,10 @@ Android toolchain (as built in slice 0; versions read from the official pages on
 | Compose BOM | 2026.09.00 (newest listed) | Maps to Material3 1.4.0 and Compose UI 1.12.1, consistent with the 1.4.x rule above |
 | Gradle | 9.6.0 | The minimum and default for AGP 9.4; Gradle 9.8.x also exists and may be tried later, not required |
 | JDK | 17 (Temurin in CI) | `sourceCompatibility` and `targetCompatibility` 17 |
-| compileSdk, targetSdk, minSdk | 36, 36, 26 | Play target-level requirement still to be checked at submission (deployment.md section 4) |
-| CI | `ubuntu-latest` (Ubuntu 24.04), `android-actions/setup-android@v3` with `platforms;android-36 build-tools;36.0.0`, `gradle/actions/setup-gradle@v4` | `.github/workflows/android.yml` |
+| compileSdk, targetSdk, minSdk | 37, 36, 26 [v1.2 | 2026-10-26] | compileSdk 37 is required by Compose UI 1.12.1, which BOM 2026.09.00 forces (the build fails on 36); compileSdk only selects the API used to compile, runtime behaviour follows targetSdk 36. Play target-level requirement still to be checked at submission (deployment.md section 4) |
+| CI | `ubuntu-latest` (Ubuntu 24.04), `android-actions/setup-android@v3` with no packages and no automatic licence step, then `sdkmanager --licenses` and `sdkmanager "platforms;android-37" "build-tools;36.0.0"`, `gradle/actions/setup-gradle@v4` [v1.2 | 2026-10-26] | `.github/workflows/android.yml` |
+
+The licence step is explicit because the action's own step exits 1 on the preview-SDK licence prompt that appears with platform 37 (observed in CI by the developer, 2026-10-26; no official source read). [v1.2 | 2026-10-26]
 
 Not verified: whether the Compose compiler plugin at 2.4.21 composes cleanly with AGP's built-in Kotlin (the project has never been built; first CI run decides). The Gradle wrapper is still to be generated and committed.
 
@@ -86,3 +88,4 @@ Related: ADR-0005, ADR-0006, ADR-0011, ADR-0012, ADR-0016 (application identifie
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version. |
 | 1.1 | 2026-10-26 | Android toolchain versions and CI runner recorded with sources (clarification only; decision unchanged). |
+| 1.2 | 2026-10-26 | compileSdk 37 (Compose 1.12 requirement), targetSdk stays 36; CI installs platform 37 and accepts licences explicitly. |

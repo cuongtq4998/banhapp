@@ -4,7 +4,7 @@
 | -------- | ----- |
 | ADR      | 0009 |
 | Status   | Accepted |
-| Date     | 2026-10-25 |
+| Date     | 2026-10-25 (v1.1 2026-10-26) |
 | Decider  | atlas-architect |
 | Based on | PRD Q-T6; UI TQ-5, TQ-6; FR-8, FR-11, FR-13, FR-18, AC-12, AC-16, AC-26 |
 
@@ -26,7 +26,7 @@ Phone: (1) mobile only, 10 digits starting `0` plus `3`, `5`, `7`, `8` or `9`, o
 
 ## Decision
 
-**Order code.** Format `BT-` followed by 6 characters from the 31-character alphabet `23456789ABCDEFGHJKMNPQRSTUVWXYZ` (no 0, 1, I, L, O), uppercase, drawn from a cryptographically secure random source. Example `BT-7K3M9Q`. About 887 million values. A unique index on the code is the guarantee; on collision the server draws again (up to 5 times, then fails with 500). Display width 9 characters; `OrderCodeDisplay` may group as `BT-7K3 M9Q` for reading but copies the plain code. Input from the customer to the shop is case-insensitive. The code is not a secret and gives no access to data (there is no lookup endpoint in this slice).
+**Order code.** Format `BT-` followed by 6 characters from the 31-character alphabet `23456789ABCDEFGHJKMNPQRSTUVWXYZ` (no 0, 1, I, L, O), uppercase, drawn from a cryptographically secure random source. Example `BT-7K3M9Q`. About 887 million values. A unique index on the code is the guarantee; on collision the server draws again (up to 5 times, then fails with 500). [v1.1 | 2026-10-26] The retry belongs to the order service of slice 3, which sees the unique-index violation inside the insert; the generator (`OrderCodeGenerator`) only draws one code per call and has no retry. Display width 9 characters; `OrderCodeDisplay` may group as `BT-7K3 M9Q` for reading but copies the plain code. Input from the customer to the shop is case-insensitive. The code is not a secret and gives no access to data (there is no lookup endpoint in this slice).
 
 **Phone.** Client and server normalise: remove spaces, dots, hyphens and parentheses; convert a leading `+84` or `84` (when 11 digits) to `0`. Valid when the result matches `^0[35789][0-9]{8}$` (10 digits). Stored as E.164 (`+84` plus the nine digits without the leading 0). Landlines and foreign numbers are rejected with `ERR_PHONE_INVALID` because the shop contacts customers by Zalo or mobile call (A-6) and Zalo needs a mobile number. The pattern checks the first digit after 0 only, not operator prefixes, because prefix lists differ between sources and change.
 
@@ -60,3 +60,10 @@ Clients limit input to these maxima (like the note counter); the server rejects 
 ## Links
 
 Related: ADR-0008.
+
+## Change log
+
+| Version | Date | Change |
+| ------- | ---- | ------ |
+| 1.0 | 2026-10-25 | First version. |
+| 1.1 | 2026-10-26 | Collision retry assigned to the order service, not the generator. |
