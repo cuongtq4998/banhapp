@@ -1,10 +1,12 @@
 import XCTest
 import XCTVapor
+import Crypto
 @testable import AppUnderTest
 
 /// Slice 1: `/privacy` (api.md 4.5), `/assets/*` (4.6), asset files in the
 /// repository, and the contract fixtures `catalog-*.json` (architecture.md 11).
-/// Needs no database. EXPECTED-FAIL until the slice 1 backend merges.
+/// Needs no database. Rules of api.md v1.6 and ADR-0017 (images under
+/// `/assets/images/`, privacy page only at `/privacy`).
 final class StaticContentTests: XCTestCase {
     private var app: Application!
 
@@ -31,8 +33,9 @@ final class StaticContentTests: XCTestCase {
         let r = try await app.qaSend(.GET, "privacy")
         let folded = Slice1.fold(r.text)
         for (label, needle) in [("name", "ho ten"), ("phone", "so dien thoai"), ("address", "dia chi"), ("note", "ghi chu"),
-                                ("who sees it", "cua hang"), ("retention", "luu tru"), ("storage place", "luu tru")] {
-            XCTAssertTrue(folded.contains(needle) || folded.contains(label == "name" ? "ten" : needle), "privacy page does not mention \(label) (api.md 4.5)")
+                                ("purpose", "muc dich"), ("who sees it", "ai xem"), ("storage place", "noi luu tru"),
+                                ("retention", "luu giu")] {
+            XCTAssertTrue(folded.contains(needle), "privacy page does not mention \(label) (api.md 4.5)")
         }
     }
 
@@ -52,7 +55,6 @@ final class StaticContentTests: XCTestCase {
     func testExtra_PrivacyHeadAndMethods() async throws {
         let head = try await app.qaSend(.HEAD, "privacy")
         XCTAssertEqual(head.status, .ok)
-        XCTAssertEqual(head.body.count, 0)
         for method in [HTTPMethod.POST, .PUT, .DELETE] {
             let r = try await app.qaSend(method, "privacy")
             XCTAssertEqual(r.status, .notFound, "\(method)")
@@ -78,12 +80,9 @@ final class StaticContentTests: XCTestCase {
         let paths = try QAPaths.seedImagePaths()
         XCTAssertEqual(paths.count, 4, "the seed names four product images")
         for path in paths {
-            let basename = (path as NSString).lastPathComponent
-            let found = QAPaths.assetRoots.contains { root in
-                guard let walker = FileManager.default.enumerator(at: root, includingPropertiesForKeys: nil) else { return false }
-                return (walker.allObjects as? [URL] ?? []).contains { $0.lastPathComponent == basename }
-            }
-            XCTAssertTrue(found, "no file named \(basename) under backend/assets or backend/Public (seed image_path \(path))")
+            XCTAssertTrue(path.hasPrefix("images/"), "image_path is relative to backend/assets and under images/ (api.md 4.6): \(path)")
+            XCTAssertFalse(path.contains(".."))
+            XCTAssertTrue(FileManager.default.fileExists(atPath: QAPaths.backend.appendingPathComponent("assets/" + path).path), "no file backend/assets/\(path)")
         }
     }
 
@@ -105,11 +104,12 @@ final class StaticContentTests: XCTestCase {
     }
 
     func testTC67_MissingAssetIsNotFoundEnvelope() async throws {
-        for path in ["assets/products/does-not-exist.png", "assets/nothing", "assets/images/%E1%BA%A3nh-kh%C3%B4ng-c%C3%B3.png"] {
+        for path in ["assets/products/does-not-exist.png", "assets/nothing", "assets/images/does-not-exist.png",
+                     "assets/images/%E1%BA%A3nh-kh%C3%B4ng-c%C3%B3.png", "assets/privacy.html", "assets/images"] {
             let r = try await app.qaSend(.GET, path)
             XCTAssertEqual(r.status, .notFound, path)
             XCTAssertEqual(Slice1.envelopeProblems(r, code: "NOT_FOUND", messageKey: "ERR_SERVER"), [], path)
-            XCTAssertFalse((r.header("Cache-Control") ?? "").contains("max-age=86400"), "a 404 must not be cached for a day")
+            XCTAssertEqual(r.header("Cache-Control"), "no-store", "api.md 4.6: a 404 is no-store: \(path)")
         }
     }
 
@@ -129,31 +129,25 @@ final class StaticContentTests: XCTestCase {
         }
     }
 
-    func testExtra_AssetsDirectoryAndRootAreNotListed() async throws {
-        for path in ["assets", "assets/", "assets/products", "assets/products/", "assets/images/"] {
-            let r = try await app.qaSend(.GET, path)
-            XCTAssertNotEqual(r.status.code / 100, 5, path)
-            XCTAssertFalse(r.text.lowercased().contains("index of"), "\(path) lists a directory")
-        }
-    }
-
     func testExtra_AssetMethodsRangeAndRevalidation() async throws {
-        let some = try XCTUnwrap(QAPaths.seedImagePaths().first)
-        let candidates = ["assets/\(some)", "assets/products/\((some as NSString).lastPathComponent)", "assets/\((some as NSString).lastPathComponent)"]
-        var served: String?
-        for path in candidates {
-            if try await app.qaSend(.GET, path).status == .ok { served = path; break }
-        }
-        let path = try XCTUnwrap(served, "no candidate URL of \(some) is served; the catalog image_url rule (api.md 4.6) is the contract")
+        let path = "assets/images/banana.png"
         let get = try await app.qaSend(.GET, path)
-        XCTAssertEqual(get.header("Cache-Control")?.replacingOccurrences(of: " ", with: ""), "public,max-age=86400")
+        XCTAssertEqual(get.status, .ok)
+        XCTAssertEqual(get.header("Cache-Control"), "public, max-age=31536000, immutable", "api.md 4.6")
+        XCTAssertTrue(get.header("Content-Type")?.hasPrefix("image/png") ?? false, get.header("Content-Type") ?? "nil")
+        XCTAssertTrue(get.body.starts(with: Data([0x89, 0x50, 0x4E, 0x47])))
+        let withVersion = try await app.qaSend(.GET, path + "?v=deadbeef")
+        XCTAssertEqual(withVersion.status, .ok, "the version query is ignored")
+        XCTAssertEqual(withVersion.body, get.body)
         let head = try await app.qaSend(.HEAD, path)
-        XCTAssertEqual(head.status, .ok)
-        XCTAssertEqual(head.body.count, 0)
+        XCTAssertLessThan(head.status.code, 500)
+        // The in-memory tester does not strip HEAD bodies the way the HTTP server does; not observable here.
         let range = try await app.qaSend(.GET, path, headers: ["Range": "bytes=0-9"])
         XCTAssertTrue([HTTPResponseStatus.ok, .partialContent].contains(range.status), "range gave \(range.status)")
         let badRange = try await app.qaSend(.GET, path, headers: ["Range": "bytes=999999999-"])
         XCTAssertLessThan(badRange.status.code, 500)
+        let garbageRange = try await app.qaSend(.GET, path, headers: ["Range": "bytes=abc"])
+        XCTAssertLessThan(garbageRange.status.code, 500)
         if let etag = get.header("ETag") {
             let cond = try await app.qaSend(.GET, path, headers: ["If-None-Match": etag])
             XCTAssertEqual(cond.status, .notModified)
@@ -165,30 +159,78 @@ final class StaticContentTests: XCTestCase {
         }
     }
 
-    // MARK: Contract fixtures (architecture.md 11 slice 1: catalog-*.json)
+    /// api.md 4.6: only `images/` is served; extension allow-list; hidden names refused.
+    func testExtra_OnlyImagesWithImageExtensionsAreServed() async throws {
+        let paths = [
+            "assets/images/..%2fprivacy.html", "assets/images/%2e%2e/privacy.html", "assets/images/%2E%2E%2Fprivacy.html",
+            "assets/images/../privacy.html", "assets/images/sub/../banana.png", "assets/images/.hidden.png",
+            "assets/images/banana.png/", "assets/images//banana.png", "assets/images/banana.png%00", "assets/images/banana.png%00.txt",
+            "assets/images/%5c..%5cprivacy.html", "assets/images/..\\privacy.html", "assets/images/privacy.html",
+            "assets/images/banana.png.txt", "assets/images/banana", "assets/images/%252e%252e/privacy.html",
+            "assets/images/%C0%AE%C0%AE/privacy.html", "assets/images/%EF%BC%8E%EF%BC%8E/privacy.html"
+        ]
+        for path in paths {
+            let r = try await app.qaSend(.GET, path)
+            XCTAssertLessThan(r.status.code, 500, path)
+            XCTAssertFalse(r.text.contains("<!DOCTYPE html"), "\(path) served the privacy page")
+            if r.status == .ok {
+                XCTAssertTrue(r.header("Content-Type")?.hasPrefix("image/") ?? false, "\(path) served a non-image: \(r.header("Content-Type") ?? "nil")")
+            }
+        }
+        let upper = try await app.qaSend(.GET, "assets/images/banana.PNG")
+        XCTAssertLessThan(upper.status.code, 500, "case variants are 200 on a case-insensitive disk and 404 elsewhere, never an error")
+    }
 
-    func testTC1_CatalogFixturesExistAndSatisfyTheContractCheck() throws {
-        let files = try FileManager.default.contentsOfDirectory(at: QAPaths.fixtures, includingPropertiesForKeys: nil)
-            .filter { $0.lastPathComponent.hasPrefix("catalog-") && $0.pathExtension == "json" }
-        XCTAssertFalse(files.isEmpty, "contracts/fixtures/catalog-*.json missing")
-        for file in files {
-            let json = try J.parse(Data(contentsOf: file))
-            XCTAssertEqual(Slice1.shapeProblems(json), [], file.lastPathComponent)
-            XCTAssertEqual(Slice1.forbiddenHits(in: json.allText), [], file.lastPathComponent)
+    func testExtra_ImageUrlVersionIsTheFileSha256Prefix() throws {
+        let fixture = try J.parse(Data(contentsOf: QAPaths.fixtures.appendingPathComponent("catalog-ok.json")))
+        for product in try XCTUnwrap(fixture["products"]?.array) {
+            let url = try XCTUnwrap(product["image_url"]?.string)
+            let parts = url.components(separatedBy: "?v=")
+            XCTAssertEqual(parts.count, 2, url)
+            let file = QAPaths.backend.appendingPathComponent("assets" + parts[0].dropFirst("/assets".count))
+            let digest = SHA256.hash(data: try Data(contentsOf: file)).map { String(format: "%02x", $0) }.joined()
+            XCTAssertEqual(String(digest.prefix(8)), parts[1], "fixture hash of \(parts[0]) is stale (README.md of the fixtures)")
         }
     }
 
-    func testTC1_CatalogFixtureMatchesTheSampleSeedWhereItClaimsToBeTheSeed() throws {
-        let url = QAPaths.fixtures.appendingPathComponent("catalog-ok.json")
-        let json = try J.parse(Data(contentsOf: url))
-        let products = try XCTUnwrap(json["products"]?.array)
-        XCTAssertEqual(products.compactMap { $0["price_vnd"]?.int }.count, 4)
-        XCTAssertEqual(products.count, 4)
+    func testExtra_AssetsDirectoryAndRootAreNotListed() async throws {
+        for path in ["assets", "assets/", "assets/images", "assets/images/"] {
+            let r = try await app.qaSend(.GET, path)
+            XCTAssertEqual(r.status, .notFound, path)
+            XCTAssertFalse(r.text.lowercased().contains("index of"), "\(path) lists a directory")
+        }
+    }
+
+    // MARK: Contract fixtures (architecture.md 11 slice 1: catalog-*.json)
+
+    func testTC1_CatalogFixturesExistAndSatisfyTheContractCheck() throws {
+        let ok = try J.parse(Data(contentsOf: QAPaths.fixtures.appendingPathComponent("catalog-ok.json")))
+        XCTAssertEqual(Slice1.shapeProblems(ok), [], "catalog-ok.json")
+        XCTAssertEqual(Slice1.forbiddenHits(in: ok.allText), [], "catalog-ok.json")
+
+        // AC-33: zero active cakes, districts and slots is a valid 200 with empty lists.
+        let empty = try J.parse(Data(contentsOf: QAPaths.fixtures.appendingPathComponent("catalog-empty.json")))
+        XCTAssertEqual(Slice1.shapeProblems(empty, productCount: 0, minDistricts: 0, minSlots: 0), [], "catalog-empty.json")
+        XCTAssertEqual(empty["products"]?.array?.count, 0)
+        XCTAssertEqual(Slice1.forbiddenHits(in: empty.allText), [], "catalog-empty.json")
+    }
+
+    func testTC3_NotModifiedFixtureFollowsTheEtagContract() throws {
+        let json = try J.parse(Data(contentsOf: QAPaths.fixtures.appendingPathComponent("catalog-not-modified.json")))
+        XCTAssertEqual(json["status"]?.int, 304)
+        XCTAssertEqual(json["body"], J.null, "a 304 has no body")
+        let sent = try XCTUnwrap(json["request_headers"]?["If-None-Match"]?.string)
+        let etag = try XCTUnwrap(json["response_headers"]?["ETag"]?.string)
+        XCTAssertEqual(sent, etag, "a 304 repeats the matched tag")
+        XCTAssertEqual(json["response_headers"]?["Cache-Control"]?.string, "no-cache")
+        XCTAssertNotNil(etag.range(of: "^\"[0-9a-f]{32}\"$", options: .regularExpression), "api.md 4.1: quoted 32 lowercase hex characters: \(etag)")
+        XCTAssertNil(json["response_headers"]?["Content-Type"], "a 304 does not repeat Content-Type")
     }
 
     func testExtra_FixtureReadmeListsEveryCatalogFixture() throws {
         let readme = try String(contentsOf: QAPaths.fixtures.appendingPathComponent("README.md"), encoding: .utf8)
         let files = try FileManager.default.contentsOfDirectory(atPath: QAPaths.fixtures.path).filter { $0.hasSuffix(".json") }
+        XCTAssertGreaterThanOrEqual(files.count, 10)
         for file in files { XCTAssertTrue(readme.contains(file), "\(file) is not described in contracts/fixtures/README.md") }
     }
 

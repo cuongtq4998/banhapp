@@ -2,14 +2,16 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.4 |
+| Version      | 1.5 |
 | Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | probe-qa |
-| Based on     | product/place-order.md v1.2 (Approved); design/place-order-ui.md v1.0; system/api.md v1.5 [v1.4 | 2026-10-26], order-lifecycle.md v1.0, auth.md v1.0, data-model.md v1.0, architecture.md v1.0; ADR-0005, 0008 to 0011, 0013 to 0015 |
+| Based on     | product/place-order.md v1.4 [v1.5 | 2026-10-26]; design/place-order-ui.md v1.0; system/api.md v1.6 [v1.5 | 2026-10-26], data-model.md v1.3; ADR-0017 [v1.5 | 2026-10-26]; order-lifecycle.md v1.0, auth.md v1.0, data-model.md v1.0, architecture.md v1.0; ADR-0005, 0008 to 0011, 0013 to 0015 |
 | Related      | process/standards/11-test.md; engineering/dev-guide.md (not yet written); backend/Tests/qa/ (executable tests) |
 
 ## 1. Scope & Environment
+
+[v1.5 | 2026-10-26] Round 5 (slice 1 backend retest, execute mode) on commit a934ae8 (feature/place-order tip: slice 1 backend, `contracts/fixtures/catalog-*.json`, ADR-0017, PRD v1.4, api.md v1.6). Host: macOS arm64, Swift 6.2.4, no PostgreSQL, no Docker. Database tests (49 QA, 16 developer) cannot run here; GitHub CI run 40299261388 (backend, a934ae8) was read with `gh`: it failed at "Backend build and unit tests", so every later step (contracts, migrations, seed, **QA package**, release smoke test) was skipped. Result: the database-backed catalogue tests have **no run evidence at all** (neither host nor CI). Details in section 4.6, 6 (round 5), 7 (D-15 to D-20), 8.
 
 [v1.4 | 2026-10-26] Slice 1 (read-only catalogue and shop info), early execute mode on base commit e9c097b (worktree of probe-qa, uncommitted QA files). The slice 1 backend (`GET /v1/catalog`, rate limiter, `/privacy`, `/assets/*`) and both client slices are being written in other worktrees and are **not in this commit**, so the new QA tests were written from api.md v1.5, ADR-0011/0013/0014/0015 and the UI spec, compile and run, and are **expected to fail** (or skip) until the backend instance merges. Same host as before (macOS arm64, Swift 6.2.4, no PostgreSQL, no Docker). No verdict for slice 1 yet. Details in section 4.5.
 
@@ -386,9 +388,64 @@ Not automated here (and why): ETag derived from content versus version (not spec
 
 What the developers must provide for slice 1 (additions to section 3): the catalog route using `Request.databaseHandle` (503 without a database), asset and privacy files under `backend/assets/` (path of the product images stated in api.md), a limiter whose window can be driven by `app.services.clock` or a test hook, `contracts/fixtures/catalog-ok.json` (plus any other `catalog-*.json`), and a note in the dev guide for `QA_ALLOW_DB_MUTATION`.
 
+### 4.6 Slice 1 backend retest, round 5 [v1.5 | 2026-10-26]
+
+Commit a934ae8. Commands: `cd backend && swift test`; `cd backend/Tests/qa && swift test`. QA package adapted: `ConfigEdgeTests` base now has `SHOP_ID`; `CatalogApp` (support) sets the working directory to `backend/` (so `assets/` resolves, as when the server runs from source), passes `SHOP_ID` of the seed shop and the new config fields; seed constants follow `sample.sql` (shop "Tiệm Bánh An Nhiên", phone `+84900000000`, Zalo `84900000000`); image rules follow api.md 4.6 (`/assets/images/*`, `public, max-age=31536000, immutable`, 404 `no-store`); ETag is checked as 32 lowercase hex; HEAD and query rules follow api.md v1.6.
+
+Results (host): developer package 165 tests, 16 skipped (database), 0 fail. QA package 177 tests, 50 skipped (database: 21 DatabaseTests + 29 catalogue tests), **123 pass, 4 fail** (7 assertions), 0 blocked by the code under test. Legend: Pass = ran and passed on a934ae8; Fail = ran and failed (defect id); Skip = needs PostgreSQL, not run, no evidence yet (CI skipped it).
+
+Previously expected-to-fail tests (round 4, 17 tests + 3 ConfigEdge failures caused by the merge):
+
+| Test | Round 5 result | Evidence / decision |
+| ---- | -------------- | ------------------- |
+| ConfigEdgeTests.testPortBoundaries, testSurroundingSpacesAreTrimmed, testTrailingNewlineIsTrimmed | Pass | Test defect (base lacked `SHOP_ID`, now required outside local); fixed in the QA test |
+| CatalogFailureTests (3: unreachable database 503, no database 503, conditional during outage) | Pass | 503 envelope, no leak, shallow health stays 200 |
+| ReadRateLimitTests.testTC50, testExtra_ReadGroupIsOneSharedBudget, testExtra_SpoofedForwardedFor..., testExtra_LimitedResponse... | Pass | Limiter exists; 121st read is 429, Retry-After 1..60 |
+| StaticContentTests: privacy (5 tests), asset files (2), fixtures (2), asset methods (1) | Pass after test fixes | Failures on the first run were all test defects of mine: working directory (privacy 404), fixture kinds (empty and 304 fixtures are not "four cakes"), image path `images/...` rule |
+| testTC67_MissingAssetIsNotFoundEnvelope | **Fail** | D-19 (code): 404 outside the static handler has no `Cache-Control: no-store` |
+
+New and changed cases:
+
+| ID | Type | Test | Notes | Result on a934ae8 |
+| -- | ---- | ---- | ----- | ----------------- |
+| TC-S1-30 | extra | ConfigEdgeTests.testShopIdIsRequiredOutsideLocalAndMustBeAUuid, testLocalRunMayOmitShopIdAndDatabase | `SHOP_ID` required in staging and production, UUID only, optional locally | Pass |
+| TC-S1-31 | extra | testTrustProxyDefaultsOffAndParsesStrictly, testReadRateLimitDefaultAndBounds, testPublicAssetBaseUrlTrailingSlashesAreRemoved, testSlice1ConfigErrorsNeverEchoValues | `TRUST_PROXY` `true`/`false` only (case-insensitive), limit at least 1, no value echoed in errors | Pass |
+| TC-S1-32 | extra | ReadRateLimitTests.testExtra_NotFoundCountsAndALimitedRequestDoesNot | api.md v1.6: 404 counts, 429 does not move the window | Pass |
+| TC-S1-33 | extra | testExtra_WindowEdgesAndRetryAfterRounding | Controlled clock: Retry-After rounded up, 1 at 59.9 s, new window at exactly 60 s, clock moving backwards does not lock out | Pass |
+| TC-S1-34 | extra | testExtra_EachAddressHasItsOwnWindow | api.md v1.6: window starts at the first counted request of that address | **Fail** (D-18) |
+| TC-S1-35 | extra | testExtra_TrustedProxyKeysTheBudgetOnTheLastForwardedEntry, testExtra_TrustedProxyWithoutHeaderSharesTheConnectionAddress | With `TRUST_PROXY=true` the last entry of one header line decides; forged leading entries do not escape; odd values never 5xx | Pass |
+| TC-S1-36 | extra | testExtra_TrustedProxyReadsTheLastEntryAcrossRepeatedHeaderLines | RFC 9110 5.3: repeated header lines are one list | **Fail** (D-17) |
+| TC-S1-37 | extra | testExtra_ParallelBurstNeverExceedsTheBudget | 200 parallel reads, limit 50: exactly 50 pass | Pass |
+| TC-S1-38 | extra | StaticContentTests.testExtra_OnlyImagesWithImageExtensionsAreServed | 18 traversal and encoding forms under `/assets/images/` (`..%2f`, `%2e%2e`, `%252e`, overlong UTF-8, full-width dots, backslash, NUL, hidden file, wrong extension, trailing slash): never the privacy page, never 5xx, only images served | Pass |
+| TC-S1-39 | extra | testExtra_ImageUrlVersionIsTheFileSha256Prefix | `?v=` of `catalog-ok.json` equals the first 8 hex of the SHA-256 of the file | Pass |
+| TC-S1-40 | extra | testExtra_AssetsDirectoryAndRootAreNotListed, testExtra_AssetMethodsRangeAndRevalidation | `/assets`, `/assets/images` give 404; immutable cache header, version query ignored, Range, bad Range, POST/PUT/DELETE not 200. HEAD body not observable (the in-memory tester does not strip HEAD bodies) | Pass |
+| TC-S1-41 | extra | testTC3_NotModifiedFixtureFollowsTheEtagContract | 304 fixture: status 304, body null, repeats the tag, `no-cache`, tag is 32 lowercase hex | **Fail** (D-20) |
+| TC-S1-42 | extra | testTC1_CatalogFixturesExistAndSatisfyTheContractCheck | `catalog-ok.json` four cakes; `catalog-empty.json` has `products: []` (AC-33) | Pass |
+| TC-S1-43 | extra | CatalogFailureTests.testExtra_HeadIsAnsweredLikeGetNotAs404 | Observed: HEAD is answered like GET by Vapor; api.md 4.1 says HEAD answers 404 (DOC-11) | Pass (pins observed behaviour) |
+| AC-32 (API) | acceptance | CatalogContractTests.testAC32_OneTwoOrThreeActiveCakesAreListedExactly (needs `QA_ALLOW_DB_MUTATION=1`) | 3, 2, 1 active cakes and a hidden one in the middle: exactly the active ones in sort order, no padding, shape valid | Skip (no PostgreSQL, no CI run) |
+| AC-33 (API) | acceptance | testAC33_ZeroActiveCakesIsAnEmptyListNotAnError | Zero active: 200 with `products: []`, districts and slots intact, new ETag, old tag no 304; one cake active again appears on the next request | Skip |
+| AC-32, AC-33 (UI) | acceptance | iOS and Android UI cases with `catalog-empty.json` and a three-cake fixture | List of the active cakes only; Error state at zero; recovery without reinstall | Not run (client slices) |
+| AC-34 | acceptance | Order-time hidden cake (`PRODUCT_UNAVAILABLE`, data kept, nothing stored, price kept on old orders) | Slice 1 only exposes the hidden cake's absence from the catalogue (AC-32 test) | **Slice 3** (order endpoint absent); slice 1 part Skip |
+| TC-S1-44 | extra | testExtra_AllDistrictsAndSlotsInactiveGiveEmptyLists, testExtra_ChangedShopSettingIsServedAndNoteLengthStaysAConstant, testExtra_UnknownShopIdDoesNotLeakOrCrash, testExtra_AssetBaseUrlPrefixesEveryImageUrl | Empty lists valid, settings follow the table, `note_max_length` stays 200, unknown `SHOP_ID` is 500 `INTERNAL_ERROR` without data (CatalogRepository doc), `PUBLIC_ASSET_BASE_URL` prefix | Skip (the unknown-shop case will fail on CI: D-15) |
+
+Changed expectations of existing DB tests (ADR-0017): ETag shape 32 hex; 304 repeats `Cache-Control: no-cache`, no `Content-Type`; unknown query parameter must give 200 with the same body and tag; HEAD accepts 200 or 404; image URL starts `/assets/images/` with `?v=<8 hex>` and the immutable header. All Skip here.
+
+Code review of the slice 1 backend (by reading, plus the tests above):
+
+| Area | Finding |
+| ---- | ------- |
+| ETag determinism | Sound: `sortedKeys` and `withoutEscapingSlashes` encoder, SQL `ORDER BY sort_order, id`; hash is SHA-256 of the body, 32 hex. The ETag covers `server_date` and `image_url` as documented. Not run against a database. |
+| Rate limit | D-17, D-18. Also: `/healthz` counts, so a platform health check behind a shared proxy address (`TRUST_PROXY` off) shares the budget with customers (risk, documented in `.env.example`). Memory is bounded by the per-window reset. |
+| TRUST_PROXY | Last entry of the first header line only (D-17). With two proxies in front (a CDN and the host) the last entry is the inner proxy, so all customers would share one budget; hop count is not stated in deployment.md (question to atlas-architect). |
+| Static route | Segment allow-list, hidden names refused, extension allow-list, only `images/` served; 18 hostile paths pass. Symlinks inside `assets/images` are followed (the repository has none; informational). 404 header gap: D-19. |
+| Privacy page | Vietnamese, `lang="vi"`, UTF-8, no script, no tracker, no payment word, names all four data items, purpose, recipient, storage, retention (placeholders say the shop will update: acceptable, retention is launch data). `Cache-Control: no-cache`. |
+| Seed values | No marker word (TC-66 Pass), phone `+84900000000` consistent with ADR-0017 item 8. |
+| Log policy | Access log has route template only, no query, address, body; "Product image file not found" logs the shop's image path only; the unknown-shop error logs the type only. The AsyncKit connection-failure log of the driver includes the database host and port (infrastructure, no customer data; informational). |
+| CI | D-15, D-16. |
+
 ## 5. Additional Cases
 
-Cases marked `extra` above were added by the tester beyond the 29 ACs. Reasons are in the Preconditions column of each case (boundary at exactly N=2, 1 lead days, 30 days ahead, quantity 2 and 1, daily-limit exact fit and one-over; two orders racing for the last cakes; duplicate submit with one key; rate limit and per-phone limit; every API error code; price change; offline, cache and draft; six UI states per screen; accessibility; Vietnamese text; time zone and clock; logs and enumeration; database guards). Android-only extras are TC-266 and TC-267. Slice 1 extras are TC-S1-01 to TC-S1-29 (section 4.5.2). [v1.4 | 2026-10-26]
+Cases marked `extra` above were added by the tester beyond the 29 ACs. Reasons are in the Preconditions column of each case (boundary at exactly N=2, 1 lead days, 30 days ahead, quantity 2 and 1, daily-limit exact fit and one-over; two orders racing for the last cakes; duplicate submit with one key; rate limit and per-phone limit; every API error code; price change; offline, cache and draft; six UI states per screen; accessibility; Vietnamese text; time zone and clock; logs and enumeration; database guards). Android-only extras are TC-266 and TC-267. Slice 1 extras are TC-S1-01 to TC-S1-29 (section 4.5.2) and TC-S1-30 to TC-S1-44 (section 4.6). [v1.5 | 2026-10-26]
 
 ## 6. Rounds
 
@@ -399,6 +456,7 @@ Cases marked `extra` above were added by the tester beyond the 29 ACs. Reasons a
 | 2 (slice 0, execute) [v1.2 | 2026-10-26] | 2026-10-26 | b613c6d, host tests only | 86 QA + 73 developer = 159 | 3 QA tests (11 assertions): D-9, D-10, D-11 | 0 run-blocked; 21 QA + 10 developer database tests skipped (no PostgreSQL); iOS, Android, image and deploy not run | slice 1 to 3 cases (unchanged) |
 | 3 (slice 0, execute) [v1.3 | 2026-10-26] | 2026-10-26 | fbdaafe, host tests (macOS) | 89 QA + 81 developer = 170 | 0 | 0 run-blocked; 21 QA + 10 developer database tests skipped (no PostgreSQL); CI evidence missing (D-14); iOS, Android, image, deploy not run | slice 1 to 3 cases (unchanged) |
 | 4 (slice 1, early execute) [v1.4 | 2026-10-26] | 2026-10-26 | e9c097b plus uncommitted QA files, host tests (macOS) | 94 QA | 17 QA (expected-fail, slice 1 backend absent) | 0 run-blocked; 44 skipped (21 + 23 need PostgreSQL) | clients and device cases (not run) |
+| 5 (slice 1 backend, execute) [v1.5 | 2026-10-26] | 2026-10-26 | a934ae8, host tests (macOS) plus CI run 40299261388 read with `gh` | 123 QA + 149 developer = 272 | 4 QA tests (7 assertions: D-17, D-18, D-19, D-20); 1 developer test failing in CI (D-15) | 0 run-blocked; 50 QA + 16 developer database tests skipped on host, and not run in CI (job stopped at the unit test step); clients, device, image build not run | clients, AC-34 order-time (slice 3) |
 
 Round 1 detail: QA package 68 tests = SplitterEdge 15 (3 fail), ConfigEdge 10 (2 fail), HealthEdge 12 (0), RepositoryLayout 10 (1 fail), Database 21 (skipped). 47 executed, 41 pass, 6 fail. CI on GitHub (reported by the orchestrator, not observed by me): backend `test` job passed including migrations and seed twice on postgres:16; image, iOS and Android jobs failed.
 
@@ -407,6 +465,9 @@ Round 2 detail: QA package 110 tests (`swift test` in `backend/Tests/qa`): 21 sk
 Round 3 detail: QA package (`swift test` in `backend/Tests/qa`): 110 tests, 21 skipped (DatabaseTests), 89 pass, 0 fail. Developer package (`swift test` in `backend`): 91 tests, 10 skipped, 81 pass, 0 fail. All five previously failing or open items (D-9, D-10, D-11 tests) now pass. GitHub CI on fbdaafe (backend run 40292131322, observed with `gh`): steps "Backend build and unit tests", "Contracts tests", "Apply migrations to PostgreSQL" and "Apply sample seed twice" succeeded on postgres:16 (so TC-66 migration and seed idempotence have CI evidence); step "QA package" failed to compile (D-14), so the 21 QA database tests (TC-59, TC-60, TC-61, TC-69, TC-70, TC-80 to TC-82) did not run in CI; the release smoke test was skipped as a result. `gh` is available and was not rate limited. ios and android jobs were still running at the time of the check (not mine to judge).
 
 Round 4 detail [v1.4 | 2026-10-26] (slice 1, early execute mode, base commit e9c097b plus the uncommitted QA files; the slice 1 backend is not in this commit): QA package `swift test` in `backend/Tests/qa`: 155 tests, 44 skipped (21 DatabaseTests, 23 catalog tests that need `DATABASE_MIGRATION_URL`), 94 pass (89 earlier plus 5 new static or route-absent checks), 17 fail on purpose, 0 unexpected failures in earlier tests. The 17 expected-to-fail tests: CatalogFailureTests (3), ReadRateLimitTests (4), StaticContentTests (10: testExtra_AssetMethodsRangeAndRevalidation, testExtra_PrivacyHeadAndMethods, testTC1_CatalogFixtureMatchesTheSampleSeedWhereItClaimsToBeTheSeed, testTC1_CatalogFixturesExistAndSatisfyTheContractCheck, testTC67_AssetFilesAreRealImagesOfReasonableSize, testTC67_EverySeedImagePathHasAFileInTheRepository, testTC67_PrivacyPageHasNoPaymentWordsNoRemoteScriptsAndNoTrackers, testTC67_PrivacyPageIsServedAsUtf8Html, testTC67_PrivacyPageNamesEveryCollectedItemAndPurposeAndRecipient, testTC67_PrivacySourceFileExistsAndIsFakeFreeOfSecrets). The 23 skipped catalog tests have not been run against a catalog at all (no PostgreSQL here, no route yet); they are unverified, not passed. Developer package (`swift test` in `backend`) was not rerun (unchanged). Linux build of the new QA files not verified (no Linux host; imports are Foundation, XCTVapor and NIOConcurrencyHelpers only, no URLSession).
+
+
+Round 5 detail [v1.5 | 2026-10-26]: see section 4.6. CI run 40299261388 (backend, a934ae8): "Backend build and unit tests" failed with `CatalogRepositoryTests.testUnknownShopThrowsShopNotFound` (165 tests, 1 failure; the database tests of the developer package did run on postgres:16 and all others passed); "Contracts tests", "Apply migrations", "Apply sample seed twice", "QA package" and "Release binary smoke test" were skipped. The android job of the same commit failed at `:app:compileDebugKotlin` and the ios job passed (not assessed by me).
 
 Counts per level in this version: see section 9 (Change log).
 
@@ -456,11 +517,31 @@ New in round 4, document review of slice 1 (no code defect yet; the code is not 
 | DOC-9 | Low | canvas-ui | Open | UI 5.4 (S-4 Loading) says the skeleton shows "after a restore", but ADR-0011 restores the draft into S-5 to S-8 only; S-4 is never restored. Also S-2 Error disables "Place order" although a stored draft could be restored offline (Q-U1, Q-U7 already ask). S-1 exit condition ("after the start work finishes") names no start work (Q-U7). |
 | DOC-10 | Low | atlas-architect | Open | api.md 4.6 puts a 24 h `max-age` on assets while the image file for a cake can change under the same name (new photo): customers see an old photo for a day. Acceptable or use content-hashed names? Also `/assets/*` 404 is not given a cache rule (tests require no `max-age=86400`). |
 
+New in round 5 (a934ae8) [v1.5 | 2026-10-26]:
+
+| ID | Severity | Route | Status | Description |
+| -- | -------- | ----- | ------ | ----------- |
+| D-15 | Medium | dev | Open | A `SHOP_ID` that names no shop answers 503 `SERVICE_UNAVAILABLE`, not 500 `INTERNAL_ERROR` as `CatalogRepository` documents. `translatingDatabaseErrors` rethrows only `APIError`, `DecodingError`, `CancellationError` and server-side `PSQLError`; `CatalogRepositoryError.shopNotFound` falls into the catch-all and becomes `APIError(.serviceUnavailable)` (same for `sqlNotSupported`). Evidence: CI run 40299261388, developer test `CatalogRepositoryTests.testUnknownShopThrowsShopNotFound` fails ("nil" is not `shopNotFound`), which turns the whole backend job red and skips the QA package. Effect: a deployment mistake looks like a database outage and the apps retry forever; the 500 is what makes the operator look at the configuration. Steps: run the catalogue against a database without the configured shop. Expected: `INTERNAL_ERROR`. Also my QA test testExtra_UnknownShopIdDoesNotLeakOrCrash. |
+| D-16 | Medium | dev (workflow) | Open (by reading; the step was skipped in CI) | Release smoke test in `.github/workflows/backend.yml` runs with `APP_ENV=local` and no `SHOP_ID`, so `GET /v1/catalog` answers 503 (config: shop optional locally, catalogue then unavailable) and the new `curl -sf .../v1/catalog` lines fail the step. Expected: pass the seed shop id `00000000-0000-4000-8000-000000000001` in the step environment. |
+| D-17 | Medium | dev | Open | With `TRUST_PROXY=true`, `ClientAddress.key` reads only the first `X-Forwarded-For` header line (`headers.first(name:)`) and then the last entry of that line. A proxy that adds its entry as a separate header line (valid, RFC 9110 5.3) leaves the client-written first line in charge, so a client picks its own rate-limit identity and bypasses the limit. Test: ReadRateLimitTests.testExtra_TrustedProxyReadsTheLastEntryAcrossRepeatedHeaderLines (0 of 5 limited). Matters most for `POST /v1/orders` limits in slice 3. Expected: join all lines (`headers[canonicalForm: ...]`) and use the last entry. |
+| D-18 | Low | dev (or atlas-architect if the owner of api.md prefers the simpler counter) | Open | `FixedWindowRateLimiter` keeps one window for all addresses, started by whichever address comes first, but api.md v1.6 and ADR-0017 say the window of an address starts at that address's first counted request. Test: testExtra_EachAddressHasItsOwnWindow: address B first seen at t0+50 is limited with `Retry-After: 10` (expected 60). Effect: a late address gets a shorter window (more bursts, up to twice the limit already accepted for fixed windows); `Retry-After` is honest for the implementation. |
+| D-19 | Low | dev | Open | A 404 that is not produced by the static handler has no `Cache-Control: no-store`: `/assets/nothing`, `/assets/products/x.png`, `/assets/privacy.html`, `/assets/images` answer the 404 envelope without cache header. api.md 4.6: "`404` and errors: `Cache-Control: no-store`" (404 is heuristically cacheable by proxies). `/assets/images/<missing>.png` is correct. Test: testTC67_MissingAssetIsNotFoundEnvelope (4 assertions). Simple fix: the error middleware sets `no-store` on every error envelope. |
+| D-20 | Low | dev (fixture) with atlas-architect (the fixture README says the tag is the SHA-256 of the body) | Open | `contracts/fixtures/catalog-not-modified.json` uses a 64-hex placeholder tag, but api.md 4.1 and ADR-0017 define 32 hex characters; a client that validates the tag shape or copies it into a stub gets a tag the server never produces. Test: testTC3_NotModifiedFixtureFollowsTheEtagContract. |
+
+Round 4 document findings re-checked on a934ae8: DOC-1, DOC-2, DOC-3, DOC-4, DOC-5, DOC-10 **Fixed** by ADR-0017 and api.md v1.6 (image rule, ETag, shared budget and Retry-After, query parameters, `note_max_length` constant, versioned immutable images). DOC-6 **Fixed** (api.md examples now "Tiệm Bánh An Nhiên", "Quận An Phú", no marker). DOC-7 **Fixed** (seed phone `+84900000000`). DOC-8 **Fixed** by PRD v1.4 (AC-32 to AC-34, owner decision: one to four active cakes normal, error only at zero); UI document S-3 5.3 still has to follow (canvas-ui, not rechecked by me). DOC-9 not rechecked (UI). New:
+
+| ID | Severity | Route | Status | Description |
+| -- | -------- | ----- | ------ | ----------- |
+| DOC-11 | Low | atlas-architect | Open | api.md 4.1 says HEAD is not part of the contract and an unrouted method answers 404; Vapor serves HEAD with the GET handler (RFC 9110 9.3.2), observed 200/503 like GET (TC-S1-43). Change the sentence ("HEAD is answered like GET and is not used by the apps"). |
+| DOC-12 | Low | atlas-architect | Open | deployment.md does not say how many proxies sit before the API, but the `TRUST_PROXY` rule (last entry) is only right for exactly one. State the hop count of the chosen host (and whether a CDN is added later); otherwise customers may share one budget (false 429) or the limit can be bypassed. |
+
 Reviewed and found sound (no defect): error middleware never copies error text into bodies or logs (TC-88, TC-89); access log blocks injection (TC-95; platform and version pattern, route template, no query); 8 KB limit has the exact boundary (8192 pass, 8193 fail, with and without Content-Length, TC-92); `DeadlineRace` single resume, early cancel and early finish orderings (TC-98); config trimming and no-echo; pool budget arithmetic (TC-75). Not reviewed or not runnable here: release-build behaviour of the NIO timer, behaviour under real database stall, the `migrate` command against a database, image build.
 
 Not defects (recorded for information): the guard `customer_order_status_guard` allows an update that leaves the status unchanged, so a second `Cancelled` update is a no-op (no second event, no second capacity release) rather than "rejected" as TC-59 said; TC-59 is reworded accordingly (document change, v1.1). The seed uses `ON CONFLICT (id) DO NOTHING`, so an edited sample value is not updated on re-run (acceptable, by design). CI now runs the QA package (backend.yml step added by the orchestrator), which will execute the database tests that are unrun here. Round 1 text (superseded).
 
 ## 8. Verdict
+
+[v1.5 | 2026-10-26] Slice 1 backend, round 5, commit a934ae8: **Conditional, not a Pass.** No High defect is open, but Medium defects are open (D-15, D-16, D-17) and the CI evidence is missing: backend CI run 40299261388 stopped at the developer unit test step (D-15), so the QA package and its 49 database-backed tests (catalogue contract, ETag, AC-32 and AC-33 at API level, mutation tests) have not been run anywhere. What passed with evidence: developer package 165 tests (16 database tests skipped on host, executed in CI and passed except one), QA package 123 tests on host, covering configuration, rate limit, trusted proxy, static route traversal, privacy page, fixtures, seed text. Exact missing evidence for a Pass: (1) fixes for D-15, D-16, D-17 (and ideally D-18 to D-20); (2) a green backend CI run on the next commit in which "QA package (edge cases and database tests)" runs with `QA_ALLOW_DB_MUTATION=1` on postgres:16 with the 29 catalogue tests executed and the release smoke test passing; (3) AC-1 to AC-5, AC-21, AC-27, AC-29, AC-32, AC-33 on both apps (clients not yet merged, AC-3 on real devices); AC-34 order-time is slice 3.
 
 [v1.4 | 2026-10-26] Slice 1: **no verdict yet** (early execute mode on e9c097b, before the slice 1 backend and clients merge). 17 QA tests fail on purpose and 23 database-backed catalog tests have not run; both groups must be run on the merged commit with PostgreSQL (CI `QA package` step, with `QA_ALLOW_DB_MUTATION=1` on the throwaway service database). Slice 1 will pass only when AC-1 to AC-5, AC-21, AC-27, AC-29 pass on the API and on both apps (AC-3 on real devices) and no high-severity defect is open.
 
@@ -553,6 +634,7 @@ Review of the whole document set (PRD v1.2, UI v1.0, system docs v1.0, ADRs). Cl
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.5 | 2026-10-26 | Round 5, slice 1 backend retest on a934ae8: QA package adapted to `SHOP_ID`, `TRUST_PROXY`, ADR-0017 and api.md v1.6; section 4.6 (results of the 17 expected-fail tests, TC-S1-30 to TC-S1-44, AC-32 to AC-34 mapping, code review); defects D-15 to D-20, DOC-11, DOC-12; DOC-1 to DOC-8, DOC-10 closed; GitHub CI run read; verdict Conditional. |
 | 1.4 | 2026-10-26 | Slice 1 early execute mode on e9c097b: section 4.5 (mapping of AC-1 to AC-5, AC-21, AC-27, AC-29 and TC-1 to TC-3, TC-50, TC-51, TC-54, TC-57, TC-62, TC-66, TC-67, TC-69 to executable tests or manual client cases, TC-S1-01 to TC-S1-29), QA files `CatalogSupport.swift`, `CatalogContractTests.swift`, `CatalogFailureAndLimitTests.swift`, `StaticContentTests.swift`, round 4 results, document findings DOC-1 to DOC-10, no verdict. |
 | 1.3 | 2026-10-26 | Round 3, slice 0 on fbdaafe: D-9 test updated to api.md v1.5 (404), D-3, D-9 to D-13 retested and Fixed, D-7 text corrected, new D-14 (QA test Linux compile error seen in CI, fixed locally), TC-93 updated, results and verdict updated. |
 | 1.2 | 2026-10-26 | Round 2, slice 0 on b613c6d: QA package adapted to `AppServices`, `MigrationConfig`; D-1 to D-8 retested (6 fixed, D-3 still open, D-7 fixed); new D-9 to D-13; TC-88 to TC-98 added (`ReviewEdgeTests.swift`); results columns now show round 1 / round 2; verdict conditional. |

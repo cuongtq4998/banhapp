@@ -97,10 +97,11 @@ enum Slice1 {
     /// literals on purpose: a change of the sample data must be a visible
     /// change of the expected data (TC-S1-13).
     enum Seed {
-        static let shopName = "Tiệm bánh Hoa Sen"
+        static let shopID = UUID(uuidString: "00000000-0000-4000-8000-000000000001")!
+        static let shopName = "Tiệm Bánh An Nhiên"
         static let greeting = "Bánh làm thủ công, giao tận nơi."
-        static let phone = "+84123456789"
-        static let zalo = "84123456789"
+        static let phone = "+84900000000"
+        static let zalo = "84900000000"
         static let settings: [String: Int] = [
             "min_qty": 2, "lead_days": 2, "max_days_ahead": 30, "max_qty_per_cake": 99, "note_max_length": 200
         ]
@@ -152,7 +153,7 @@ enum Slice1 {
     /// Contract check of api.md section 3 and 4.1. Returns every problem found
     /// (empty when the document is a valid catalog). Used for live responses
     /// and for the fixtures in contracts/fixtures.
-    static func shapeProblems(_ root: J) -> [String] {
+    static func shapeProblems(_ root: J, productCount: Int = 4, minDistricts: Int = 1, minSlots: Int = 1) -> [String] {
         var p: [String] = []
         func keys(_ j: J?, _ expected: Set<String>, _ label: String) {
             guard let o = j?.object else { p.append("\(label) is not an object"); return }
@@ -183,8 +184,8 @@ enum Slice1 {
             for (i, item) in items.enumerated() { keys(item, expectedKeys, "\(name)[\(i)]") }
             return items
         }
-        let products = list("products", ["product_id", "slug", "name", "description", "price_vnd", "image_url"], 4)
-        if products.count != 4 { p.append("products count \(products.count) != 4 (api.md: exactly four at launch)") }
+        let products = list("products", ["product_id", "slug", "name", "description", "price_vnd", "image_url"], productCount)
+        if products.count != productCount { p.append("products count \(products.count) != \(productCount)") }
         for (i, item) in products.enumerated() {
             if let id = item["product_id"]?.string, !matches(id, uuidPattern) { p.append("products[\(i)].product_id not uuid") }
             if let slug = item["slug"]?.string, !matches(slug, "^[a-z0-9-]{1,40}$") { p.append("products[\(i)].slug \(slug)") }
@@ -195,12 +196,12 @@ enum Slice1 {
                 if url.contains("..") || url.contains("\\") { p.append("products[\(i)].image_url traversal: \(url)") }
             }
         }
-        let districts = list("districts", ["district_id", "name", "delivery_fee_vnd"], 1)
+        let districts = list("districts", ["district_id", "name", "delivery_fee_vnd"], minDistricts)
         for (i, item) in districts.enumerated() {
             if let id = item["district_id"]?.string, !matches(id, uuidPattern) { p.append("districts[\(i)].district_id not uuid") }
             if item["delivery_fee_vnd"]?.int == nil { p.append("districts[\(i)].delivery_fee_vnd not an integer") }
         }
-        let slots = list("slots", ["slot_id", "start", "end"], 1)
+        let slots = list("slots", ["slot_id", "start", "end"], minSlots)
         for (i, item) in slots.enumerated() {
             if let id = item["slot_id"]?.string, !matches(id, uuidPattern) { p.append("slots[\(i)].slot_id not uuid") }
             guard let s = item["start"]?.string, let e = item["end"]?.string else { continue }
@@ -234,17 +235,35 @@ enum Slice1 {
     }
 }
 
-/// Builds an application for catalog tests against the database named by
-/// DATABASE_MIGRATION_URL: schema migrated and the sample seed applied (both
-/// idempotent), the app reading through the same database.
+/// Builds applications for the slice 1 tests. The working directory is the
+/// backend folder, as when the server runs from source, so `assets/` resolves
+/// (the QA package runs from `backend/Tests/qa`).
 enum CatalogApp {
-    static func make(clock: (any WallClock)? = nil) async throws -> Application {
+    static func config(
+        databaseURL: String?, shopID: UUID? = Slice1.Seed.shopID, trustProxy: Bool = false,
+        readLimit: Int = AppConfig.Default.rateLimitReadPerMinute,
+        windowSeconds: TimeInterval = AppConfig.Default.rateLimitWindowSeconds,
+        assetBaseURL: String = ""
+    ) -> AppConfig {
+        AppConfig(stage: .local, port: 8080, databaseURL: databaseURL, shopID: shopID, trustProxy: trustProxy,
+                  rateLimitReadPerMinute: readLimit, publicAssetBaseURL: assetBaseURL, rateLimitWindowSeconds: windowSeconds)
+    }
+
+    private static func makeApplication() async throws -> Application {
+        let app = try await Application.make(.testing)
+        app.directory.workingDirectory = QAPaths.backend.path + "/"
+        return app
+    }
+
+    /// Against the database named by DATABASE_MIGRATION_URL: schema migrated and
+    /// the sample seed applied (both idempotent), the app reading through it.
+    static func make(clock: (any WallClock)? = nil, assetBaseURL: String = "") async throws -> Application {
         guard let url = Slice1.databaseURL else {
             throw XCTSkip("\(Slice1.dbVariable) not set; catalog database tests skipped")
         }
-        let app = try await Application.make(.testing)
+        let app = try await makeApplication()
         do {
-            try await configure(app, config: AppConfig(stage: .local, port: 8080, databaseURL: url))
+            try await configure(app, config: config(databaseURL: url, assetBaseURL: assetBaseURL))
             for file in try MigrationFiles.load(from: QAPaths.migrations) { app.migrations.add(file) }
             try await app.autoMigrate()
             let seed = try String(contentsOf: QAPaths.seed, encoding: .utf8)
@@ -260,17 +279,27 @@ enum CatalogApp {
         }
     }
 
-    /// An application whose database cannot be reached (nothing listens on the port).
-    static func makeUnreachable() async throws -> Application {
-        let app = try await Application.make(.testing)
-        try await configure(app, config: AppConfig(stage: .local, port: 8080, databaseURL: "postgres://qa:qa@127.0.0.1:1/qa"))
+    /// The migrated and seeded database, served for another SHOP_ID.
+    static func makeWithShop(_ shopID: UUID) async throws -> Application {
+        guard let url = Slice1.databaseURL else {
+            throw XCTSkip("\(Slice1.dbVariable) not set; catalog database tests skipped")
+        }
+        let app = try await makeApplication()
+        try await configure(app, config: config(databaseURL: url, shopID: shopID))
         return app
     }
 
-    /// An application with no database at all (local run without DATABASE_URL).
-    static func makeWithoutDatabase() async throws -> Application {
-        let app = try await Application.make(.testing)
-        try await configure(app, config: AppConfig(stage: .local, port: 8080, databaseURL: nil))
+    /// A database that cannot be reached (nothing listens on the port).
+    static func makeUnreachable() async throws -> Application {
+        let app = try await makeApplication()
+        try await configure(app, config: config(databaseURL: "postgres://qa:qa@127.0.0.1:1/qa"))
+        return app
+    }
+
+    /// No database at all (local run without DATABASE_URL).
+    static func makeWithoutDatabase(_ config: AppConfig? = nil) async throws -> Application {
+        let app = try await makeApplication()
+        try await configure(app, config: config ?? Self.config(databaseURL: nil))
         return app
     }
 }
