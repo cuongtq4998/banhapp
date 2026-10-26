@@ -2,16 +2,16 @@
 
 | Field        | Value                                                        |
 | ------------ | ------------------------------------------------------------ |
-| Version      | 1.3                                                          |
-| Last updated | 2026-10-25                                                   |
-| Status       | Approved [v1.2 | 2026-10-25]. v1.3 clarifies wording only; no owner-decided number or rule changed. Items under "Added in v1.3, pending owner confirmation" (12.2) do not take effect until the owner confirms. [v1.3 | 2026-10-25] |
+| Version      | 1.4                                                          |
+| Last updated | 2026-10-26                                                   |
+| Status       | Approved [v1.2 | 2026-10-25]. v1.3 clarifies wording only; no owner-decided number or rule changed. Items under "Added in v1.3, pending owner confirmation" (12.2) do not take effect until the owner confirms. [v1.3 | 2026-10-25] v1.4 records the owner decision of 2026-10-26 on fewer than four active cakes (Q-15) and clarifies AC-29 (DOC-6). [v1.4 | 2026-10-26] |
 | Owner        | scribe-requirements                                          |
 | Based on     | docs/pipeline/place-order/00-request.md (2026-10-25)         |
 | Related      | UI mockups (reference only): https://claude.ai/artifact/HcWoUjBbqA9B1WUvZ3RKCb |
 
 ## 1. Summary
 
-A customer of a small banh tet pre-order shop uses a mobile app (iOS and Android) to browse four cakes and place an order for delivery on a chosen date and time. No account is needed. The app ends with a confirmation screen showing an order code; all later contact happens by Zalo or phone.
+A customer of a small banh tet pre-order shop uses a mobile app (iOS and Android) to browse the shop's active cakes (four at launch, at most four) and place an order for delivery on a chosen date and time. No account [v1.4 | 2026-10-26] is needed. The app ends with a confirmation screen showing an order code; all later contact happens by Zalo or phone.
 
 ## 2. Background & Problem
 
@@ -32,7 +32,7 @@ The shop sells traditional Vietnamese sticky-rice cakes (banh tet) on pre-order 
 - Customer accounts, login, order history.
 - Staff and owner features: login by phone with one-time code, order list and statuses (New, Confirmed, Completed, Cancelled), owner configuration of products, prices, districts and fees, daily limit, time slots, shop information, staff; push notifications.
 - Pickup at the shop (only delivery to the door is requested).
-- More than the four products, or product variations.
+- More than four products, or product variations. [v1.4 | 2026-10-26]
 - Special dates (e.g. Tet) with different limits, lead times or closed days: rules apply uniformly in this slice (Q-11). [v1.1 | 2026-10-25]
 - Free delivery or delivery fee discounts. [v1.1 | 2026-10-25]
 
@@ -55,9 +55,9 @@ Scenarios:
 | -- | ----------- | -------- |
 | FR-1 | The system shall show a logo-only launch screen on app start, then the home screen. | Must |
 | FR-2 | The system shall show on the home screen the shop name, a short greeting, a Zalo contact button, a phone contact button, a "View products" button and a "Place order" button. | Must |
-| FR-3 | The system shall list the four cakes, each with picture, name, short description and current price. | Must |
+| FR-3 | The system shall list the active cakes (1 to 4 are all normal; four at launch), each with picture, name, short description and current price. A cake that is not active (hidden by the shop) is not listed and cannot be ordered. When zero cakes are active the system shall show an Error state instead of a list and shall not let the customer start an order. [v1.4 | 2026-10-26] | Must |
 | FR-4 | The system shall show a detail view for each cake with a button that starts an order including that cake at quantity 1. [v1.1 | 2026-10-25] | Must |
-| FR-5 | The system shall let the customer choose a quantity per cake for any of the four cakes in one order. | Must |
+| FR-5 | The system shall let the customer choose a quantity per cake for any of the active cakes in one order. [v1.4 | 2026-10-26] | Must |
 | FR-6 | The system shall let the customer choose a receiving date; dates that cannot hold the whole order (BR-1), are earlier than the lead time (BR-2) or are later than the booking horizon (BR-8) shall not be selectable. [v1.1 | 2026-10-25] | Must |
 | FR-7 | The system shall let the customer choose a receiving time from one fixed list of delivery time slots that is the same for every date. [v1.1 | 2026-10-25] | Must |
 | FR-8 | The system shall collect the customer's name, phone number and delivery address, and the district from the served list (BR-3). | Must |
@@ -81,7 +81,7 @@ All numeric and list values are shop parameters. The system shall read them as c
 
 | ID | Rule |
 | -- | ---- |
-| BR-1 | Daily limit: one shared total of cakes of all four products per receiving date shall not exceed DAILY_LIMIT. A date is selectable only if its remaining amount (DAILY_LIMIT minus cakes already accepted for that date) is at least the total number of cakes in the order. An order that would push a date over the limit shall not be accepted. A cancelled order returns its cakes to the date's remaining amount (BR-9). The value of DAILY_LIMIT is provided by the shop. [v1.1 | 2026-10-25] |
+| BR-1 | Daily limit: one shared total of cakes of all products (active or not) per receiving date [v1.4 | 2026-10-26] shall not exceed DAILY_LIMIT. A date is selectable only if its remaining amount (DAILY_LIMIT minus cakes already accepted for that date) is at least the total number of cakes in the order. An order that would push a date over the limit shall not be accepted. A cancelled order returns its cakes to the date's remaining amount (BR-9). The value of DAILY_LIMIT is provided by the shop. [v1.1 | 2026-10-25] |
 | BR-2 | Lead time: the receiving date shall be at least LEAD_DAYS calendar days after the order date; LEAD_DAYS is 2. Days are counted in calendar days with no daily cut-off time: an order placed at any time on day D can be received from D+2. The order date D is the server's current date in the shop time zone (A-1, A-8), never the device clock or device time zone. Tests set a controllable server clock; with the same server date, any time from 00:00:00 to 23:59:59 gives the same result, and the result changes at midnight shop time. [v1.3 | 2026-10-25] |
 | BR-3 | Delivery area: delivery is only to districts on the served list. The delivery fee is the flat fee of the district chosen; there is no free delivery. The district list and fees are provided by the shop. [v1.1 | 2026-10-25] |
 | BR-4 | Minimum quantity: the total number of cakes in one order shall be at least MIN_QTY; MIN_QTY is 2. There is no maximum per order other than the remaining amount of the chosen date (BR-1). Separately, as a technical input-safety bound that is not a business maximum, the app and server accept 1 to 99 of one cake in a line (ADR-0009, configuration key max_qty_per_cake); a line above 99 is rejected as invalid input, and the shop can raise the bound in configuration. [v1.3 | 2026-10-25] |
@@ -93,6 +93,7 @@ All numeric and list values are shop parameters. The system shall read them as c
 | BR-10 | Uniform rules: the same limit, lead time, slots and fees apply on every date; no closed days or special dates in this slice. [v1.1 | 2026-10-25] |
 | BR-11 | Slot capacity: delivery time slots have no capacity of their own; capacity is counted per day only (BR-1). [v1.1 | 2026-10-25] |
 | BR-12 | Contact data retention: name, phone number and address are kept only while needed to fulfil the order. The concrete period will be stated by the owner later (see 12.1). [v1.1 | 2026-10-25] |
+| BR-13 | Active cakes (owner decision 2026-10-26, Q-15): the shop can hide a cake temporarily; hidden cakes are not shown and not orderable, and customers can still order the active ones. The customer-facing catalog holds 1 to 4 active cakes as a normal case; only zero active cakes is an Error state. The daily limit (BR-1), minimum quantity (BR-4) and all other rules are unchanged and do not depend on the number of active cakes. An order already in progress that contains a cake hidden before confirmation is not confirmed; the customer is told in Vietnamese that the cake is no longer available and can change the order (kept data, FR-15). [v1.4 | 2026-10-26] |
 
 ## 7. Acceptance Criteria
 
@@ -105,7 +106,7 @@ Verdict rules (v1.3): a Pass verdict needs all Must ACs to pass. Failures of ACs
 | AC-1 | FR-1 | Given the app is installed, when it is opened, then a screen with only the logo appears, then the home screen. |
 | AC-2 | FR-2 | Given the home screen, then shop name, greeting, Zalo button, phone button, "View products" and "Place order" are visible. |
 | AC-3 | FR-2 | Given the home screen, when the Zalo or phone button is tapped, then the device opens Zalo or the phone dialer with the shop's number. |
-| AC-4 | FR-3 | Given "View products" is tapped, then exactly four cakes are listed, each with picture, name, description and price. |
+| AC-4 | FR-3, BR-13 | Given four cakes are active (launch data), when "View products" is tapped, then exactly those four cakes are listed, each with picture, name, description and price. [v1.4 | 2026-10-26] |
 | AC-5 | FR-4 | Given a cake detail, when its order button is tapped, then the order flow opens with that cake at quantity 1. [v1.1 | 2026-10-25] |
 | AC-6 | FR-5 | Given the cake step, when quantities 2, 0, 3, 0 are entered, then the review lists only the two cakes with quantity above 0. |
 | AC-7 | FR-6, BR-2 | Given the server date in the shop time zone is D (set by a controllable clock; the device date and time zone are irrelevant), when the date picker opens, then no date earlier than D+2 can be selected, whatever the time of day (same result at 00:00:00 and 23:59:59 shop time). [v1.3 | 2026-10-25] |
@@ -130,7 +131,10 @@ Verdict rules (v1.3): a Pass verdict needs all Must ACs to pass. Failures of ACs
 | AC-26 | FR-18 | Given the order flow, when the customer enters a note of 200 characters, then it is accepted and shown on the review; when 201 characters are entered, then the extra character is rejected with a message next to the field; when no note is entered, then the order can still be confirmed. [v1.1 | 2026-10-25] |
 | AC-27 | FR-19 | Given any screen of the app including the review and confirmation, then no payment note, payment method or payment instruction is shown. [v1.1 | 2026-10-25] |
 | AC-28 | BR-1, BR-9 | Given a date with a cake count at the limit, when an order for that date is cancelled (by whatever means exist), then the date's remaining amount increases by the order's cakes and the date can be selected again for orders that fit. In this slice there is no cancellation screen or endpoint, so this AC is testable at database level only (a test sets the order to Cancelled in the database). [v1.3 | 2026-10-25] |
-| AC-29 | FR-2, FR-3 | Given the shop has not yet supplied sample-covered values (prices, districts, slot times, shop name, greeting, Zalo, phone), then the values used are sample values marked as sample only in the data source; no customer-visible text includes a marker word (for example "sample", "demo", "test"); and no real personal data appears. Whether a Vietnamese word such as "mau" may appear in a sample name is pending, Q-O5. [v1.3 | 2026-10-25] |
+| AC-29 | FR-2, FR-3 | Given the shop has not yet supplied sample-covered values (prices, districts, slot times, shop name, greeting, Zalo, phone), then the values used are sample values marked as sample only in the data source; no customer-visible text includes a marker word (for example "sample", "demo", "test", or the Vietnamese "mẫu" / "mau" used in the sense of "sample"); and no real personal data appears. Scope (v1.4): AC-29 covers text the customer can see in the app (screens, messages, labels, accessibility labels) and the sample values the app displays. It does not cover technical documents (API examples, test documents, code comments), which may use "mẫu" or "sample" freely, as long as the value the app displays from the data source does not contain it. The sample marker (the data-source flag and any marker word) never appears in app text; the API response carries no sample flag. [v1.4 | 2026-10-26] |
+| AC-32 | FR-3, FR-5, BR-13 | Given 1, 2 or 3 cakes are active (the others hidden), when "View products" is tapped, then exactly the active cakes are listed with no Error state and no placeholder for the hidden ones; and the order flow offers a quantity only for those active cakes and can be completed. [v1.4 | 2026-10-26] |
+| AC-33 | FR-3, BR-13 | Given zero cakes are active, when "View products" is tapped, then an Error state in Vietnamese is shown instead of a list, and "Place order" does not start an order flow. Given one cake is then made active again, then the list shows it and ordering works without reinstalling the app. [v1.4 | 2026-10-26] |
+| AC-34 | FR-5, FR-10, BR-13 | Given one cake is hidden and three are active, when an order with active cakes only (total at least 2) is confirmed, then it is accepted and the review and stored order contain no hidden cake; given the customer chose a cake that is hidden before confirmation, then the order is not confirmed, the message says that cake is no longer available, entered data is kept, and the order is not stored. A hidden cake keeps the price on orders already confirmed (AC-23). [v1.4 | 2026-10-26] |
 | AC-30 | FR-20 | Given the customer starts the order flow, then the privacy notice is shown before the first data entry and names the name, phone, address, optional note and the draft kept on the device. Pending owner confirmation (12.2). [v1.3 | 2026-10-25] |
 | AC-31 | FR-21 | Given a date 2026-11-04 and an amount of 120000 dong, then the app shows 04/11/2026 and 120.000 with the dong unit, on the review and confirmation screens. Pending owner confirmation (12.2). [v1.3 | 2026-10-25] |
 
@@ -191,6 +195,7 @@ Business questions are for the product owner; technical questions are for the ar
 | Q-12 | When staff later cancel an order, do its cakes return to the daily limit? | BR-1 over time. | No | business | Answered [v1.1 | 2026-10-25] | Yes (BR-9). [v1.1 | 2026-10-25] |
 | Q-13 | Can the customer add a note? Default quantity from a cake detail? | FR-8, AC-5. | No | business | Answered [v1.1 | 2026-10-25] | One optional note, 200 characters max (FR-18); default quantity 1 (FR-4). [v1.1 | 2026-10-25] |
 | Q-14 | How long is contact data kept and who may see it? | Privacy notice text. | No | business | Answered [v1.1 | 2026-10-25] | Kept while needed for fulfilment (BR-12); the retention period will be stated by the owner later, see 12.1. [v1.1 | 2026-10-25] |
+| Q-15 | When fewer than four cakes are active, what does the customer see? (QA finding DOC-8, Q-S6 area) | FR-3, BR-13, AC-4, AC-32 to AC-34. | No | business | Answered [v1.4 | 2026-10-26] | Owner decision 2026-10-26: the app shows the active cakes (1 to 4 are all normal); an Error state only when zero cakes are active. The shop can hide one cake temporarily and customers can still order the rest. [v1.4 | 2026-10-26] |
 | Q-T1 | How is the daily limit enforced so that two simultaneous orders cannot both exceed it (AC-22), and how is a duplicate submission detected (AC-19)? | FR-16, BR-1. | No | technical | Closed [v1.3 | 2026-10-25] | ADR-0008 (daily-limit concurrency and idempotent order creation). Price change at confirmation: ADR-0010. [v1.3 | 2026-10-25] |
 | Q-T2 | Until owner configuration exists, where do products, prices, districts, fees, limits and slots come from, and how will later staff features take them over without changing this slice? | Dependency on later features. | No | technical | Closed [v1.3 | 2026-10-25] | ADR-0013 (configuration source and sample data). [v1.3 | 2026-10-25] |
 | Q-T3 | Which minimum iOS and Android versions are targeted, given Liquid Glass and Material 3 Expressive availability? | Native look vs reach. | No | technical | Closed [v1.3 | 2026-10-25] | ADR-0005 (iOS 17, Android 8.0 / API 26); fallbacks ADR-0012. [v1.3 | 2026-10-25] |
@@ -208,7 +213,7 @@ Nothing in this section takes effect until the owner confirms it. Current behavi
 | Q-O2 | The customer cannot see the order code again once the confirmation screen is closed (no lookup, no history). Should the app keep the last order code on the device (G-3)? | Not kept; the code is shown once. | No | business | Pending owner |
 | Q-O3 | The limit of 5 accepted orders per phone per 24 hours (ADR-0014): do cancelled orders count toward it? | Not decided; ADR-0014 default only. | No | business | Pending owner |
 | Q-O4 | How long is customer contact data kept (BR-12)? | No period; no test expected in this slice. | No | business | Pending owner |
-| Q-O5 | If sample data is visible, which wording is allowed? Sample values use the Vietnamese word "mau" in some names (for example shop and district names). | AC-29: no marker word is customer-visible; whether "mau" counts as a marker is not decided. | No | business | Pending owner |
+| Q-O5 | If sample data is visible, which wording is allowed? Sample values use the Vietnamese word "mau" in some names (for example shop and district names). | AC-29 (v1.4): no marker word is customer-visible, and "mẫu" / "mau" in the sense of "sample" counts as a marker word, so displayed seed values must not contain it; technical documents may use it. Owner may overrule. | No | business | Pending owner (default applied in v1.4) |
 | N-1 | FR-20 / AC-30: privacy notice before data entry covering name, phone, address, note and the draft on the device. | Today the notice appears on the review step and names name, phone, address only. | No | business | Added in v1.3, pending owner confirmation |
 | N-2 | FR-21 / AC-31: dates dd/MM/yyyy and money in whole dong with dot thousands separators. | Display format not specified before. | No | business | Added in v1.3, pending owner confirmation |
 
@@ -218,10 +223,10 @@ These values are configuration, not requirements. They do not block approval of 
 
 | Item | Used by | Status |
 | ---- | ------- | ------ |
-| DAILY_LIMIT: number of cakes per day (shared across all four) | BR-1 | To be provided |
+| DAILY_LIMIT: number of cakes per day (shared across all products) | BR-1 | To be provided [v1.4 | 2026-10-26] |
 | Served districts and flat delivery fee for each (VND) | BR-3, BR-5 | To be provided |
 | Delivery time slot list (start and end times, same every day) | FR-7 | To be provided |
-| Prices of the four cakes (VND) | FR-3, BR-5 | Sample until provided |
+| Four launch cakes, all active at launch, and their prices (VND) | FR-3, BR-5, BR-13 | Sample until provided [v1.4 | 2026-10-26] |
 | Shop name, greeting, Zalo contact, phone number | FR-2 | Sample until provided |
 | Data retention period for customer contact data | BR-12 | To be stated by the owner later |
 
@@ -233,3 +238,4 @@ These values are configuration, not requirements. They do not block approval of 
 | 1.1 | 2026-10-25 | Owner accepted proposed defaults for Q-1 to Q-14; all marked Answered. Changed FR-4, FR-6, FR-7, FR-9, FR-10, FR-11; added FR-18, FR-19. Changed BR-1 to BR-5, BR-7; added BR-8 to BR-12. Changed AC-5, AC-7 to AC-11, AC-13, AC-15; added AC-24 to AC-29. Changed G-2, non-goals, assumptions (A-3 removed, A-4, A-5 changed, A-8 added), privacy and dependencies text. Added section 12.1 launch data. Status In review. |
 | 1.2 | 2026-10-25 | Owner approved v1.1 and confirmed: currency VND in whole dong (BR-5, now a confirmed fact); sample values marked as sample only in the data source, no visible marker in the app (AC-29, Q-8, 12.1). Added testability note to AC-28 (BR-9 needs cancellation to exist). Status Approved. |
 | 1.3 | 2026-10-25 | Clarifications only; no owner-decided number or rule changed, Status stays Approved (v1.2). Closed Q-T1 to Q-T6 with ADR references. Server date in shop time zone for BR-2, AC-7, AC-24, A-8 (controllable clock). Database-level evidence for AC-15, AC-23, AC-28, BR-9. BR-4 technical bound of 99 per cake stated as not a business maximum. AC-29 no marker word; AC-21 scope limited to app-owned text. Launch screen time is guidance (A-9); verdict rules (Should-linked AC-17, AC-26 do not block Pass). Added FR-20, FR-21, AC-30, AC-31 and section 12.2 pending owner confirmation, with owner questions Q-O1 to Q-O5. |
+| 1.4 | 2026-10-26 | Owner decision on fewer than four active cakes (Q-15, answers QA DOC-8): 1 to 4 active cakes are normal, Error state only at zero. Changed summary, non-goal, FR-3, FR-5, BR-1, AC-4, 12.1; added BR-13, AC-32 to AC-34, Q-15. Clarified AC-29 scope (customer-visible text only; "mẫu" counts as a marker word in displayed values; technical documents may use it) and Q-O5 default (answers QA DOC-6). |
