@@ -38,7 +38,7 @@ psql "<url>" -f db/seed/sample.sql                  # sample data, local and sta
 docker build --platform linux/amd64 -f backend/Dockerfile .   # from the repository root
 ```
 
-Database URLs use the `postgres://user:password@host:5432/db` form; take the local values from `docker-compose.yml`. Never commit real URLs. <!-- secret-scan:allow -->
+Database URLs use the standard PostgreSQL URI form with the scheme `postgres`, then user, password, host, port and database name; take the local values from `docker-compose.yml`. Never commit real URLs.
 
 Configuration per command: `serve` needs `APP_ENV`, `PORT` and (outside local) `DATABASE_URL`; `migrate` needs only `APP_ENV` and `DATABASE_MIGRATION_URL`. The command is the first argument that does not start with `-`, as in Vapor, so `App --yes migrate` and `App --env staging migrate` select `migrate`. Values are trimmed of whitespace and newlines.
 
