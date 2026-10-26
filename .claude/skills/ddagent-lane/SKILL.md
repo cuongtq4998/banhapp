@@ -1,11 +1,11 @@
 ---
 name: ddagent-lane
-description: Use when an agent needs to run an app on an iOS/iPadOS simulator through ddagent while other agents do the same. Acquire a lane (one dedicated simulator, max 4), run, then release it
+description: Use when an agent needs to run an app on an iOS/iPadOS simulator or Android emulator through ddagent while other agents do the same. Acquire a lane (one dedicated simulator, max 4), run, then release it
 ---
 
-# Use a simulator through a ddagent lane
+# Use a simulator or emulator through a ddagent lane
 
-Each agent holds **one lane = one existing simulator** for the whole session. At most 4 lanes exist at once; a fifth agent waits until a lane is released. ddagent never creates simulators, it only reuses them.
+Each agent holds **one lane = one existing simulator or Android virtual device (AVD, `--platform android`; needs ddagent pull request #3)** for the whole session. At most 4 lanes exist at once; a fifth agent waits until a lane is released. ddagent never creates simulators, it only reuses them.
 
 ```
 D=ddagent

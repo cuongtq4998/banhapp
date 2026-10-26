@@ -38,7 +38,7 @@ ddagent init                            # in a repo: installs the ddagent-lane /
 ddagent doctor | run | prewarm | status | dashboard | lane acquire|release|list
 ```
 
-Pass the iOS project path `ios/BanhApp.xcodeproj` to it. Add `--mock` or `DDAGENT_MOCK=1` to run without Xcode. ddagent only drives iOS/iPadOS simulators; the iOS 15.5 and 16.0 runtimes are unusable on this host, so use 17.5+ (e.g. `--target "iPhone 16"`). Real runs need `DEVELOPER_DIR` pointing at a full Xcode. See `.claude/skills/ddagent-lane`; bugs and design live in the ddagent repo.
+Pass the iOS project path `ios/BanhApp.xcodeproj` to it. Add `--mock` or `DDAGENT_MOCK=1` to run without Xcode. ddagent drives iOS/iPadOS simulators and, with pull request cuongtq4998/ddagent#3 (Android lanes, existing AVDs: `ddagent doctor --platform android`, `lane acquire --platform android`), Android emulators; the iOS 15.5 and 16.0 runtimes are unusable on this host, so use 17.5+ (e.g. `--target "iPhone 16"`). Real runs need `DEVELOPER_DIR` pointing at a full Xcode. See `.claude/skills/ddagent-lane`; bugs and design live in the ddagent repo.
 
 ## Agent pipeline (`/feature`)
 
