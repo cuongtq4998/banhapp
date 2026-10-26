@@ -2,14 +2,14 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.0 |
+| Version      | 1.1 |
 | Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | forge-dev (orchestrator wrote the first version) |
 | Based on     | architecture.md v1.1; ADR-0001, 0004, 0005, 0007; slice 0 code |
 | Related      | `backend/README.md`; `docs/system/deployment.md` |
 
-Every command below was run on the author's machine unless the line says "unverified". Slice 0 only: health check, empty app shells, first migration.
+Every command below was run on the author's machine unless the line says "unverified". Slices 0 and 1 (backend): health check, empty app shells, first migration, read-only catalogue, assets, privacy page, read rate limit. [v1.1 | 2026-10-26]
 
 ## 1. Prerequisites
 
@@ -43,6 +43,7 @@ Backend (`backend/`):
 swift build
 swift test
 APP_ENV=local PORT=8080 swift run App serve     # then GET http://localhost:8080/healthz
+APP_ENV=local PORT=8080 SHOP_ID=00000000-0000-4000-8000-000000000001 DATABASE_URL=<local url> swift run App serve   # unverified against PostgreSQL: GET /v1/catalog, /privacy, /assets/images/banana.png [v1.1 | 2026-10-26]
 docker compose up -d db                          # unverified: local PostgreSQL
 APP_ENV=local PORT=8080 DATABASE_MIGRATION_URL=<local url> swift run App migrate --yes   # unverified
 psql "<local url>" -f db/seed/sample.sql         # unverified; fake data only
@@ -80,7 +81,7 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 
 | Where | Command | Notes |
 | ----- | ------- | ----- |
-| Backend and contracts unit tests | `swift test` in `backend/` and in `contracts/swift/` | XCTVapor; no database needed for slice 0 |
+| Backend and contracts unit tests | `swift test` in `backend/` and in `contracts/swift/` | XCTVapor; no database needed (the database tests skip without `DATABASE_MIGRATION_URL`) [v1.1 \| 2026-10-26] |
 | Database behaviour | CI job `backend / test` against a `postgres:16` service | First real run of `0001_init.sql` happens in CI |
 | iOS | `xcodebuild ... -destination "platform=iOS Simulator,id=<id>" -parallel-testing-enabled NO test` in `ios/` | Without the flag the run fails with "No matching device ... XCTestDevices" |
 | Android | `./gradlew :app:testDebugUnitTest` | Unverified |
@@ -105,6 +106,7 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 
 ## 8. Known Gaps (slice 0)
 
+- Catalogue SQL (`PostgresCatalogRepository`) and its database tests have never run against PostgreSQL (none on the author's machine); CI is the first run. The `backend.yml` smoke test does not set `SHOP_ID`, so `/v1/catalog` is not covered by it. [v1.1 | 2026-10-26]
 - Docker image, `0001_init.sql` on PostgreSQL, seed and the live deep health check have never run; the first CI run is the verification.
 - Android has never been built (no JDK, Gradle, SDK on the author's machine); Gradle wrapper missing.
 - Apple `DEVELOPMENT_TEAM` is no longer in the repository: copy `ios/Config/Local.xcconfig.example` to the git-ignored `ios/Config/Local.xcconfig` to sign for a device; unsigned builds need no file.
@@ -115,3 +117,4 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 | Version | Date | Change |
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-26 | First version after slice 0 merged. |
+| 1.1 | 2026-10-26 | Slice 1 backend: `SHOP_ID` for `serve`, catalogue, assets, rate limit; catalogue SQL not yet run against PostgreSQL. |

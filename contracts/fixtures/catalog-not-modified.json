@@ -1,0 +1,10 @@
+{
+  "description": "GET /v1/catalog revalidation: the stored ETag matches, so the answer is 304 with headers only and no body (api.md 4.1, ADR-0011).",
+  "request_headers": { "If-None-Match": "\"3f9a1c0de2b54a6e8c7d1b2a0f4e5d6c7b8a9f0e1d2c3b4a5968778695a4b3c2\"" },
+  "status": 304,
+  "response_headers": {
+    "ETag": "\"3f9a1c0de2b54a6e8c7d1b2a0f4e5d6c7b8a9f0e1d2c3b4a5968778695a4b3c2\"",
+    "Cache-Control": "no-cache"
+  },
+  "body": null
+}

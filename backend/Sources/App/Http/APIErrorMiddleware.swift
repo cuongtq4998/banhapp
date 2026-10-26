@@ -29,6 +29,7 @@ struct APIErrorMiddleware: AsyncMiddleware {
             }
             let response = Response(status: apiError.status)
             try response.content.encode(apiError.makeBody(requestID: request.requestID), as: .json)
+            for (name, value) in apiError.headers { response.headers.replaceOrAdd(name: name, value: value) }
             if let seconds = apiError.retryAfterSeconds {
                 response.headers.replaceOrAdd(name: .retryAfter, value: String(seconds))
             }

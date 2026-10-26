@@ -6,6 +6,9 @@ import FluentPostgresDriver
 /// in the image (the Dockerfile copies `db/` next to the binary).
 private let migrationsDirectory = "db/migrations/"
 private let listenHostname = "0.0.0.0"
+/// Product images and the privacy page; relative to the working directory like
+/// the migrations (the Dockerfile copies `assets/` next to the binary).
+private let assetsDirectory = "assets/"
 
 /// Builds the application for `serve` from `config`. The caller owns the
 /// process environment; nothing here reads it directly so tests can inject
@@ -15,7 +18,7 @@ func configure(_ app: Application, config: AppConfig) async throws {
     app.http.server.configuration.port = config.port
     app.routes.defaultMaxBodySize = RequestLimits.maxBodySize
 
-    configureMiddleware(app)
+    configureMiddleware(app, config: config)
     try configureDatabase(app, config: config)
     app.services = AppServices(
         clock: SystemWallClock(),
@@ -23,7 +26,19 @@ func configure(_ app: Application, config: AppConfig) async throws {
         repositories: .postgres
     )
 
+    try registerRoutes(app, config: config)
+}
+
+private func registerRoutes(_ app: Application, config: AppConfig) throws {
+    let assetsPath = app.directory.workingDirectory + assetsDirectory
+    let assets = AssetURLBuilder(
+        baseURL: config.publicAssetBaseURL,
+        versions: AssetVersions.load(fromAssetsDirectory: assetsPath)
+    )
     try app.register(collection: HealthRoutes())
+    try app.register(collection: CatalogRoutes(shopID: config.shopID, assets: assets))
+    try app.register(collection: AssetRoutes(directory: assetsPath))
+    try app.register(collection: PrivacyRoutes(directory: assetsPath))
 }
 
 /// Builds the application for `migrate`: the migration role's database and the
@@ -46,16 +61,25 @@ func configureMigrator(
 
 /// Order matters: the request id exists before anything logs, the access log
 /// sees the final status, and the error middleware sits innermost so every
-/// failure is already a contract response by the time the others look.
-private func configureMiddleware(_ app: Application) {
+/// failure is already a contract response by the time the others look. The
+/// rate limiter sits inside the error middleware, which turns its `RATE_LIMITED`
+/// error into the response, and outside the router, so unrouted reads count too.
+private func configureMiddleware(_ app: Application, config: AppConfig) {
     // Drops Vapor's default error middleware, whose body is not the contract's.
     app.middleware = Middlewares()
     app.middleware.use(RequestIDMiddleware())
     app.middleware.use(AccessLogMiddleware())
     app.middleware.use(APIErrorMiddleware())
+    app.middleware.use(RateLimitMiddleware(
+        limiter: FixedWindowRateLimiter(limit: config.rateLimitReadPerMinute, windowSeconds: config.rateLimitWindowSeconds),
+        trustProxy: config.trustProxy
+    ))
 }
 
 private func configureDatabase(_ app: Application, config: AppConfig) throws {
+    if config.shopID == nil {
+        app.logger.warning("SHOP_ID is not set; the catalog endpoint answers SERVICE_UNAVAILABLE")
+    }
     guard let url = config.databaseURL else {
         app.logger.warning("No database configured; only the shallow health check is available")
         return

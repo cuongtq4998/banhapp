@@ -14,3 +14,7 @@ Fake data only. This repository is public.
 | `error-validation-failed.json` | `POST /v1/orders` | Error envelope with `fields[]` |
 | `error-not-found.json` | any unknown path | Envelope for routing errors (code `NOT_FOUND`, proposed addition to api.md section 5) |
 | `error-rate-limited.json` | any | `RATE_LIMITED` envelope; `details.retry_after_seconds` equals the `Retry-After` header (api.md section 5) |
+| `catalog-ok.json` | `GET /v1/catalog` | 200 with the four sample cakes (same rows as `backend/db/seed/sample.sql`), `image_url` relative to the API host with `?v=<8 hex of the file SHA-256>` |
+| `catalog-empty.json` | `GET /v1/catalog` | 200 with no active product, district or slot (no active rows); apps show their empty state |
+| `catalog-not-modified.json` | `GET /v1/catalog` | Revalidation exchange: `If-None-Match` matches, answer 304, headers only, `body` is null. The ETag value is a placeholder; real ones are the SHA-256 of the body |
+| `error-service-unavailable.json` | any | `SERVICE_UNAVAILABLE` envelope (database unreachable); no `Retry-After` |

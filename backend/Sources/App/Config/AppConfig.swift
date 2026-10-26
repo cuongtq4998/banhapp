@@ -22,12 +22,21 @@ struct AppConfig: Equatable, Sendable {
         static let databaseURL = "DATABASE_URL"
         static let databaseMigrationURL = "DATABASE_MIGRATION_URL"
         static let databasePoolMax = "DATABASE_POOL_MAX"
+        static let shopID = "SHOP_ID"
+        static let trustProxy = "TRUST_PROXY"
+        static let rateLimitReadPerMinute = "RATE_LIMIT_READ_PER_MINUTE"
+        static let publicAssetBaseURL = "PUBLIC_ASSET_BASE_URL"
     }
 
     enum Default {
         static let databasePoolMax = 5
         /// Seconds the deep health check waits for the database (api.md 4.4).
         static let healthDeepTimeoutSeconds = 2
+        /// api.md section 1: reads per client address per minute.
+        static let rateLimitReadPerMinute = 120
+        static let rateLimitWindowSeconds: TimeInterval = 60
+        /// Empty: `image_url` stays a path on the API host (api.md 4.1).
+        static let publicAssetBaseURL = ""
     }
 
     enum Failure: Error, CustomStringConvertible, Equatable {
@@ -48,17 +57,39 @@ struct AppConfig: Equatable, Sendable {
     let port: Int
     let databaseURL: String?
     let databasePoolMax: Int
+    /// The single shop this instance serves. Nil only in a local run, where
+    /// the catalogue then answers `SERVICE_UNAVAILABLE`.
+    let shopID: UUID?
+    /// Whether the client address comes from the proxy's `X-Forwarded-For`
+    /// header. Off unless the host sits behind a proxy that sets it, because
+    /// otherwise any client could pick its own address.
+    let trustProxy: Bool
+    let rateLimitReadPerMinute: Int
+    let publicAssetBaseURL: String
+    /// Not an environment variable: the api.md window is fixed at one minute;
+    /// tests shorten it to see the reset.
+    let rateLimitWindowSeconds: TimeInterval
 
     init(
         stage: Stage,
         port: Int,
         databaseURL: String?,
-        databasePoolMax: Int = Default.databasePoolMax
+        databasePoolMax: Int = Default.databasePoolMax,
+        shopID: UUID? = nil,
+        trustProxy: Bool = false,
+        rateLimitReadPerMinute: Int = Default.rateLimitReadPerMinute,
+        publicAssetBaseURL: String = Default.publicAssetBaseURL,
+        rateLimitWindowSeconds: TimeInterval = Default.rateLimitWindowSeconds
     ) {
         self.stage = stage
         self.port = port
         self.databaseURL = databaseURL
         self.databasePoolMax = databasePoolMax
+        self.shopID = shopID
+        self.trustProxy = trustProxy
+        self.rateLimitReadPerMinute = rateLimitReadPerMinute
+        self.publicAssetBaseURL = publicAssetBaseURL
+        self.rateLimitWindowSeconds = rateLimitWindowSeconds
     }
 
     init(variables: [String: String]) throws {
@@ -80,12 +111,52 @@ struct AppConfig: Equatable, Sendable {
             poolMax = parsed
         }
 
+        let shopID = try Self.parseShopID(environment, stage: stage)
+        let trustProxy = try Self.parseTrustProxy(environment)
+
+        var readLimit = Default.rateLimitReadPerMinute
+        if let limitText = value(Key.rateLimitReadPerMinute) {
+            guard let parsed = Int(limitText), parsed >= 1 else { throw Failure.invalid(Key.rateLimitReadPerMinute) }
+            readLimit = parsed
+        }
+
         self.init(
             stage: stage,
             port: port,
             databaseURL: databaseURL,
-            databasePoolMax: poolMax
+            databasePoolMax: poolMax,
+            shopID: shopID,
+            trustProxy: trustProxy,
+            rateLimitReadPerMinute: readLimit,
+            publicAssetBaseURL: value(Key.publicAssetBaseURL).map(Self.trimmingTrailingSlashes)
+                ?? Default.publicAssetBaseURL
         )
+    }
+
+    /// The hosted environments must name their shop; a local run may omit it.
+    private static func parseShopID(_ environment: EnvironmentVariables, stage: Stage) throws -> UUID? {
+        guard let text = environment.value(Key.shopID) else {
+            if stage != .local { throw Failure.missing(Key.shopID) }
+            return nil
+        }
+        guard let id = UUID(uuidString: text) else { throw Failure.invalid(Key.shopID) }
+        return id
+    }
+
+    private static func parseTrustProxy(_ environment: EnvironmentVariables) throws -> Bool {
+        guard let text = environment.value(Key.trustProxy) else { return false }
+        switch text.lowercased() {
+        case "true": return true
+        case "false": return false
+        default: throw Failure.invalid(Key.trustProxy)
+        }
+    }
+
+    /// `image_url` is base + `/assets/...`, so a trailing slash would double up.
+    private static func trimmingTrailingSlashes(_ base: String) -> String {
+        var trimmed = Substring(base)
+        while trimmed.hasSuffix("/") { trimmed = trimmed.dropLast() }
+        return String(trimmed)
     }
 }
 

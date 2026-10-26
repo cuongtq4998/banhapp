@@ -7,10 +7,10 @@
 INSERT INTO shop (id, name, greeting, phone_contact, zalo_contact, is_sample)
 VALUES (
     '00000000-0000-4000-8000-000000000001',
-    'Tiệm bánh Hoa Sen',
+    'Tiệm Bánh An Nhiên',
     'Bánh làm thủ công, giao tận nơi.',
-    '+84123456789',
-    '84123456789',
+    '+84900000000',
+    '84900000000',
     true
 ) ON CONFLICT (id) DO NOTHING;
 

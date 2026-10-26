@@ -1,0 +1,63 @@
+{
+  "server_date": "2026-11-02",
+  "shop": {
+    "name": "Tiệm Bánh An Nhiên",
+    "greeting": "Bánh làm thủ công, giao tận nơi.",
+    "phone_contact": "+84900000000",
+    "zalo_contact": "84900000000"
+  },
+  "settings": {
+    "min_qty": 2,
+    "lead_days": 2,
+    "max_days_ahead": 30,
+    "max_qty_per_cake": 99,
+    "note_max_length": 200
+  },
+  "products": [
+    {
+      "product_id": "00000000-0000-4000-8000-000000000011",
+      "slug": "banana",
+      "name": "Bánh chuối",
+      "description": "Bánh chuối nướng thơm béo.",
+      "price_vnd": 35000,
+      "image_url": "/assets/images/banana.png?v=a547ade3"
+    },
+    {
+      "product_id": "00000000-0000-4000-8000-000000000012",
+      "slug": "mung-bean-pork-fat",
+      "name": "Bánh đậu xanh nhân mỡ",
+      "description": "Đậu xanh nghiền mịn, nhân mỡ.",
+      "price_vnd": 45000,
+      "image_url": "/assets/images/mung-bean-pork-fat.png?v=400d407e"
+    },
+    {
+      "product_id": "00000000-0000-4000-8000-000000000013",
+      "slug": "mung-bean-vegetarian",
+      "name": "Bánh đậu xanh chay",
+      "description": "Đậu xanh nghiền mịn, không nhân mỡ.",
+      "price_vnd": 45000,
+      "image_url": "/assets/images/mung-bean-vegetarian.png?v=f49a203d"
+    },
+    {
+      "product_id": "00000000-0000-4000-8000-000000000014",
+      "slug": "mung-bean-egg-yolk-pork-fat",
+      "name": "Bánh đậu xanh trứng mỡ",
+      "description": "Đậu xanh, trứng muối và mỡ.",
+      "price_vnd": 55000,
+      "image_url": "/assets/images/mung-bean-egg-yolk-pork-fat.png?v=6f699e7f"
+    }
+  ],
+  "districts": [
+    { "district_id": "00000000-0000-4000-8000-000000000021", "name": "Quận 1", "delivery_fee_vnd": 15000 },
+    { "district_id": "00000000-0000-4000-8000-000000000022", "name": "Quận 3", "delivery_fee_vnd": 15000 },
+    { "district_id": "00000000-0000-4000-8000-000000000023", "name": "Quận 5", "delivery_fee_vnd": 20000 },
+    { "district_id": "00000000-0000-4000-8000-000000000024", "name": "Phú Nhuận", "delivery_fee_vnd": 20000 },
+    { "district_id": "00000000-0000-4000-8000-000000000025", "name": "Bình Thạnh", "delivery_fee_vnd": 25000 }
+  ],
+  "slots": [
+    { "slot_id": "00000000-0000-4000-8000-000000000031", "start": "08:00", "end": "10:00" },
+    { "slot_id": "00000000-0000-4000-8000-000000000032", "start": "10:00", "end": "12:00" },
+    { "slot_id": "00000000-0000-4000-8000-000000000033", "start": "14:00", "end": "16:00" },
+    { "slot_id": "00000000-0000-4000-8000-000000000034", "start": "16:00", "end": "18:00" }
+  ]
+}
