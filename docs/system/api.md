@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.3 |
+| Version      | 1.4 |
 | Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -25,7 +25,7 @@ Decided: ADR-0010 is Accepted by the owner: option A, reject with `PRICE_CHANGED
 | Idempotency | `POST /v1/orders` only (section 4.3). `GET` is safe |
 | Pagination | Not used (all lists are short and fixed) |
 | Rate limits | Table below; excess answers 429 `RATE_LIMITED` with `Retry-After` (seconds) |
-| Body limit | 8 KB (Vapor `maxSize` on the route); larger answers 413 `PAYLOAD_TOO_LARGE` |
+| Body limit | 8 KB: exactly 8,192 bytes pass, 8,193 or more answer 413 `PAYLOAD_TOO_LARGE`. Vapor rejects a body of `maxSize` bytes or more, so the configured `maxSize` is 8 KB + 1 [v1.4 \| 2026-10-26] |
 | Client timeouts | Order submission 10 s; reads 15 s (ADR-0007). On the free trial host the first request after idle can take about 1 minute: the apps retry reads once and retry orders with the same key (ADR-0003) [v1.1 | 2026-10-25] |
 | Unknown fields | Ignored in responses by clients; rejected with `VALIDATION_FAILED` in requests (typos must not pass silently); Swift `Codable` ignores unknown keys, so the backend checks the key set before decoding [v1.1 | 2026-10-25] |
 
@@ -263,7 +263,7 @@ Rules of the catalogue [v1.3 | 2026-10-26]:
 
 - The top-level `message_key` is `ERR_` plus the code for the codes the UI document shows by name (`MIN_QTY`, `DATE_LEAD`, `DATE_HORIZON`, `DATE_CAPACITY`, `DISTRICT_UNSERVED`, `PRODUCT_UNAVAILABLE`, `SLOT_UNAVAILABLE`, `RATE_LIMITED`), `MSG_PRICE_CHANGED` for `PRICE_CHANGED`, and `ERR_SERVER` for every other code. `VALIDATION_FAILED` has no single text: the app reads `fields[].message_key`; the top-level `ERR_SERVER` applies when `fields` is missing, empty or holds only keys the app does not know.
 - Unknown error codes: the client shows `ERR_SERVER`.
-- `RATE_LIMITED` carries the `Retry-After` header (seconds, an integer) and `details.retry_after_seconds` with the same value.
+- `RATE_LIMITED` carries the `Retry-After` header (seconds, an integer) and `details.retry_after_seconds` with the same value; the default is 60 seconds (the shortest window, the per-minute read limit, in the rate-limit table at the top) when the limiter gives no value [v1.4 | 2026-10-26].
 - Framework errors never leave as framework bodies: the error middleware maps a Vapor `AbortError` by status (404 `NOT_FOUND`, 405 `METHOD_NOT_ALLOWED`, 413 `PAYLOAD_TOO_LARGE`, 429 `RATE_LIMITED`, 503 `SERVICE_UNAVAILABLE`, other 4xx `VALIDATION_FAILED` without `fields`, everything else `INTERNAL_ERROR`). A decoding failure of a body is therefore `VALIDATION_FAILED` without `fields`.
 - Database outage: `SERVICE_UNAVAILABLE` is answered only when a repository throws `APIError(.serviceUnavailable)`. The mapper does not read driver errors (they can hold SQL or customer data), so an unwrapped driver error becomes `INTERNAL_ERROR`. Every repository method that talks to the database must catch connection and pool errors and rethrow them as `APIError(.serviceUnavailable)` (slice 3 for orders; slice 1 for catalog and availability). Both codes are retryable with the same key.
 
@@ -292,3 +292,4 @@ Every endpoint above is in the index with FRs. Every data field used traces to d
 | 1.1 | 2026-10-25 | ADR-0010 accepted; Vapor implementation notes; shallow and deep health check; trial-host timeout note. |
 | 1.2 | 2026-10-26 | Health check consumers clarified (shallow for monitors, deep for operator and deploy checks). |
 | 1.3 | 2026-10-26 | Error catalogue: top-level `message_key` per code, `NOT_FOUND` and `METHOD_NOT_ALLOWED`, `RATE_LIMITED` key and `Retry-After`, framework error mapping, database outage wrapping rule; API-Q1 closed. |
+| 1.4 | 2026-10-26 | Body limit boundary stated (8 KB passes, one byte more fails); `Retry-After` default 60 s. |

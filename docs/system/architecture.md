@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.3 |
+| Version      | 1.4 |
 | Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -59,7 +59,7 @@ The shop has no screen in this slice; it learns of orders from the database (ope
 | Contracts package [v1.1 | 2026-10-25] | Codable request, response and error-code types shared by backend and iOS (optional for iOS; fixtures stay the contract) | SwiftPM library `BanhContracts`, Foundation only | `contracts/swift/` | Backend, iOS app |
 | Backend image [v1.1 | 2026-10-25] | The built container, produced in CI (never on the host) | Multi-stage Dockerfile, `linux/amd64`, public image on GHCR | `backend/Dockerfile`, `.github/workflows/backend.yml` | CI, host |
 | Backup job | Nightly encrypted dump to separate storage | GitHub Actions scheduled workflow, `pg_dump`, `age`, private GitHub repository as storage [v1.1 | 2026-10-25] | `.github/workflows/db-backup.yml` | Database, backup storage |
-| CI pipeline | Builds and tests the three components | GitHub Actions: `backend.yml` (Linux, PostgreSQL service, image, staging deploy), `ios.yml` (macOS runner, Xcode 27 needed), `android.yml` (Ubuntu, JDK 17) [v1.2 \| 2026-10-26] | `.github/workflows/` | Repository |
+| CI pipeline | Builds and tests the three components | GitHub Actions: `backend.yml` (Linux, PostgreSQL service, image, staging deploy), `ios.yml` (hosted `macos-26`, Xcode 26.x, project format 77), `android.yml` (Ubuntu, JDK 17) [v1.2 \| 2026-10-26] | `.github/workflows/` | Repository |
 
 Developer tooling (`ddagent`, installed from its own repository) is not part of the system.
 
@@ -226,6 +226,7 @@ Mapping of the open technical questions: Q-T1 to ADR-0008; Q-T2 to ADR-0013; Q-T
 | R-6 | Server-side Swift: small ecosystem, slow release builds, Linux differences, Vapor 5 migration ahead | Delivery speed, hiring, later slices (SMS, push) | Build in CI with caching, test on Linux per pull request, pin versions, yearly upgrade review (ADR-0001) |
 | R-8 | The API host name is compiled into the apps | A host change after release needs an app update | Custom domain before store release (launch cost, owner) |
 | R-9 | Free-tier hosting is not for real customers' orders (no backups on the host, sleep) | Lost or missed orders | Trial only; nightly encrypted dump; move to the paid path before launch (ADR-0003) |
+| R-10 | Concurrency code can behave differently in release builds than in debug tests (the `withDeadline` crash, Swift 6.2.4) [v1.4 | 2026-10-26] | A crash only visible in production-like builds | NIO scheduled-task timer; release-binary smoke test in CI; live check after any change to `Support/Deadline.swift`; revisit when the Swift toolchain is upgraded |
 | R-7 | Material3 Expressive APIs may be experimental in the stable library | API churn | Opt-in, pinned version, wrapper components (ADR-0007) |
 
 | ID | Question | Why it matters | Blocking | Class | Status | Answer |
@@ -238,22 +239,23 @@ Mapping of the open technical questions: Q-T1 to ADR-0008; Q-T2 to ADR-0013; Q-T
 | 1.1 | 2026-10-25 | Owner decisions applied: Swift and Vapor, PostgreSQL, free trial hosting, layout, minimum OS, price change. Components, integrations, quality targets, risks updated. Slice plan added (section 11). |
 | 1.2 | 2026-10-26 | After slice 0: Android toolchain and CI, application identifiers (ADR-0016), code structure target and refactors before slice 1 (section 14). |
 | 1.3 | 2026-10-26 | After the backend refactor round: section 14 matches the built layout (`WallClock`, `DatabasePoolSizing`, `PostgresProbe` in `Repositories/`), error flow, collision retry owner, test target rules, remaining refactors. |
+| 1.4 | 2026-10-26 | After backend round 2: `AppServices` holds factories (no probe), `MigrationConfig`, body limit 8 KB + 1, `Retry-After`, `withDeadline` timer and release-check rule, risk R-10, iOS runner corrected to `macos-26`. |
 
-## 14. Backend Code Structure Target [v1.3 | 2026-10-26]
+## 14. Backend Code Structure Target [v1.4 | 2026-10-26]
 
 Review after the refactor round of slice 0 (`backend/Sources/App`, evidence read on 2026-10-26). Strengths worth keeping: configuration parsed from a dictionary and never from the global environment; secrets never echoed in errors; one place that turns any thrown error into the contract envelope; the database behind a protocol so tests need no PostgreSQL; one forward-only migration runner with a tested SQL splitter; contract fixtures decoded in tests; real-database tests that roll back. Layout as built, and the rule for each folder in slices 1 to 4:
 
 | Folder under `Sources/App` | Holds (built) | Rule |
 | -------------------------- | ------------- | ---- |
-| `Config/` | `AppConfig` (variable names and defaults), `DatabasePoolSizing` (event loops times connections per loop stays within `DATABASE_POOL_MAX`) | Every variable of deployment.md section 3 gets a typed field when its slice reads it |
-| `Http/` | `APIError`, `APIErrorCode` (one table: code, HTTP status, top-level `message_key`; api.md section 5), `APIErrorMiddleware`, `RequestIDMiddleware`, `AccessLogMiddleware` | The only place that turns an error into the response envelope. Order: request id, access log, error mapper innermost. Rate-limit middleware (ADR-0014) joins here |
+| `Config/` | `AppConfig` (variable names and defaults for `serve`), `MigrationConfig` (stage and migration URL only, used by `migrate`; `AppConfig` no longer carries the migration URL), `DatabasePoolSizing` (event loops times connections per loop stays within `DATABASE_POOL_MAX`) | Every variable of deployment.md section 3 gets a typed field when its slice reads it |
+| `Http/` | `APIError`, `APIErrorCode` (one table: code, HTTP status, top-level `message_key`; api.md section 5), `APIErrorMiddleware`, `RequestIDMiddleware`, `AccessLogMiddleware`, `RequestLimits` (body limit: Vapor rejects a body of `maxSize` bytes or more, so the configured size is 8 KB + 1 byte; exactly 8 KB passes and anything larger gets 413) | The only place that turns an error into the response envelope. Order: request id, access log, error mapper innermost. Rate-limit middleware (ADR-0014) joins here |
 | `Routes/` | `HealthRoutes`; later `CatalogRoutes`, `AvailabilityRoutes`, `OrderRoutes` | Parse, call a service, encode; no SQL, no rules |
 | `Services/` | `HealthService`, `ShopCalendar`, `BusinessDate`; later `AvailabilityService`, `OrderPlacementService`, `OrderRules` | Pure Swift; time, randomness and storage come in as protocols |
-| `Repositories/` | `PostgresProbe`; later the protocols `CatalogRepository`, `DayLoadRepository`, `OrderRepository` with their PostgreSQL implementations (exact SQL of ADR-0008) | Only SQL lives here. Every method wraps connection and pool failures as `APIError(.serviceUnavailable)` (api.md section 5) |
-| `Support/` | `WallClock` (protocol, `SystemWallClock`, `FixedWallClock`; named so because `Clock` is a Swift standard library protocol), `OrderCodeGenerator`, `DatabaseProbe`, `withDeadline` | No Vapor types |
+| `Repositories/` | `DatabaseProbe` (protocol), `PostgresProbe`, `RepositoryFactories`; later the protocols `CatalogRepository`, `DayLoadRepository`, `OrderRepository` with their PostgreSQL implementations (exact SQL of ADR-0008) | Only SQL lives here. Every method wraps connection and pool failures as `APIError(.serviceUnavailable)` (api.md section 5) |
+| `Support/` | `WallClock` (protocol, `SystemWallClock`, `FixedWallClock`; named so because `Clock` is a Swift standard library protocol), `OrderCodeGenerator`, `withDeadline` | No Vapor types |
 | `Migrations/` | Runner and SQL splitter | Unchanged |
 
-Composition root: `configure` builds one `AppServices` value (clock, probe, order code generator; repositories join in the slices that introduce them), stores it on the `Application`; tests replace the whole value or single members.
+Composition root: `configure` builds one `AppServices` value (`clock`, `orderCodes`, `repositories: RepositoryFactories`; `calendar` is derived from the clock; no probe member any more), stores it on the `Application`; tests replace the whole value or single members. The factories take a database handle, so slice 3 can run the `day_load` update and the order inserts in one transaction (ADR-0008); `Request.databaseHandle` is nil only when no database is configured (local runs). [v1.4 | 2026-10-26]
 
 Error flow: services and repositories throw `APIError`; the middleware maps it. Anything else is mapped by status when it is a Vapor `AbortError`, otherwise `INTERNAL_ERROR`, logging only the type name. The mapper never parses driver errors, so a database outage is `SERVICE_UNAVAILABLE` only when a repository throws it explicitly (api.md section 5).
 
@@ -261,4 +263,6 @@ Order code collisions: the generator only draws a code; the order service of sli
 
 Tests: `AppTests` is one target. Database tests (`Tests/AppTests/Database`, base class `DatabaseTestCase`) run inside that same target and only when `DATABASE_MIGRATION_URL` is set; otherwise they skip, so `swift test` works without a database. They apply the real migrations and run each test in a transaction that is rolled back. The URL must point at a throwaway database only (the CI service container or a local container), never staging or production.
 
-Fitness for slices 1 to 3: the layering fits. Remaining refactors (dev queries in the architect report): repositories need a per-request or per-transaction database handle, so `AppServices` should hold factories, not connected repositories; the access log still lacks platform, app version and error code; the default body limit must be set to 8 KB; `Retry-After` is not yet written by the mapper; `withDeadline` leaves its timer task running after success.
+Fitness for slices 1 to 3: the layering fits. Done in round 2 [v1.4 | 2026-10-26]: factories with a database handle, 8 KB body limit, `Retry-After` and `details.retry_after_seconds` written for `RATE_LIMITED` (default 60 s, the shortest window in the api.md rate-limit table), `withDeadline` cancels its timer. Still open: the access log lacks platform, app version and error code.
+
+`withDeadline` rule [v1.4 | 2026-10-26]: its timer is a NIO scheduled task, not a sleeping Swift `Task`, because cancelling a sleeping `Task` crashed the Swift 6.2.4 release binary ("freed pointer was not the last allocation"). Debug tests never show this. Any change to `Support/Deadline.swift` needs a release-binary live check (start the release build, call the deep health check repeatedly); the CI step "Release binary smoke test" in `backend.yml` already does this, and a developer should also run it locally before merging such a change (risk R-10).
