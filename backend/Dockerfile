@@ -18,7 +18,11 @@ COPY contracts/swift ./contracts/swift
 WORKDIR /build/backend
 RUN swift package resolve
 
+# Package.swift declares the AppTests target, and SwiftPM rejects a manifest
+# whose target directory is missing even when only the App product is built.
+# The build stage is not shipped, so copying the tests costs no image size.
 COPY backend/Sources ./Sources
+COPY backend/Tests ./Tests
 RUN swift build -c release --static-swift-stdlib \
     && mkdir -p /staging \
     && cp "$(swift build -c release --show-bin-path)/App" /staging/App

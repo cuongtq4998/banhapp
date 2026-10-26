@@ -1,4 +1,6 @@
 import Foundation
+import Logging
+import NIOConcurrencyHelpers
 @testable import App
 
 enum TestPaths {
@@ -19,4 +21,36 @@ enum TestPaths {
 struct StubProbe: DatabaseProbe {
     let behaviour: @Sendable () async throws -> Void
     func ping() async throws { try await behaviour() }
+}
+
+/// Collects log lines so tests can assert on what would reach the log sink.
+final class LogCapture: @unchecked Sendable {
+    // Invariant: `entries` is only touched under `lock`.
+    private let lock = NIOLock()
+    private var entries: [(message: String, metadata: Logger.Metadata)] = []
+
+    var lines: [(message: String, metadata: Logger.Metadata)] { lock.withLock { entries } }
+
+    func append(_ message: String, _ metadata: Logger.Metadata) {
+        lock.withLock { entries.append((message, metadata)) }
+    }
+
+    func makeLogger() -> Logger {
+        Logger(label: "test") { _ in CapturingHandler(capture: self) }
+    }
+}
+
+private struct CapturingHandler: LogHandler {
+    let capture: LogCapture
+    var metadata: Logger.Metadata = [:]
+    var logLevel: Logger.Level = .trace
+
+    subscript(metadataKey key: String) -> Logger.Metadata.Value? {
+        get { metadata[key] }
+        set { metadata[key] = newValue }
+    }
+
+    func log(event: LogEvent) {
+        capture.append("\(event.message)", metadata.merging(event.metadata ?? [:]) { $1 })
+    }
 }
