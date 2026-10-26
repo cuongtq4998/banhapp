@@ -15,6 +15,7 @@ The running apps do not look like this design. This folder is the **visual sourc
 | File | Content |
 | ---- | ------- |
 | `dat-banh-tet-ios-android.html` | The original board, unchanged. Open it in a browser. 12 iOS screens at 390 x 844 and 12 Android screens at 412 x 892. It embeds Be Vietnam Pro and Roboto Flex font files; keep the licence comment at the top of the file (SIL Open Font License 1.1) if it is passed on. |
+| `renders/*.png` | Pictures of the slice 1 screens (launching, home, products, cake detail; iOS 390 x 844, Android 412 x 892) rendered from the board with headless Chrome on 2026-10-26, for quick comparison with screenshots of the running apps. |
 | `screens/*.html` | The same 24 screens as separate pages, with the embedded font data replaced by the text `<EMBEDDED-FONT-DATA-REMOVED>` so that people and agents can read the markup and CSS (colours, sizes, spacing, radii). Fonts: Be Vietnam Pro, Roboto Flex. |
 
 ## Screens
