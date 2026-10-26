@@ -1,3 +1,5 @@
+import javax.inject.Inject
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -30,6 +32,7 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -68,10 +71,48 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+
+    androidTestImplementation(platform(libs.compose.bom))
+    androidTestImplementation(libs.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.rules)
+    // Newer than the 3.5.0 that Compose UI test brings: that one cannot idle on Android 16 (API 36).
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    // Registers the empty activity that createComposeRule launches; debug only, so release builds do not contain it.
+    debugImplementation(libs.compose.ui.test.manifest)
 }
 
 // The API contract fixtures are shared with backend and iOS; tests find them through this property
 // instead of a path relative to the working directory.
 tasks.withType<Test>().configureEach {
     systemProperty("contracts.fixtures.dir", rootDir.resolve("../contracts/fixtures").canonicalPath)
+}
+
+// The same fixtures reach the emulator as assets of the test APK, so the UI tests and the backend read one source.
+abstract class CopyContractFixtures : DefaultTask() {
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val fixtures: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val assetsDirectory: DirectoryProperty
+
+    @get:Inject
+    abstract val fileSystem: FileSystemOperations
+
+    @TaskAction
+    fun copy() {
+        fileSystem.sync {
+            from(fixtures)
+            into(assetsDirectory)
+        }
+    }
+}
+
+val copyContractFixtures = tasks.register<CopyContractFixtures>("copyContractFixtures") {
+    fixtures.set(rootDir.resolve("../contracts/fixtures"))
+}
+
+androidComponents.onVariants { variant ->
+    variant.androidTest?.sources?.assets?.addGeneratedSourceDirectory(copyContractFixtures, CopyContractFixtures::assetsDirectory)
 }

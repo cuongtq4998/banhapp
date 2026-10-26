@@ -17,9 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import app.banh.customer.R
+import app.banh.customer.TestTags
 import app.banh.customer.design.Radii
 import app.banh.customer.design.SkeletonBlock
 
@@ -55,6 +57,7 @@ fun ProductImage(path: String, name: String, modifier: Modifier = Modifier) {
             ImageState.Failed -> Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .testTag(TestTags.DETAIL_IMAGE_FAILED)
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center,
             ) {

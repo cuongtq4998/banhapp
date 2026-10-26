@@ -5,6 +5,8 @@ import app.banh.customer.data.LoadFailure
 import app.banh.customer.testing.FakeCatalogRepository
 import app.banh.customer.testing.MainDispatcherRule
 import app.banh.customer.testing.TestCatalogs
+import app.banh.customer.data.catalog.Product
+import app.banh.customer.ui.products.ProductDetail
 import app.banh.customer.ui.products.ProductDetailViewModel
 import app.banh.customer.ui.products.ProductsViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,7 +30,7 @@ class CatalogViewModelsTest {
     fun homeShowsTheShopOfTheCatalog() {
         val viewModel = HomeViewModel(FakeCatalogRepository(Load.Ready(catalog)))
 
-        assertEquals(Load.Ready(catalog.shop), viewModel.uiState.value)
+        assertEquals(Load.Ready(HomeContent(catalog.shop, hasActiveCakes = true)), viewModel.uiState.value)
     }
 
     @Test
@@ -42,7 +44,15 @@ class CatalogViewModelsTest {
         repository.emit(Load.Ready(catalog))
         repository.emit(Load.Failed(LoadFailure.NETWORK))
 
-        assertEquals(listOf(Load.Loading, Load.Ready(catalog.shop), Load.Failed(LoadFailure.NETWORK)), seen)
+        assertEquals(listOf(Load.Loading, Load.Ready(HomeContent(catalog.shop, hasActiveCakes = true)), Load.Failed(LoadFailure.NETWORK)), seen)
+    }
+
+    @Test
+    fun homeKnowsWhenTheShopHasNoActiveCake() {
+        val empty = TestCatalogs.catalog(productCount = 0)
+        val viewModel = HomeViewModel(FakeCatalogRepository(Load.Ready(empty)))
+
+        assertEquals(Load.Ready(HomeContent(empty.shop, hasActiveCakes = false)), viewModel.uiState.value)
     }
 
     @Test
@@ -70,10 +80,10 @@ class CatalogViewModelsTest {
     }
 
     @Test
-    fun noCakeAtAllIsAFailedLoad() {
+    fun noCakeAtAllIsAnEmptyAnswerNotAFailedLoad() {
         val viewModel = ProductsViewModel(FakeCatalogRepository(Load.Ready(TestCatalogs.catalog(productCount = 0))))
 
-        assertEquals(Load.Failed(LoadFailure.OTHER), viewModel.uiState.value)
+        assertEquals(Load.Ready(emptyList<Product>()), viewModel.uiState.value)
     }
 
     @Test
@@ -87,7 +97,7 @@ class CatalogViewModelsTest {
     fun detailShowsTheRequestedCake() {
         val viewModel = ProductDetailViewModel(FakeCatalogRepository(Load.Ready(catalog)), productId = "product-2")
 
-        assertEquals(Load.Ready(catalog.products[1]), viewModel.uiState.value)
+        assertEquals(Load.Ready(ProductDetail(catalog.products[1], available = true)), viewModel.uiState.value)
     }
 
     @Test
@@ -102,5 +112,45 @@ class CatalogViewModelsTest {
         val viewModel = ProductDetailViewModel(FakeCatalogRepository(), productId = "product-1")
 
         assertEquals(Load.Loading, viewModel.uiState.value)
+    }
+
+    @Test
+    fun detailTurnsGoneWhenTheShopHidesTheCakeAndKeepsItsData() = runTest {
+        val repository = FakeCatalogRepository(Load.Ready(catalog))
+        val viewModel = ProductDetailViewModel(repository, productId = "product-2")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+
+        repository.emit(Load.Ready(TestCatalogs.catalog(productCount = 1)))
+
+        assertEquals(Load.Ready(ProductDetail(catalog.products[1], available = false)), viewModel.uiState.value)
+    }
+
+    @Test
+    fun detailIsAvailableAgainWhenTheCakeComesBack() = runTest {
+        val repository = FakeCatalogRepository(Load.Ready(catalog))
+        val viewModel = ProductDetailViewModel(repository, productId = "product-2")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+
+        repository.emit(Load.Ready(TestCatalogs.catalog(productCount = 1)))
+        repository.emit(Load.Ready(catalog))
+
+        assertEquals(Load.Ready(ProductDetail(catalog.products[1], available = true)), viewModel.uiState.value)
+    }
+
+    @Test
+    fun orderRechecksTheActiveListAfterARefresh() = runTest {
+        val repository = FakeCatalogRepository(Load.Ready(catalog))
+        repository.onRefresh = { repository.emit(Load.Ready(TestCatalogs.catalog(productCount = 1))) }
+        val viewModel = ProductDetailViewModel(repository, productId = "product-2")
+
+        assertEquals(false, viewModel.isStillOrderable())
+        assertEquals(1, repository.refreshCount)
+    }
+
+    @Test
+    fun orderGoesOnWhenTheCakeIsStillActive() = runTest {
+        val viewModel = ProductDetailViewModel(FakeCatalogRepository(Load.Ready(catalog)), productId = "product-2")
+
+        assertEquals(true, viewModel.isStillOrderable())
     }
 }

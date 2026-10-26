@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,11 +27,25 @@ import app.banh.customer.R
 /** Full-area error: icon, message and a retry button (`StateView` Error). */
 @Composable
 fun ErrorState(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    StateMessage(message, onRetry, TestTags.ERROR_STATE, modifier)
+}
+
+/**
+ * Zero cakes to show: the Error layout with its own tag, so a test (and the reader of the code) can tell
+ * "the shop has nothing to sell" from "the data could not be loaded" (BR-13).
+ */
+@Composable
+fun EmptyState(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    StateMessage(message, onRetry, TestTags.EMPTY_STATE, modifier)
+}
+
+@Composable
+private fun StateMessage(message: String, onRetry: () -> Unit, stateTag: String, modifier: Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(Spacing.lg)
-            .testTag(TestTags.ERROR_STATE),
+            .testTag(stateTag),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
@@ -43,8 +58,24 @@ fun ErrorState(message: String, onRetry: () -> Unit, modifier: Modifier = Modifi
         SecondaryButton(
             text = stringResource(R.string.common_retry),
             onClick = onRetry,
-            modifier = Modifier.testTag(TestTags.ERROR_RETRY),
+            modifier = Modifier.testTag(TestTags.STATE_RETRY),
         )
+    }
+}
+
+/** Information next to the content it explains (`InlineMessage`, Info); the tag goes on the whole message. */
+@Composable
+fun InfoMessage(text: String, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(Radii.image))
+            .padding(Spacing.md),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(painter = painterResource(R.drawable.ic_info), contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+        Text(text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
     }
 }
 
