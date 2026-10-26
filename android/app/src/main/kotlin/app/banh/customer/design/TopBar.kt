@@ -31,10 +31,13 @@ private fun TitleText(title: String, maxLines: Int) {
     Text(title, maxLines = maxLines, overflow = TextOverflow.Ellipsis, modifier = Modifier.semantics { heading() })
 }
 
-/** Screen title and back control. The glass appears under the bar once content scrolls beneath it. */
+/**
+ * Screen title and back control. The experimental TopAppBar stays inside this function (no experimental type in the
+ * signature), so callers need no opt-in; the Material team has kept this component stable in behaviour.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InlineTopBar(title: String, onBack: () -> Unit, scrollBehavior: TopAppBarScrollBehavior? = null) {
+fun InlineTopBar(title: String, onBack: () -> Unit) {
     TopAppBar(
         title = { TitleText(title, maxLines = 1) },
         navigationIcon = { BackButton(onBack) },
@@ -42,12 +45,15 @@ fun InlineTopBar(title: String, onBack: () -> Unit, scrollBehavior: TopAppBarScr
             containerColor = Color.Transparent,
             scrolledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = AlphaTokens.SOLID_FALLBACK),
         ),
-        scrollBehavior = scrollBehavior,
     )
 }
 
-/** Large title that collapses to the inline form on scroll. */
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Large title that collapses to the inline form on scroll.
+ * The scroll behavior type is experimental in Material 3. Marking this function with the same opt-in requirement
+ * (instead of hiding it with OptIn) makes each caller state that it accepts the risk; the only caller does so.
+ */
+@ExperimentalMaterial3Api
 @Composable
 fun LargeTitleTopBar(title: String, onBack: () -> Unit, scrollBehavior: TopAppBarScrollBehavior? = null) {
     LargeTopAppBar(
