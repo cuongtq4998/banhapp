@@ -2,8 +2,8 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.1 |
-| Last updated | 2026-10-25 |
+| Version      | 1.2 |
+| Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | atlas-architect |
 | Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0 |
@@ -114,7 +114,7 @@ Final states: `Completed`, `Cancelled`. Every non-final state (`New`, `Confirmed
 | Confirmed | Completed | Delivery done | Staff, owner | Authenticated (later) | Event written; capacity unchanged (the cakes were made) |
 | Confirmed | Cancelled | Staff cancels | Staff, owner | Authenticated (later) | Capacity released as above; event written |
 
-Any other pair is rejected by the database trigger `customer_order_status_guard` even for direct SQL, for example `Completed -> New`, `Cancelled -> Confirmed`, `New -> Completed`, and any change out of a final state. The status guard and the capacity release trigger are created in this slice (data-model.md section 5) so AC-28 can be tested at database level now.
+Any other pair is rejected by the database trigger `customer_order_status_guard` even for direct SQL, for example `Completed -> New`, `Cancelled -> Confirmed`, `New -> Completed`, and any change out of a final state. Each allowed change also writes its `order_event` through the trigger (rows above say "event written"; Confirmed and Completed do too) [v1.2 | 2026-10-26]. The status guard and the capacity release trigger are created in this slice (data-model.md section 5) so AC-28 can be tested at database level now.
 
 ## 7. Concurrency & Idempotency
 
@@ -129,7 +129,7 @@ Any other pair is rejected by the database trigger `customer_order_status_guard`
 | Moment | Record |
 | ------ | ------ |
 | Order accepted | `order_event(created, to_status=New, actor_type=customer)` in the same transaction |
-| Each later status change | `order_event(status_changed, from, to, actor_type, actor_id)` written by trigger, so it cannot be skipped |
+| Each later status change | `order_event(status_changed, from, to, actor_type, actor_id)` written by the trigger `customer_order_release_capacity` on every status change (confirm, complete and cancel alike), so it cannot be skipped. The actor is `system` unless the staff endpoint sets `app.actor_type` and `app.actor_id` in the same transaction (data-model.md 3.9) [v1.2 \| 2026-10-26] |
 | Rejections | Not stored in the database; one structured log line without personal data: request id, code, platform, app version (deployment.md section 7) |
 
 ## 9. Traceability
@@ -146,3 +146,4 @@ Each flow step above traces to FR-9, FR-10, FR-11, FR-13, FR-16, FR-17, FR-18 an
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version. |
 | 1.1 | 2026-10-25 | ADR-0010 accepted; no flow change. |
+| 1.2 | 2026-10-26 | Audit trigger wording aligned with the built migration (event on every status change). |

@@ -34,6 +34,20 @@ iOS (`ios/BanhApp/`): SwiftUI, `@Observable` view models (iOS 17), `NavigationSt
 
 Android (`android/app/`): Kotlin, Jetpack Compose with Material3 (stable 1.4.x, Expressive APIs behind `@OptIn(ExperimentalMaterial3ExpressiveApi::class)`; move to 1.5.x when it is stable; no beta in releases), ViewModel with `StateFlow`, Navigation Compose, OkHttp with kotlinx.serialization, DataStore for the draft, manual wiring through one `AppContainer`. Packages: `ui/{home,products,order,confirmation}`, `data`, `design`.
 
+Android toolchain (as built in slice 0; versions read from the official pages on 2026-10-26) [v1.1 | 2026-10-26]:
+
+| Item | Value | Note |
+| ---- | ----- | ---- |
+| Android Gradle Plugin | 9.4.0 (latest stable) | Requires Gradle 9.6.0, JDK 17, build tools 36.0.0; supports up to API 37 |
+| Kotlin | 2.4.21 (latest stable, released 2026-10-08) | AGP 9 has built-in Kotlin: the `org.jetbrains.kotlin.android` plugin is not applied. The Compose compiler plugin `org.jetbrains.kotlin.plugin.compose` is still applied, at the same version as Kotlin |
+| Compose BOM | 2026.09.00 (newest listed) | Maps to Material3 1.4.0 and Compose UI 1.12.1, consistent with the 1.4.x rule above |
+| Gradle | 9.6.0 | The minimum and default for AGP 9.4; Gradle 9.8.x also exists and may be tried later, not required |
+| JDK | 17 (Temurin in CI) | `sourceCompatibility` and `targetCompatibility` 17 |
+| compileSdk, targetSdk, minSdk | 36, 36, 26 | Play target-level requirement still to be checked at submission (deployment.md section 4) |
+| CI | `ubuntu-latest` (Ubuntu 24.04), `android-actions/setup-android@v3` with `platforms;android-36 build-tools;36.0.0`, `gradle/actions/setup-gradle@v4` | `.github/workflows/android.yml` |
+
+Not verified: whether the Compose compiler plugin at 2.4.21 composes cleanly with AGP's built-in Kotlin (the project has never been built; first CI run decides). The Gradle wrapper is still to be generated and committed.
+
 Rules common to both:
 
 - One `OrderFlow` state object owns the draft (items, date, slot, name, phone, address, district, note, idempotency key) and survives step navigation (FR-15).
@@ -55,8 +69,20 @@ Rules common to both:
 | ----- | ------------ | ------- | ---------- |
 | Compose Material3 1.4.0 stable; ButtonGroup and FloatingToolbar expressive APIs became non-experimental in 1.5.0-alpha22 | https://developer.android.com/jetpack/androidx/releases/compose-material3 | 2026-10-25 | Medium (page partly read) |
 | Which Expressive components are available in 1.4.0 without opt-in | Release notes not fully read | 2026-10-25 | Unverified |
+| AGP 9.4.0 is latest stable; needs Gradle 9.6.0, JDK 17, build tools 36.0.0 | https://developer.android.com/build/releases/gradle-plugin | 2026-10-26 | High |
+| AGP 9 includes Kotlin support; `kotlin-android` plugin no longer needed | https://developer.android.com/build/migrate-to-built-in-kotlin | 2026-10-26 | High (the page says nothing about the Compose compiler plugin) |
+| Kotlin 2.4.21 latest stable, 2026-10-08 | https://kotlinlang.org/docs/releases.html | 2026-10-26 | High |
+| BOM 2026.09.00 maps to Material3 1.4.0, UI 1.12.1 | https://developer.android.com/develop/ui/compose/bom/bom-mapping | 2026-10-26 | Medium (rows matched by position; last 7 KB of the page not read) |
+| `ubuntu-latest` is Ubuntu 24.04; `macos-latest` is macOS 26 arm64 | https://github.com/actions/runner-images | 2026-10-26 | High |
 | `@Observable`, `NavigationStack`, DataStore, Navigation Compose behaviour | Platform documentation, not fetched | 2026-10-25 | Unverified |
 
 ## Links
 
-Related: ADR-0005, ADR-0006, ADR-0011, ADR-0012.
+Related: ADR-0005, ADR-0006, ADR-0011, ADR-0012, ADR-0016 (application identifiers).
+
+## Change log
+
+| Version | Date | Change |
+| ------- | ---- | ------ |
+| 1.0 | 2026-10-25 | First version. |
+| 1.1 | 2026-10-26 | Android toolchain versions and CI runner recorded with sources (clarification only; decision unchanged). |

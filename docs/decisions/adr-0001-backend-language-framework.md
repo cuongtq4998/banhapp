@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0001 |
-| Version  | 1.1 |
+| Version  | 1.2 |
 | Status   | Accepted (owner decision, 2026-10-25) [v1.1 | 2026-10-25] |
 | Date     | 2026-10-25 (v1.1 2026-10-25) |
 | Decider  | Product owner |
@@ -41,7 +41,7 @@ Swift (6.x toolchain; the current release on swift.org is 6.4.1 as of 2026-10-25
 - Rate limiting: a small in-memory middleware (no mature maintained Vapor package was assumed; unverified).
 - Tests: XCTest with `XCTVapor`, run in CI on Linux against a PostgreSQL service container. Lint: SwiftLint (or swift-format). forge-dev records the final choice in the dev guide.
 - Container: multi-stage Dockerfile (Swift toolchain image to build, slim Ubuntu image to run, static Swift standard library), image built for `linux/amd64`.
-- **Shared contracts package**: a small SwiftPM library `BanhContracts` in `contracts/swift/` holding the request, response and error-code types (Foundation only, no Vapor). The backend imports it (adding Vapor `Content` conformances locally) and the iOS app uses it as a local package; Android keeps its own Kotlin types checked against the same JSON fixtures in `contracts/fixtures/`. The package is optional for the iOS team: if it causes friction the iOS app may keep its own types, the JSON fixtures remain the single contract test.
+- **Shared contracts package**: a small SwiftPM library `BanhContracts` in `contracts/swift/` holding the request, response and error-code types (Foundation only, no Vapor). The backend imports it (adding Vapor `Content` conformances locally) and the iOS app uses it as a local package; Android keeps its own Kotlin types checked against the same JSON fixtures in `contracts/fixtures/`. **Platforms of the package** [v1.2 | 2026-10-26]: `contracts/swift/Package.swift` declares `.iOS(.v17)` and `.macOS(.v14)` (swift-tools-version 6.0). iOS 17 equals the app minimum (ADR-0005). macOS 14 equals the backend package's `.macOS(.v14)`, needed so the Vapor host builds and tests natively on a developer Mac (SwiftPM requires a dependency to declare a platform no newer than its dependent); the Linux image and CI are unaffected by it. Neither value may be raised without raising the dependents. The package is optional for the iOS team: if it causes friction the iOS app may keep its own types, the JSON fixtures remain the single contract test.
 
 ## Consequences [v1.1 | 2026-10-25]
 
@@ -61,6 +61,7 @@ Trade-offs of server-side Swift for a small shop:
 | ----- | ------------ | ------- | ---------- |
 | Vapor latest stable 4.122.3 (21 Oct), 5.0 beta 4 marked Latest | https://github.com/vapor/vapor/releases | 2026-10-25 | Medium (year not shown on page) |
 | Vapor docs version menu: 4.0 latest, 5.0 alpha | https://docs.vapor.codes/ | 2026-10-25 | Medium |
+| Toolchain actually pinned: Swift 6.2 (`swift:6.2-noble` in `backend/Dockerfile` and `backend.yml`; verified on the author's machine, dev-guide section 1); 6.4.1 is current but not adopted yet | `backend/Dockerfile`, `.github/workflows/backend.yml` | 2026-10-26 | High |
 | Swift 6.4 released 2026-09-15; install shows 6.4.1 | https://www.swift.org/blog/ | 2026-10-25 | High |
 | Fluent PostgreSQL driver uses PostgresKit over PostgresNIO; README shows a Swift 6.2+ badge | https://github.com/vapor/fluent-postgres-driver | 2026-10-25 | Medium |
 | Vapor Docker deployment uses a two-stage Dockerfile; builds must run in Linux | https://docs.vapor.codes/deploy/docker/ | 2026-10-25 | Medium |
@@ -77,3 +78,4 @@ Supersedes: v1.0 recommendation (TypeScript). Related: ADR-0002, ADR-0003, ADR-0
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | Proposed, TypeScript recommended. |
 | 1.1 | 2026-10-25 | Owner chose Swift with Vapor; Accepted; trade-offs, stack details and shared contracts package added. |
+| 1.2 | 2026-10-26 | Contracts package platforms (iOS 17, macOS 14) confirmed; pinned Swift 6.2 recorded (clarification). |

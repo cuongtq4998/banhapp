@@ -2,8 +2,8 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.1 |
-| Last updated | 2026-10-25 |
+| Version      | 1.2 |
+| Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | atlas-architect (design), forge-dev (keeps it true) |
 | Based on     | architecture.md v1.0; product/place-order.md v1.2 |
@@ -36,11 +36,11 @@ Backend variables (names only; `.env.example` lists the same names with empty va
 | ---- | ------- | -------- | --------- |
 | `APP_ENV` | `local`, `staging` or `production` | Yes | Host |
 | `PORT` | Listen port (Vapor binds `0.0.0.0` on it) | Yes | Host |
-| `DATABASE_URL` | Application database connection (limited role) | Yes | Host secret store |
+| `DATABASE_URL` | Application database connection (limited role) | Yes in staging and production; optional when `APP_ENV=local` (the server then starts with the shallow health check only and logs a warning) [v1.2 | 2026-10-26] | Host secret store |
 | `DATABASE_MIGRATION_URL` | Migration role connection | For migrations | CI secret, operator machine |
 | `DATABASE_POOL_MAX` | Maximum connections per instance (default 5; free plans limit connections); direct, not pooled, connection string (ADR-0002) | No | Host |
-| `SHOP_ID` | UUID of the shop served (single shop at launch) | Yes | Host |
-| `TRUST_PROXY` | Read the client IP from the proxy header | Yes in staging and production | Host |
+| `SHOP_ID` | UUID of the shop served (single shop at launch) | Yes from slice 1 (not read by slice 0) [v1.2 | 2026-10-26] | Host |
+| `TRUST_PROXY` | Read the client IP from the proxy header | Yes in staging and production from slice 3 (rate limits); not read by slice 0 [v1.2 | 2026-10-26] | Host |
 | `ORDERING_ENABLED` | `true` or `false`; false returns 503 `ORDERING_PAUSED` | No (default true) | Host |
 | `RATE_LIMIT_READ_PER_MINUTE` | Default 120 | No | Host |
 | `RATE_LIMIT_ORDER_PER_HOUR` | Default 10 | No | Host |
@@ -50,11 +50,17 @@ Backend variables (names only; `.env.example` lists the same names with empty va
 
 Mobile build settings (per build configuration, not secrets): `API_BASE_URL` (staging, production). Android `usesCleartextTraffic=false`; iOS keeps App Transport Security defaults.
 
-CI and backup variables: see auth.md section 5.
+CI variables (names only) [v1.2 | 2026-10-26]: secrets `STAGING_DATABASE_MIGRATION_URL`, `STAGING_RENDER_DEPLOY_HOOK_URL`; variable `STAGING_BASE_URL`; the deploy job reads them from a GitHub environment named `staging` and skips itself with a notice while the secrets are unset. The test job uses throwaway credentials of a service container that exist only in the workflow. Backup variables: see auth.md section 5.
+
+Startup warning for sample rows (ADR-0013): the check that logs a warning when `APP_ENV=production` and any row has `is_sample = true` is not in slice 0; it is built in slice 4 (launch readiness). Until then the launch checklist item below is the only guard [v1.2 | 2026-10-26].
 
 ## 4. Build & Release
 
 Pipeline (GitHub Actions, free for public repositories; macOS runner minutes for public repositories are free, unverified). The Swift backend is built only in CI, never on the host: a release build is slow and memory-heavy (ADR-0001). [v1.1 | 2026-10-25]
+
+CI files [v1.2 | 2026-10-26]: `.github/workflows/backend.yml` (job `test` on `ubuntu-latest` in a `swift:6.2-noble` container with a `postgres:16` service: build, tests, `migrate --yes`, sample seed applied twice; job `image`: image build on pull requests, push to GHCR on main; job `deploy-staging`), `.github/workflows/ios.yml` and `.github/workflows/android.yml`; each is path-filtered to its component. `ubuntu-latest` is Ubuntu 24.04. The workflows do not yet include SwiftLint, a nightly backup or a production job; those arrive with their slices.
+
+iOS runner [v1.2 | 2026-10-26]: `ios.yml` runs on `macos-latest` (macOS 26) and selects the newest installed Xcode, but the project file needs Xcode 27 and GitHub now offers an Xcode 27 image under the label `xcode-27` (generally available since 2026-10-15). Use `runs-on: xcode-27` (dev query).
 
 1. Pull request: backend `swift build` and `swift test` on Linux (XCTVapor) against a PostgreSQL service container (including the parallel-order test of AC-22), with the SwiftPM `.build` cache; SwiftLint [v1.1 | 2026-10-25]; Android build and unit tests; iOS build and unit tests (macOS runner); contract fixture checks; lint.
 2. Merge to main: build the multi-stage image for `linux/amd64` (Swift toolchain image to build with `--static-swift-stdlib`, slim Ubuntu to run, non-root user), push it to GHCR as a public package tagged with the commit, run migrations (`DATABASE_MIGRATION_URL`) first, then call the staging service's Render deploy hook with the image tag (Render does not redeploy on push; migrations are forward-compatible, data-model.md section 8). [v1.1 | 2026-10-25]
@@ -107,7 +113,7 @@ Single instance, no autoscaling: expected peak is about 5 requests per second (a
 | What | How | Retention |
 | ---- | --- | --------- |
 | Logs | Structured JSON to stdout: time, level, request id, method, path, status, duration, platform, app version, error code. Never name, phone, address, note or body | 30 days at the host (estimate) |
-| Health | `GET /healthz` checked every 5 minutes by an external uptime monitor and by the host | |
+| Health | Shallow `GET /healthz` (no database) is the only path the host health check and the external uptime monitor use, every 5 minutes. `GET /healthz?deep=1` (wakes the sleeping database) is for the operator and for deploy verification only [v1.2 | 2026-10-26] | |
 | Metrics | From logs: requests, 5xx rate, p95 duration, orders created, 409 and 429 counts | |
 
 Alerts (every alert has an owner and an action):
@@ -121,7 +127,7 @@ Alerts (every alert has an owner and an action):
 | Nightly backup failed | Workflow failure | Operator | Re-run; fix credentials; do not skip two nights |
 | Database nearing free limit | Storage above 80% of 1 GB, or CU-hours above 80 in the month | Operator | Plan upgrade (owner approval) |
 
-Cold starts on the free trial [v1.1 | 2026-10-25]: the Render service sleeps after 15 idle minutes and takes about 1 minute to wake; the Neon database suspends after 5 idle minutes and resumes in about 0.5 s to a few seconds (docs). The apps cope: the catalogue request at launch wakes the server; the 10-second order timeout leads to `ERR_TIMEOUT` and a same-key retry that creates one order. `/healthz` is shallow for monitors (no database query) so an uptime pinger never keeps the database awake or burns CU-hours; the database check is a separate `GET /healthz?deep=1` used by the operator and by deploy verification only. An optional keep-warm ping of `/healthz` in business hours (07:00 to 22:00, about 450 hours per month) fits the 750 Render hours; whether Render's terms allow pings is unverified, so it is off by default.
+Cold starts on the free trial [v1.1 | 2026-10-25]: the Render service sleeps after 15 idle minutes and takes about 1 minute to wake; the Neon database suspends after 5 idle minutes and resumes in about 0.5 s to a few seconds (docs). The apps cope: the catalogue request at launch wakes the server; the 10-second order timeout leads to `ERR_TIMEOUT` and a same-key retry that creates one order. `/healthz` is shallow for monitors (no database query) so an uptime pinger never keeps the database awake or burns CU-hours; the database check is a separate `GET /healthz?deep=1` used by the operator and by deploy verification only: the staging smoke step in `backend.yml` calls it once per deploy, which resumes Neon for a few CU-seconds, an accepted cost; no monitor, alert or host check may use it [v1.2 | 2026-10-26]. The Render health-check path is set to `/healthz` (shallow; the setting is a platform console step, not verified here). An optional keep-warm ping of `/healthz` in business hours (07:00 to 22:00, about 450 hours per month) fits the 750 Render hours; whether Render's terms allow pings is unverified, so it is off by default.
 
 ## 8. Rollback
 
@@ -176,3 +182,4 @@ Paid always-on path (when real customers order):
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version. |
 | 1.1 | 2026-10-25 | Swift/Vapor image build in CI, GHCR and deploy hook, free trial hosting (Render, Neon), shallow and deep health checks, GitHub backup repository, costs restructured. |
+| 1.2 | 2026-10-26 | After slice 0: CI files and runners, which health endpoint each consumer uses, `DATABASE_URL` optional locally, variables read only from later slices, sample-row warning moved to slice 4. |
