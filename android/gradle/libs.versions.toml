@@ -16,6 +16,11 @@
 # navigation 2.10.2   https://dl.google.com/dl/android/maven2/androidx/navigation/navigation-compose/maven-metadata.xml
 # The three AndroidX Compose artifacts above declare minCompileSdk=37 in the AAR metadata of their -android
 # variants (checked by reading META-INF/com/android/build/gradle/aar-metadata.properties), which matches compileSdk 37.
+# UI tests (read from the Google Maven metadata files on 2026-10-26, latest non-alpha, non-beta):
+# androidx.test runner and rules 1.7.0  https://dl.google.com/dl/android/maven2/androidx/test/runner/maven-metadata.xml
+# espresso-core 3.7.0                   same Maven metadata; Compose UI test pulls 3.5.0, which crashes on Android 16 (API 36) with
+#                                       NoSuchMethodException InputManager.getInstance (seen on the Medium_Phone_API_36.1 emulator)
+# compose ui-test-junit4 and ui-test-manifest have no version of their own: the BOM picks 1.12.1, the same as ui.
 [versions]
 agp = "9.4.0"
 kotlin = "2.4.21"
@@ -27,6 +32,8 @@ okhttp = "5.5.1"
 coroutines = "1.11.0"
 lifecycle = "2.11.0"
 navigation = "2.10.2"
+androidxTest = "1.7.0"
+espresso = "3.7.0"
 
 [libraries]
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
@@ -41,6 +48,11 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 junit = { module = "junit:junit", version.ref = "junit" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTest" }
+androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidxTest" }
+androidx-test-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
+compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

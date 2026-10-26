@@ -34,6 +34,7 @@ import app.banh.customer.design.BottomActionBar
 import app.banh.customer.design.ContactButton
 import app.banh.customer.design.ErrorState
 import app.banh.customer.design.GlassCard
+import app.banh.customer.design.InfoMessage
 import app.banh.customer.design.LogoMark
 import app.banh.customer.design.PrimaryButton
 import app.banh.customer.design.SecondaryButton
@@ -41,6 +42,7 @@ import app.banh.customer.design.Sizes
 import app.banh.customer.design.SkeletonBlock
 import app.banh.customer.design.Spacing
 import app.banh.customer.design.loadingSemantics
+import app.banh.customer.ui.common.RefreshWhenResumed
 import app.banh.customer.ui.contact.ContactActions
 import app.banh.customer.ui.contact.rememberContactActions
 
@@ -52,6 +54,7 @@ private val GreetingSkeletonHeight = 20.dp
 @Composable
 fun HomeRoute(viewModel: HomeViewModel, onViewProducts: () -> Unit, onPlaceOrder: () -> Unit) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    RefreshWhenResumed(onRefresh = viewModel::retry)
     val snackbarHostState = remember { SnackbarHostState() }
     HomeScreen(
         state = state,
@@ -66,15 +69,18 @@ fun HomeRoute(viewModel: HomeViewModel, onViewProducts: () -> Unit, onPlaceOrder
 /** S-2. Every button is disabled until the shop data is shown (UI document 5.2). */
 @Composable
 fun HomeScreen(
-    state: Load<Shop>,
+    state: Load<HomeContent>,
     snackbarHostState: SnackbarHostState,
     contactActions: ContactActions,
     onRetry: () -> Unit,
     onViewProducts: () -> Unit,
     onPlaceOrder: () -> Unit,
 ) {
-    val shop = (state as? Load.Ready)?.value
+    val content = (state as? Load.Ready)?.value
+    val shop = content?.shop
     val enabled = shop != null
+    // Place order alone waits for a cake; the other buttons keep working with an empty shelf (UI document 5.2).
+    val canPlaceOrder = content?.hasActiveCakes == true
     BanhScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
@@ -82,7 +88,7 @@ fun HomeScreen(
                 PrimaryButton(
                     stringResource(R.string.home_btn_order),
                     onClick = onPlaceOrder,
-                    enabled = enabled,
+                    enabled = canPlaceOrder,
                     modifier = Modifier.testTag(TestTags.HOME_ORDER),
                 )
                 SecondaryButton(
@@ -102,7 +108,7 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(Spacing.lg),
         ) {
             when (state) {
-                is Load.Ready -> ShopHeader(state.value)
+                is Load.Ready -> ShopHeader(state.value.shop)
                 Load.Loading -> ShopHeaderSkeleton()
                 is Load.Failed -> ErrorState(stringResource(R.string.home_err), onRetry)
             }
@@ -111,6 +117,9 @@ fun HomeScreen(
                 onZalo = { shop?.let(contactActions::openZalo) },
                 onPhone = { shop?.let(contactActions::openPhone) },
             )
+            if (content != null && !content.hasActiveCakes) {
+                InfoMessage(stringResource(R.string.home_no_cakes), Modifier.testTag(TestTags.HOME_NO_CAKES_NOTICE))
+            }
         }
     }
 }

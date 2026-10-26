@@ -22,12 +22,16 @@
     <string name="home_err">Không tải được thông tin cửa hàng. Vui lòng kiểm tra kết nối mạng và thử lại.</string>
     <string name="err_open_zalo">Không mở được Zalo. Bạn có thể gọi điện cho cửa hàng.</string>
     <string name="err_open_phone">Không mở được ứng dụng gọi điện.</string>
+    <string name="home_no_cakes">Hiện cửa hàng chưa có bánh để đặt. Bạn có thể liên hệ cửa hàng qua Zalo hoặc gọi điện.</string>
 
     <!-- S-3 Products and S-4 Detail -->
     <string name="products_title">Sản phẩm</string>
     <string name="products_err">Không tải được thông tin bánh. Vui lòng thử lại.</string>
+    <string name="products_empty">Hiện cửa hàng chưa có bánh để đặt. Vui lòng quay lại sau hoặc liên hệ cửa hàng qua Zalo hoặc điện thoại.</string>
     <string name="product_img_failed">Không tải được ảnh</string>
     <string name="detail_btn_order">Đặt bánh này</string>
+    <string name="detail_gone">Bánh này hiện không còn được bán.</string>
+    <string name="detail_gone_action">Xem các bánh khác</string>
 
     <!-- S-5 stub (order flow) -->
     <string name="flow_title">Đặt bánh</string>

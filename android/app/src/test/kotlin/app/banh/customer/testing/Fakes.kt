@@ -91,7 +91,11 @@ class FakeCatalogRepository(initial: Load<Catalog> = Load.Loading) : CatalogRepo
         state.value = value
     }
 
+    /** Runs inside [refresh], to script the answer that a refresh brings. */
+    var onRefresh: () -> Unit = {}
+
     override suspend fun refresh() {
         refreshCount++
+        onRefresh()
     }
 }

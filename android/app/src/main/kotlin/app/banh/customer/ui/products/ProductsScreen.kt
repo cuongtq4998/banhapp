@@ -28,6 +28,7 @@ import app.banh.customer.TestTags
 import app.banh.customer.data.Load
 import app.banh.customer.data.catalog.Product
 import app.banh.customer.design.BanhScreen
+import app.banh.customer.design.EmptyState
 import app.banh.customer.design.ErrorState
 import app.banh.customer.design.GlassCard
 import app.banh.customer.design.LargeTitleTopBar
@@ -38,6 +39,7 @@ import app.banh.customer.design.Spacing
 import app.banh.customer.design.bodyStrong
 import app.banh.customer.design.loadingSemantics
 import app.banh.customer.ui.common.ProductImage
+import app.banh.customer.ui.common.RefreshWhenResumed
 import app.banh.customer.ui.common.catalogLoadFailureText
 import app.banh.customer.ui.common.formatMoney
 
@@ -49,6 +51,7 @@ private const val PRODUCT_SKELETON_COUNT = 4
 @Composable
 fun ProductsRoute(viewModel: ProductsViewModel, onBack: () -> Unit, onOpenProduct: (productId: String) -> Unit) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    RefreshWhenResumed(onRefresh = viewModel::retry)
     ProductsScreen(state, onBack = onBack, onRetry = viewModel::retry, onOpenProduct = onOpenProduct)
 }
 
@@ -77,8 +80,12 @@ fun ProductsScreen(
             verticalArrangement = Arrangement.spacedBy(Spacing.lg),
         ) {
             when (state) {
-                is Load.Ready -> items(state.value, key = { it.id }) { product ->
-                    ProductCard(product, onClick = { onOpenProduct(product.id) })
+                is Load.Ready -> if (state.value.isEmpty()) {
+                    item { EmptyState(stringResource(R.string.products_empty), onRetry) }
+                } else {
+                    items(state.value, key = { it.id }) { product ->
+                        ProductCard(product, onClick = { onOpenProduct(product.id) })
+                    }
                 }
                 Load.Loading -> items(PRODUCT_SKELETON_COUNT) { index -> ProductCardSkeleton(index) }
                 is Load.Failed -> item {
