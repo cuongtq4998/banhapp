@@ -31,8 +31,16 @@ struct APIError: Error, Sendable {
     /// better answer.
     static let defaultRetryAfterSeconds = 60
 
+    /// Longest wait a response may ask for. A hint from a framework or a
+    /// proxy is outside our control; a negative or enormous value would reach
+    /// the `Retry-After` header and the client's timer unchecked.
+    static let maxRetryAfterSeconds = 3_600
+
+    /// A hint inside `0...maxRetryAfterSeconds` is kept, a larger one is
+    /// capped, and a negative one is meaningless so the default replaces it.
     static func rateLimited(retryAfterSeconds: Int) -> APIError {
-        APIError(.rateLimited, details: [retryAfterDetailKey: .int(retryAfterSeconds)])
+        let seconds = retryAfterSeconds < 0 ? defaultRetryAfterSeconds : min(retryAfterSeconds, maxRetryAfterSeconds)
+        return APIError(.rateLimited, details: [retryAfterDetailKey: .int(seconds)])
     }
 
     /// Seconds for the `Retry-After` header; nil unless the code is `RATE_LIMITED`.

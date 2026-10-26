@@ -80,7 +80,7 @@ enum SQLScriptSplitter {
                 skipQuoted(by: "'", backslashEscapes: startsEscapeString(at: start))
             } else if c == "\"" {
                 skipQuoted(by: "\"", backslashEscapes: false)
-            } else if c == "$", let tag = dollarTag(at: index) {
+            } else if c == "$", !followsIdentifierCharacter(at: index), let tag = dollarTag(at: index) {
                 skipDollarBlock(tag: tag)
             } else {
                 advance()
@@ -125,8 +125,19 @@ enum SQLScriptSplitter {
         private func startsEscapeString(at quoteIndex: Int) -> Bool {
             guard quoteIndex > 0, chars[quoteIndex - 1] == "E" || chars[quoteIndex - 1] == "e" else { return false }
             guard quoteIndex > 1 else { return true }
-            let before = chars[quoteIndex - 2]
-            return !(before == "_" || before == "$" || before.properties.isAlphabetic || ("0"..."9").contains(before))
+            return !Self.isIdentifierCharacter(chars[quoteIndex - 2])
+        }
+
+        /// PostgreSQL allows `$` inside an identifier (`a$b$c`), so a `$`
+        /// right after an identifier character is part of that name and cannot
+        /// open a dollar quote; otherwise the rest of the file would be
+        /// swallowed.
+        private func followsIdentifierCharacter(at dollarIndex: Int) -> Bool {
+            dollarIndex > 0 && Self.isIdentifierCharacter(chars[dollarIndex - 1])
+        }
+
+        private static func isIdentifierCharacter(_ scalar: Unicode.Scalar) -> Bool {
+            scalar == "_" || scalar == "$" || scalar.properties.isAlphabetic || ("0"..."9").contains(scalar)
         }
 
         private mutating func skipDollarBlock(tag: [Unicode.Scalar]) {
