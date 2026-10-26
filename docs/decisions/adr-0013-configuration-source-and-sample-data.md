@@ -28,7 +28,7 @@ Products, prices, districts, fees, slots, daily limit, lead days, minimum quanti
 
 ## Decision
 
-Option A. Tables `shop`, `shop_setting`, `product`, `district`, `delivery_slot` (data-model.md). Every row of these tables has `is_sample boolean`; the seed file `backend/db/seed/sample.sql` inserts fake values with `is_sample = true` (the apps never read or show this flag; the API does not expose it). The shop's real values are applied by a reviewed seed or SQL change that sets `is_sample = false`; a startup check logs a warning (not an error) when `APP_ENV=production` and any row still has `is_sample = true`. The later owner slice replaces the seed script by authenticated write endpoints on the same tables. All order rules read these tables at request time; there are no rule constants in code except the input-safety bounds in ADR-0009.
+Option A. Tables `shop`, `shop_setting`, `product`, `district`, `delivery_slot` (data-model.md). Every row of these tables has `is_sample boolean`; the seed file `backend/db/seed/sample.sql` inserts fake values with `is_sample = true` (the apps never read or show this flag; the API does not expose it). The shop's real values are applied by a reviewed seed or SQL change that sets `is_sample = false`; a startup check logs a warning (not an error) when `APP_ENV=production` and any row still has `is_sample = true`. The later owner slice replaces the seed script by authenticated write endpoints on the same tables. All order rules read these tables at request time; there are no rule constants in code except the input-safety bounds in ADR-0009 (including the note length 200 returned as `settings.note_max_length`, ADR-0017). Seed text that can reach a screen carries no sample marker [v1.1 | 2026-10-26].
 
 ## Consequences
 
