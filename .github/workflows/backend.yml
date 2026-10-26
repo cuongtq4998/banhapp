@@ -125,6 +125,10 @@ jobs:
     needs: image
     runs-on: ubuntu-latest
     environment: staging
+    # Never cancel a deploy midway: migrations may have run and the deploy trigger not yet.
+    concurrency:
+      group: backend-deploy-staging
+      cancel-in-progress: false
     env:
       DATABASE_MIGRATION_URL: ${{ secrets.STAGING_DATABASE_MIGRATION_URL }}
       RENDER_DEPLOY_HOOK_URL: ${{ secrets.STAGING_RENDER_DEPLOY_HOOK_URL }}
@@ -145,7 +149,7 @@ jobs:
         run: docker run --rm -e APP_ENV=staging -e DATABASE_MIGRATION_URL "$IMAGE" migrate --yes
       - name: Trigger staging deploy
         if: steps.gate.outputs.configured == 'true'
-        run: curl --fail --silent --show-error -X POST "${RENDER_DEPLOY_HOOK_URL}&imgRef=${IMAGE}"
+        run: curl --fail --silent --show-error -X POST -G --data-urlencode "imgRef=${IMAGE}" "$RENDER_DEPLOY_HOOK_URL"
       - name: Smoke check
         if: steps.gate.outputs.configured == 'true' && env.STAGING_BASE_URL != ''
         run: |
@@ -153,4 +157,9 @@ jobs:
             curl --fail --silent "$STAGING_BASE_URL/healthz" && break
             sleep 10
           done
-          curl --fail --silent "$STAGING_BASE_URL/healthz?deep=1"
+          # A suspended free-tier database can need longer than one probe deadline to resume.
+          for i in $(seq 1 12); do
+            curl --fail --silent "$STAGING_BASE_URL/healthz?deep=1" && exit 0
+            sleep 10
+          done
+          exit 1
