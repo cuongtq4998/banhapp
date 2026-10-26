@@ -78,6 +78,8 @@ jobs:
         env:
           APP_ENV: local
           PORT: "8081"
+          # The sample seed shop id from backend/db/seed/sample.sql.
+          SHOP_ID: "00000000-0000-4000-8000-000000000001"
         run: |
           swift build -c release
           apt-get install -y -qq curl > /dev/null
