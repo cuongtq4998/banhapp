@@ -1,0 +1,16 @@
+{
+  "sourceLanguage" : "vi",
+  "strings" : {
+    "shell.placeholder" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Banh App"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
