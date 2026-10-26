@@ -67,6 +67,10 @@ Implementation starts only when the "Ready gate" conditions hold: PRD `Approved`
 
 A question that bounces between agents more than twice goes to the owner.
 
+### Maximum parallelism and self-resolving questions [owner rule, 2026-10-26]
+
+All stages that have their inputs may run at the same time (for example `probe-qa` on a fixed commit while `forge-dev` fixes an earlier defect, and `atlas-architect` resyncing documents). Subagents have no tool to message each other, so the orchestrator is the router: it collects every question from the reports, sends it at once to the owning agent, merges the answer and resyncs consumers, without waiting for the owner. The owner is asked only for the escalation cases below (money, security or customer data, hard-to-reverse choices, business behaviour), in one batch. Bounce limit: a question that bounces more than twice is decided by the orchestrator on the evidence and recorded as a decision, and goes to the owner only if it falls under an escalation case.
+
 ## Orchestration
 
 The main Claude Code session orchestrates (skill `.claude/skills/feature`). Subagents start with an empty context and cannot ask the owner questions, so:
