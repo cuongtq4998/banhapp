@@ -20,7 +20,7 @@ Every command below was run on the author's machine unless the line says "unveri
 | Docker | current | local PostgreSQL, image build | no (not installed) |
 | PostgreSQL client (`psql`) | 16 | seed and migrations | no |
 | JDK | 17 | Android | no |
-| Android SDK | platform 36, build-tools 36.0.0, cmdline-tools | Android | no |
+| Android SDK | platform 37, build-tools 36.0.0, cmdline-tools | Android | no |
 | Gradle | 9.6.0 (only to create the wrapper once) | Android | no |
 
 ## 2. Repository Layout
