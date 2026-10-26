@@ -2,16 +2,18 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.0 |
-| Last updated | 2026-10-25 |
+| Version      | 1.1 |
+| Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | probe-qa |
 | Based on     | product/place-order.md v1.2 (Approved); design/place-order-ui.md v1.0; system/api.md v1.0, order-lifecycle.md v1.0, auth.md v1.0, data-model.md v1.0, architecture.md v1.0; ADR-0005, 0008 to 0011, 0013 to 0015 |
-| Related      | process/standards/11-test.md; engineering/dev-guide.md (not yet written) |
+| Related      | process/standards/11-test.md; engineering/dev-guide.md (not yet written); backend/Tests/qa/ (executable tests) |
 
 ## 1. Scope & Environment
 
-Mode: EARLY (plan only). The code does not exist. Every result is `Not run`. This version is a test plan plus a review of the document set. No build, test or git command was run.
+[v1.1 | 2026-10-26] Round 1 (execute mode, slice 0 only) ran on commit f940495 (feature/place-order). Slice 0 = `/healthz`, migration `0001_init.sql`, sample seed, config validation, repository layout, CI workflows, empty iOS and Android shells (architecture.md section 11). Host: macOS arm64, Swift 6.2.4, no PostgreSQL, no Docker, no psql, so database-level tests are written and compile but are **unrun here** (they skip unless `DATABASE_MIGRATION_URL` points at a throwaway PostgreSQL 14+). A backend fix round by forge-dev is in flight; results below apply to f940495 only. The remainder of this section is the v1.0 early-mode text.
+
+Mode: EARLY (plan only) in v1.0; v1.1 adds execute mode for slice 0 (see above). The code does not exist. Every result is `Not run`. This version is a test plan plus a review of the document set. No build, test or git command was run.
 
 In scope: the Customer app on iOS and Android (S-1 to S-9) and the backend (Swift Vapor, PostgreSQL; owner decision, final) from launch to the confirmation screen. Out of scope: staff and owner features, payment, tracking, cancellation endpoints (BR-9 is tested at database level only, see TC-59).
 
@@ -146,7 +148,7 @@ All 29 ACs have at least one case. AC-23 and AC-28 can only be proven at databas
 | TC-56 | acceptance | AC-21 | Each error condition reachable | Trigger every code in api.md section 5 | Each error body follows the envelope: `error.code`, `message_key` present, `request_id`, `fields` only for `VALIDATION_FAILED`. Body never contains server-written display text, stack trace, SQL or personal data. Every `message_key` exists in UI section 8 (keys without a UI entry are listed as defects/questions: see Q-C1) | Not run |
 | TC-57 | negative (extra) | robustness | Reason: unspecified cases | POST with malformed JSON; `Content-Type: text/plain`; empty body; `PUT /v1/orders`; `GET /v1/orders`; `GET /v1/unknown`; `DELETE /v1/catalog` | A defined 4xx for each (400/404/405/415), error envelope or documented, no 500, no stack trace (see Q-A11) | Not run |
 | TC-58 | negative (extra) | auth 6 | Reason: enumeration and data exposure | Try `GET /v1/orders/BT-XXXXXX`, `/v1/staff/orders`, `/v1/orders?phone=...` | 404 (customer orders) and 401 (staff prefix); no customer data returned from any route | Not run |
-| TC-59 | acceptance | AC-28, BR-9 | Database level only (no cancellation endpoint). 11-10 filled to 10 by an order O of 2 cakes | `UPDATE customer_order SET status='Cancelled'` for O using the migration role. Read `day_load` and availability | `day_load` 11-10 = 8; an `order_event` row exists; availability for cakes=2 shows 11-10 available again. Cancelling a second time is rejected by the guard (final state) and does not reduce twice | Not run |
+| TC-59 | acceptance | AC-28, BR-9 | Database level only (no cancellation endpoint). 11-10 filled to 10 by an order O of 2 cakes | `UPDATE customer_order SET status='Cancelled'` for O using the migration role. Read `day_load` and availability | `day_load` 11-10 = 8; an `order_event` row exists; availability for cakes=2 shows 11-10 available again. Cancelling a second time is a no-op: the guard lets a same-status update through, `day_load` is not reduced twice and no second event is written [v1.1 | 2026-10-26] | Not run |
 | TC-60 | negative (extra) | order-lifecycle 6 | Reason: state guard | Direct SQL: New to Completed; Completed to New; Cancelled to Confirmed; New to Confirmed to Completed; change `total_cakes` of an order | Invalid pairs rejected by `customer_order_status_guard`; valid ones accepted with events; changes to snapshot columns rejected | Not run |
 | TC-61 | regression (extra) | ADR-0008 | After TC-18, TC-19, TC-20, TC-59 | Run the reconciliation query (`day_load.cakes_accepted` versus the sum of `total_cakes` of non-cancelled orders per date) | Equal for every date; CHECK `cakes_accepted <= capacity_limit` holds | Not run |
 | TC-62 | edge (extra) | A-1, A-8 | Server in UTC. Clock set to 2026-11-02T17:30:00Z (= 2026-11-03 00:30 shop time) | `GET /v1/catalog`, `GET /v1/availability`, POST an order for 2026-11-05 and for 2026-11-04 | `server_date` is 2026-11-03. First available date is 2026-11-05. Order for 11-04: 422 `DATE_LEAD`. `created_at` is UTC with `Z` | Not run |
@@ -247,6 +249,47 @@ Android-only extra cases:
 | TC-266 | extra | UI 5.9, FR-16 | Reason: system back behaviour (UI section 6) | On S-9 press system back and use predictive back gesture; on S-8 press back during sending; on S-5 (entered from S-2) press back | S-9 back goes to S-2, never S-8. Back during sending is ignored or safe (no second send, no lost result; behaviour per Q-U8). Back from step 1 returns to the previous screen and the draft behaviour matches Q-U1 | Not run |
 | TC-267 | extra | UI, NFR | Reason: activity recreation, "Don't keep activities", rotation, split-screen, process death with low memory | Rotate the phone on each screen (orientation is not specified, Q-U9); enable "Don't keep activities"; use `adb shell am kill` on each step; change language and font size while on S-7 | No data lost, no duplicate order, no crash; the draft restore follows ADR-0011; layout survives rotation if allowed | Not run |
 
+### 4.4 Slice 0 executable tests [v1.1 | 2026-10-26]
+
+Executable QA package: `backend/Tests/qa/` (own `Package.swift`; compiles `backend/Sources/App` through a symlink without `entrypoint.swift`; run `cd backend/Tests/qa && swift test`; for database tests add `DATABASE_MIGRATION_URL=postgres://...` of a throwaway database). Developers' own tests (`backend/Tests/AppTests`, 26 tests) are not mine; they were run once: 26 pass on f940495.
+
+Plan cases that belong to slice 0 and how they are covered (all other plan cases wait for slices 1 to 3):
+
+| Plan case | Slice-0 part | QA test (class.method) | Result on f940495 |
+| --------- | ------------ | ---------------------- | ----------------- |
+| TC-55 | `/healthz` 200 `{"status":"ok"}`, no-store | HealthEdgeTests.testShallowBodyIsExactlyStatusOk, testFixturesMatchWireFormat | Pass |
+| TC-54 (health part) | deep check 503 degraded when database fails; real stopped database | HealthEdgeTests.testDegradedBodyAndHeaders, testRecoveryAfterFailureNoStickyState (stub); real database stop | Pass (stub); real DB Blocked |
+| TC-59 | cancel releases capacity, event written, second cancel changes nothing | DatabaseTests.testCancelReleasesCapacityOnceAndWritesEvent | Not run (no PostgreSQL) |
+| TC-60 | transition matrix (4 valid, 8 invalid), snapshot columns immutable | DatabaseTests.testStatusTransitionMatrix, testSnapshotColumnsAreImmutable, testPersonalColumnsChangeOnlyThroughPurge | Not run (no PostgreSQL) |
+| TC-61 | reconciliation after cancel | DatabaseTests.testReconciliationHoldsAfterCancels | Not run (no PostgreSQL) |
+| TC-66 | all seed rows `is_sample = true`; no visible marker text | DatabaseTests.testSeedRowsAreAllMarkedSample; RepositoryLayoutTests.testSeedHasNoSampleMarkerInVisibleText | static: Pass; DB: Not run |
+| TC-69 | seed `phone_contact` E.164 (CHECK accepts the seed insert) | DatabaseTests.testSeedIsIdempotentAndEverythingIsSample (inserts under the CHECKs) | Not run (no PostgreSQL) |
+| TC-70 | CHECK, UNIQUE, FK guards at database level | DatabaseTests.testCheckConstraintsRejectBadRows (26 bad rows), testIdempotencyKeyAndOrderCodeAreUnique, testItemChecksAndRestrictiveForeignKeys, testOrderEventIsAppendOnly | Not run (no PostgreSQL) |
+
+Slice-0 extra cases (`extra`, reasons in the Notes column), numbered TC-71 and up:
+
+| TC | Type | Test | Notes (reason) | Result |
+| -- | ---- | ---- | -------------- | ------ |
+| TC-71 | extra | HealthEdgeTests.testDeadlineIsAboutTwoSeconds, testFastSuccessDoesNotWaitForDeadline | Deep timeout is 2 s (api.md 4.4), not early, not late | Pass |
+| TC-72 | extra | HealthEdgeTests.testManyParallelDeepChecksWithSlowDatabase | 25 parallel deep checks with a hung database: all 503 in under 5 s, none queue | Pass |
+| TC-73 | extra | HealthEdgeTests.testDeepQueryVariants, testOnlyGetIsServed, testHeadRequestDoesNotFailLikeAServerError, testTrailingSlashAndCase | Odd queries stay shallow; POST/PUT/DELETE/PATCH not 200 and not 5xx; HEAD (used by many uptime monitors) 200; `/healthz/` 200 | Pass |
+| TC-74 | extra | HealthEdgeTests.testErrorDetailsNeverLeakIntoResponse | Probe error text with credentials never reaches the body | Pass |
+| TC-75 | extra | ConfigEdgeTests (8 non-defect tests) | Port boundaries, whitespace, case sensitivity, pool max, values never echoed in errors | Pass |
+| TC-76 | extra | ConfigEdgeTests.testDefectMigrateNeedsOnlyTheMigrationRole | `migrate` with only APP_ENV and DATABASE_MIGRATION_URL (what the staging deploy job passes) | **Fail** (D-2) |
+| TC-77 | extra | ConfigEdgeTests.testDefectTrailingNewlineIsTrimmed | Secret pasted with trailing newline | **Fail** (D-5) |
+| TC-78 | extra | SplitterEdgeTests (12 non-defect tests) | Empty input, CRLF, comment and dollar markers inside strings, `$1`, unterminated input, Vietnamese text, 20 000 statements under 5 s | Pass |
+| TC-79 | extra | SplitterEdgeTests.testDefectEscapeStringWithBackslashQuote, testDefectQuotedIdentifierWithSemicolon, testDefectNestedBlockComment | Valid PostgreSQL the scanner cuts wrongly | **Fail** x3 (D-4) |
+| TC-80 | extra | DatabaseTests.testMigrationRerunIsNoOpAndSchemaIsComplete, testRevertIsRefused, testFailingMigrationLeavesNothingBehind | Re-run is a no-op (ledger), 9 tables and 4 triggers, revert refused, a failing file leaves no table | Not run (no PostgreSQL) |
+| TC-81 | extra | DatabaseTests.testSeedIsIdempotentAndEverythingIsSample | Seed twice (and a third time) gives identical row counts | Not run (no PostgreSQL) |
+| TC-82 | extra | DatabaseTests.testActorSettingsAreRecordedInTheEvent, testBogusActorTypeFailsTheUpdateAtomically, testCompletionAndConfirmationDoNotTouchCapacity, testCancelWithMissingDayLoadRowDoesNotFail, testCancelThatWouldMakeCounterNegativeIsBlockedAndAtomic, testPaymentStatusStaysMutable, testBlankPersonalDataWithoutPurgeMarkerIsRejected | Trigger edge behaviour: actor settings, atomic failure, no day_load row, counter would go negative | Not run (no PostgreSQL) |
+| TC-83 | extra | RepositoryLayoutTests.testMonorepoComponentsExist, testMigrationNumberingHasNoGapsOrDuplicates, testMigrationsAreForwardOnlyAndFreeOfDestructiveStatements, testSeedNeverDeletesOrUpdates | Layout (ADR-0004) and migration hygiene | Pass |
+| TC-84 | extra | RepositoryLayoutTests.testDockerfileCopiesEveryTargetPathOfPackageSwift | Image build context holds every path Package.swift declares (verified separately: `swift package describe` in a copy without `Tests/` fails with "invalid custom path 'Tests/AppTests'") | **Fail** (D-1) |
+| TC-85 | extra | RepositoryLayoutTests.testEnvExampleCoversEveryVariableWorkflowsAndComposeUse, testWorkflowsDeclareLeastPrivilegeAndNoPullRequestTarget, testSecretsAreOnlyReferencedByMainOnlyJobs, testNoCredentialLookingValuesCommitted | `.env.example` names only; workflows read-only permissions, no `pull_request_target`; secrets only in the push-only deploy job; no credential patterns outside throwaway placeholders | Pass |
+| TC-86 | extra | (manual review, no test) | Workflow gaps found by reading: D-3, D-6, D-7, D-8 | see Defects |
+| TC-87 | extra | iOS and Android shells | Configuration read only: iOS deployment target 17.0, bundle id `app.banh.customer`, iPhone only; Android minSdk 26, applicationId `app.banh.customer` (ADR-0005, ADR-0016 agree). Shell builds not run here (iOS workflow needs Xcode 27 runner; Android needs SDK 37) | Blocked (build), config Pass |
+
+Not covered in slice 0 and why: real concurrent double-cancel (needs committed data and two connections; plan TC-19/TC-20 style, add when PostgreSQL is available), Docker image run (no Docker), deploy job (needs secrets), real database stop for TC-54.
+
 ## 5. Additional Cases
 
 Cases marked `extra` above were added by the tester beyond the 29 ACs. Reasons are in the Preconditions column of each case (boundary at exactly N=2, 1 lead days, 30 days ahead, quantity 2 and 1, daily-limit exact fit and one-over; two orders racing for the last cakes; duplicate submit with one key; rate limit and per-phone limit; every API error code; price change; offline, cache and draft; six UI states per screen; accessibility; Vietnamese text; time zone and clock; logs and enumeration; database guards). Android-only extras are TC-266 and TC-267.
@@ -256,16 +299,34 @@ Cases marked `extra` above were added by the tester beyond the 29 ACs. Reasons a
 | Round | Date | Build | Pass | Fail | Blocked | Not run |
 | ----- | ---- | ----- | ---- | ---- | ------- | ------- |
 | 0 (plan, early mode) | 2026-10-25 | none (no code) | 0 | 0 | 0 | all |
+| 1 (slice 0, execute) [v1.1 | 2026-10-26] | 2026-10-26 | f940495, host tests only | 41 QA + 26 developer = 67 | 6 (QA, all mapped to D-1, D-2, D-4, D-5) | 0 run-blocked; 21 database tests skipped (no PostgreSQL), iOS and Android shell builds not run | slice 1 to 3 cases (unchanged) |
+
+Round 1 detail: QA package 68 tests = SplitterEdge 15 (3 fail), ConfigEdge 10 (2 fail), HealthEdge 12 (0), RepositoryLayout 10 (1 fail), Database 21 (skipped). 47 executed, 41 pass, 6 fail. CI on GitHub (reported by the orchestrator, not observed by me): backend `test` job passed including migrations and seed twice on postgres:16; image, iOS and Android jobs failed.
 
 Counts per level in this version: see section 9 (Change log).
 
 ## 7. Defects
 
-None. No code was run. Document-level findings are Open Questions in section 9 (not defects).
+[v1.1 | 2026-10-26] Observed on f940495. Document-level findings from the early pass remain Open Questions in section 9.
+
+| ID | Severity | Route | Status | Description |
+| -- | -------- | ----- | ------ | ----------- |
+| D-1 | High | dev | Open (fix in flight) | Image build fails. `backend/Dockerfile` copies `Package.swift`, `Sources` and `db` but not `Tests/AppTests`, which `Package.swift` declares as test target path. Steps: copy Package.swift, Package.resolved, Sources and contracts to an empty folder; `swift package describe`. Expected: resolves. Actual: `error: invalid custom path 'Tests/AppTests' for target 'AppTests'`. Test: RepositoryLayoutTests.testDockerfileCopiesEveryTargetPathOfPackageSwift. Blocks the slice done criterion "the image runs on the host". |
+| D-2 | High | dev | Open | `App migrate` cannot run with the variables the staging deploy job gives it. `AppConfig(variables:)` always requires `PORT`, and `DATABASE_URL` when `APP_ENV` is not `local`, but `deploy-staging` runs `docker run -e APP_ENV=staging -e DATABASE_MIGRATION_URL ... migrate --yes`. Expected: migration needs only the migration URL (the role separation in deployment.md section 3). Actual: exits with "Missing required environment variable PORT", and then `DATABASE_URL`. CI `test` passes only because it sets `APP_ENV=local` and `PORT`. First staging deploy with secrets set will fail before the deploy hook. Test: ConfigEdgeTests.testDefectMigrateNeedsOnlyTheMigrationRole. |
+| D-3 | Medium | dev | Open | `backend.yml` uses `concurrency: cancel-in-progress: true` per ref for the whole workflow, including the main-only deploy job. A second push to main cancels a running deploy between "run migrations" and "trigger deploy", leaving the schema ahead of the running code (and a cancelled image push). Expected: the deploy job in its own concurrency group with `cancel-in-progress: false`. Found by review. |
+| D-4 | Low | dev | Open | SQL splitter cuts valid PostgreSQL wrongly: escape strings `E'it\'s; x'`, double-quoted identifiers containing `;`, nested `/* /* */ */` comments. Current migration and seed use none of them, so no failure today; a later migration could silently be split into broken statements. Expected: handled, or a documented rule and a test that fails when a migration file uses them. Tests: SplitterEdgeTests.testDefect* (3). |
+| D-5 | Low | dev | Open | Config values are trimmed of spaces and tabs only; `PORT="8080\n"` (typical when a value is pasted into a secret store) fails with "Invalid value". Expected: newline trimmed too. Test: ConfigEdgeTests.testDefectTrailingNewlineIsTrimmed. |
+| D-6 | Low | dev | Open | Deploy smoke check: the deep check runs once with the 2 s database deadline right after a deploy; a suspended Neon database resumes in 0.5 s to a few seconds (deployment.md), so the job can fail on a healthy system. Expected: retry the deep check for a short period (like the shallow loop). Found by review. |
+| D-7 | Medium | dev (with atlas-architect) | Open, needs answer | `ios.yml` uses `runs-on: xcode-27`, not a GitHub-hosted label. If this is a self-hosted runner on a public repository, any pull request (including from forks) runs arbitrary code on the owner's machine. Expected: documented runner choice (deployment.md) and, for self-hosted, no fork pull requests (approval required, or `pull_request` limited to same-repo branches). Found by review; I cannot see the runner configuration. |
+| D-8 | Low | dev | Open | Deploy trigger builds the URL as `"${RENDER_DEPLOY_HOOK_URL}&imgRef=${IMAGE}"`; this assumes the hook URL already has a query string, and `IMAGE` contains `:` and `/` unencoded. Expected: documented format of the secret or a robust join. Found by review. |
+
+Not defects (recorded for information): the guard `customer_order_status_guard` allows an update that leaves the status unchanged, so a second `Cancelled` update is a no-op (no second event, no second capacity release) rather than "rejected" as TC-59 said; TC-59 is reworded accordingly (document change, v1.1). The seed uses `ON CONFLICT (id) DO NOTHING`, so an edited sample value is not updated on re-run (acceptable, by design). CI does not run the QA package; adding `swift test` in `backend/Tests/qa` with the database URL (route dev) would run the database tests that were unrun here.
 
 ## 8. Verdict
 
-Not yet given. No test has been run. A verdict of Pass requires all Must ACs (AC-1 to AC-16, AC-18 to AC-27, AC-29; AC-17 and AC-26 follow Should requirements FR-12 and FR-18; AC-28 is Must-relevant only at database level) to pass on API, iOS and Android, and no high-severity defect open. AC-3 and AC-17 (real Zalo and dialer) need devices and will stay `Blocked` until then.
+[v1.1 | 2026-10-26] Slice 0, round 1, commit f940495: **Fail**. Two high-severity defects are open (D-1 image build, D-2 migrate configuration) and the database-level tests (TC-59, TC-60, TC-61, TC-66, TC-70) are unrun because this host has no PostgreSQL, so no Pass is claimed for AC-28. The health endpoint, configuration validation, splitter and layout checks that could run pass apart from the defects listed. Whole-feature verdict (below) is still not given.
+
+Whole feature: Not yet given. No test has been run. A verdict of Pass requires all Must ACs (AC-1 to AC-16, AC-18 to AC-27, AC-29; AC-17 and AC-26 follow Should requirements FR-12 and FR-18; AC-28 is Must-relevant only at database level) to pass on API, iOS and Android, and no high-severity defect open. AC-3 and AC-17 (real Zalo and dialer) need devices and will stay `Blocked` until then.
 
 ## 9. Open Questions / Change log
 
@@ -348,4 +409,5 @@ Review of the whole document set (PRD v1.2, UI v1.0, system docs v1.0, ADRs). Cl
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.1 | 2026-10-26 | Round 1, slice 0 (execute mode) on f940495: section 4.4 (slice-0 mapping, TC-71 to TC-87), QA package `backend/Tests/qa/` (68 tests), results in section 6, defects D-1 to D-8 in section 7, slice-0 verdict Fail, TC-59 second-cancel wording corrected. |
 | 1.0 | 2026-10-25 | First version (Draft, early mode: no code). 70 API cases (TC-1 to TC-70), 65 iOS cases (TC-101 to TC-165), 67 Android cases (TC-201 to TC-267, of which TC-201 to TC-265 mirror iOS and TC-266, TC-267 are Android-only); all results Not run. Traceability matrix for AC-1 to AC-29. Environment needs E-1 to E-12. Open questions Q-S1 to Q-S14, Q-U1 to Q-U12, Q-A1 to Q-A16, Q-P1 to Q-P4. |
