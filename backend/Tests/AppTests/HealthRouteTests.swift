@@ -23,7 +23,7 @@ final class HealthRouteTests: XCTestCase {
 
     func testShallowReturnsOkWithoutTouchingDatabase() async throws {
         let called = NIOLockedValueBox(false)
-        app.databaseProbe = StubProbe { called.withLockedValue { $0 = true } }
+        app.services.databaseProbe = StubProbe { called.withLockedValue { $0 = true } }
 
         try await app.test(.GET, "healthz") { res async throws in
             XCTAssertEqual(res.status, .ok)
@@ -34,7 +34,7 @@ final class HealthRouteTests: XCTestCase {
     }
 
     func testDeepReturnsOkWhenDatabaseAnswers() async throws {
-        app.databaseProbe = StubProbe {}
+        app.services.databaseProbe = StubProbe {}
         try await app.test(.GET, "healthz?deep=1") { res async throws in
             XCTAssertEqual(res.status, .ok)
             XCTAssertEqual(try res.content.decode(HealthResponse.self).status, .ok)
@@ -42,7 +42,7 @@ final class HealthRouteTests: XCTestCase {
     }
 
     func testDeepReturns503WhenDatabaseFails() async throws {
-        app.databaseProbe = StubProbe { throw DatabaseProbeError() }
+        app.services.databaseProbe = StubProbe { throw DatabaseProbeError() }
         try await app.test(.GET, "healthz?deep=1") { res async throws in
             XCTAssertEqual(res.status, .serviceUnavailable)
             XCTAssertEqual(res.headers.first(name: .cacheControl), "no-store")
@@ -52,7 +52,7 @@ final class HealthRouteTests: XCTestCase {
 
     func testDeepReturns503WhenDatabaseIsSlow() async throws {
         let slowness = AppConfig.Default.healthDeepTimeoutSeconds + 3
-        app.databaseProbe = StubProbe { try await Task.sleep(for: .seconds(slowness)) }
+        app.services.databaseProbe = StubProbe { try await Task.sleep(for: .seconds(slowness)) }
         let started = ContinuousClock.now
         try await app.test(.GET, "healthz?deep=1") { res async throws in
             XCTAssertEqual(res.status, .serviceUnavailable)
@@ -67,7 +67,7 @@ final class HealthRouteTests: XCTestCase {
     }
 
     func testOtherDeepValuesStayShallow() async throws {
-        app.databaseProbe = StubProbe { throw DatabaseProbeError() }
+        app.services.databaseProbe = StubProbe { throw DatabaseProbeError() }
         try await app.test(.GET, "healthz?deep=0") { res async throws in
             XCTAssertEqual(res.status, .ok)
         }

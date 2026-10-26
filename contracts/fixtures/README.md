@@ -10,3 +10,6 @@ Fake data only. This repository is public.
 | ---- | -------- | ------- |
 | `healthz-ok.json` | `GET /healthz` | 200, process (and database when `?deep=1`) healthy |
 | `healthz-degraded.json` | `GET /healthz?deep=1` | 503, database query failed or timed out |
+| `error-date-capacity.json` | any | Error envelope without `fields` (api.md section 1) |
+| `error-validation-failed.json` | `POST /v1/orders` | Error envelope with `fields[]` |
+| `error-not-found.json` | any unknown path | Envelope for routing errors (code `NOT_FOUND`, proposed addition to api.md section 5) |
