@@ -28,9 +28,13 @@ Draft: (1) memory only (lost when the process ends); (2) persist on the device w
 
 **Catalog (B).** The app stores the last successful `GET /v1/catalog` response (shop information, products, districts, slots, ordering parameters) with its ETag and fetch time. S-2, S-3, S-4 show cached data at once and refresh in the background; a failed refresh keeps the cache silently. The Error states of those screens (`HOME_ERR`, `PRODUCTS_ERR`) appear only when no cache exists. Cache lifetime: shown for up to 7 days; an older cache counts as no cache. Product images use the platform HTTP cache.
 
+**Catalog refresh rule (UI TQ-9)** [v1.1 | 2026-10-26]. The apps send the catalog request at start-up, on every appearance of S-2, S-3 and S-4, and on return to the foreground, always with `If-None-Match` when a cache exists; a 304 keeps the cache and its fetch time moves forward. One shared catalog component serves all screens: at most one request in flight (a second caller waits for it), and at most one background revalidation per 30 seconds (a client constant). The throttle does not apply when no cache exists, on the retry button, and on entry to S-5 (prices). S-2 takes the number of active cakes from this cached catalog: zero products disables "Place order" (`HOME_NO_CAKES`). A failed refresh (offline, timeout, 5xx, 429) keeps the cache and shows nothing, including no error on S-2, as long as a cache younger than 7 days exists; only with no usable cache do the Error states appear. Budget (ADR-0017, 120 read requests per minute per address; 304 counts): a catalog revalidation is one request because images are cached for a year. Without the throttle, one customer moving between S-2 and S-3 every 3 seconds sends 20 per minute; with it, at most 2 background requests per minute plus a few human taps on S-5 and retry, say 6, so at most 8 per minute per customer. A cold start is 5 requests (catalog and four images). Ten customers on one shared address, all active in the same minute and three of them cold starting: 7 x 8 + 3 x (8 + 4) = 92 requests, under 120. Twenty customers all active at once would reach the limit, which is far above the expected load (a few orders a day); a 429 on a refresh is a failed refresh and is silent. If the 429 alert shows it, raise `RATE_LIMIT_READ_PER_MINUTE` (no API change).
+
 **The order flow always needs the network.** Dates (S-6) require a fresh `GET /v1/availability`; no cached availability is used. S-5 may use cached prices for display but refreshes the catalog on entry; the server price check (ADR-0010) is the final guard. If offline at S-6, the screen shows `DATE_ERR` with retry.
 
 **Draft (2).** The app persists the draft (items, date, slot, name, phone, address, district, note, idempotency key, saved time) to app-private storage on every change, restores it after process death, deletes it after a confirmed order, and discards it after 24 hours without change. It is excluded from device backups and cloud sync (iOS: file with `isExcludedFromBackup` and complete data protection; Android: `no_backup` directory or exclusion rule, DataStore). On the first launch after a restore, tapping "Place order" on S-2 opens S-5 with the restored data; entering from a cake detail (S-4) starts a new draft with that cake at 1 (UI section 5.4). No prompt is shown.
+
+**Hidden cake in the draft (UI TQ-10)** [v1.1 | 2026-10-26]. When the refreshed catalog no longer contains a product that the draft holds, or the server answers `PRODUCT_UNAVAILABLE` on `POST /v1/orders`, the app removes only that item (its quantity) from the draft and shows `ORDER_CAKE_REMOVED` on S-5. The date, slot, name, phone, address, district, note and the other items stay (FR-15, BR-13, AC-34). Because the order content changed, the idempotency key is replaced by a new one (ADR-0008). If no item is left, S-5 shows its zero state. A cake made active again is not re-added automatically.
 
 The draft is personal data on the customer's own device: it is listed in `data-model.md` section 7 and in the privacy statement; it never leaves the device except in the order itself.
 
@@ -49,4 +53,11 @@ The draft is personal data on the customer's own device: it is listed in `data-m
 
 ## Links
 
-Related: ADR-0007, ADR-0008, ADR-0010.
+Related: ADR-0007, ADR-0008, ADR-0010, ADR-0017.
+
+## Change log
+
+| Version | Date | Change |
+| ------- | ---- | ------ |
+| 1.0 | 2026-10-25 | First version (Accepted). |
+| 1.1 | 2026-10-26 | Catalog refresh rule with rate-limit budget and silent failure (TQ-9); hidden cake dropped from the draft, other data kept, new idempotency key (TQ-10). Business behaviour is unchanged: it states what BR-13 and AC-34 already require. |
