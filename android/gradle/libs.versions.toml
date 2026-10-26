@@ -8,6 +8,14 @@
 # serialization 1.12.0 https://github.com/Kotlin/kotlinx.serialization/releases (built with Kotlin 2.4.10; ADR-0007)
 # activity      https://developer.android.com/jetpack/androidx/releases/activity (latest stable)
 # junit 4.13.2  https://junit.org/junit4/ (not re-checked; widely used final 4.x release)
+# Slice 1 additions (latest stable of each, read from the Maven metadata files on 2026-10-26):
+# okhttp 5.5.1        https://repo1.maven.org/maven2/com/squareup/okhttp3/okhttp/maven-metadata.xml (ADR-0007 names OkHttp)
+# coroutines 1.11.0   https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-android/maven-metadata.xml
+# lifecycle 2.11.0    https://dl.google.com/dl/android/maven2/androidx/lifecycle/lifecycle-viewmodel-compose/maven-metadata.xml
+#                     (2.12.0-alpha05 is newer but alpha; ADR-0007 allows no beta in releases)
+# navigation 2.10.2   https://dl.google.com/dl/android/maven2/androidx/navigation/navigation-compose/maven-metadata.xml
+# The three AndroidX Compose artifacts above declare minCompileSdk=37 in the AAR metadata of their -android
+# variants (checked by reading META-INF/com/android/build/gradle/aar-metadata.properties), which matches compileSdk 37.
 [versions]
 agp = "9.4.0"
 kotlin = "2.4.21"
@@ -15,13 +23,23 @@ composeBom = "2026.09.00"
 activityCompose = "1.13.0"
 junit = "4.13.2"
 serialization = "1.12.0"
+okhttp = "5.5.1"
+coroutines = "1.11.0"
+lifecycle = "2.11.0"
+navigation = "2.10.2"
 
 [libraries]
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 compose-ui = { module = "androidx.compose.ui:ui" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 junit = { module = "junit:junit", version.ref = "junit" }
 
 [plugins]

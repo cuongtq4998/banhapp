@@ -1,30 +1,102 @@
 package app.banh.customer.ui
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import app.banh.customer.R
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import app.banh.customer.AppContainer
 import app.banh.customer.design.BanhTheme
+import app.banh.customer.design.LocalReduceMotion
+import app.banh.customer.design.Motion
+import app.banh.customer.ui.common.LocalImageLoader
+import app.banh.customer.ui.home.HomeRoute
+import app.banh.customer.ui.home.HomeViewModel
+import app.banh.customer.ui.launch.LaunchScreen
+import app.banh.customer.ui.order.OrderStubScreen
+import app.banh.customer.ui.products.ProductDetailRoute
+import app.banh.customer.ui.products.ProductDetailViewModel
+import app.banh.customer.ui.products.ProductsRoute
+import app.banh.customer.ui.products.ProductsViewModel
 
-// Empty shell: navigation, AppContainer and feature packages (ui/home, products, order,
-// confirmation) are added slice by slice so no unused structure is carried.
+private object Routes {
+    const val LAUNCH = "launch"
+    const val HOME = "home"
+    const val PRODUCTS = "products"
+    const val PRODUCT_ID_ARG = "productId"
+    const val PRODUCT_DETAIL = "products/{$PRODUCT_ID_ARG}"
+    const val ORDER = "order"
+
+    fun productDetail(productId: String) = "products/$productId"
+}
+
 @Composable
-fun AppRoot() {
+fun AppRoot(container: AppContainer) {
     BanhTheme {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = stringResource(R.string.shell_placeholder),
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
+        CompositionLocalProvider(LocalImageLoader provides container.imageLoader) {
+            AppNavigation(container, rememberNavController())
         }
     }
 }
+
+@Composable
+private fun AppNavigation(container: AppContainer, navController: NavHostController) {
+    // Screens change by cross-fade; with animations off the fade is the short one (`motion.reduced`).
+    val fadeMillis = if (LocalReduceMotion.current) Motion.SHORT_MILLIS else Motion.LONG_MILLIS
+    NavHost(
+        navController = navController,
+        startDestination = Routes.LAUNCH,
+        enterTransition = { fadeIn(tween(fadeMillis)) },
+        exitTransition = { fadeOut(tween(fadeMillis)) },
+        popEnterTransition = { fadeIn(tween(fadeMillis)) },
+        popExitTransition = { fadeOut(tween(fadeMillis)) },
+    ) {
+        composable(Routes.LAUNCH) {
+            LaunchScreen(
+                startWork = container.catalogRepository.catalog,
+                onFinished = {
+                    navController.navigate(Routes.HOME) { popUpTo(Routes.LAUNCH) { inclusive = true } }
+                },
+            )
+        }
+        composable(Routes.HOME) {
+            HomeRoute(
+                viewModel = viewModelOf { HomeViewModel(container.catalogRepository) },
+                onViewProducts = { navController.navigate(Routes.PRODUCTS) },
+                onPlaceOrder = { navController.navigate(Routes.ORDER) },
+            )
+        }
+        composable(Routes.PRODUCTS) {
+            ProductsRoute(
+                viewModel = viewModelOf { ProductsViewModel(container.catalogRepository) },
+                onBack = { navController.popBackStack() },
+                onOpenProduct = { navController.navigate(Routes.productDetail(it)) },
+            )
+        }
+        composable(Routes.PRODUCT_DETAIL) { entry ->
+            val productId = checkNotNull(entry.arguments?.getString(Routes.PRODUCT_ID_ARG)) { "Route always carries the product id" }
+            ProductDetailRoute(
+                viewModel = viewModelOf { ProductDetailViewModel(container.catalogRepository, productId) },
+                onBack = { navController.popBackStack() },
+                // The ordering slice starts its flow with this cake before navigating (FR-4, AC-5).
+                onOrder = { navController.navigate(Routes.ORDER) },
+            )
+        }
+        composable(Routes.ORDER) {
+            OrderStubScreen(onBack = { navController.popBackStack() })
+        }
+    }
+}
+
+// The view model lives as long as the back stack entry it is created in, so the detail of each cake has its own.
+@Composable
+private inline fun <reified VM : ViewModel> viewModelOf(crossinline create: () -> VM): VM =
+    viewModel<VM>(factory = viewModelFactory { initializer { create() } })

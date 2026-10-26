@@ -4,6 +4,18 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+// The API host is never committed (public repository, deployment.md section 3). It comes from the Gradle
+// property `apiBaseUrl` or the environment variable `API_BASE_URL`; the fallbacks below are placeholders:
+// 10.0.2.2 is the emulator's alias for the host machine, and `.invalid` can never resolve (RFC 2606).
+val apiBaseUrlOverride: String? = providers.gradleProperty("apiBaseUrl")
+    .orElse(providers.environmentVariable("API_BASE_URL"))
+    .orNull
+val debugApiBaseUrlFallback = "http://10.0.2.2:8080/"
+val releaseApiBaseUrlFallback = "https://api.invalid/"
+
+// The app resolves "v1/catalog" against this value, which therefore must end with a slash.
+fun apiBaseUrlLiteral(url: String): String = "\"${if (url.endsWith("/")) url else "$url/"}\""
+
 android {
     // ADR-0016: namespace and applicationId are frozen at the first store upload.
     namespace = "app.banh.customer"
@@ -21,7 +33,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "API_BASE_URL", apiBaseUrlLiteral(apiBaseUrlOverride ?: debugApiBaseUrlFallback))
+        }
         release {
+            buildConfigField("String", "API_BASE_URL", apiBaseUrlLiteral(apiBaseUrlOverride ?: releaseApiBaseUrlFallback))
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
@@ -34,6 +50,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -42,9 +59,15 @@ dependencies {
     implementation(libs.compose.ui)
     implementation(libs.compose.material3)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.okhttp)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }
 
 // The API contract fixtures are shared with backend and iOS; tests find them through this property
