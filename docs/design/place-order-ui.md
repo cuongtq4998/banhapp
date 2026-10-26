@@ -2,11 +2,11 @@
 
 | Field        | Value                                                                 |
 | ------------ | --------------------------------------------------------------------- |
-| Version      | 1.1                                                                   |
-| Last updated | 2026-10-25                                                            |
+| Version      | 1.2                                                                   |
+| Last updated | 2026-10-26                                                            |
 | Status       | Draft                                                                 |
 | Owner        | canvas-ui                                                             |
-| Based on     | product/place-order.md v1.2 (Approved)                                |
+| Based on     | product/place-order.md v1.4 (Approved) [v1.2 | 2026-10-26]             |
 | Related      | design/design-system.md; pipeline/place-order/00-request.md; mockups (reference only, private link in the PRD) |
 
 ## 1. Overview
@@ -45,7 +45,7 @@ flowchart TD
     A[App start] --> S1[S-1 Launch]
     S1 --> S2[S-2 Home]
     S2 -->|View products| S3[S-3 Product list]
-    S2 -->|Place order, new draft| S5[S-5 Choose cakes]
+    S2 -->|Place order, new draft; disabled when zero cakes are active| S5[S-5 Choose cakes]
     S2 -->|Place order, saved draft: restored data| S5
     S2 -->|Zalo / Phone| EXT[Zalo app / phone dialer]
     S3 --> S4[S-4 Cake detail]
@@ -59,7 +59,7 @@ flowchart TD
     S8 -->|Edit| S7
     S8 -->|Confirm| SEND{Send order}
     SEND -->|received| S9[S-9 Confirmation]
-    SEND -->|rule not met: capacity, date, district, quantity| S8E[S-8 rule message, confirm blocked]
+    SEND -->|rule not met: capacity, date, district, quantity, cake no longer sold| S8E[S-8 rule message, confirm blocked, data kept]
     S8E -->|change choice| S5
     S8E -->|change choice| S6
     S8E -->|change choice| S7
@@ -81,9 +81,9 @@ Step count after "Place order": 4 steps (cakes, date and time, recipient, review
 | -- | ---- | --- | ------- | ----------- |
 | S-1 | Launch | Customer | Logo-only screen on start | FR-1, FR-14 |
 | S-2 | Home | Customer | Shop name, greeting, contact, entry to products and order | FR-2, FR-14, FR-19 |
-| S-3 | Product list | Customer | Four cakes with picture, name, description, price | FR-3, FR-14 |
+| S-3 | Product list | Customer | Every active cake (1 to 4) with picture, name, description, price; Error only at zero [v1.2 | 2026-10-26] | FR-3, FR-14 |
 | S-4 | Cake detail | Customer | One cake and the button that starts an order | FR-3, FR-4, FR-14 |
-| S-5 | Order step 1: Choose cakes | Customer | Quantity per cake | FR-5, FR-4, FR-10, FR-14, FR-15 |
+| S-5 | Order step 1: Choose cakes | Customer | Quantity per active cake (1 to 4 rows) [v1.2 | 2026-10-26] | FR-5, FR-4, FR-10, FR-14, FR-15 |
 | S-6 | Order step 2: Date and time | Customer | Receiving date and time slot | FR-6, FR-7, FR-10, FR-14, FR-15 |
 | S-7 | Order step 3: Recipient and address | Customer | Name, phone, address, district, note | FR-8, FR-13, FR-18, FR-14, FR-15 |
 | S-8 | Order step 4: Review | Customer | Full order review, privacy sentence, confirm, rule and send errors | FR-9, FR-10, FR-16, FR-17, FR-18, FR-15, FR-14 |
@@ -100,7 +100,7 @@ Common layout (all screens): `AppBackground` behind everything. `TopBar` at the 
 - Purpose: show the brand while the app starts (FR-1).
 - Entry/Exit: entry on app start. Exit to S-2 automatically after the start work finishes, shown for at least 1.0 s and at most 2.0 s (proposed values, adjustable). Nothing is tappable.
 - Layout: `AppBackground`; `LogoMark` (Large) centred, no text, no button, no loading text.
-- Data shown: the logo only (FR-1).
+- Data shown: the logo only (FR-1). [v1.2 | 2026-10-26] The logo is a bundled app asset (iOS asset catalog image set, Android drawable), shown before any network call; the API has no logo field. Until the owner supplies the artwork, a neutral placeholder mark with no text is bundled (section 11). `LogoMark` on S-2 uses the same asset.
 - Actions: none.
 - States:
 
@@ -129,7 +129,7 @@ Common layout (all screens): `AppBackground` behind everything. `TopBar` at the 
 | Tap Zalo | Opens Zalo with the shop contact (AC-3). If it cannot open, `Toast` with `ERR_OPEN_ZALO`. | FR-2 |
 | Tap Phone | Opens the dialer with the shop number (AC-3). If it cannot open, `Toast` with `ERR_OPEN_PHONE`. | FR-2 |
 | Tap View products | Go to S-3. | FR-2, FR-3 |
-| Tap Place order | [v1.1 | 2026-10-25] If a saved draft exists, go to S-5 with the restored data and no prompt. Otherwise go to S-5 with no cake chosen. | FR-2, FR-15 |
+| Tap Place order | [v1.1 | 2026-10-25] If a saved draft exists, go to S-5 with the restored data and no prompt. Otherwise go to S-5 with no cake chosen. [v1.2 | 2026-10-26] The button is disabled while the known active-cake count is zero (below), so no flow starts (AC-33). | FR-2, FR-15 |
 
 - States:
 
@@ -140,25 +140,41 @@ Common layout (all screens): `AppBackground` behind everything. `TopBar` at the 
 | Empty | N/A: shop information is required data; a missing value is treated as Error. |
 | Error | [v1.1 | 2026-10-25] Shown only when shop information could not be loaded and there is no cache (cache is valid up to 7 days, ADR-0011): `StateView` Error with `HOME_ERR` and `COMMON_RETRY`; all four action buttons disabled. When a cache exists, the cached data is shown at once (Default), refreshed in the background, and a failed refresh is silent. |
 | Disabled | Contact buttons are disabled while Loading and Error. The "Place order" and "View products" buttons follow the same rule. |
+| No cakes (sub-state of Default) [v1.2 | 2026-10-26] | Shown when the latest product answer has zero active cakes (BR-13, AC-33). Shop name, greeting and contact buttons work as in Default. `PrimaryButton` "Place order" is disabled (dimmed, still announced with its text and state "dimmed"). An `InlineMessage` (Info) `HOME_NO_CAKES` sits directly above the bottom bar content (inside the scroll area, under the greeting card). "View products" stays enabled and opens S-3, which shows its zero-cake Error state. The state ends as soon as a later answer has at least one active cake (refresh on screen appear and on returning to the foreground; no app reinstall, AC-33): the message disappears and the button is enabled. With no product answer yet (first launch, still loading) Place order is enabled; S-5 then handles zero (section 5.5). |
 | Success | N/A: no submit on this screen. |
 
 - Validation: none.
 
 ### 5.3 S-3 Product list
 
-- Purpose: show the four cakes (FR-3).
+- Purpose: show every active cake (FR-3, BR-13). [v1.2 | 2026-10-26]
 - Entry/Exit: from S-2. Exit to S-4 (tap a card) or back to S-2.
-- Layout: `TopBar` (large title `PRODUCTS_TITLE`, back); four `ProductCard` in a vertical list. No bottom bar (ordering starts from the detail view or from S-2, FR-4).
-- Data shown per card: picture, name, short description, current price. Exactly four cards (AC-4).
+- Layout: `TopBar` (large title `PRODUCTS_TITLE`, back); one `ProductCard` per active cake in a single-column vertical list, in the order the API returns. [v1.2 | 2026-10-26] 1, 2, 3 and 4 cards are all normal and use the same card size and spacing (`space.lg`); the list is simply shorter. There is no placeholder, empty slot, "coming soon" card, gap or reserved space for a hidden cake, and no text saying fewer cakes are shown. The list never needs to scroll for 1 to 3 cards on a typical phone; with 4 cards or large text it scrolls. No bottom bar (ordering starts from the detail view or from S-2, FR-4).
+- Data shown per card: picture, name, short description, current price. Exactly the active cakes returned (AC-4, AC-32). [v1.2 | 2026-10-26]
 - Actions: tap a card to open S-4 (FR-3, FR-4).
+- Wireframes [v1.2 | 2026-10-26]: the structure does not change with rotation (single column, cards fill the width inside `space.screenMargin`; in landscape the cards are wider and the list scrolls), so the wireframes are by card count at compact width, as the design process allows. `[card]` = picture, name, description, price.
+
+```
+ 1 cake          2 cakes         3 cakes         4 cakes         0 cakes (Error)
++-----------+   +-----------+   +-----------+   +-----------+   +-----------+
+| < Sản phẩm|   | < Sản phẩm|   | < Sản phẩm|   | < Sản phẩm|   | < Sản phẩm|
+| [card A ] |   | [card A ] |   | [card A ] |   | [card A ] |   |           |
+|           |   | [card B ] |   | [card B ] |   | [card B ] |   |   (icon)  |
+|  (blank   |   |           |   | [card C ] |   | [card C ] |   | PRODUCTS_ |
+|  background)  |  (blank)  |   |           |   | [card D ] |   |   EMPTY   |
+|           |   |           |   |  (blank)  |   | (scrolls) |   | [Thử lại] |
++-----------+   +-----------+   +-----------+   +-----------+   +-----------+
+```
+
+Landscape: the same single column with wider cards; with 1 or 2 cards the content stays at the top and the rest is background; the Error state is centred. No two-column variant is used, so a count of 3 never leaves an orphan cell.
 - States:
 
 | State | Behaviour |
 | ----- | --------- |
-| Default | Four cards. |
-| Loading | [v1.1 | 2026-10-25] Only when there is no cache: four skeleton cards (`StateView` Loading). With a cache, cached cards show at once. |
-| Empty | N/A: the product set is fixed at four. Fewer than four returned is treated as Error. |
-| Error | [v1.1 | 2026-10-25] Only when there is no cache: `StateView` Error with `PRODUCTS_ERR` and `COMMON_RETRY`. With a cache, a failed refresh is silent. A single failed picture shows a placeholder icon in the image frame (label `PRODUCT_IMG_FAILED`) while the card stays tappable. |
+| Default | One `ProductCard` per active cake (1 to 4). |
+| Loading | [v1.1 | 2026-10-25] Only when there is no cache: four skeleton cards (`StateView` Loading). With a cache, cached cards show at once. [v1.2 | 2026-10-26] The skeleton count is a visual placeholder only and disappears when the answer arrives; it never implies four cakes. |
+| Empty | [v1.2 | 2026-10-26] Zero active cakes (a successful answer with an empty list): `StateView` Error layout with an icon, `PRODUCTS_EMPTY` (Vietnamese text in section 8) and the action `COMMON_RETRY` (reloads the list; the shop may have made a cake active again, AC-33). No list, no placeholder cards. This is the only count-based Error (BR-13). A cached non-empty list is replaced by the zero answer when a fresh answer says zero. |
+| Error | [v1.1 | 2026-10-25] Only when there is no cache: `StateView` Error with `PRODUCTS_ERR` and `COMMON_RETRY` (load failure, different from the zero-cake state). With a cache, a failed refresh is silent. A single failed picture shows a placeholder icon in the image frame (label `PRODUCT_IMG_FAILED`) while the card stays tappable. |
 | Disabled | N/A: cards are always tappable once shown. |
 | Success | N/A: no submit. |
 
@@ -168,6 +184,7 @@ Common layout (all screens): `AppBackground` behind everything. `TopBar` at the 
 
 - Purpose: show one cake and start an order with it (FR-4).
 - Entry/Exit: from S-3. Exit to S-5 (order button) or back to S-3.
+- Cake no longer available [v1.2 | 2026-10-26]: if the shop hides this cake while S-4 is open, the screen learns it on its background refresh, on returning to the foreground, or when `DETAIL_BTN_ORDER` is tapped (the tap rechecks the active list first). The screen then shows the Gone state below instead of starting an order.
 - Layout: `TopBar` (inline title is the cake name, back); large picture (`radius.image`); in a `GlassCard`: name (`type.title.large`), description (`type.body`), price (`type.body.strong`, with `PRICE_EACH`); `BottomActionBar` with `PrimaryButton` `DETAIL_BTN_ORDER`.
 - Data shown: picture, name, description, current price. No other attributes (none are in the PRD).
 - Actions: tap `DETAIL_BTN_ORDER` opens S-5 with this cake at quantity 1, other cakes at 0 (AC-5).
@@ -176,19 +193,20 @@ Common layout (all screens): `AppBackground` behind everything. `TopBar` at the 
 | State | Behaviour |
 | ----- | --------- |
 | Default | As above. |
-| Loading | Skeleton for picture and text if the data is not yet available (for example after a restore); the button is disabled. |
+| Loading | [v1.2 | 2026-10-26] N/A: S-4 is opened only from a card on S-3 (or in the same session), so the cake data is already in hand and shown at once. S-4 is never restored after the system ends the app (ADR-0011 restores only the draft, to S-5; the app then starts at S-1), so there is no restore path to S-4. The earlier skeleton and "after a restore" wording was wrong and is removed (QA DOC-9). |
 | Empty | N/A: a detail is reached only from an existing card. |
-| Error | Picture failed: placeholder and `PRODUCT_IMG_FAILED`, button still enabled. [v1.1 | 2026-10-25] Data failed and no cache: `StateView` Error with `PRODUCTS_ERR` and `COMMON_RETRY`; with a cache the cached cake is shown and a failed refresh is silent. |
-| Disabled | The order button is disabled while Loading or Data-failed. |
+| Gone [v1.2 | 2026-10-26] | The cake is no longer in the active list. The picture and text stay visible but dimmed; an `InlineMessage` (Info) `DETAIL_GONE` is shown above the card; `BottomActionBar` shows `SecondaryButton` `DETAIL_GONE_ACTION` that returns to S-3 (the refreshed list, which may now have fewer cards or the zero-cake Error state); the order button is not shown. Nothing was added to a draft. |
+| Error | Picture failed: placeholder and `PRODUCT_IMG_FAILED`, button still enabled. [v1.2 | 2026-10-26] A failed background refresh is silent (the cake data came from the list); no data-failed Error exists on this screen. |
+| Disabled | [v1.2 | 2026-10-26] N/A: the order button is enabled in Default and replaced by the Gone action in Gone. |
 | Success | N/A: no submit. |
 
 - Validation: none.
 
 ### 5.5 S-5 Order step 1: Choose cakes
 
-- Purpose: choose a quantity for each of the four cakes (FR-5).
+- Purpose: choose a quantity for each active cake (FR-5, BR-13). [v1.2 | 2026-10-26]
 - Entry/Exit: from S-2 (no cake, or the restored draft with its quantities when a saved draft exists, [v1.1 | 2026-10-25] no prompt), S-4 (new draft, that cake at 1), or from S-6 and S-8 via back or Edit. Exit to S-6, or back to the previous screen.
-- Layout: `TopBar` (`FLOW_TITLE`, back); `StepIndicator` ("Step 1 of 4", `STEP_LABEL` and `STEP1`); one `GlassCard` containing four rows: thumbnail, name, price (`type.body.strong`), `QuantityStepper`; a summary `GlassCard` with `QTY_TOTAL` and `QTY_SUBTOTAL`; `InlineMessage` (Info) with `QTY_MIN_HINT` when total is below MIN_QTY; `BottomActionBar` with `PrimaryButton` `COMMON_NEXT`.
+- Layout: `TopBar` (`FLOW_TITLE`, back); `StepIndicator` ("Step 1 of 4", `STEP_LABEL` and `STEP1`); one `GlassCard` containing one row per active cake (1 to 4 rows, [v1.2 | 2026-10-26] no blank or disabled row for a hidden cake; the card simply gets shorter): thumbnail, name, price (`type.body.strong`), `QuantityStepper`; a summary `GlassCard` with `QTY_TOTAL` and `QTY_SUBTOTAL`; `InlineMessage` (Info) with `QTY_MIN_HINT` when total is below MIN_QTY; `BottomActionBar` with `PrimaryButton` `COMMON_NEXT`.
 - Data shown: for each cake name, price, quantity; total number of cakes; cakes subtotal (sum of price x quantity, BR-5).
 - Actions:
 
@@ -204,7 +222,8 @@ Common layout (all screens): `AppBackground` behind everything. `TopBar` at the 
 | ----- | --------- |
 | Default | Quantities as chosen; the hint `QTY_MIN_HINT` is visible while the total is below MIN_QTY. |
 | Loading | Product names and prices not yet available: skeleton rows, steppers and Next disabled. |
-| Empty | Total is 0 (nothing chosen): all steppers at 0, the hint is shown, Next disabled. This is the normal first state from "Place order". |
+| Empty | Total is 0 (nothing chosen): all steppers at 0, the hint is shown, Next disabled. This is the normal first state from "Place order". [v1.2 | 2026-10-26] Zero active cakes (reached when S-2 had no answer yet or a stale cache): `StateView` Error layout with `PRODUCTS_EMPTY` and `COMMON_RETRY`; no rows, no summary, Next disabled; the draft data is kept. After a retry that finds an active cake the rows appear. |
+| Cake removed [v1.2 | 2026-10-26] | A cake in the draft (restored or in progress) is not in the refreshed active list, or S-8 sent the customer back with `ERR_PRODUCT_UNAVAILABLE`: its row is not shown, its quantity is dropped from the totals, an `InlineMessage` (Info) `ORDER_CAKE_REMOVED` (with the cake name) appears above the rows until the customer changes a quantity or leaves the step; quantities of the other cakes and all other flow data (date, slot, recipient) are kept. If the date no longer has room for the smaller total nothing changes, since a smaller order only needs less room; if the total falls below MIN_QTY the normal hint shows. |
 | Error | [v1.1 | 2026-10-25] Products could not be loaded and there is no cache: `StateView` Error with `PRODUCTS_ERR` and `COMMON_RETRY`. With a cache, cached prices are shown and a failed refresh is silent (the server price check on confirm is the final guard, ADR-0010). |
 | Disabled | Next is disabled while the total is below MIN_QTY (the hint explains why, AC-13); minus is disabled at 0; [v1.1 | 2026-10-25] plus is disabled at 99 for that cake, silently (input-safety bound, ADR-0009; the limit is configuration `max_qty_per_cake`, not shown). |
 | Success | N/A: no submit. |
@@ -309,7 +328,7 @@ Keyboards and input hints: name uses the name keyboard with sentence capitalisat
 | Default | Review shown, confirm enabled. |
 | Loading | Sending: confirm shows a spinner and `BTN_SENDING`, disabled; Edit controls and back are disabled until the result. |
 | Empty | N/A: S-5 prevents reaching review with fewer than MIN_QTY cakes; a cleared date leads back to S-6 before review. |
-| Error | Two kinds, shown in the top `InlineMessage` (Error), flow data kept in both: (a) Rule not met, confirm blocked until fixed (FR-10): `ERR_MIN_QTY`, `ERR_DATE_CAPACITY` (also the message when another customer took the capacity, AC-9, AC-22), `ERR_DATE_LEAD`, `ERR_DATE_HORIZON`, `ERR_DISTRICT_UNSERVED`, and [v1.1 | 2026-10-25] `ERR_PRODUCT_UNAVAILABLE` (action opens S-5 with `DATE_EMPTY_ACTION`) and `ERR_SLOT_UNAVAILABLE` (action opens S-6 with `ACTION_CHOOSE_SLOT`); each has an action button that opens the step to fix (S-5, S-6 or S-7, using `DATE_EMPTY_ACTION` for quantity and `ACTION_CHOOSE_DATE`, `ACTION_CHOOSE_DISTRICT`). (b) Not sent: `ERR_OFFLINE`, `ERR_SERVER`, `ERR_TIMEOUT` or [v1.1 | 2026-10-25] `ERR_RATE_LIMITED` with `COMMON_RETRY`; no confirmation screen appears (AC-20). (c) [v1.1 | 2026-10-25] Price changed (server answers 409 `PRICE_CHANGED` with the new prices; ADR-0010, owner decision: the order is rejected and the customer re-reviews): nothing was sent; the cake rows, line prices, fee and total are replaced with the new values at once (changed amounts are highlighted for the session of this screen with `color.warningContainer` behind the value, and spoken in the alert), `InlineMessage` (Info, announced as an alert) shows `MSG_PRICE_CHANGED`, and `BTN_CONFIRM` stays enabled so the customer confirms again at the new total. The message clears when the customer taps Edit or confirms. |
+| Error | Two kinds, shown in the top `InlineMessage` (Error), flow data kept in both: (a) Rule not met, confirm blocked until fixed (FR-10): `ERR_MIN_QTY`, `ERR_DATE_CAPACITY` (also the message when another customer took the capacity, AC-9, AC-22), `ERR_DATE_LEAD`, `ERR_DATE_HORIZON`, `ERR_DISTRICT_UNSERVED`, and [v1.1 | 2026-10-25] `ERR_PRODUCT_UNAVAILABLE` ([v1.2 | 2026-10-26] a cake in the order was hidden by the shop, BR-13, AC-34: the order is not sent or stored, all entered data is kept, confirm is blocked; the action `DATE_EMPTY_ACTION` opens S-5, which shows the Cake removed state with the cake name; the customer continues with the remaining cakes or, if the total is below MIN_QTY, adds cakes) and `ERR_SLOT_UNAVAILABLE` (action opens S-6 with `ACTION_CHOOSE_SLOT`); each has an action button that opens the step to fix (S-5, S-6 or S-7, using `DATE_EMPTY_ACTION` for quantity and `ACTION_CHOOSE_DATE`, `ACTION_CHOOSE_DISTRICT`). (b) Not sent: `ERR_OFFLINE`, `ERR_SERVER`, `ERR_TIMEOUT` or [v1.1 | 2026-10-25] `ERR_RATE_LIMITED` with `COMMON_RETRY`; no confirmation screen appears (AC-20). (c) [v1.1 | 2026-10-25] Price changed (server answers 409 `PRICE_CHANGED` with the new prices; ADR-0010, owner decision: the order is rejected and the customer re-reviews): nothing was sent; the cake rows, line prices, fee and total are replaced with the new values at once (changed amounts are highlighted for the session of this screen with `color.warningContainer` behind the value, and spoken in the alert), `InlineMessage` (Info, announced as an alert) shows `MSG_PRICE_CHANGED`, and `BTN_CONFIRM` stays enabled so the customer confirms again at the new total. The message clears when the customer taps Edit or confirms. |
 | Disabled | Confirm is disabled while Loading and while a rule error is shown (kind a). After the customer fixes it and returns, confirm is enabled again. Confirm stays enabled after a kind b or kind c message so retry or re-confirm is possible. For `ERR_RATE_LIMITED` the retry button stays enabled (the server may answer again; the customer decides). |
 | Success | On received: transition to S-9 (see 5.9). No intermediate success state is shown on S-8. |
 
@@ -351,7 +370,9 @@ Keyboards and input hints: name uses the name keyboard with sentence capitalisat
 | No connection while sending | S-8 | `ERR_OFFLINE`, entered data kept, retry available (AC-20). |
 | Server error or timeout while sending | S-8 | `ERR_SERVER` or `ERR_TIMEOUT`, entered data kept, retry available (FR-17). [v1.1 | 2026-10-25] Too many requests: `ERR_RATE_LIMITED`, same handling. |
 | Price changed while sending | S-8 | [v1.1 | 2026-10-25] Updated review plus `MSG_PRICE_CHANGED`, confirm enabled (section 5.8). |
-| Product or time slot no longer offered | S-8 | [v1.1 | 2026-10-25] `ERR_PRODUCT_UNAVAILABLE` (fix on S-5) or `ERR_SLOT_UNAVAILABLE` (fix on S-6); catalog is refreshed first. |
+| Product or time slot no longer offered | S-8 | [v1.1 | 2026-10-25] `ERR_PRODUCT_UNAVAILABLE` (fix on S-5) or `ERR_SLOT_UNAVAILABLE` (fix on S-6); catalog is refreshed first. [v1.2 | 2026-10-26] For a hidden cake the data is kept and S-5 names the cake (`ORDER_CAKE_REMOVED`). |
+| Zero active cakes | S-2, S-3, S-5 | [v1.2 | 2026-10-26] S-2 disables "Place order" with `HOME_NO_CAKES`; S-3 and S-5 show `PRODUCTS_EMPTY` with `COMMON_RETRY`. Different from a load failure (`PRODUCTS_ERR`). |
+| Cake hidden while its detail is open | S-4 | [v1.2 | 2026-10-26] Gone state: `DETAIL_GONE` with `DETAIL_GONE_ACTION` back to S-3. |
 | Connection returns | Any | No automatic send. The customer taps retry. A visible load error retries on `COMMON_RETRY` only. |
 | App goes to background and returns | S-5 to S-8 | Flow data kept. [v1.1 | 2026-10-25] The draft is also saved on the device and survives the system ending the app, for up to 24 hours without change; it is restored when the customer taps "Place order" on S-2 (no prompt) and deleted after a confirmed order (ADR-0011). |
 
@@ -416,12 +437,18 @@ All display text is Vietnamese. Data-source values (shop name, greeting, cake na
 | `COMMON_EDIT` | Sửa | S-8 |
 | `COMMON_LOADING` | Đang tải | loading states (screen reader) |
 | `PRODUCTS_TITLE` | Sản phẩm | S-3 |
-| `PRODUCTS_ERR` | Không tải được thông tin bánh. Vui lòng thử lại. | S-3, S-4, S-5 |
+| `PRODUCTS_ERR` | Không tải được thông tin bánh. Vui lòng thử lại. | S-3, S-5 [v1.2 | 2026-10-26] (S-4 removed) |
+| `PRODUCTS_EMPTY` | [v1.2 | 2026-10-26] Hiện cửa hàng chưa có bánh để đặt. Vui lòng quay lại sau hoặc liên hệ cửa hàng qua Zalo hoặc điện thoại. | S-3, S-5 |
+| `HOME_NO_CAKES` | [v1.2 | 2026-10-26] Hiện cửa hàng chưa có bánh để đặt. Bạn có thể liên hệ cửa hàng qua Zalo hoặc gọi điện. | S-2 |
+| `DETAIL_GONE` | [v1.2 | 2026-10-26] Bánh này hiện không còn được bán. | S-4 |
+| `DETAIL_GONE_ACTION` | [v1.2 | 2026-10-26] Xem các bánh khác | S-4 |
+| `ORDER_CAKE_REMOVED` | [v1.2 | 2026-10-26] {name} hiện không còn được bán và đã được bỏ khỏi đơn. Các bánh khác và thông tin bạn đã nhập vẫn được giữ lại. | S-5 |
+| `MONEY_FORMAT` | [v1.2 | 2026-10-26] {amount} ₫ (the amount is already grouped with dots, whole dong; code: Android `money_format` `%1$s ₫`) | every price, subtotal, fee and total |
 | `PRODUCT_IMG_FAILED` | Không tải được ảnh | S-3, S-4 |
 | `PRICE_EACH` | {amount}/cái | S-3, S-4, S-5 |
 | `DETAIL_BTN_ORDER` | Đặt bánh này | S-4 |
 | `FLOW_TITLE` | Đặt bánh | S-5 to S-8 |
-| `STEP_LABEL` | Bước {n}/4 | S-5 to S-8 |
+| `STEP_LABEL` | Bước {n}/4 ([v1.2 | 2026-10-26] the total 4 is part of the string, as in Android `step_label` `Bước %1$d/4`; the step count is fixed by G-1) | S-5 to S-8 |
 | `STEP1` | Chọn bánh | S-5 |
 | `STEP2` | Ngày và giờ nhận | S-6 |
 | `STEP3` | Người nhận và địa chỉ | S-7 |
@@ -483,7 +510,7 @@ All display text is Vietnamese. Data-source values (shop name, greeting, cake na
 | `ACTION_CHOOSE_DATE` | Chọn ngày khác | S-8 |
 | `ACTION_CHOOSE_DISTRICT` | Chọn khu vực khác | S-8 |
 | `ACTION_CHOOSE_SLOT` | [v1.1 | 2026-10-25] Chọn giờ khác | S-8 |
-| `ERR_PRODUCT_UNAVAILABLE` | [v1.1 | 2026-10-25] Có bánh trong đơn hiện không còn được bán. Vui lòng chọn lại bánh. | S-8 |
+| `ERR_PRODUCT_UNAVAILABLE` | [v1.1 | 2026-10-25] Có bánh trong đơn hiện không còn được bán. Vui lòng chọn lại bánh. [v1.2 | 2026-10-26] Đơn hàng chưa được gửi. Thông tin của bạn vẫn được giữ lại. | S-8 |
 | `ERR_SLOT_UNAVAILABLE` | [v1.1 | 2026-10-25] Khung giờ nhận bánh bạn chọn không còn khả dụng. Vui lòng chọn giờ khác. | S-8 |
 | `ERR_RATE_LIMITED` | [v1.1 | 2026-10-25] Đơn hàng chưa được gửi vì có quá nhiều yêu cầu. Thông tin của bạn vẫn được giữ lại. Vui lòng đợi một lát rồi thử lại. | S-8 |
 | `ERR_OFFLINE` | Đơn hàng chưa được gửi vì không có kết nối mạng. Thông tin của bạn vẫn được giữ lại. | S-8 |
@@ -513,6 +540,50 @@ Defaults from standard 02 apply: touch target at least 44 pt (iOS) and 48 dp (An
 | Motion | Reduce Motion and remove-animation settings turn all movement into 150 ms cross-fades. |
 | Focus | Visible focus ring `color.focus` for external keyboards and switch control. |
 | Language | The screen reader language for all text is Vietnamese. |
+| Zero-cake and gone states [v1.2 | 2026-10-26] | `PRODUCTS_EMPTY`, `HOME_NO_CAKES`, `DETAIL_GONE` and `ORDER_CAKE_REMOVED` are announced as they appear (polite for S-2 and S-4, alert for S-5 after S-8 sends the customer back). The disabled "Place order" button is read with its text and the state "dimmed"; the message above it explains why. |
+
+### 9.1 Test identifiers [v1.2 | 2026-10-26]
+
+One list for both platforms: iOS `accessibilityIdentifier` and Android `Modifier.testTag` use the identical string. Android names come from `android/app/src/main/kotlin/app/banh/customer/TestTags.kt`. UI tests select by identifier only, never by visible text. A tag goes on the element that is tapped or asserted (one element per card or button; on iOS combine children of a card so the card is one element). `<id>` is the cake id from the API.
+
+| Identifier | Element | Screen | In Android file |
+| ---------- | ------- | ------ | --------------- |
+| `launch.logo` | Logo | S-1 | yes |
+| `home.shopName` | Shop name text | S-2 | yes |
+| `home.greeting` | Greeting text | S-2 | yes |
+| `home.zaloButton` | Zalo button | S-2 | yes |
+| `home.phoneButton` | Phone button | S-2 | yes |
+| `home.productsButton` | View products button | S-2 | yes |
+| `home.orderButton` | Place order button (enabled or disabled) | S-2 | yes |
+| `home.skeleton` | Loading skeleton | S-2 | yes |
+| `home.noCakesNotice` | `HOME_NO_CAKES` message | S-2 | NO, new |
+| `products.list` | Scrolling list container | S-3 | yes |
+| `products.card.<id>` | One cake card | S-3 | yes (function `productCard`) |
+| `products.skeleton.<index>` | Skeleton card, index from 0 | S-3 | yes (function `productCardSkeleton`) |
+| `detail.name` | Cake name | S-4 | yes |
+| `detail.description` | Description | S-4 | yes |
+| `detail.price` | Price | S-4 | yes |
+| `detail.orderButton` | Order this cake button | S-4 | yes |
+| `detail.imageFailed` | Image failure placeholder | S-3 card and S-4 (`products.card.<id>` keeps its own id; this tag is inside it) | NO, new |
+| `detail.goneNotice` | `DETAIL_GONE` message | S-4 | NO, new |
+| `detail.goneAction` | `DETAIL_GONE_ACTION` button | S-4 | NO, new |
+| `order.step` | Step label of the S-5 stub (and S-5 in the full flow) | S-5 | yes (`ORDER_STUB_STEP`) |
+| `order.cakeRemovedNotice` | `ORDER_CAKE_REMOVED` message | S-5 | NO, new (full S-5 only, not in the stub) |
+| `state.error` | Error `StateView` of any screen (load failure) | S-2 to S-5 | yes |
+| `state.retry` | Retry button inside `state.error` or `state.empty` | any | yes |
+| `state.empty` | Zero-cake `StateView` (`PRODUCTS_EMPTY`) | S-3, S-5 | NO, new |
+
+Differences for forge-dev: the Android file lacks `home.noCakesNotice`, `detail.imageFailed`, `detail.goneNotice`, `detail.goneAction`, `order.cakeRemovedNotice` and `state.empty` (add them with the zero-cake work). `state.retry` is shared by the Error and Empty states. The iOS app has no identifiers yet (the only UI test finds the text "Banh App": replace it). Full S-5 to S-9 identifiers will be published with their own stage.
+
+States each UI test must reach (both platforms, with the fake API or fixture):
+
+| Screen | States to reach |
+| ------ | --------------- |
+| S-1 | Default (`launch.logo` visible, then S-2 appears). |
+| S-2 | Default; Loading without cache (`home.skeleton`); Error without cache (`state.error`, `state.retry`, all four buttons disabled); No cakes (`home.noCakesNotice` visible, `home.orderButton` disabled, `home.productsButton` enabled, then back to Default after a cake becomes active). |
+| S-3 | Default with 4, 3, 2 and 1 cards (`products.card.<id>` count equals the active cakes, no extra card); Loading (`products.skeleton.0`); Error without cache (`state.error`); zero cakes (`state.empty`, no `products.list` cards, `state.retry` then a cake becomes active and its card appears); image failure (`detail.imageFailed`, card still tappable). |
+| S-4 | Default (name, description, price, order button); Gone (`detail.goneNotice`, `detail.goneAction`, no `detail.orderButton`); image failure. |
+| S-5 stub | `order.step` visible after tapping `home.orderButton` and after tapping `detail.orderButton`. |
 
 ## 10. Traceability
 
@@ -522,9 +593,9 @@ FR to screens. "X" means the screen implements or shows the requirement.
 | -- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ----- |
 | FR-1 | X | | | | | | | | | Logo only, then S-2 |
 | FR-2 | | X | | | | | | | | Name, greeting, Zalo, phone, two buttons |
-| FR-3 | | | X | X | | | | | | Four cakes, picture, name, description, price |
+| FR-3 | | X | X | X | | | | | | Every active cake (1 to 4), picture, name, description, price; zero-cake Error on S-3, disabled order on S-2, Gone on S-4 [v1.2 | 2026-10-26] |
 | FR-4 | | | | X | X | | | | | Order button, quantity 1 |
-| FR-5 | | | | | X | | | | | Quantity per cake |
+| FR-5 | | | | | X | | | | | Quantity per active cake; removed-cake message [v1.2 | 2026-10-26] |
 | FR-6 | | | | | | X | | | | Date choice; unavailable dates not selectable |
 | FR-7 | | | | | | X | | | | Fixed slot list |
 | FR-8 | | | | | | | X | | | Name, phone, address, district |
@@ -540,19 +611,26 @@ FR to screens. "X" means the screen implements or shows the requirement.
 | FR-18 | | | | | | | X | X | | Note input, counter, shown on review |
 | FR-19 | | X | X | X | X | X | X | X | X | Constraint: no payment text anywhere |
 
-Non-FR items covered: privacy sentence before confirmation (PRD section 8, Privacy) on S-8; accessibility and performance (PRD section 8) in sections 5.8 and 9; AC-29 (no visible sample marker) in the global rules. ACs mapped to screens: AC-1 S-1; AC-2, AC-3 S-2; AC-4 S-3; AC-5 S-4 and S-5; AC-6 S-5, S-8; AC-7, AC-8, AC-10, AC-24 S-6; AC-9, AC-13, AC-22 S-8; AC-11, AC-12, AC-26 S-7; AC-14, AC-18, AC-19, AC-20 S-8; AC-15, AC-16, AC-17, AC-25 S-9; AC-21 all; AC-27 all.
+Non-FR items covered: privacy sentence before confirmation (PRD section 8, Privacy) on S-8; accessibility and performance (PRD section 8) in sections 5.8 and 9; AC-29 (no visible sample marker) in the global rules. ACs mapped to screens: AC-1 S-1; AC-2, AC-3 S-2; AC-4 S-3; [v1.2 | 2026-10-26] AC-32 S-3, S-5; AC-33 S-2, S-3, S-5; AC-34 S-5, S-8; AC-5 S-4 and S-5; AC-6 S-5, S-8; AC-7, AC-8, AC-10, AC-24 S-6; AC-9, AC-13, AC-22 S-8; AC-11, AC-12, AC-26 S-7; AC-14, AC-18, AC-19, AC-20 S-8; AC-15, AC-16, AC-17, AC-25 S-9; AC-21 all; AC-27 all.
 
 Every FR is traced. No screen element is without an FR; the PRD items BR-1 to BR-12 appear only through the FRs above. AC-28 (cancellation) has no UI. [v1.1 | 2026-10-25] AC-23 (price kept after change) is covered on S-8 by the re-review on `PRICE_CHANGED` (section 5.8).
 
 ## 11. Assets
 
 - Mockups: reference only, private link recorded in the PRD header. The text of this document is authoritative.
-- Pictures of the four cakes and the logo: fake placeholder images supplied with launch data; no real customer data in any asset. No exported images are stored in the repository yet.
+- Pictures of the cakes: fake placeholder images supplied with launch data; no real customer data in any asset. No exported images are stored in the repository yet.
+- Logo [v1.2 | 2026-10-26]: S-1 must show the logo before the catalog loads and the API has no logo field, so the logo is a bundled asset: iOS asset catalog image set `ShopLogo`, Android drawable `shop_logo` (vector or PNG at 1x to 3x), used on S-1 (Large) and S-2 (Small). Shape and masking come from `LogoMark`. The owner supplies the artwork (see open question BQ-1); until then a neutral placeholder mark without text or any word "sample", "demo" or "test" is bundled. Replacing the artwork is an asset swap with no layout change. The shop name stays dynamic text from shop data.
 - Icons: native system symbols on iOS and Material Symbols on Android [v1.1 | 2026-10-25] The Zalo button uses a generic chat icon (SF Symbol / Material Symbol) with the word "Zalo"; the Zalo logo is not used (ADR-0015).
 
 ## 12. Open Questions / Change log
 
-Business questions: none. [v1.1 | 2026-10-25] Copy is final; no key is pending. All technical questions are answered (below).
+Business questions: BQ-1 below (artwork only). [v1.1 | 2026-10-25] Copy is final; no key is pending. All technical questions are answered (below).
+
+| ID | Question | Why it matters | Blocking | Class | Status | Answer |
+| -- | -------- | -------------- | -------- | ----- | ------ | ------ |
+| BQ-1 | [v1.2 | 2026-10-26] Please supply the shop logo artwork (vector or PNG at least 512 px square, transparent background) | The logo is bundled in both apps (section 11); a neutral placeholder is used until it arrives | No | business | Open | Placeholder bundled meanwhile |
+| TQ-9 | [v1.2 | 2026-10-26] Does S-2 learn the active-cake count (needed to disable "Place order" at zero) from a catalog request at start-up, and is the refresh on screen appear and foreground return acceptable? | Section 5.2 No cakes state; for atlas-architect and forge-dev | No | technical | Open | Proposed: yes, with ETag revalidation (ADR-0017) |
+| TQ-10 | [v1.2 | 2026-10-26] S-5 drops a hidden cake's quantity from the draft: confirm the draft keeps date, slot and recipient data (ADR-0011) | Section 5.5 Cake removed state | No | technical | Open | Proposed as specified |
 
 | ID | Question | Why it matters | Blocking | Class | Status | Answer |
 | -- | -------- | -------------- | -------- | ----- | ------ | ------ |
@@ -572,4 +650,5 @@ Assumptions: launch screen time 1.0 to 2.0 s; slots appear as a list and dates a
 | Version | Date | Change |
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version, based on product/place-order.md v1.2. |
+| 1.2 | 2026-10-26 | Based on PRD v1.4 (BR-13, AC-32 to AC-34): S-3 shows 1 to 4 cakes with width-based wireframes and a zero-cake Error state (`PRODUCTS_EMPTY`, retry); S-2 No cakes state (`HOME_NO_CAKES`, Place order disabled); S-4 Gone state and Loading corrected (DOC-9: S-4 is never restored); S-5 1 to 4 rows, zero state and Cake removed state; S-8 `ERR_PRODUCT_UNAVAILABLE` keeps data; new keys `PRODUCTS_EMPTY`, `HOME_NO_CAKES`, `DETAIL_GONE`, `DETAIL_GONE_ACTION`, `ORDER_CAKE_REMOVED`, `MONEY_FORMAT`; `STEP_LABEL` note; section 9.1 test identifiers and states; bundled logo asset, BQ-1, TQ-9, TQ-10. |
 | 1.1 | 2026-10-25 | Minimum iOS 17 / Android 8.0 with both fallbacks (section 6); cache-first Error rules on S-2 to S-5; saved-draft restore from S-2; S-8 price-change behaviour and final `MSG_PRICE_CHANGED`; new keys `ERR_PRODUCT_UNAVAILABLE`, `ERR_SLOT_UNAVAILABLE`, `ERR_RATE_LIMITED`, `ACTION_CHOOSE_SLOT`; Zalo button generic icon plus word; stepper cap 99; `ERR_PHONE_INVALID` mobile-only; TQ-1 to TQ-8 closed. |
