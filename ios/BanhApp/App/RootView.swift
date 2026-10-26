@@ -1,14 +1,72 @@
 import SwiftUI
 
-/// Empty app shell (ADR-0007). Real screens arrive with slice 1; this view only proves
-/// that the app builds, launches and resolves strings from the catalog.
+/// S-1 first, then the navigation stack from S-2. Owns the navigation path and creates each screen's
+/// model, so screens never reach into the environment themselves.
 struct RootView: View {
-    var body: some View {
-        Text("shell.placeholder")
-            .padding()
-    }
-}
+    private enum Phase { case launching, running }
 
-#Preview {
-    RootView()
+    let environment: AppEnvironment
+    private let launchGate: LaunchGate
+
+    @State private var phase: Phase = .launching
+    @State private var path: [Route] = []
+    @State private var home: HomeViewModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    init(environment: AppEnvironment, launchGate: LaunchGate = LaunchGate()) {
+        self.environment = environment
+        self.launchGate = launchGate
+        _home = State(initialValue: HomeViewModel(
+            repository: environment.catalogRepository,
+            contact: ContactActions(opener: environment.urlOpener)
+        ))
+    }
+
+    var body: some View {
+        ZStack {
+            switch phase {
+            case .launching: LaunchView().transition(.opacity)
+            case .running: navigation.transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: reduceMotion ? Motion.short : Motion.long), value: phase)
+        // The design has a light palette only; pinning it keeps system bars readable on the cream background.
+        .preferredColorScheme(.light)
+        // Starts the data work behind the logo; the gate below only watches its progress.
+        .task { await environment.catalogRepository.refresh() }
+        .task {
+            await launchGate.awaitExit { !environment.catalogRepository.catalog.isLoading }
+            if !Task.isCancelled { phase = .running }
+        }
+    }
+
+    private var navigation: some View {
+        NavigationStack(path: $path) {
+            HomeView(
+                model: home,
+                onViewProducts: { path.append(.products) },
+                onPlaceOrder: { path.append(.order) }
+            )
+            .navigationDestination(for: Route.self, destination: destination)
+        }
+    }
+
+    @ViewBuilder
+    private func destination(for route: Route) -> some View {
+        switch route {
+        case .products:
+            ProductsView(model: .products(
+                repository: environment.catalogRepository, assetBaseURL: environment.assetBaseURL
+            ))
+        case .productDetail(let id):
+            ProductDetailView(
+                model: .product(
+                    id: id, repository: environment.catalogRepository, assetBaseURL: environment.assetBaseURL
+                ),
+                onOrder: { path.append(.order) }
+            )
+        case .order:
+            OrderStubView()
+        }
+    }
 }

@@ -58,6 +58,8 @@ export DEVELOPER_DIR=/Applications/<Xcode 27>.app/Contents/Developer
 xcodebuild -project BanhApp.xcodeproj -scheme BanhApp -destination "generic/platform=iOS Simulator" CODE_SIGNING_ALLOWED=NO build
 ```
 
+iOS configuration [v1.2 | 2026-10-26]: the API address is the build setting `API_BASE_URL` (default `http://localhost:8080` in `ios/Config/Project.xcconfig`; override it in the git-ignored `ios/Config/Local.xcconfig`, see the `.example` file; write `//` as `/$()/`). It reaches the app through `ios/Config/Info.plist` (`BanhAPIBaseURL`). UI tests run against an in-process stub chosen by the debug-only launch argument `-BanhStubBackend catalog|unavailable`; accessibility identifiers live in `ios/Shared/AccessibilityID.swift`, compiled into the app and the UI test target.
+
 Android (`android/`), unverified: create the wrapper once with `gradle wrapper --gradle-version 9.6.0`, commit it, then `./gradlew :app:assembleDebug`.
 
 ## 4. Coding Conventions
@@ -118,3 +120,4 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-26 | First version after slice 0 merged. |
 | 1.1 | 2026-10-26 | Slice 1 backend: `SHOP_ID` for `serve`, catalogue, assets, rate limit; catalogue SQL not yet run against PostgreSQL. |
+| 1.2 | 2026-10-26 | Slice 1 iOS: `API_BASE_URL`, stub backend launch argument, shared accessibility identifiers. |

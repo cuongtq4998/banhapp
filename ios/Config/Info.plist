@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Keys that Xcode's generated Info.plist cannot express. Merged with it (GENERATE_INFOPLIST_FILE stays on). -->
+<plist version="1.0">
+<dict>
+	<key>BanhAPIBaseURL</key>
+	<string>$(API_BASE_URL)</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<!-- Lets a backend on this Mac or the local network answer over http during development. Public hosts stay https-only. -->
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+</dict>
+</plist>

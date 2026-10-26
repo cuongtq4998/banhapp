@@ -46,6 +46,11 @@
 			path = BanhAppTests;
 			sourceTree = "<group>";
 		};
+		A00000000000000000000040 /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		043FCE20307B636C004BF6DE /* BanhAppUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = BanhAppUITests;
@@ -81,6 +86,7 @@
 				043FCE08307B636B004BF6DE /* BanhApp */,
 				043FCE16307B636C004BF6DE /* BanhAppTests */,
 				043FCE20307B636C004BF6DE /* BanhAppUITests */,
+				A00000000000000000000040 /* Shared */,
 				043FCE07307B636B004BF6DE /* Products */,
 			);
 			sourceTree = "<group>";
@@ -110,6 +116,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				043FCE08307B636B004BF6DE /* BanhApp */,
+				A00000000000000000000040 /* Shared */,
 			);
 			packageProductDependencies = (
 				A00000000000000000000020 /* BanhContracts */,
@@ -158,6 +165,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				043FCE20307B636C004BF6DE /* BanhAppUITests */,
+				A00000000000000000000040 /* Shared */,
 			);
 			name = BanhAppUITests;
 			productName = BanhAppUITests;
@@ -389,6 +397,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -429,6 +438,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
