@@ -3,7 +3,7 @@
 | Field | Value |
 | ----- | ----- |
 | Branch | feature/place-order |
-| Current stage | 3 - architecture done; owner decisions pending (6 Proposed ADRs) |
+| Current stage | B - architecture and QA plan done; all 15 ADRs Accepted; waiting to start stage 4 (forge-dev) |
 | Fix rounds used | 0 of 3 |
 
 ## Approvals
