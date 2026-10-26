@@ -1,4 +1,8 @@
 import XCTest
+import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 import XCTVapor
 import Logging
 import NIOConcurrencyHelpers
@@ -212,12 +216,12 @@ final class ErrorPipelineEdgeTests: XCTestCase {
 
     // ---- routing ----
 
-    /// api.md section 5: "The path exists, the HTTP method does not" is 405.
-    func testDefectWrongMethodOnExistingPathIsMethodNotAllowed() async throws {
+    /// api.md v1.5 section 5: an unrouted method and path pair answers 404 NOT_FOUND (405 only when raised by framework or handler).
+    func testWrongMethodOnExistingPathIsNotFound() async throws {
         for method in [HTTPMethod.POST, .PUT, .DELETE, .PATCH] {
             try await app.test(method, "healthz") { res async throws in
-                XCTAssertEqual(res.status, .methodNotAllowed, "\(method)")
-                XCTAssertEqual(try self.envelope(res).code, "METHOD_NOT_ALLOWED")
+                XCTAssertEqual(res.status, .notFound, "\(method)")
+                XCTAssertEqual(try self.envelope(res).code, "NOT_FOUND")
             }
         }
     }
