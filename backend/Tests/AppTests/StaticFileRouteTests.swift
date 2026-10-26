@@ -55,7 +55,7 @@ final class StaticFileRouteTests: XCTestCase {
         for path in ["assets/images/nothing.png", "assets/images/..%2fbanana.png", "assets/other/banana.png"] {
             try await app.test(.GET, path) { res async throws in
                 XCTAssertEqual(res.status, .notFound, path)
-                XCTAssertEqual(res.headers.first(name: .cacheControl), path.contains("other") ? nil : "no-store", path)
+                XCTAssertEqual(res.headers.first(name: .cacheControl), "no-store", path)
             }
         }
     }

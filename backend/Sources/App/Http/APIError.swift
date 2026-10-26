@@ -28,9 +28,7 @@ struct APIError: Error, Sendable {
         self.headers = headers
     }
 
-    /// A 404 that caches and proxies must not remember: a file that is missing
-    /// today may be deployed tomorrow under the same URL.
-    static let notFoundUncached = APIError(.notFound, headers: [HTTPHeaders.Name.cacheControl.description: "no-store"])
+    static let noStoreCacheControl = "no-store"
 
     static let retryAfterDetailKey = "retry_after_seconds"
 

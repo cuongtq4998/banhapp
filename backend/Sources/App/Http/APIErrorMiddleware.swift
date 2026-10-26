@@ -30,6 +30,10 @@ struct APIErrorMiddleware: AsyncMiddleware {
             let response = Response(status: apiError.status)
             try response.content.encode(apiError.makeBody(requestID: request.requestID), as: .json)
             for (name, value) in apiError.headers { response.headers.replaceOrAdd(name: name, value: value) }
+            if apiError.code == .notFound {
+                // A missing path may exist tomorrow; no cache or proxy may remember the 404.
+                response.headers.replaceOrAdd(name: .cacheControl, value: APIError.noStoreCacheControl)
+            }
             if let seconds = apiError.retryAfterSeconds {
                 response.headers.replaceOrAdd(name: .retryAfter, value: String(seconds))
             }

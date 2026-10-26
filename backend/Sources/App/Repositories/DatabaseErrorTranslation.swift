@@ -12,7 +12,9 @@ import PostgresNIO
 /// - a statement the server rejected on a healthy connection (`.server`): a
 ///   defect in our SQL, not an outage;
 /// - a row that does not decode: a mismatch between schema and code;
-/// - cancellation of the surrounding task.
+/// - cancellation of the surrounding task;
+/// - a `CatalogRepositoryError`: the repository's own verdict (for example an
+///   unknown shop id, a deployment mistake), not a database outage.
 /// Everything else (refused or dropped connections, TLS failures, pool
 /// timeouts, closed connections) means the database is not usable right now.
 func translatingDatabaseErrors<Result>(_ work: () async throws -> Result) async throws -> Result {
@@ -23,6 +25,8 @@ func translatingDatabaseErrors<Result>(_ work: () async throws -> Result) async 
     } catch let error as DecodingError {
         throw error
     } catch let error as CancellationError {
+        throw error
+    } catch let error as CatalogRepositoryError {
         throw error
     } catch let error as PSQLError where error.code == .server {
         throw error
