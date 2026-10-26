@@ -1,0 +1,24 @@
+# Versions and where they were read (2026-10-26):
+# agp 9.4.0     https://developer.android.com/build/releases/gradle-plugin (needs Gradle 9.6.0, JDK 17, build tools 36.0.0)
+# kotlin 2.4.21 https://kotlinlang.org/docs/releases.html (AGP 9 has built-in Kotlin, so no kotlin-android plugin)
+# composeBom    https://developer.android.com/develop/ui/compose/bom/bom-mapping (maps to material3 1.4.0, ADR-0007)
+# activity      https://developer.android.com/jetpack/androidx/releases/activity (latest stable)
+# junit 4.13.2  https://junit.org/junit4/ (not re-checked; widely used final 4.x release)
+[versions]
+agp = "9.4.0"
+kotlin = "2.4.21"
+composeBom = "2026.09.00"
+activityCompose = "1.13.0"
+junit = "4.13.2"
+
+[libraries]
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+junit = { module = "junit:junit", version.ref = "junit" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+# The Compose compiler plugin is versioned in step with Kotlin.
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
