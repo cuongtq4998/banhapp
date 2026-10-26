@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0003 |
-| Version  | 1.2 |
+| Version  | 1.3 |
 | Status   | Accepted for the trial phase, free plans only (owner direction: no spend during the new-project phase). Becomes Proposed again if any step asks for a payment card or a recurring cost [v1.1 | 2026-10-25] |
 | Date     | 2026-10-25 (v1.1 2026-10-25) |
 | Decider  | Product owner (direction); atlas-architect (choice within it) |
@@ -52,6 +52,17 @@ Upgrade path to paid always-on (owner approval needed): (1) Render Starter insta
 
 Launch costs, listed and not decided here: Apple Developer Program (about USD 99 per year, unverified), Google Play registration (about USD 25 once, unverified), custom domain (about USD 10 to 15 per year, unverified), paid hosting from the upgrade path.
 
+## Image visibility and pull credentials [v1.3 | 2026-10-26]
+
+Technical decision (QA defect D-12), no cost and no data exposed.
+
+- Check: `backend/Dockerfile` copies only the compiled binary, `ca-certificates`, `tzdata` and `backend/db` (SQL migrations and sample seed, which are already in the public repository). `backend/Dockerfile.dockerignore` excludes `.git`, `.env`, `.build` and `.swiftpm`. All configuration comes from environment variables set in the host and CI secret stores. The image therefore holds no secret and no customer data, and publishing it exposes nothing the public repository does not.
+- A package first pushed to GHCR is private (GitHub docs). Making it public is a one-time owner action in the GitHub web UI (package page, Package settings, Danger Zone, Change visibility, Public, type the package name). It is free, and it cannot be undone. Nothing in `GITHUB_TOKEN` or the workflow can do it. The package exists only after the first successful push to main.
+- Until the owner has done that: CI does not depend on it. `deploy-staging` logs in to `ghcr.io` with `GITHUB_TOKEN` (job permission `packages: read`) before `docker run ... migrate --yes`, so migrations work with the package private or public.
+- Render: a service that pulls a private image needs a registry credential in the workspace (for GHCR a GitHub personal access token with `read:packages`). A public image needs none. Decision: keep the target state **public package, no credential in Render**, because a long-lived personal token held by the host is a standing secret we avoid. Until the owner makes the package public, the first Render deploy from the hook fails to pull; this does not block migrations or the build, and the staging deploy simply stays on its previous image. If the owner prefers a private package, the fallback is a credential with a fine-scoped read-only token created by the owner; whether the free instance type accepts a registry credential is **unverified** (the Render image documentation lists no plan restriction, the credentials page could not be read), so that fallback needs a check at the time.
+- Optional hardening for the developer: add the label `org.opencontainers.image.source` (the repository URL) so GitHub links the package to the repository (unverified effect on visibility: linking does not by itself make it public).
+- Owner TODO (not blocking): make the backend package public once, after the first push to main.
+
 ## Consequences
 
 - Positive: USD 0 for the trial; no accounts with a card.
@@ -66,6 +77,8 @@ Launch costs, listed and not decided here: Apple Developer Program (about USD 99
 | Render regions include Singapore (free availability not stated) | https://render.com/docs/regions | 2026-10-25 | Medium |
 | Render deploys public images from any registry (GHCR), linux/amd64, deploy hook, no auto-deploy on push | https://render.com/docs/deploy-an-image | 2026-10-25 | High |
 | Render deploy hook: plain GET or POST; a specific image is chosen with the `imgURL` query parameter (URL-encoded), other URL parts must match the service's image URL [v1.2 \| 2026-10-26] | https://render.com/docs/deploy-hooks ; https://render.com/docs/deploy-an-image | 2026-10-26 | High |
+| A new GHCR package is private; making it public is done in package settings and cannot be reversed [v1.3 \| 2026-10-26] | https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility | 2026-10-26 | High |
+| Render private images need a registry credential (GHCR: personal access token with `read:packages`); no free-plan statement on that page [v1.3 \| 2026-10-26] | https://render.com/docs/deploy-an-image | 2026-10-26 | High for the credential, unverified for the free instance type |
 | Neon free plan: 1 GB per project, 100 CU-hours, suspend after 5 minutes, 6-hour restore | https://neon.com/docs/introduction/plans | 2026-10-25 | High |
 | Neon Singapore region `aws-ap-southeast-1` | https://neon.com/docs/introduction/regions | 2026-10-25 | High |
 | Neon resume time 500 ms to a few seconds | Search result of Neon connection latency docs (https://neon.com/docs/connect/connection-latency) | 2026-10-25 | Medium |
@@ -86,3 +99,4 @@ Related: ADR-0001, ADR-0002, ADR-0004.
 | 1.0 | 2026-10-25 | Proposed, paid always-on recommended (about USD 7 per month). |
 | 1.1 | 2026-10-25 | Owner asked for a free trial: free Render plus Neon recommended and Accepted for the trial; coping measures, stop condition and upgrade path. |
 | 1.2 | 2026-10-26 | Source added for deploy hook usage (`imgURL`); decision unchanged. |
+| 1.3 | 2026-10-26 | Image visibility and pull credentials decided (D-12): public package by owner action, CI logs in meanwhile, Render credential only if private; image content checked for secrets. |

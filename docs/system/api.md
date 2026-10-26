@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.4 |
+| Version      | 1.5 |
 | Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -252,8 +252,8 @@ Static product images and the logo; `Cache-Control: public, max-age=86400`. Imag
 | ORDERING_PAUSED | 503 | `ERR_SERVER` | The owner paused ordering | `ERR_SERVER` (the customer can call the shop) |
 | SERVICE_UNAVAILABLE | 503 | `ERR_SERVER` | Database unavailable | `ERR_SERVER` with retry; same key on retry |
 | INTERNAL_ERROR | 500 | `ERR_SERVER` | Unexpected error | `ERR_SERVER` with retry; same key on retry |
-| NOT_FOUND | 404 | `ERR_SERVER` | No route for the path (routing error, not raised by a business rule) | Client defect; `ERR_SERVER`, treated like `INTERNAL_ERROR` (retry is pointless but harmless) [v1.3 | 2026-10-26] |
-| METHOD_NOT_ALLOWED | 405 | `ERR_SERVER` | The path exists, the HTTP method does not | Same as `NOT_FOUND` [v1.3 | 2026-10-26] |
+| NOT_FOUND | 404 | `ERR_SERVER` | No route for the method and path pair, including a known path with an unrouted method (Vapor matches method and path together, so `POST /healthz` is a miss; routing error, not raised by a business rule) | Client defect; `ERR_SERVER`, treated like `INTERNAL_ERROR` (retry is pointless but harmless) [v1.3 | 2026-10-26] [v1.5 | 2026-10-26] |
+| METHOD_NOT_ALLOWED | 405 | `ERR_SERVER` | Only when the framework or a handler itself reports 405; the router does not (see the `NOT_FOUND` row) | Same as `NOT_FOUND` [v1.5 | 2026-10-26] |
 | (no response) | n/a | No connection | `ERR_OFFLINE` with retry; same key |
 | (client timeout 10 s) | n/a | Unknown outcome | `ERR_TIMEOUT` with retry; same key, so a repeat returns the stored order (AC-19) |
 
@@ -264,6 +264,7 @@ Rules of the catalogue [v1.3 | 2026-10-26]:
 - The top-level `message_key` is `ERR_` plus the code for the codes the UI document shows by name (`MIN_QTY`, `DATE_LEAD`, `DATE_HORIZON`, `DATE_CAPACITY`, `DISTRICT_UNSERVED`, `PRODUCT_UNAVAILABLE`, `SLOT_UNAVAILABLE`, `RATE_LIMITED`), `MSG_PRICE_CHANGED` for `PRICE_CHANGED`, and `ERR_SERVER` for every other code. `VALIDATION_FAILED` has no single text: the app reads `fields[].message_key`; the top-level `ERR_SERVER` applies when `fields` is missing, empty or holds only keys the app does not know.
 - Unknown error codes: the client shows `ERR_SERVER`.
 - `RATE_LIMITED` carries the `Retry-After` header (seconds, an integer) and `details.retry_after_seconds` with the same value; the default is 60 seconds (the shortest window, the per-minute read limit, in the rate-limit table at the top) when the limiter gives no value [v1.4 | 2026-10-26].
+- Wrong method [v1.5 | 2026-10-26]: clients never send a method other than the one documented per endpoint. Any unrouted method and path pair answers `404 NOT_FOUND`; the API does not promise `405`. The 405 mapping stays in the error middleware only for a 405 that the framework or a handler raises, and clients treat both alike.
 - Framework errors never leave as framework bodies: the error middleware maps a Vapor `AbortError` by status (404 `NOT_FOUND`, 405 `METHOD_NOT_ALLOWED`, 413 `PAYLOAD_TOO_LARGE`, 429 `RATE_LIMITED`, 503 `SERVICE_UNAVAILABLE`, other 4xx `VALIDATION_FAILED` without `fields`, everything else `INTERNAL_ERROR`). A decoding failure of a body is therefore `VALIDATION_FAILED` without `fields`.
 - Database outage: `SERVICE_UNAVAILABLE` is answered only when a repository throws `APIError(.serviceUnavailable)`. The mapper does not read driver errors (they can hold SQL or customer data), so an unwrapped driver error becomes `INTERNAL_ERROR`. Every repository method that talks to the database must catch connection and pool errors and rethrow them as `APIError(.serviceUnavailable)` (slice 3 for orders; slice 1 for catalog and availability). Both codes are retryable with the same key.
 
@@ -293,3 +294,4 @@ Every endpoint above is in the index with FRs. Every data field used traces to d
 | 1.2 | 2026-10-26 | Health check consumers clarified (shallow for monitors, deep for operator and deploy checks). |
 | 1.3 | 2026-10-26 | Error catalogue: top-level `message_key` per code, `NOT_FOUND` and `METHOD_NOT_ALLOWED`, `RATE_LIMITED` key and `Retry-After`, framework error mapping, database outage wrapping rule; API-Q1 closed. |
 | 1.4 | 2026-10-26 | Body limit boundary stated (8 KB passes, one byte more fails); `Retry-After` default 60 s. |
+| 1.5 | 2026-10-26 | D-9: unrouted method and path pair answers 404 `NOT_FOUND`; 405 kept only when raised by the framework or a handler. |
