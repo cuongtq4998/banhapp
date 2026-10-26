@@ -25,7 +25,7 @@ Owner decision (business): the catalog shows every active cake; one to four are 
 ## Decision
 
 1. **Catalog ETag (A).** Strong tag: quoted lowercase hex of the SHA-256 of the exact body bytes, truncated to 32 characters. The body is encoded deterministically. `If-None-Match` uses weak comparison (list, `W/` ignored, `*`). A 304 repeats `ETag`, `Cache-Control: no-cache` and `X-Request-Id`. Details: api.md 4.1. A version counter (B) would need a column that every later owner edit must maintain; a body hash needs nothing and cannot be forgotten.
-2. **Rate limit (A).** One shared fixed 60-second budget per address for all read routes; 304 and 404 count, a 429 does not; `Retry-After` is the seconds left in the window (1 to 60). 120 per minute stays: a cold start is about five requests (one catalog, four images, then cached for a year), so one address can start about 20 customers a minute; the shop expects a few orders a day. Counting everything keeps the limiter a plain counter with no per-route rules. If shared mobile gateways prove too tight, raise `RATE_LIMIT_READ_PER_MINUTE`, or exempt static files (C), without an API change; the 429 alert (deployment.md) shows it.
+2. **Rate limit (A).** One shared fixed 60-second budget per address for all read routes (`GET` and `HEAD` requests; `HEAD` is answered like `GET` and counts); the window is per address, starts at that address's first counted request and a later request after its end starts a new one (no global reset) [v1.1 | 2026-10-26]; the table stores at most 10,000 addresses (constant; when full, expired windows go first, then the oldest window start is evicted, so the limiter fails open for the evicted address); 304 and 404 count, a 429 does not; `Retry-After` is the seconds left in the window (1 to 60). 120 per minute stays: a cold start is about five requests (one catalog, four images, then cached for a year), so one address can start about 20 customers a minute; the shop expects a few orders a day. Counting everything keeps the limiter a plain counter with no per-route rules. If shared mobile gateways prove too tight, raise `RATE_LIMIT_READ_PER_MINUTE`, or exempt static files (C), without an API change; the 429 alert (deployment.md) shows it.
 3. **Image field.** Column `product.image_path` (relative, `images/<slug>.png`), API field `image_url`, built as base + `/assets/` + path + `?v=` (below). Folder `backend/assets/images/`, served at `/assets/images/*` only.
 4. **Image caching (C).** The server appends `?v=<first 8 hex of the file SHA-256>` computed at start, and answers images with `public, max-age=31536000, immutable`; 404 gets `no-store`. A changed photo changes the URL, and so the catalog ETag, so apps fetch the new one. No manual naming rule to forget (D), no per-image request (B).
 5. **Unknown query parameters** on `GET /v1/catalog` and `GET /v1/availability` are ignored (the request-body rule of rejecting unknown fields stays for `POST`).
@@ -51,4 +51,11 @@ Owner decision (business): the catalog shows every active cake; one to four are 
 
 ## Links
 
-Related: ADR-0011, ADR-0013, ADR-0014; api.md sections 1, 4.1, 4.6.
+Related: ADR-0011, ADR-0013, ADR-0014; api.md sections 1, 4.1, 4.6; deployment.md section 3.1 (client address behind one proxy).
+
+## Change log
+
+| Version | Date | Change |
+| ------- | ---- | ------ |
+| 1.0 | 2026-10-26 | First version (Accepted). |
+| 1.1 | 2026-10-26 | D-18: per-address window and 10,000-address bound written exactly; `HEAD` counts (DOC-11); ETag is the first 32 hex characters only (D-20). |
