@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.3 |
+| Version      | 1.4 |
 | Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | atlas-architect (design), forge-dev (keeps it true) |
@@ -35,9 +35,9 @@ Backend variables (names only; `.env.example` lists the same names with empty va
 | Name | Meaning | Required | Where set |
 | ---- | ------- | -------- | --------- |
 | `APP_ENV` | `local`, `staging` or `production` | Yes | Host |
-| `PORT` | Listen port (Vapor binds `0.0.0.0` on it) | Yes | Host |
+| `PORT` | Listen port (Vapor binds `0.0.0.0` on it) | Yes for `serve`; not read by `migrate` [v1.4 | 2026-10-26] | Host |
 | `DATABASE_URL` | Application database connection (limited role) | Yes in staging and production; optional when `APP_ENV=local` (the server then starts with the shallow health check only and logs a warning) [v1.2 | 2026-10-26] | Host secret store |
-| `DATABASE_MIGRATION_URL` | Migration role connection | For migrations | CI secret, operator machine |
+| `DATABASE_MIGRATION_URL` | Migration role connection | For migrations (`migrate` needs only this and `APP_ENV`; `serve` does not read it) [v1.4 | 2026-10-26] | CI secret, operator machine |
 | `DATABASE_POOL_MAX` | Maximum connections per instance (default 5; free plans limit connections); direct, not pooled, connection string (ADR-0002) | No | Host |
 | `SHOP_ID` | UUID of the shop served (single shop at launch) | Yes from slice 1 (not read by slice 0) [v1.2 | 2026-10-26] | Host |
 | `TRUST_PROXY` | Read the client IP from the proxy header | Yes in staging and production from slice 3 (rate limits); not read by slice 0 [v1.2 | 2026-10-26] | Host |
@@ -62,12 +62,16 @@ CI files [v1.2 | 2026-10-26]: `.github/workflows/backend.yml` (job `test` on `ub
 
 Backend CI checks [v1.3 | 2026-10-26]: the `test` job runs `swift test` with `DATABASE_MIGRATION_URL` pointing at the service container, so the database tests of the same `AppTests` target run (without the variable they skip). That variable must never point at staging, production or any database holding data: the tests apply migrations and roll back each test, but a throwaway database is the rule. After the tests the job builds the release binary, starts it with `APP_ENV=local` against the service container and checks the shallow `GET /healthz` (`"status":"ok"`) and the deep `GET /healthz?deep=1` (needs the database), then stops it. A broken release build, startup or database wiring fails the pull request before the image job.
 
-Android CI [v1.3 | 2026-10-26]: `android.yml` installs no packages through the setup action (its licence step exits 1 on the preview-SDK prompt); a step accepts licences with `sdkmanager --licenses` and installs `platforms;android-37` and `build-tools;36.0.0` (compileSdk 37 for Compose 1.12, ADR-0007).
+Android CI [v1.3 | 2026-10-26]: `android.yml` installs no packages through the setup action (its licence step exits 1 on the preview-SDK prompt); a step accepts licences with `sdkmanager --licenses` and installs `platforms;android-37.0` and `build-tools;36.0.0` [v1.4 | 2026-10-26] (compileSdk 37 for Compose 1.12, ADR-0007).
 
-iOS runner [v1.2 | 2026-10-26]: `ios.yml` runs on `macos-latest` (macOS 26) and selects the newest installed Xcode, but the project file needs Xcode 27 and GitHub now offers an Xcode 27 image under the label `xcode-27` (generally available since 2026-10-15). Use `runs-on: xcode-27` (dev query).
+iOS runner [v1.4 | 2026-10-26]: `ios.yml` runs on the hosted label `macos-26` (macOS 26, Xcode 26.x; GitHub offers no hosted Xcode 27 image, so the earlier `xcode-27` label was wrong). A step selects the newest installed Xcode. The project file format stays 77 (opens in Xcode 16.3 and newer); do not commit an upgrade to the newer format, which hosted Xcode 26.x cannot open.
+
+Deploy hook rule [v1.4 | 2026-10-26]: Render's documentation says a deploy hook is triggered by a plain `GET` or `POST`, and that a specific image tag or digest is chosen by appending the `imgURL` query parameter (URL-encoded, for example `docker.io%2Flibrary%2Fnginx%401.26`); every part of the URL except the tag or digest must equal the service's configured image URL, otherwise Render rejects the request (source: https://render.com/docs/deploy-hooks and https://render.com/docs/deploy-an-image, read 2026-10-26). The workflow currently sends `imgRef`, which is not a documented parameter: Render would ignore it or reject it, so the staging service would redeploy its configured tag rather than the new commit (dev query: use `imgURL`, and confirm the image tag form against a real hook; unverified until run against the staging service).
+
+Backend deploy job [v1.4 | 2026-10-26]: `deploy-staging` has its own concurrency group with `cancel-in-progress: false`, so a newer push never cancels a deploy after migrations ran but before the hook was called; the build and test jobs keep `cancel-in-progress: true`. The smoke check after the hook retries the shallow and the deep health check, because the free host needs about a minute to wake and swap. The QA package under `backend/Tests/qa` (edge cases and database tests) also runs in the `test` job.
 
 1. Pull request: backend `swift build` and `swift test` on Linux (XCTVapor) against a PostgreSQL service container (including the parallel-order test of AC-22), with the SwiftPM `.build` cache; SwiftLint [v1.1 | 2026-10-25]; Android build and unit tests; iOS build and unit tests (macOS runner); contract fixture checks; lint.
-2. Merge to main: build the multi-stage image for `linux/amd64` (Swift toolchain image to build with `--static-swift-stdlib`, slim Ubuntu to run, non-root user), push it to GHCR as a public package tagged with the commit, run migrations (`DATABASE_MIGRATION_URL`) first, then call the staging service's Render deploy hook with the image tag (Render does not redeploy on push; migrations are forward-compatible, data-model.md section 8). [v1.1 | 2026-10-25]
+2. Merge to main: build the multi-stage image for `linux/amd64` (Swift toolchain image to build with `--static-swift-stdlib`, slim Ubuntu to run, non-root user), push it to GHCR as a public package tagged with the commit, run migrations (`DATABASE_MIGRATION_URL`) first, then call the staging service's Render deploy hook with the image reference in the `imgURL` query parameter, URL-encoded (Render does not redeploy on push; see the hook rule below [v1.4 | 2026-10-26]; migrations are forward-compatible, data-model.md section 8). [v1.1 | 2026-10-25]
 3. Release tag `backend-vX.Y.Z`: operator approves, the same image digest is deployed to production through its deploy hook [v1.1 | 2026-10-25]. The image holds no secrets or data; all configuration comes from environment variables.
 4. Mobile: tags `ios-vX.Y.Z` and `android-vX.Y.Z`; signed builds are produced locally or by CI with signing secrets (not in the repository); upload to TestFlight and Play internal testing.
 
@@ -188,3 +192,4 @@ Paid always-on path (when real customers order):
 | 1.1 | 2026-10-25 | Swift/Vapor image build in CI, GHCR and deploy hook, free trial hosting (Render, Neon), shallow and deep health checks, GitHub backup repository, costs restructured. |
 | 1.2 | 2026-10-26 | After slice 0: CI files and runners, which health endpoint each consumer uses, `DATABASE_URL` optional locally, variables read only from later slices, sample-row warning moved to slice 4. |
 | 1.3 | 2026-10-26 | CI: release binary smoke test, database tests in the `AppTests` target (throwaway database only), Android platform 37 and explicit licence step. |
+| 1.4 | 2026-10-26 | After backend round 2: `migrate` needs only `APP_ENV` and `DATABASE_MIGRATION_URL`; iOS runner corrected to `macos-26`; Android platform `android-37.0`; deploy job concurrency, smoke retry, QA package in CI; deploy hook parameter checked against Render docs (`imgURL`, not `imgRef`). |

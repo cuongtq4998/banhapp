@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0003 |
-| Version  | 1.1 |
+| Version  | 1.2 |
 | Status   | Accepted for the trial phase, free plans only (owner direction: no spend during the new-project phase). Becomes Proposed again if any step asks for a payment card or a recurring cost [v1.1 | 2026-10-25] |
 | Date     | 2026-10-25 (v1.1 2026-10-25) |
 | Decider  | Product owner (direction); atlas-architect (choice within it) |
@@ -65,6 +65,7 @@ Launch costs, listed and not decided here: Apple Developer Program (about USD 99
 | Render free web service: 750 hours, spin down after 15 minutes, about 1 minute wake, ephemeral disk, one instance; free Postgres 1 GB, expires after 30 days, 14 days grace, no backups | https://render.com/docs/free | 2026-10-25 | High |
 | Render regions include Singapore (free availability not stated) | https://render.com/docs/regions | 2026-10-25 | Medium |
 | Render deploys public images from any registry (GHCR), linux/amd64, deploy hook, no auto-deploy on push | https://render.com/docs/deploy-an-image | 2026-10-25 | High |
+| Render deploy hook: plain GET or POST; a specific image is chosen with the `imgURL` query parameter (URL-encoded), other URL parts must match the service's image URL [v1.2 \| 2026-10-26] | https://render.com/docs/deploy-hooks ; https://render.com/docs/deploy-an-image | 2026-10-26 | High |
 | Neon free plan: 1 GB per project, 100 CU-hours, suspend after 5 minutes, 6-hour restore | https://neon.com/docs/introduction/plans | 2026-10-25 | High |
 | Neon Singapore region `aws-ap-southeast-1` | https://neon.com/docs/introduction/regions | 2026-10-25 | High |
 | Neon resume time 500 ms to a few seconds | Search result of Neon connection latency docs (https://neon.com/docs/connect/connection-latency) | 2026-10-25 | Medium |
@@ -84,3 +85,4 @@ Related: ADR-0001, ADR-0002, ADR-0004.
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | Proposed, paid always-on recommended (about USD 7 per month). |
 | 1.1 | 2026-10-25 | Owner asked for a free trial: free Render plus Neon recommended and Accepted for the trial; coping measures, stop condition and upgrade path. |
+| 1.2 | 2026-10-26 | Source added for deploy hook usage (`imgURL`); decision unchanged. |
