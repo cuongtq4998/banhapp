@@ -55,7 +55,7 @@ final class BanhAppUITests: XCTestCase {
 
         // Back to the list, nothing lost.
         app.navigationBars.buttons.element(boundBy: 0).tap()
-        app.navigationBars.buttons.element(boundBy: 0).tap()
+        element(app, AccessibilityID.backButton).tap()
         XCTAssertTrue(element(app, AccessibilityID.productsList).waitForExistence(timeout: Self.timeout))
     }
 

@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// `PrimaryButton` and `SecondaryButton` (also the Zalo and phone `ContactButton`s) in one component:
-/// the two differ only in emphasis. Liquid Glass styles on iOS 26, filled and material capsules otherwise.
+/// the two differ only in emphasis. The main action is the board's green gradient capsule on every iOS
+/// version; the alternative is a glass capsule (Liquid Glass on iOS 26, material before).
 struct ActionButton: View {
     enum Emphasis { case primary, secondary }
 
@@ -10,54 +11,41 @@ struct ActionButton: View {
     var emphasis: Emphasis = .primary
     let action: () -> Void
 
-    @Environment(\.surfaceStyle) private var surfaceStyle
     @State private var pressCount = 0
 
     var body: some View {
-        styled
-            .buttonBorderShape(.capsule)
-            .sensoryFeedback(.impact(weight: .light), trigger: pressCount)
-    }
-
-    @ViewBuilder
-    private var styled: some View {
-        if surfaceStyle == .liquidGlass, #available(iOS 26, *) {
-            switch emphasis {
-            case .primary: button.buttonStyle(.glassProminent).tint(Palette.primary)
-            case .secondary: button.buttonStyle(.glass)
-            }
-        } else {
-            button.buttonStyle(FallbackCapsuleButtonStyle(emphasis: emphasis))
-        }
-    }
-
-    private var button: some View {
         Button {
             pressCount += 1
             action()
         } label: {
-            label.frame(maxWidth: .infinity, minHeight: Size.buttonHeight)
+            label.frame(maxWidth: .infinity, minHeight: minHeight)
         }
+        .buttonStyle(CapsuleButtonStyle(emphasis: emphasis))
+        .sensoryFeedback(.impact(weight: .light), trigger: pressCount)
+    }
+
+    private var minHeight: CGFloat {
+        emphasis == .primary ? Size.primaryButtonHeight : Size.secondaryButtonHeight
+    }
+
+    private var textStyle: TextStyle {
+        emphasis == .primary ? Typography.button : Typography.contactButton
     }
 
     private var label: some View {
         HStack(spacing: Spacing.sm) {
             if let systemImage { Image(systemName: systemImage).accessibilityHidden(true) }
-            Text(title).font(Typography.label)
+            Text(title).textStyle(textStyle)
         }
     }
 }
 
-/// Plain capsules for iOS 17 to 25 and for Reduce Transparency: filled for the main action, material
-/// for the alternative (`material.fallback`).
-private struct FallbackCapsuleButtonStyle: ButtonStyle {
+private struct CapsuleButtonStyle: ButtonStyle {
     let emphasis: ActionButton.Emphasis
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .foregroundStyle(foreground)
-            .background { background }
+        surface(configuration.label.foregroundStyle(foreground))
             .scaleEffect(configuration.isPressed ? Motion.pressedScale : 1)
             .animation(Motion.standardSpring, value: configuration.isPressed)
             .contentShape(Capsule())
@@ -65,20 +53,44 @@ private struct FallbackCapsuleButtonStyle: ButtonStyle {
 
     private var foreground: Color {
         guard isEnabled else { return Palette.textDisabled }
-        return emphasis == .primary ? Palette.onPrimary : Palette.onPrimaryContainer
+        return emphasis == .primary ? Palette.onPrimary : Palette.textPrimary
     }
 
+    /// Glass has to wrap the label (not sit behind it): inside a `GlassEffectContainer` a glass
+    /// background is drawn over the label and blurs it.
     @ViewBuilder
-    private var background: some View {
-        if !isEnabled {
-            Capsule().fill(Palette.disabledFill)
-        } else if emphasis == .primary {
-            Capsule().fill(Palette.primary)
-        } else {
-            Capsule()
-                .fill(Palette.primaryContainer)
-                .background(.ultraThinMaterial, in: Capsule())
-                .overlay { Capsule().strokeBorder(Palette.surfaceStroke, lineWidth: Size.hairline) }
+    private func surface(_ label: some View) -> some View {
+        switch (emphasis, isEnabled) {
+        case (.primary, true): label.background { GradientCapsule() }
+        case (.primary, false): label.background { Capsule().fill(Palette.disabledFill) }
+        case (.secondary, _): label.capsuleGlassSurface()
         }
+    }
+}
+
+/// The green gradient of primary actions: lighter at the top, a white highlight on the top edge and a
+/// green shadow below, as on the board.
+struct GradientCapsule: View {
+    var body: some View { GradientBackground(shape: Capsule(style: .continuous)) }
+}
+
+/// The same fill in any shape (the home tile is a rounded rectangle).
+struct GradientBackground<S: InsettableShape>: View {
+    let shape: S
+
+    var body: some View {
+        shape
+            .fill(LinearGradient(colors: [Palette.primaryLight, Palette.primary], startPoint: .top, endPoint: .bottom))
+            .overlay {
+                shape.strokeBorder(
+                    LinearGradient(
+                        colors: [Palette.buttonHighlight, .clear],
+                        startPoint: .top,
+                        endPoint: .center
+                    ),
+                    lineWidth: Size.hairline
+                )
+            }
+            .shadow(color: Palette.buttonShadow, radius: ButtonShadow.radius, y: ButtonShadow.offsetY)
     }
 }

@@ -1,18 +1,21 @@
 import SwiftUI
 
-/// A cake picture. A failed picture shows a placeholder icon in the same frame and keeps the card
-/// usable (UI document 5.3). Loading goes through the system URL cache (ADR-0011), which honours the
-/// one-year `immutable` header of the versioned URL (ADR-0017).
+/// A cake picture. A failed picture shows a placeholder tile with an icon in the same frame and keeps
+/// the card usable (UI document 5.3). Loading goes through the system URL cache (ADR-0011), which
+/// honours the one-year `immutable` header of the versioned URL (ADR-0017).
 struct ProductImage: View {
     private static let placeholderSymbol = "photo"
 
     let url: URL?
     /// Spoken label of a loaded picture: the cake name.
     let accessibilityName: String
-    var cornerRadius: CGFloat = Radius.image
+    var cornerRadius: CGFloat = Radius.thumb
 
     var body: some View {
-        content.clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        content
+            .clipShape(shape)
+            .overlay { shape.strokeBorder(Palette.tileStroke, lineWidth: Size.hairline) }
     }
 
     @ViewBuilder
@@ -36,10 +39,14 @@ struct ProductImage: View {
 
     private var placeholder: some View {
         ZStack {
-            Palette.primaryContainer
+            LinearGradient(
+                colors: [Palette.imageTileTop, Palette.imageTileBottom],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
             Image(systemName: Self.placeholderSymbol)
-                .font(.title)
-                .foregroundStyle(Palette.onPrimaryContainer)
+                .font(.system(size: Size.placeholderIcon))
+                .foregroundStyle(Palette.primaryDeep)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(Strings.productImageFailed))

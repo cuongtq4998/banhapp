@@ -13,6 +13,7 @@ nonisolated enum AccessibilityID {
     static let homeSkeleton = "home.skeleton"
 
     static let productsList = "products.list"
+    static let productsOrder = "products.orderButton"
 
     static let detailName = "detail.name"
     static let detailDescription = "detail.description"
@@ -21,6 +22,9 @@ nonisolated enum AccessibilityID {
     static let detailOrder = "detail.orderButton"
 
     static let orderStep = "order.step"
+
+    /// Round back button of S-3 and S-4 (the navigation bar is hidden there).
+    static let backButton = "nav.backButton"
 
     /// Error state of any screen and its retry button.
     static let errorState = "state.error"

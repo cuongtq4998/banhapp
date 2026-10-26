@@ -1,21 +1,32 @@
 import SwiftUI
 
-/// S-3: every active cake. Tapping a card opens its detail (S-4).
+/// S-3: every active cake. Tapping a card opens its detail (S-4); the bar below starts an order.
 struct ProductsView: View {
     /// Skeleton cards while nothing is cached (the shop normally has four cakes, ADR-0017).
     private static let skeletonCount = 4
 
     @State var model: ProductsScreenModel
+    let onOrder: () -> Void
 
     var body: some View {
         ScrollView {
-            content
-                .padding(.horizontal, Spacing.screenMargin)
-                .padding(.vertical, Spacing.lg)
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                BackButton().padding(.top, Spacing.backButtonTop)
+                Text(Strings.productsTitle)
+                    .textStyle(Typography.screenTitle)
+                    .foregroundStyle(Palette.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
+                content.padding(.top, Spacing.xs)
+            }
+            .padding(.horizontal, Spacing.screenMargin)
+            .padding(.bottom, Spacing.lg)
+        }
+        .bottomActionBar {
+            ActionButton(title: Strings.homeButtonOrder, action: onOrder)
+                .accessibilityIdentifier(AccessibilityID.productsOrder)
         }
         .appBackground()
-        .navigationTitle(Text(Strings.productsTitle))
-        .navigationBarTitleDisplayMode(.large)
+        .customBackNavigation()
     }
 
     @ViewBuilder
@@ -23,7 +34,7 @@ struct ProductsView: View {
         switch model.state {
         case .ready(let items):
             GlassGroup {
-                LazyVStack(spacing: Spacing.lg) {
+                LazyVStack(spacing: Spacing.cardGap) {
                     ForEach(items) { item in
                         NavigationLink(value: Route.productDetail(item.id)) { ProductCard(item: item) }
                             .buttonStyle(.plain)
@@ -34,7 +45,7 @@ struct ProductsView: View {
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier(AccessibilityID.productsList)
         case .loading:
-            VStack(spacing: Spacing.lg) {
+            VStack(spacing: Spacing.cardGap) {
                 ForEach(0..<Self.skeletonCount, id: \.self) { ProductCardSkeleton(index: $0) }
             }
         case .failed(let failure):

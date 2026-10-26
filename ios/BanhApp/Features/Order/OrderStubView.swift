@@ -8,11 +8,11 @@ struct OrderStubView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text(verbatim: Strings.stepLabel(step: Self.firstStep))
-                .font(Typography.caption)
+                .textStyle(Typography.caption)
                 .foregroundStyle(Palette.textSecondary)
                 .accessibilityIdentifier(AccessibilityID.orderStep)
             Text(Strings.step1)
-                .font(Typography.titleMedium)
+                .textStyle(Typography.heading)
                 .foregroundStyle(Palette.textPrimary)
         }
         .padding(.horizontal, Spacing.screenMargin)

@@ -10,6 +10,7 @@ enum Strings {
     static let homeButtonPhone = LocalizedStringResource("HOME_BTN_PHONE")
     static let homeButtonProducts = LocalizedStringResource("HOME_BTN_PRODUCTS")
     static let homeButtonOrder = LocalizedStringResource("HOME_BTN_ORDER")
+    static let homeOrderHint = LocalizedStringResource("HOME_BTN_ORDER_HINT")
     static let homeError = LocalizedStringResource("HOME_ERR")
     static let errorOpenZalo = LocalizedStringResource("ERR_OPEN_ZALO")
     static let errorOpenPhone = LocalizedStringResource("ERR_OPEN_PHONE")
@@ -17,6 +18,7 @@ enum Strings {
     static let errorNetworkLoad = LocalizedStringResource("ERR_NETWORK_LOAD")
     static let commonRetry = LocalizedStringResource("COMMON_RETRY")
     static let commonLoading = LocalizedStringResource("COMMON_LOADING")
+    static let commonBack = LocalizedStringResource("COMMON_BACK")
 
     static let productsTitle = LocalizedStringResource("PRODUCTS_TITLE")
     static let productsError = LocalizedStringResource("PRODUCTS_ERR")
@@ -29,6 +31,11 @@ enum Strings {
     /// `PRICE_EACH`: "{amount}/cái". The amount is already formatted by `MoneyFormatter`.
     static func priceEach(amount: String) -> String {
         String(format: String(localized: LocalizedStringResource("PRICE_EACH")), amount)
+    }
+
+    /// `HOME_BTN_PRODUCTS_HINT`: "{count} loại bánh tét".
+    static func homeProductsHint(count: Int) -> String {
+        String(format: String(localized: LocalizedStringResource("HOME_BTN_PRODUCTS_HINT")), count)
     }
 
     /// `STEP_LABEL`: "Bước {n}/4".

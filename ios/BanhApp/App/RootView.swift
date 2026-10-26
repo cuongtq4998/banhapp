@@ -57,7 +57,7 @@ struct RootView: View {
         case .products:
             ProductsView(model: .products(
                 repository: environment.catalogRepository, assetBaseURL: environment.assetBaseURL
-            ))
+            ), onOrder: { path.append(.order) })
         case .productDetail(let id):
             ProductDetailView(
                 model: .product(
