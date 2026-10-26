@@ -61,7 +61,7 @@ The shop has no screen in this slice; it learns of orders from the database (ope
 | Backup job | Nightly encrypted dump to separate storage | GitHub Actions scheduled workflow, `pg_dump`, `age`, private GitHub repository as storage [v1.1 | 2026-10-25] | `.github/workflows/db-backup.yml` | Database, backup storage |
 | CI pipeline | Builds and tests the three components | GitHub Actions | `.github/workflows/` | Repository |
 
-Developer tooling `tools/ddagent/` is not part of the system.
+Developer tooling (`ddagent`, installed from its own repository) is not part of the system.
 
 Component repo paths use the monorepo layout of ADR-0004 (Accepted) [v1.1 | 2026-10-25]. The existing Xcode project moves into `ios/` (orchestrator task; CLAUDE.md and `.claude/rules/swift.md` paths follow).
 
