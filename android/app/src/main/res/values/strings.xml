@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vietnamese is the only language (ADR-0007). Real copy arrives with the UI document keys in slice 1. -->
+<resources>
+    <string name="app_name">Banh App</string>
+    <string name="shell_placeholder">Banh App</string>
+</resources>
