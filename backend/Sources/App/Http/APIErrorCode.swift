@@ -20,7 +20,7 @@ enum APIErrorCode: String, CaseIterable, Sendable {
     case orderingPaused = "ORDERING_PAUSED"
     case serviceUnavailable = "SERVICE_UNAVAILABLE"
     case internalError = "INTERNAL_ERROR"
-    // Routing errors are not in api.md section 5 yet; proposed addition.
+    // Routing errors (api.md section 5, v1.3).
     case notFound = "NOT_FOUND"
     case methodNotAllowed = "METHOD_NOT_ALLOWED"
 
@@ -46,7 +46,7 @@ enum APIErrorCode: String, CaseIterable, Sendable {
     var messageKey: String {
         switch self {
         case .minQty, .dateLead, .dateHorizon, .dateCapacity, .districtUnserved,
-             .productUnavailable, .slotUnavailable:
+             .productUnavailable, .slotUnavailable, .rateLimited:
             return "ERR_" + rawValue
         case .priceChanged:
             return "MSG_PRICE_CHANGED"

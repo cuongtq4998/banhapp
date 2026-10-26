@@ -11,8 +11,8 @@ Swift 6 and Vapor 4 (ADR-0001). Source of truth for the contract: `docs/system/a
 | `Sources/App/Http/` | `APIError` and `APIErrorCode` (api.md section 5), error, request-id and access-log middleware |
 | `Sources/App/Routes/` | One `RouteCollection` per endpoint group (`HealthRoutes`) |
 | `Sources/App/Services/` | Rules: `HealthService`, `ShopCalendar`, `BusinessDate` |
-| `Sources/App/Repositories/` | SQL behind protocols (`PostgresProbe`) |
-| `Sources/App/Support/` | `WallClock`, `OrderCodeGenerator`, `DatabaseProbe`, `withDeadline` |
+| `Sources/App/Repositories/` | SQL behind protocols (`DatabaseProbe`, `PostgresProbe`) and `RepositoryFactories` |
+| `Sources/App/Support/` | `WallClock`, `OrderCodeGenerator`, `withDeadline` |
 | `Sources/App/Migrations/` | SQL file runner (`SQLFileMigration`, `SQLScriptSplitter`) |
 | `db/migrations/` | Forward-only `NNNN_name.sql` files |
 | `db/seed/sample.sql` | Fake sample shop data, idempotent |
@@ -20,9 +20,9 @@ Swift 6 and Vapor 4 (ADR-0001). Source of truth for the contract: `docs/system/a
 | `Tests/AppTests/Database/` | Trigger tests against a real PostgreSQL; skipped unless `DATABASE_MIGRATION_URL` is set |
 | `Dockerfile` | Multi-stage image; build context is the repository root |
 
-Conventions: a route parses and encodes, a service decides, a repository runs SQL; time, randomness and storage enter through `AppServices`. Tests replace a member with `app.services.databaseProbe = ...` (or the whole value). A new endpoint group is a new `RouteCollection` registered in `configure`; a new error is a case of `APIErrorCode`.
+Conventions: a route parses and encodes, a service decides, a repository runs SQL; time, randomness and storage enter through `AppServices`; repositories are factories taking a database handle (`RepositoryFactories`), so a service can run several in one transaction (ADR-0008). Tests replace a member, for example `app.services.stubDatabaseProbe { ... }` or `app.services.clock = ...` (or the whole value). A new endpoint group is a new `RouteCollection` registered in `configure`; a new error is a case of `APIErrorCode`.
 
-Logging policy (auth.md): access log lines carry method, route template, status, duration and request id only; unexpected errors log the error type, never its text. Keep it that way in new code.
+Logging policy (auth.md): access log lines carry method, route template, status, duration, request id, error code, platform and app version only (platform and version are logged only when they match a strict pattern, else `-`); unexpected errors log the error type, never its text. Keep it that way in new code.
 
 Database tests: set `DATABASE_MIGRATION_URL` to a throwaway database (they apply the migrations, then run every test in a rolled-back transaction). Without it they are skipped.
 
@@ -33,9 +33,13 @@ swift build
 swift test
 APP_ENV=local PORT=8080 swift run App serve        # GET http://localhost:8080/healthz
 docker compose up -d db                             # local PostgreSQL
-APP_ENV=local PORT=8080 DATABASE_MIGRATION_URL=<url> swift run App migrate --yes
+APP_ENV=local DATABASE_MIGRATION_URL=<url> swift run App migrate --yes   # needs only APP_ENV and DATABASE_MIGRATION_URL
 psql "<url>" -f db/seed/sample.sql                  # sample data, local and staging only
 docker build --platform linux/amd64 -f backend/Dockerfile .   # from the repository root
 ```
 
 Database URLs use the `postgres://user:password@host:5432/db` form; take the local values from `docker-compose.yml`. Never commit real URLs. <!-- secret-scan:allow -->
+
+Configuration per command: `serve` needs `APP_ENV`, `PORT` and (outside local) `DATABASE_URL`; `migrate` needs only `APP_ENV` and `DATABASE_MIGRATION_URL`. Values are trimmed of whitespace and newlines.
+
+Migration files: the SQL splitter understands standard and `E'...'` strings, quoted identifiers, dollar quoting and nested comments. Anything else that holds a `;` inside a single statement is not supported.

@@ -27,8 +27,7 @@ class DatabaseTestCase: XCTestCase {
         let url = try requireDatabaseURL()
         let app = try await Application.make(.testing)
         do {
-            let config = AppConfig(stage: .local, port: 8080, databaseURL: url, databaseMigrationURL: url)
-            try await configure(app, config: config)
+            try configureMigrator(app, config: MigrationConfig(stage: .local, databaseMigrationURL: url))
             try await app.autoMigrate()
             do {
                 try await app.db.transaction { transaction in

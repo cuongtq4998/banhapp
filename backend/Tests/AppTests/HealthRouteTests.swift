@@ -8,8 +8,7 @@ final class HealthRouteTests: XCTestCase {
 
     override func setUp() async throws {
         app = try await Application.make(.testing)
-        let config = AppConfig(stage: .local, port: 8080, databaseURL: nil)
-        try await configure(app, config: config, migrationFiles: [])
+        try await configure(app, config: .unreachableDatabase)
     }
 
     override func tearDown() async throws {
@@ -23,7 +22,7 @@ final class HealthRouteTests: XCTestCase {
 
     func testShallowReturnsOkWithoutTouchingDatabase() async throws {
         let called = NIOLockedValueBox(false)
-        app.services.databaseProbe = StubProbe { called.withLockedValue { $0 = true } }
+        app.services.stubDatabaseProbe { called.withLockedValue { $0 = true } }
 
         try await app.test(.GET, "healthz") { res async throws in
             XCTAssertEqual(res.status, .ok)
@@ -34,7 +33,7 @@ final class HealthRouteTests: XCTestCase {
     }
 
     func testDeepReturnsOkWhenDatabaseAnswers() async throws {
-        app.services.databaseProbe = StubProbe {}
+        app.services.stubDatabaseProbe {}
         try await app.test(.GET, "healthz?deep=1") { res async throws in
             XCTAssertEqual(res.status, .ok)
             XCTAssertEqual(try res.content.decode(HealthResponse.self).status, .ok)
@@ -42,7 +41,7 @@ final class HealthRouteTests: XCTestCase {
     }
 
     func testDeepReturns503WhenDatabaseFails() async throws {
-        app.services.databaseProbe = StubProbe { throw DatabaseProbeError() }
+        app.services.stubDatabaseProbe { throw DatabaseProbeError() }
         try await app.test(.GET, "healthz?deep=1") { res async throws in
             XCTAssertEqual(res.status, .serviceUnavailable)
             XCTAssertEqual(res.headers.first(name: .cacheControl), "no-store")
@@ -52,7 +51,7 @@ final class HealthRouteTests: XCTestCase {
 
     func testDeepReturns503WhenDatabaseIsSlow() async throws {
         let slowness = AppConfig.Default.healthDeepTimeoutSeconds + 3
-        app.services.databaseProbe = StubProbe { try await Task.sleep(for: .seconds(slowness)) }
+        app.services.stubDatabaseProbe { try await Task.sleep(for: .seconds(slowness)) }
         let started = ContinuousClock.now
         try await app.test(.GET, "healthz?deep=1") { res async throws in
             XCTAssertEqual(res.status, .serviceUnavailable)
@@ -60,14 +59,24 @@ final class HealthRouteTests: XCTestCase {
         XCTAssertLessThan(ContinuousClock.now - started, .seconds(slowness), "deadline must cut the wait short")
     }
 
-    func testDeepWithoutDatabaseConfiguredIsDegraded() async throws {
+    func testDeepWithTheRealProbeAgainstAClosedPortIsDegraded() async throws {
         try await app.test(.GET, "healthz?deep=1") { res async throws in
+            XCTAssertEqual(res.status, .serviceUnavailable)
+            XCTAssertEqual(try res.content.decode(HealthResponse.self), try self.fixture("healthz-degraded.json"))
+        }
+    }
+
+    func testDeepWithoutDatabaseConfiguredIsDegraded() async throws {
+        let bare = try await Application.make(.testing)
+        defer { Task { try? await bare.asyncShutdown() } }
+        try await configure(bare, config: AppConfig(stage: .local, port: 8080, databaseURL: nil))
+        try await bare.test(.GET, "healthz?deep=1") { res async throws in
             XCTAssertEqual(res.status, .serviceUnavailable)
         }
     }
 
     func testOtherDeepValuesStayShallow() async throws {
-        app.services.databaseProbe = StubProbe { throw DatabaseProbeError() }
+        app.services.stubDatabaseProbe { throw DatabaseProbeError() }
         try await app.test(.GET, "healthz?deep=0") { res async throws in
             XCTAssertEqual(res.status, .ok)
         }

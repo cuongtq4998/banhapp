@@ -22,6 +22,13 @@ final class APIErrorResponseTests: XCTestCase {
         XCTAssertEqual(decoded.requestID, "7f1c1a52-0c1e-4d6c-9a54-2d7f3d6a0001")
     }
 
+    func testDecodesRateLimitedWithRetryHint() throws {
+        let decoded = try JSONDecoder().decode(APIErrorResponse.self, from: fixtureData("error-rate-limited.json"))
+        XCTAssertEqual(decoded.error.code, "RATE_LIMITED")
+        XCTAssertEqual(decoded.error.messageKey, "ERR_RATE_LIMITED")
+        XCTAssertEqual(decoded.error.details, ["retry_after_seconds": .int(30)])
+    }
+
     func testDecodesErrorWithFields() throws {
         let decoded = try JSONDecoder().decode(APIErrorResponse.self, from: fixtureData("error-validation-failed.json"))
         XCTAssertEqual(

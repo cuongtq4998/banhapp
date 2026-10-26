@@ -13,8 +13,16 @@ final class AppConfigTests: XCTestCase {
         XCTAssertEqual(config.stage, .staging)
         XCTAssertEqual(config.port, 8080)
         XCTAssertEqual(config.databaseURL, "postgres://placeholder")
-        XCTAssertNil(config.databaseMigrationURL)
         XCTAssertEqual(config.databasePoolMax, AppConfig.Default.databasePoolMax)
+    }
+
+    func testValuesAreTrimmedOfAllWhitespaceAndNewlines() throws {
+        var vars = valid
+        vars[AppConfig.Key.port] = " 8080\n"
+        vars[AppConfig.Key.appEnv] = "staging\r\n"
+        let config = try AppConfig(variables: vars)
+        XCTAssertEqual(config.port, 8080)
+        XCTAssertEqual(config.stage, .staging)
     }
 
     func testMissingAppEnvNamesTheVariable() {
@@ -75,5 +83,46 @@ final class AppConfigTests: XCTestCase {
         for key in keys {
             XCTAssertTrue(text.contains("\(key)="), "\(key) missing from .env.example")
         }
+    }
+}
+
+final class MigrationConfigTests: XCTestCase {
+    /// Exactly what the staging deploy job passes (backend.yml).
+    private let deployJob = [
+        "APP_ENV": "staging",
+        "DATABASE_MIGRATION_URL": "postgres://placeholder"
+    ]
+
+    func testNeedsOnlyStageAndMigrationURL() throws {
+        let config = try MigrationConfig(variables: deployJob)
+        XCTAssertEqual(config, MigrationConfig(stage: .staging, databaseMigrationURL: "postgres://placeholder"))
+        // The same variables are not enough to serve.
+        XCTAssertThrowsError(try AppConfig(variables: deployJob))
+    }
+
+    func testMissingMigrationURLNamesTheVariable() {
+        var vars = deployJob
+        vars.removeValue(forKey: AppConfig.Key.databaseMigrationURL)
+        XCTAssertThrowsError(try MigrationConfig(variables: vars)) {
+            XCTAssertEqual($0 as? AppConfig.Failure, .missing(AppConfig.Key.databaseMigrationURL))
+        }
+    }
+
+    func testMissingOrUnknownStageIsRejected() {
+        var vars = deployJob
+        vars[AppConfig.Key.appEnv] = "qa"
+        XCTAssertThrowsError(try MigrationConfig(variables: vars)) {
+            XCTAssertEqual($0 as? AppConfig.Failure, .invalid(AppConfig.Key.appEnv))
+        }
+        vars.removeValue(forKey: AppConfig.Key.appEnv)
+        XCTAssertThrowsError(try MigrationConfig(variables: vars)) {
+            XCTAssertEqual($0 as? AppConfig.Failure, .missing(AppConfig.Key.appEnv))
+        }
+    }
+
+    func testMigrationURLIsTrimmed() throws {
+        var vars = deployJob
+        vars[AppConfig.Key.databaseMigrationURL] = "postgres://placeholder\n"
+        XCTAssertEqual(try MigrationConfig(variables: vars).databaseMigrationURL, "postgres://placeholder")
     }
 }

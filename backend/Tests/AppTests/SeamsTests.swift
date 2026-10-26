@@ -1,4 +1,6 @@
 import XCTest
+import NIOConcurrencyHelpers
+import NIOCore
 @testable import App
 
 final class WallClockAndCalendarTests: XCTestCase {
@@ -27,8 +29,8 @@ final class WallClockAndCalendarTests: XCTestCase {
     func testReplacingTheClockMovesTheCalendar() throws {
         var services = AppServices(
             clock: SystemWallClock(),
-            databaseProbe: UnconfiguredProbe(),
-            orderCodes: RandomOrderCodeGenerator()
+            orderCodes: RandomOrderCodeGenerator(),
+            repositories: .postgres
         )
         services.clock = FixedWallClock(instant: try instant("2026-01-01T00:00:00Z"))
         XCTAssertEqual(services.calendar.today().description, "2026-01-01")
@@ -82,6 +84,74 @@ final class DatabasePoolSizingTests: XCTestCase {
 }
 
 final class DeadlineTests: XCTestCase {
+    func testRaceRunsCleanupsWhenItFinishes() async {
+        let race = DeadlineRace<Int>()
+        let sawCancellation = NIOLockedValueBox(false)
+        let sleeper = Task.detached {
+            try? await Task.sleep(for: .seconds(60))
+            sawCancellation.withLockedValue { $0 = Task.isCancelled }
+        }
+        race.onFinish { sleeper.cancel() }
+        race.finish(with: .success(1))
+        let started = ContinuousClock.now
+        await sleeper.value
+        XCTAssertTrue(sawCancellation.withLockedValue { $0 })
+        XCTAssertLessThan(ContinuousClock.now - started, .seconds(5))
+    }
+
+    func testRaceRunsACleanupRegisteredAfterItFinished() async {
+        let race = DeadlineRace<Int>()
+        race.finish(with: .success(1))
+        let sawCancellation = NIOLockedValueBox(false)
+        let sleeper = Task.detached {
+            try? await Task.sleep(for: .seconds(60))
+            sawCancellation.withLockedValue { $0 = Task.isCancelled }
+        }
+        race.onFinish { sleeper.cancel() }
+        await sleeper.value
+        XCTAssertTrue(sawCancellation.withLockedValue { $0 })
+    }
+
+    func testRaceResumesOnceWithTheFirstOutcome() async throws {
+        let race = DeadlineRace<Int>()
+        race.finish(with: .success(1))
+        race.finish(with: .success(2))
+        let value = try await withCheckedThrowingContinuation { race.attach($0) }
+        XCTAssertEqual(value, 1)
+    }
+
+    func testCancellingTheCallerEndsTheWaitPromptly() async {
+        let call = Task {
+            try await withDeadline(.seconds(60)) { () -> Int in
+                try await Task.sleep(for: .seconds(60))
+                return 1
+            }
+        }
+        try? await Task.sleep(for: .milliseconds(50))
+        call.cancel()
+        let started = ContinuousClock.now
+        do {
+            _ = try await call.value
+            XCTFail("expected cancellation")
+        } catch {
+            XCTAssertTrue(error is CancellationError)
+        }
+        XCTAssertLessThan(ContinuousClock.now - started, .seconds(5))
+    }
+
+    func testAnAlreadyCancelledCallerFailsWithoutHanging() async {
+        let call = Task {
+            while !Task.isCancelled { await Task.yield() }
+            return try await withDeadline(.seconds(60)) { 1 }
+        }
+        call.cancel()
+        do {
+            _ = try await call.value
+        } catch {
+            XCTAssertTrue(error is CancellationError)
+        }
+    }
+
     func testReturnsTheResultWhenFastEnough() async throws {
         let value = try await withDeadline(.seconds(5)) { 42 }
         XCTAssertEqual(value, 42)

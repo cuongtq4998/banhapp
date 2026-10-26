@@ -5,30 +5,47 @@ import FluentPostgresDriver
 /// Relative to the working directory: `backend/` when run from source, `/app`
 /// in the image (the Dockerfile copies `db/` next to the binary).
 private let migrationsDirectory = "db/migrations/"
-private let migrateCommandName = "migrate"
 private let listenHostname = "0.0.0.0"
 
-/// Builds the application from `config`. The caller owns the process
-/// environment; nothing here reads it directly so tests can inject values.
-func configure(_ app: Application, config: AppConfig, migrationFiles: [SQLFileMigration]? = nil) async throws {
+/// Name of the Vapor command that applies migrations; the only command that
+/// uses `configureMigrator` instead of `configure`.
+let migrateCommandName = "migrate"
+
+/// Builds the application for `serve` from `config`. The caller owns the
+/// process environment; nothing here reads it directly so tests can inject
+/// values.
+func configure(_ app: Application, config: AppConfig) async throws {
     app.http.server.configuration.hostname = listenHostname
     app.http.server.configuration.port = config.port
+    app.routes.defaultMaxBodySize = RequestLimits.maxBodySize
 
     configureMiddleware(app)
-
-    let isMigrating = app.environment.arguments.dropFirst().first == migrateCommandName
-    let databaseProbe = try configureDatabase(app, config: config, isMigrating: isMigrating)
+    try configureDatabase(app, config: config)
     app.services = AppServices(
         clock: SystemWallClock(),
-        databaseProbe: databaseProbe,
-        orderCodes: RandomOrderCodeGenerator()
+        orderCodes: RandomOrderCodeGenerator(),
+        repositories: .postgres
     )
 
+    try app.register(collection: HealthRoutes())
+}
+
+/// Builds the application for `migrate`: the migration role's database and the
+/// SQL files, no routes. `migrationFiles` is injectable for tests.
+func configureMigrator(
+    _ app: Application,
+    config: MigrationConfig,
+    migrationFiles: [SQLFileMigration]? = nil
+) throws {
+    // The migration role has DDL rights; the server runs with the limited
+    // application role (deployment.md section 3).
+    app.databases.use(
+        try .postgres(url: config.databaseMigrationURL, maxConnectionsPerEventLoop: MigrationConfig.poolSize),
+        as: .psql
+    )
     let files = try migrationFiles
         ?? MigrationFiles.load(from: app.directory.workingDirectory + migrationsDirectory)
     for file in files { app.migrations.add(file) }
-
-    try app.register(collection: HealthRoutes())
 }
 
 /// Order matters: the request id exists before anything logs, the access log
@@ -42,14 +59,10 @@ private func configureMiddleware(_ app: Application) {
     app.middleware.use(APIErrorMiddleware())
 }
 
-private func configureDatabase(_ app: Application, config: AppConfig, isMigrating: Bool) throws -> any DatabaseProbe {
-    // `migrate` uses the migration role (DDL rights); the server runs with the
-    // limited application role (deployment.md section 3).
-    let url = isMigrating ? config.databaseMigrationURL : config.databaseURL
-    if isMigrating && url == nil { throw AppConfig.Failure.missing(AppConfig.Key.databaseMigrationURL) }
-    guard let url else {
+private func configureDatabase(_ app: Application, config: AppConfig) throws {
+    guard let url = config.databaseURL else {
         app.logger.warning("No database configured; only the shallow health check is available")
-        return UnconfiguredProbe()
+        return
     }
 
     // The entrypoint sizes the event loop group so the product below stays
@@ -60,9 +73,5 @@ private func configureDatabase(_ app: Application, config: AppConfig, isMigratin
         app.logger.warning("More event loops than DATABASE_POOL_MAX; the pool limit cannot be honoured")
     }
     let perLoop = DatabasePoolSizing.connectionsPerLoop(poolMax: config.databasePoolMax, eventLoopCount: loopCount)
-    app.databases.use(
-        try .postgres(url: url, maxConnectionsPerEventLoop: perLoop),
-        as: .psql
-    )
-    return PostgresProbe(app: app)
+    app.databases.use(try .postgres(url: url, maxConnectionsPerEventLoop: perLoop), as: .psql)
 }
