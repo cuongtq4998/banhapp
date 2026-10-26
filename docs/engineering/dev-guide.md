@@ -28,7 +28,7 @@ Every command below was run on the author's machine unless the line says "unveri
 | Path | Responsibility |
 | ---- | -------------- |
 | `ios/` | SwiftUI app, iPhone only, iOS 17 |
-| `android/` | Kotlin and Compose app, minSdk 26, package `app.banh.customer` (placeholder, not yet in an ADR) |
+| `android/` | Kotlin and Compose app, minSdk 26, package `app.banh.customer` (ADR-0016) |
 | `backend/` | Vapor API; `Sources/App`, `Tests/AppTests`, `db/migrations`, `db/seed`, `Dockerfile` |
 | `contracts/` | Shared fixtures (`fixtures/`) and the `BanhContracts` Swift package (`swift/`) |
 | `docs/` | Product, design, system, decisions, engineering, test, pipeline |
@@ -107,7 +107,7 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 
 - Docker image, `0001_init.sql` on PostgreSQL, seed and the live deep health check have never run; the first CI run is the verification.
 - Android has never been built (no JDK, Gradle, SDK on the author's machine); Gradle wrapper missing.
-- Apple `DEVELOPMENT_TEAM` is in `project.pbxproj` (public repository); decision pending with the owner.
+- Apple `DEVELOPMENT_TEAM` is no longer in the repository: copy `ios/Config/Local.xcconfig.example` to the git-ignored `ios/Config/Local.xcconfig` to sign for a device; unsigned builds need no file.
 - Startup warning for sample rows in production (ADR-0013) is left to slice 4.
 
 ## 9. Change log
