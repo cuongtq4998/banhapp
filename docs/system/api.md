@@ -2,12 +2,12 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.5 |
+| Version      | 1.6 |
 | Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | atlas-architect |
 | Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; data-model.md v1.0 |
-| Related      | order-lifecycle.md; auth.md; ADR-0008, ADR-0009, ADR-0010, ADR-0011, ADR-0014 |
+| Related      | order-lifecycle.md; auth.md; ADR-0008, ADR-0009, ADR-0010, ADR-0011, ADR-0014, ADR-0017 |
 
 Decided: ADR-0010 is Accepted by the owner: option A, reject with `PRICE_CHANGED` and let the customer re-review (`expected_total_vnd` stays). [v1.1 | 2026-10-25] Backend framework is Vapor (ADR-0001); the conventions below are implemented as Vapor middleware. [v1.1 | 2026-10-25]
 
@@ -29,11 +29,11 @@ Decided: ADR-0010 is Accepted by the owner: option A, reject with `PRICE_CHANGED
 | Client timeouts | Order submission 10 s; reads 15 s (ADR-0007). On the free trial host the first request after idle can take about 1 minute: the apps retry reads once and retry orders with the same key (ADR-0003) [v1.1 | 2026-10-25] |
 | Unknown fields | Ignored in responses by clients; rejected with `VALIDATION_FAILED` in requests (typos must not pass silently); Swift `Codable` ignores unknown keys, so the backend checks the key set before decoding [v1.1 | 2026-10-25] |
 
-Rate limits (per client IP, in-memory limiter; numbers are configuration, defaults shown):
+Rate limits (per client IP, in-memory limiter; numbers are configuration, defaults shown). Rules [v1.6 | 2026-10-26] (ADR-0017): the read group is one shared budget per client address, not one per route; every request that reaches the limiter counts, including 200, 304 and 404; a request answered 429 does not count. The window is a fixed 60 seconds that starts at the first counted request of that address. `Retry-After` is the whole seconds left in the window, rounded up, at least 1 (so between 1 and 60). A catalog load with four images is five requests, so 120 per minute serves about 20 cold-start customers a minute behind one address; the number is configuration (`RATE_LIMIT_READ_PER_MINUTE`) and the 429 alert in deployment.md watches it.
 
 | Group | Limit |
 | ----- | ----- |
-| `GET /v1/*`, `/healthz`, `/privacy`, `/assets/*` | 120 requests per minute |
+| `GET /v1/*`, `/healthz`, `/privacy`, `/assets/*` (one shared budget) | 120 requests per minute |
 | `POST /v1/orders` | 10 requests per hour, and 5 accepted orders per normalised phone number per 24 hours |
 
 Error format (all non-2xx JSON responses):
@@ -56,7 +56,7 @@ Error format (all non-2xx JSON responses):
 
 | Method | Path | Auth / role | Purpose | FR / BR traced |
 | ------ | ---- | ----------- | ------- | -------------- |
-| GET | /v1/catalog | None (anonymous) | Shop information, four products, districts with fees, slots and ordering parameters | FR-2, FR-3, FR-4, FR-5, FR-7, FR-8, BR-3, BR-5, BR-10, BR-11 |
+| GET | /v1/catalog | None (anonymous) | Shop information, the active products (normally one to four), districts with fees, slots and ordering parameters | FR-2, FR-3, FR-4, FR-5, FR-7, FR-8, BR-3, BR-5, BR-10, BR-11 |
 | GET | /v1/availability | None | Per date: can the date hold an order of N cakes | FR-6, FR-10, BR-1, BR-2, BR-8, AC-7, AC-8, AC-24 |
 | POST | /v1/orders | None | Create an order and return its code | FR-8, FR-9, FR-10, FR-11, FR-13, FR-16, FR-17, FR-18, BR-1 to BR-8, BR-11 |
 | GET | /healthz | None | Liveness and database check for monitoring | Operations (deployment.md) |
@@ -78,7 +78,7 @@ FR-1 (launch screen), FR-12, FR-14, FR-15, FR-19 need no endpoint (client behavi
 
 ### 4.1 GET /v1/catalog
 
-Role: anonymous. Purpose: everything the app displays before ordering (FR-2, FR-3, FR-4, FR-7, FR-8). Request parameters: none. Headers: optional `If-None-Match`.
+Role: anonymous. Purpose: everything the app displays before ordering (FR-2, FR-3, FR-4, FR-7, FR-8). Request parameters: none; any query parameter is ignored (200, same body and same `ETag` as without it; never 422 or 5xx) [v1.6 | 2026-10-26]. Headers: optional `If-None-Match`.
 
 200 response (`Cache-Control: no-cache`, `ETag` set; the app revalidates, ADR-0011):
 
@@ -86,14 +86,14 @@ Role: anonymous. Purpose: everything the app displays before ordering (FR-2, FR-
 | ----- | ---- | ----- |
 | server_date | date | Today in shop time. Clients use it instead of the device date |
 | shop | object | `name`, `greeting`, `phone_contact` (E.164), `zalo_contact` |
-| settings | object | `min_qty`, `lead_days`, `max_days_ahead`, `max_qty_per_cake`, `note_max_length` (200) |
-| products | Product[] | Active products, ordered by `sort_order`; exactly four at launch |
+| settings | object | `min_qty`, `lead_days`, `max_days_ahead`, `max_qty_per_cake` (from `shop_setting`), `note_max_length` (a code constant, 200, the same bound as the `customer_order.note` column check; it is not a `shop_setting` column) [v1.6 \| 2026-10-26] |
+| products | Product[] | Every active product, ordered by `sort_order`: one to four are normal (the owner may deactivate a cake). The server never pads or truncates the list; zero active products answers 200 with `[]` and the apps show the error screen (owner decision 2026-10-26, PRD FR-3) | [v1.6 | 2026-10-26]
 | districts | District[] | Active districts, ordered |
 | slots | Slot[] | Active slots, ordered |
 
 Not included: `daily_limit` and remaining amounts (not shown to customers). `is_sample` is never returned.
 
-304: when `If-None-Match` matches (empty body).
+ETag contract [v1.6 | 2026-10-26] (ADR-0017): a strong validator, the quoted lowercase hexadecimal SHA-256 of the exact response body bytes truncated to 32 characters, for example `"3f2a9c1e5b7d40a8c6e1f0b29d4a7c53"`. The body is encoded deterministically (fixed key order, no whitespace changes), so equal data gives an equal tag. `server_date` is in the body, so the tag changes at midnight shop time. `image_url` carries a content version (section 4.6), so a changed photo changes the tag. `If-None-Match` is compared with the weak comparison of RFC 9110 section 13.1.2: a comma-separated list is allowed, `W/` prefixes are ignored, `*` matches any current representation. A match answers `304` with an empty body and repeats `ETag`, `Cache-Control: no-cache`, `X-Request-Id` (RFC 9110 section 15.4.5 requires `ETag` and `Cache-Control` to be sent again); it does not repeat `Content-Type` or `Content-Length`. No match, or an invalid header value, answers the full 200. `HEAD` is not part of the contract (an unrouted method answers 404, section 5). A 304 counts for the rate limit.
 
 Errors: 429 `RATE_LIMITED`; 503 `SERVICE_UNAVAILABLE`.
 
@@ -104,17 +104,17 @@ Example response:
 ```json
 {
   "server_date": "2026-11-02",
-  "shop": { "name": "Tiệm Bánh Mẫu", "greeting": "Chào bạn, mời đặt bánh tét.", "phone_contact": "+84900000000", "zalo_contact": "84900000000" },
+  "shop": { "name": "Tiệm Bánh An Nhiên", "greeting": "Chào bạn, mời đặt bánh tét.", "phone_contact": "+84900000000", "zalo_contact": "84900000000" },
   "settings": { "min_qty": 2, "lead_days": 2, "max_days_ahead": 30, "max_qty_per_cake": 99, "note_max_length": 200 },
   "products": [
-    { "product_id": "0b8f1f0e-1111-4a00-8000-000000000001", "slug": "banana", "name": "Bánh tét chuối", "description": "Mô tả mẫu.", "price_vnd": 50000, "image_url": "/assets/products/banana.jpg" }
+    { "product_id": "0b8f1f0e-1111-4a00-8000-000000000001", "slug": "banana", "name": "Bánh tét chuối", "description": "Bánh chuối nướng thơm béo.", "price_vnd": 50000, "image_url": "/assets/images/banana.png?v=9c1e5b7d" }
   ],
-  "districts": [ { "district_id": "0b8f1f0e-2222-4a00-8000-000000000001", "name": "Quận Mẫu 1", "delivery_fee_vnd": 20000 } ],
+  "districts": [ { "district_id": "0b8f1f0e-2222-4a00-8000-000000000001", "name": "Quận An Phú", "delivery_fee_vnd": 20000 } ],
   "slots": [ { "slot_id": "0b8f1f0e-3333-4a00-8000-000000000001", "start": "08:00", "end": "10:00" } ]
 }
 ```
 
-(All values are fake sample data; the list is shortened.)
+(All values are fake data; the list is shortened. Wording rule [v1.6 | 2026-10-26]: no seed value, example or fixture that can reach a screen contains a sample marker such as "mẫu", "sample", "test", "demo" or "fake" (AC-29); the word `is_sample` exists only in the database.)
 
 ### 4.2 GET /v1/availability
 
@@ -122,7 +122,7 @@ Role: anonymous. Purpose: the date grid on S-6 (FR-6). The server applies BR-1, 
 
 | Query parameter | Type | Required | Rules |
 | --------------- | ---- | -------- | ----- |
-| cakes | integer | yes | Total cakes in the order, 1 to `max_qty_per_cake` times 4 (396). Used for the capacity test |
+| cakes | integer | yes | Total cakes in the order, 1 to `max_qty_per_cake` times the number of active products (396 with four). Used for the capacity test [v1.6 \| 2026-10-26] |
 
 200 response (`Cache-Control: no-store`):
 
@@ -136,7 +136,7 @@ Role: anonymous. Purpose: the date grid on S-6 (FR-6). The server applies BR-1, 
 
 Remaining amounts are not returned (UI section 5.6). A slot never changes availability (BR-11, AC-10).
 
-Errors: 422 `VALIDATION_FAILED` (`cakes` missing or out of range); 429 `RATE_LIMITED`; 503 `SERVICE_UNAVAILABLE`.
+Other query parameters are ignored. Errors: 422 `VALIDATION_FAILED` (`cakes` missing or out of range); 429 `RATE_LIMITED`; 503 `SERVICE_UNAVAILABLE`.
 
 Side effects: none. Idempotency: safe. The list is advisory: `POST /v1/orders` re-checks (AC-9, AC-22).
 
@@ -150,7 +150,7 @@ Request body:
 
 | Field | Type | Required | Rules |
 | ----- | ---- | -------- | ----- |
-| items | array | yes | 1 to 4 entries; no duplicate `product_id` |
+| items | array | yes | 1 to the number of active products (four at most today); no duplicate `product_id` [v1.6 \| 2026-10-26] |
 | items[].product_id | uuid | yes | An active product |
 | items[].quantity | integer | yes | 1 to `max_qty_per_cake`. Zero lines are not sent (AC-6) |
 | delivery_date | date | yes | `YYYY-MM-DD`; rules checked in section "Order of checks" |
@@ -207,7 +207,7 @@ Content-Type: application/json
   "items": [ { "product_id": "0b8f1f0e-1111-4a00-8000-000000000001", "quantity": 2 } ],
   "delivery_date": "2026-11-05",
   "slot_id": "0b8f1f0e-3333-4a00-8000-000000000001",
-  "customer": { "name": "Nguyễn Văn A", "phone": "0900 000 000", "address": "1 Đường Mẫu", "district_id": "0b8f1f0e-2222-4a00-8000-000000000001" },
+  "customer": { "name": "Nguyễn Văn A", "phone": "0900 000 000", "address": "1 Đường Số 5", "district_id": "0b8f1f0e-2222-4a00-8000-000000000001" },
   "note": null,
   "expected_total_vnd": 120000
 }
@@ -229,7 +229,12 @@ Role: anonymous. Returns the privacy statement as an HTML page (static file, tex
 
 ### 4.6 GET /assets/*
 
-Static product images and the logo; `Cache-Control: public, max-age=86400`. Image paths come from `image_path` in the catalog. Fake placeholder images only in the repository.
+Static product images and the logo. Fake placeholder images only in the repository. Rules [v1.6 | 2026-10-26] (ADR-0017):
+
+- One field name: the database column is `product.image_path` (relative path, for example `images/banana.png`, no leading slash, no `..`); the API field is `image_url`. The server builds `image_url` as the asset base plus `/assets/` plus `image_path`, plus the version query below. The asset base is empty (the path is relative to the API host) unless `PUBLIC_ASSET_BASE_URL` is set, then it is that prefix without a trailing slash. Clients resolve a relative `image_url` against the API base URL and use the value as given.
+- Folder: files live in `backend/assets/images/` and are served at `/assets/images/*`. Nothing else under `backend/assets/` is served by this route (the privacy page is served by `/privacy`). A path with `..`, a backslash or a missing file answers 404 `NOT_FOUND`.
+- Versioning: `image_url` ends with `?v=<first 8 hex characters of the SHA-256 of the file>`, computed by the server at start. A new photo (even under the same name) gets a new URL, so a long cache is safe. The static handler ignores the query. If the file is missing at start, the server logs a warning, omits `v`, and the URL answers 404.
+- Cache headers: `200` for a file: `Cache-Control: public, max-age=31536000, immutable`. `404` and errors: `Cache-Control: no-store`. A `304` is not required (the URL changes with the content).
 
 ## 5. Error Catalogue
 
@@ -295,3 +300,4 @@ Every endpoint above is in the index with FRs. Every data field used traces to d
 | 1.3 | 2026-10-26 | Error catalogue: top-level `message_key` per code, `NOT_FOUND` and `METHOD_NOT_ALLOWED`, `RATE_LIMITED` key and `Retry-After`, framework error mapping, database outage wrapping rule; API-Q1 closed. |
 | 1.4 | 2026-10-26 | Body limit boundary stated (8 KB passes, one byte more fails); `Retry-After` default 60 s. |
 | 1.5 | 2026-10-26 | D-9: unrouted method and path pair answers 404 `NOT_FOUND`; 405 kept only when raised by the framework or a handler. |
+| 1.6 | 2026-10-26 | QA document findings (DOC-1 to DOC-7, DOC-10) and owner decision on the catalog: every active cake is listed (zero active is the only error case); one image field rule and asset versioning; strong ETag with weak `If-None-Match` comparison; one shared read budget with `Retry-After` rule; unknown query parameters ignored; `note_max_length` is a constant; sample wording removed from examples. ADR-0017. |

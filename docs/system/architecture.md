@@ -2,18 +2,18 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.4 |
+| Version      | 1.5 |
 | Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | atlas-architect |
 | Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; design/design-system.md v1.0 |
-| Related      | data-model.md; api.md; order-lifecycle.md; auth.md; deployment.md; docs/decisions/ |
+| Related      | data-model.md; api.md; order-lifecycle.md; auth.md; deployment.md; docs/decisions/; ADR-0017 |
 
 All owner decisions are recorded: Swift with Vapor (ADR-0001), PostgreSQL (ADR-0002), free trial hosting (ADR-0003, Accepted for the trial; returns to Proposed if a card or cost appears), repository layout (ADR-0004), iOS 17 and Android API 26 (ADR-0005), reject and re-review on price change (ADR-0010). [v1.1 | 2026-10-25]
 
 ## 1. Purpose & Scope
 
-This document maps the system for the first slice: a customer browses four cakes and places an order from an iOS or Android app, and a backend stores the order. It covers components, flows, storage, integrations and quality targets. It does not cover staff and owner features, push notifications or payment (later slices); their extension points are named in section 10.
+This document maps the system for the first slice: a customer browses the active cakes (one to four) and places an order [v1.5 | 2026-10-26] from an iOS or Android app, and a backend stores the order. It covers components, flows, storage, integrations and quality targets. It does not cover staff and owner features, push notifications or payment (later slices); their extension points are named in section 10.
 
 ## 2. System Context
 
@@ -54,7 +54,7 @@ The shop has no screen in this slice; it learns of orders from the database (ope
 | Android customer app | Same screens and flow | Kotlin 2.4, Jetpack Compose (BOM 2026.09.00, Material3 1.4), AGP 9.4 with built-in Kotlin, Gradle 9.6, JDK 17, API 26+ (ADR-0005, ADR-0007); blur on Android 12+, opaque cards below; application ID `app.banh.customer` (ADR-0016) [v1.2 | 2026-10-26] | `android/app/` | Backend API, Zalo, dialer |
 | Backend API | Serves catalog and availability, validates and creates orders, enforces rules and rate limits | Swift 6, Vapor 4, Fluent with PostgreSQL driver and raw SQL for the order transaction (ADR-0001) [v1.1 | 2026-10-25] | `backend/Sources/App/` (tests `backend/Tests/AppTests/`, package `backend/Package.swift`, `backend/Dockerfile`) | PostgreSQL |
 | Database | Stores configuration, orders, daily counters, audit events; enforces constraints and triggers | PostgreSQL 16+ (ADR-0002, Accepted) | Migrations `backend/db/migrations/`, seed `backend/db/seed/` | Backend API, backup job |
-| Static assets | Product images, logo, privacy page | Files served by the backend | `backend/assets/` | Apps (via API host) |
+| Static assets | Product images, logo, privacy page | Files served by the backend; images in `backend/assets/images/` served at `/assets/images/*` with a content version in the URL and a one-year cache (ADR-0017) [v1.5 \| 2026-10-26] | `backend/assets/` | Apps (via API host) |
 | Contract fixtures | Shared sample requests, responses and validation cases used by all test suites | JSON files | `contracts/fixtures/` | Backend tests, iOS tests, Android tests |
 | Contracts package [v1.1 | 2026-10-25] | Codable request, response and error-code types shared by backend and iOS (optional for iOS; fixtures stay the contract) | SwiftPM library `BanhContracts`, Foundation only | `contracts/swift/` | Backend, iOS app |
 | Backend image [v1.1 | 2026-10-25] | The built container, produced in CI (never on the host) | Multi-stage Dockerfile, `linux/amd64`, public image on GHCR | `backend/Dockerfile`, `.github/workflows/backend.yml` | CI, host |
@@ -113,7 +113,7 @@ Contact (FR-2, FR-12): the app opens `https://zalo.me/<contact>` or `tel:<number
 | Orders, items, daily counters, audit events | PostgreSQL | data-model.md |
 | Catalog cache | App-private storage on the device | Up to 7 days (ADR-0011) |
 | Order draft | App-private storage on the device, 24 hours, excluded from backups | Personal data (ADR-0011) |
-| Product images | Backend static files; HTTP cache on the device | Fake placeholders in the repository |
+| Product images | Backend static files; HTTP cache on the device (versioned URL, ADR-0017) | Fake placeholders in the repository [v1.5 \| 2026-10-26] |
 | Backups | Separate encrypted object storage | deployment.md section 6 |
 
 Full structure: data-model.md.
@@ -266,3 +266,4 @@ Tests: `AppTests` is one target. Database tests (`Tests/AppTests/Database`, base
 Fitness for slices 1 to 3: the layering fits. Done in round 2 [v1.4 | 2026-10-26]: factories with a database handle, 8 KB body limit, `Retry-After` and `details.retry_after_seconds` written for `RATE_LIMITED` (default 60 s, the shortest window in the api.md rate-limit table), `withDeadline` cancels its timer. Still open: the access log lacks platform, app version and error code.
 
 `withDeadline` rule [v1.4 | 2026-10-26]: its timer is a NIO scheduled task, not a sleeping Swift `Task`, because cancelling a sleeping `Task` crashed the Swift 6.2.4 release binary ("freed pointer was not the last allocation"). Debug tests never show this. Any change to `Support/Deadline.swift` needs a release-binary live check (start the release build, call the deep health check repeatedly); the CI step "Release binary smoke test" in `backend.yml` already does this, and a developer should also run it locally before merging such a change (risk R-10).
+| 1.5 | 2026-10-26 | QA findings and owner decision: the catalog lists every active cake (one to four); static assets folder, versioned image URLs and cache rule (ADR-0017). |

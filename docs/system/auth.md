@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.2 |
+| Version      | 1.3 |
 | Last updated | 2026-10-25 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -41,7 +41,7 @@ Authorization is enforced by the server. In this slice there is no endpoint that
 
 | Control | Value (configuration default) |
 | ------- | ----------------------------- |
-| Read requests per IP | 120 per minute, then 429 |
+| Read requests per IP | 120 per minute in one shared budget (all read routes and static files; 304 and 404 count, a 429 does not), then 429 with `Retry-After` [v1.3 \| 2026-10-26] |
 | `POST /v1/orders` per IP | 10 per hour, then 429 |
 | Accepted orders per normalised phone number | 5 per 24 hours (`ORDER_MAX_PER_PHONE_PER_DAY`), then 429 `RATE_LIMITED` |
 | Request body size | 8 KB, then 413 |
@@ -98,3 +98,4 @@ Rotation: database passwords on staff change or suspected leak; at least once a 
 | 1.0 | 2026-10-25 | First version (customer slice; staff login placeholder). |
 | 1.1 | 2026-10-25 | Backup storage secret replaced by a deploy key; deploy hook secrets; public image note. |
 | 1.2 | 2026-10-26 | Image visibility clarified (D-12). |
+| 1.3 | 2026-10-26 | Read limit wording: one shared budget per address (api.md section 1, ADR-0017). |

@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.5 |
+| Version      | 1.6 |
 | Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | atlas-architect (design), forge-dev (keeps it true) |
@@ -42,10 +42,10 @@ Backend variables (names only; `.env.example` lists the same names with empty va
 | `SHOP_ID` | UUID of the shop served (single shop at launch) | Yes from slice 1 (not read by slice 0) [v1.2 | 2026-10-26] | Host |
 | `TRUST_PROXY` | Read the client IP from the proxy header | Yes in staging and production from slice 3 (rate limits); not read by slice 0 [v1.2 | 2026-10-26] | Host |
 | `ORDERING_ENABLED` | `true` or `false`; false returns 503 `ORDERING_PAUSED` | No (default true) | Host |
-| `RATE_LIMIT_READ_PER_MINUTE` | Default 120 | No | Host |
+| `RATE_LIMIT_READ_PER_MINUTE` | Default 120; one shared budget per client address for `GET /v1/*`, `/healthz`, `/privacy`, `/assets/*` (api.md section 1) [v1.6 \| 2026-10-26] | No | Host |
 | `RATE_LIMIT_ORDER_PER_HOUR` | Default 10 | No | Host |
 | `ORDER_MAX_PER_PHONE_PER_DAY` | Default 5 | No | Host |
-| `PUBLIC_ASSET_BASE_URL` | Prefix for `image_url` if assets move to another host | No | Host |
+| `PUBLIC_ASSET_BASE_URL` | Prefix placed before `/assets/<image_path>` in `image_url` if assets move to another host (no trailing slash); empty by default, so `image_url` is relative to the API host. Image files live in `backend/assets/images/` and must be inside the image build context [v1.6 \| 2026-10-26] | No | Host |
 | `LOG_LEVEL` | `info` default | No | Host |
 
 Mobile build settings (per build configuration, not secrets): `API_BASE_URL` (staging, production). Android `usesCleartextTraffic=false`; iOS keeps App Transport Security defaults.
@@ -196,3 +196,4 @@ Paid always-on path (when real customers order):
 | 1.3 | 2026-10-26 | CI: release binary smoke test, database tests in the `AppTests` target (throwaway database only), Android platform 37 and explicit licence step. |
 | 1.4 | 2026-10-26 | After backend round 2: `migrate` needs only `APP_ENV` and `DATABASE_MIGRATION_URL`; iOS runner corrected to `macos-26`; Android platform `android-37.0`; deploy job concurrency, smoke retry, QA package in CI; deploy hook parameter checked against Render docs (`imgURL`, not `imgRef`). |
 | 1.5 | 2026-10-26 | D-12: image visibility and pull credentials, CI login before migrations, owner action to make the package public. |
+| 1.6 | 2026-10-26 | DOC-1, DOC-3: `PUBLIC_ASSET_BASE_URL` rule, shared read budget wording, asset folder. |

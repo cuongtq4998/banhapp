@@ -2,12 +2,12 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.2 |
+| Version      | 1.3 |
 | Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | atlas-architect |
 | Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0 |
-| Related      | architecture.md; api.md; order-lifecycle.md; ADR-0002, ADR-0008, ADR-0009, ADR-0013 |
+| Related      | architecture.md; api.md; order-lifecycle.md; ADR-0002, ADR-0008, ADR-0009, ADR-0013, ADR-0017 |
 
 ## 1. Overview
 
@@ -72,7 +72,7 @@ Purpose: the ordering parameters of a shop, typed and constrained. One row per s
 
 ### 3.3 product (FR-3, FR-4, FR-5, BR-5)
 
-Purpose: a cake the shop sells. The set is four at launch (PRD non-goal: no more products).
+Purpose: a cake the shop sells. The set is four at launch (PRD non-goal: no more products); the table has no limit of four, and the API lists every active row, so one to four is normal when the owner deactivates a cake (owner decision 2026-10-26) [v1.3 | 2026-10-26].
 
 | Column | Type | Null | Default | Constraints | Notes |
 | ------ | ---- | ---- | ------- | ----------- | ----- |
@@ -82,7 +82,7 @@ Purpose: a cake the shop sells. The set is four at launch (PRD non-goal: no more
 | name | text | no | | length 1 to 100 | Vietnamese display name |
 | description | text | no | | length 1 to 300 | Short description |
 | price_vnd | integer | no | | `>= 0` | Current price (BR-5). Changing it never changes past orders (BR-6) |
-| image_path | text | no | | | Relative path under the asset base URL |
+| image_path | text | no | | | Relative path of the file under `backend/assets/`, for example `images/banana.png`: no leading slash, no `..`. The API field is `image_url` (api.md 4.6 builds it from this column) [v1.3 \| 2026-10-26] |
 | sort_order | integer | no | 0 | | Display order |
 | is_active | boolean | no | true | | Inactive products are not returned and cannot be ordered |
 | is_sample | boolean | no | false | | |
@@ -243,7 +243,8 @@ Rules enforced only in application code (they depend on configuration): lead tim
 - Deletion: no hard delete of orders in this slice. Configuration rows are deactivated, not deleted. Cancellation is a status change, not a delete.
 - Retention (BR-12): the period is not decided by the owner. Until then personal data is kept; the design supports erasing name, phone, address and note by setting `pii_purged_at` (a purge job and a period will be added when the owner states it).
 - Normalisation: text is trimmed and Unicode NFC normalised before storage; phone stored in E.164 (ADR-0009).
-- Sample data: rows with `is_sample = true` are seed data; the apps do not see the flag (AC-29).
+- Sample data: rows with `is_sample = true` are seed data; the apps do not see the flag (AC-29). Seed text that can reach a screen carries no sample marker ("mẫu", "sample", "test", "demo", "fake"). Seed `phone_contact` is a fake number that passes the ADR-0009 pattern: `+84` then `[35789]` then 8 digits, in the fake range `+84900000000` to `+84900000099`; `zalo_contact` is the same number without `+`. No official reserved fictional range exists that I found (unverified), so these are numbers unlikely to be assigned; they never go into a store listing. [v1.3 | 2026-10-26]
+- `settings.note_max_length` in the API is a code constant (200, input-safety bound of ADR-0009) equal to the `customer_order.note` check; `shop_setting` has no column for it [v1.3 | 2026-10-26].
 
 ## 7. Sensitive Data
 
@@ -293,3 +294,4 @@ Backups contain personal data: they are encrypted (deployment.md section 6). Rea
 | 1.0 | 2026-10-25 | First version. |
 | 1.1 | 2026-10-25 | PostgreSQL accepted; Swift/Fluent migration mechanics. |
 | 1.2 | 2026-10-26 | After slice 0: trigger writes an `order_event` on every status change with a session-settable actor; migration reviewed against the document; `updated_at` is set by the application. |
+| 1.3 | 2026-10-26 | QA findings DOC-1, DOC-5, DOC-6, DOC-7: `image_path` rule, products not limited to four, seed wording and fake phone rule, `note_max_length` constant. |
