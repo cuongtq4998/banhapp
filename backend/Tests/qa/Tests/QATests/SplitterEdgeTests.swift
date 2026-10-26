@@ -67,18 +67,18 @@ final class SplitterEdgeTests: XCTestCase {
         XCTAssertLessThan(ContinuousClock.now - started, .seconds(5))
     }
 
-    // ---- Known limitations (see defect D-4): valid PostgreSQL the scanner cuts wrongly. ----
+    // ---- D-4 (fixed in round 2): valid PostgreSQL the old scanner cut wrongly. ----
 
-    func testDefectEscapeStringWithBackslashQuote() {
+    func testEscapeStringWithBackslashQuote() {
         // E'...\'...' keeps the string open after the backslash-quote.
         XCTAssertEqual(split("SELECT E'it\\'s; fine'; SELECT 2"), ["SELECT E'it\\'s; fine'", "SELECT 2"])
     }
 
-    func testDefectQuotedIdentifierWithSemicolon() {
+    func testQuotedIdentifierWithSemicolon() {
         XCTAssertEqual(split("CREATE TABLE \"a;b\" (x int); SELECT 2"), ["CREATE TABLE \"a;b\" (x int)", "SELECT 2"])
     }
 
-    func testDefectNestedBlockComment() {
+    func testNestedBlockComment() {
         XCTAssertEqual(split("/* a /* b */ ; c */ SELECT 1; SELECT 2"), ["/* a /* b */ ; c */ SELECT 1", "SELECT 2"])
     }
 }

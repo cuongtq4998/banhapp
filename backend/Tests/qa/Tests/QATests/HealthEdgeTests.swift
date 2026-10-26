@@ -8,10 +8,16 @@ final class HealthEdgeTests: XCTestCase {
 
     override func setUp() async throws {
         app = try await Application.make(.testing)
-        try await configure(app, config: AppConfig(stage: .local, port: 8080, databaseURL: nil), migrationFiles: [])
+        // A port nobody listens on: Fluent opens no connection until a query
+        // runs, and the request then has a database handle for the stubbed probe.
+        try await configure(app, config: AppConfig(stage: .local, port: 8080, databaseURL: "postgres://qa:qa@127.0.0.1:1/qa"))
     }
 
     override func tearDown() async throws { try await app.asyncShutdown() }
+
+    private func stub(_ probe: QAProbe) {
+        app.services.repositories.makeDatabaseProbe = { _ in probe }
+    }
 
     private func body(_ res: XCTHTTPResponse) throws -> [String: String] {
         try JSONDecoder().decode([String: String].self, from: Data(res.body.readableBytesView))
@@ -48,7 +54,7 @@ final class HealthEdgeTests: XCTestCase {
 
     func testDeepQueryVariants() async throws {
         let failing = QAProbe { throw DatabaseProbeError() }
-        app.databaseProbe = failing
+        stub(failing)
         for query in ["deep=true", "deep=", "deep", "deep=1%20", "other=1", "deep=0&deep=1x"] {
             try await app.test(.GET, "healthz?\(query)") { res async throws in
                 XCTAssertEqual(res.status, .ok, query)
@@ -61,7 +67,7 @@ final class HealthEdgeTests: XCTestCase {
     }
 
     func testDegradedBodyAndHeaders() async throws {
-        app.databaseProbe = QAProbe { throw DatabaseProbeError() }
+        stub(QAProbe { throw DatabaseProbeError() })
         try await app.test(.GET, "healthz?deep=1") { res async throws in
             XCTAssertEqual(res.status, .serviceUnavailable)
             XCTAssertEqual(try self.body(res), ["status": "degraded"])
@@ -70,7 +76,7 @@ final class HealthEdgeTests: XCTestCase {
     }
 
     func testErrorDetailsNeverLeakIntoResponse() async throws {
-        app.databaseProbe = QAProbe { throw LeakyError() }
+        stub(QAProbe { throw LeakyError() })
         try await app.test(.GET, "healthz?deep=1") { res async throws in
             let text = String(buffer: res.body)
             XCTAssertFalse(text.contains("hunter2"))
@@ -79,7 +85,7 @@ final class HealthEdgeTests: XCTestCase {
     }
 
     func testDeadlineIsAboutTwoSeconds() async throws {
-        app.databaseProbe = QAProbe { try await Task.sleep(for: .seconds(10)) }
+        stub(QAProbe { try await Task.sleep(for: .seconds(10)) })
         let started = ContinuousClock.now
         try await app.test(.GET, "healthz?deep=1") { res async throws in
             XCTAssertEqual(res.status, .serviceUnavailable)
@@ -90,14 +96,14 @@ final class HealthEdgeTests: XCTestCase {
     }
 
     func testFastSuccessDoesNotWaitForDeadline() async throws {
-        app.databaseProbe = QAProbe {}
+        stub(QAProbe {})
         let started = ContinuousClock.now
         try await app.test(.GET, "healthz?deep=1") { res async throws in XCTAssertEqual(res.status, .ok) }
         XCTAssertLessThan(ContinuousClock.now - started, .milliseconds(500))
     }
 
     func testManyParallelDeepChecksWithSlowDatabase() async throws {
-        app.databaseProbe = QAProbe { try await Task.sleep(for: .seconds(6)) }
+        stub(QAProbe { try await Task.sleep(for: .seconds(6)) })
         let started = ContinuousClock.now
         let app: Application = self.app
         let codes = try await withThrowingTaskGroup(of: UInt.self) { group in
@@ -119,7 +125,7 @@ final class HealthEdgeTests: XCTestCase {
 
     func testRecoveryAfterFailureNoStickyState() async throws {
         let failing = NIOLockedValueBox(true)
-        app.databaseProbe = QAProbe { if failing.withLockedValue({ $0 }) { throw DatabaseProbeError() } }
+        stub(QAProbe { if failing.withLockedValue({ $0 }) { throw DatabaseProbeError() } })
         try await app.test(.GET, "healthz?deep=1") { res async throws in XCTAssertEqual(res.status, .serviceUnavailable) }
         failing.withLockedValue { $0 = false }
         try await app.test(.GET, "healthz?deep=1") { res async throws in XCTAssertEqual(res.status, .ok) }
