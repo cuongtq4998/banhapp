@@ -2,8 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(xcodebuild -list:*)",
-      "Bash(xcodebuild -project BanhApp.xcodeproj -scheme BanhApp build:*)",
-      "Bash(xcodebuild -project BanhApp.xcodeproj -scheme BanhApp test:*)",
+      "Bash(xcodebuild -project ios/BanhApp.xcodeproj -scheme BanhApp build:*)",
+      "Bash(xcodebuild -project ios/BanhApp.xcodeproj -scheme BanhApp test:*)",
       "Bash(ddagent status:*)",
       "Bash(ddagent doctor:*)",
       "Bash(ddagent lane:*)",

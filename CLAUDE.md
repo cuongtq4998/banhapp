@@ -4,29 +4,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository layout
 
-Git repo. One app:
+Git monorepo (ADR-0004), three components plus shared contracts:
 
-- `BanhApp/`, `BanhAppTests/`, `BanhAppUITests/`, `BanhApp.xcodeproj` — a multiplatform SwiftUI app (iOS, iPadOS, macOS, tvOS, visionOS; deployment targets iOS 15.0 / tvOS 15.0 / macOS 12.0 / visionOS 1.0, Swift 5.0). Currently the Xcode template stub (`BanhApp.swift` → `ContentView`), with XCTest unit/UI test targets.
+- `ios/` — SwiftUI app, iPhone only, iOS 17 (`BanhApp/`, `BanhAppTests/`, `BanhAppUITests/`, `BanhApp.xcodeproj`).
+- `android/` — Kotlin and Jetpack Compose app, minSdk 26 (Gradle).
+- `backend/` — Swift 6 and Vapor 4 API (SwiftPM), PostgreSQL migrations in `backend/db/`.
+- `contracts/` — shared JSON fixtures and the `BanhContracts` SwiftPM package.
+- `docs/` — product, design, system, decisions, engineering, test, pipeline. Developer commands live in `docs/engineering/dev-guide.md`.
 
 ## Swift app
 
-`xcodebuild` needs full Xcode; the active developer dir is currently Command Line Tools, so either run `sudo xcode-select -s /Applications/Xcode-27.1.0-Release.Candidate.app` once, or prefix commands with `DEVELOPER_DIR=/Applications/Xcode-27.1.0-Release.Candidate.app/Contents/Developer` (no sudo; verified to build).
+`xcodebuild` needs full Xcode. The active developer dir may be Command Line Tools, so prefix commands with `DEVELOPER_DIR=<path to a full Xcode>` (no sudo). The project file format needs Xcode 27 (the beta build works; Xcode 26.3 cannot open it). Check the installed names with `ls /Applications | grep Xcode`.
 
 ```
-xcodebuild -project BanhApp.xcodeproj -scheme BanhApp build
-xcodebuild -project BanhApp.xcodeproj -scheme BanhApp test -only-testing:BanhAppTests/BanhAppTests/testExample
+cd ios
+xcodebuild -project BanhApp.xcodeproj -scheme BanhApp -destination "generic/platform=iOS Simulator" CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project BanhApp.xcodeproj -scheme BanhApp -destination "platform=iOS Simulator,id=<simulator id>" -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO test
 ```
 
-Build every platform (append `CODE_SIGNING_ALLOWED=NO`; all verified to build):
+`-parallel-testing-enabled NO` is needed, otherwise the test run fails with "No matching device ... XCTestDevices". Platforms live in `SUPPORTED_PLATFORMS`, `TARGETED_DEVICE_FAMILY` (1 = iPhone) and `IPHONEOS_DEPLOYMENT_TARGET` (17.0) in `ios/BanhApp.xcodeproj/project.pbxproj`. iOS 17 APIs (`@Observable`) are available without `#available`; guard iOS 18 and later APIs.
 
-```
-for d in "generic/platform=iOS Simulator" "generic/platform=iOS" "generic/platform=macOS" \
-         "generic/platform=tvOS Simulator" "generic/platform=visionOS Simulator"; do
-  xcodebuild -project BanhApp.xcodeproj -scheme BanhApp -destination "$d" build
-done
-```
+## Backend and Android
 
-Platforms and targets live in `SUPPORTED_PLATFORMS`, `TARGETED_DEVICE_FAMILY` (1,2,3,7 = iPhone, iPad, tvOS, visionOS) and the `*_DEPLOYMENT_TARGET` settings in `project.pbxproj`. Code must stay compatible with iOS 15 / macOS 12 (guard newer APIs with `#available`).
+Commands, prerequisites and troubleshooting: `docs/engineering/dev-guide.md` and `backend/README.md`. The backend builds and tests natively with Swift 6.2 (`cd backend && swift test`); the Docker image and PostgreSQL behaviour are verified in CI. The Android Gradle wrapper is generated with `gradle wrapper --gradle-version 9.6.0` (needs JDK 17 and the Android SDK).
 
 ## ddagent (external tool)
 
@@ -38,7 +38,7 @@ ddagent init                            # in a repo: installs the ddagent-lane /
 ddagent doctor | run | prewarm | status | dashboard | lane acquire|release|list
 ```
 
-Add `--mock` or `DDAGENT_MOCK=1` to run without Xcode. ddagent only drives iOS/iPadOS simulators; the iOS 15.5 and 16.0 runtimes are unusable on this host, so use 17.5+ (e.g. `--target "iPhone 16"`). Real runs need `DEVELOPER_DIR` pointing at a full Xcode. See `.claude/skills/ddagent-lane`; bugs and design live in the ddagent repo.
+Pass the iOS project path `ios/BanhApp.xcodeproj` to it. Add `--mock` or `DDAGENT_MOCK=1` to run without Xcode. ddagent only drives iOS/iPadOS simulators; the iOS 15.5 and 16.0 runtimes are unusable on this host, so use 17.5+ (e.g. `--target "iPhone 16"`). Real runs need `DEVELOPER_DIR` pointing at a full Xcode. See `.claude/skills/ddagent-lane`; bugs and design live in the ddagent repo.
 
 ## Agent pipeline (`/feature`)
 
