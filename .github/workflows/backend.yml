@@ -66,6 +66,9 @@ jobs:
           apt-get update -qq && apt-get install -y -qq postgresql-client
           psql "$DATABASE_MIGRATION_URL" -v ON_ERROR_STOP=1 -f backend/db/seed/sample.sql
           psql "$DATABASE_MIGRATION_URL" -v ON_ERROR_STOP=1 -f backend/db/seed/sample.sql
+      - name: QA package (edge cases and database tests)
+        working-directory: backend/Tests/qa
+        run: swift test
       - name: Release binary smoke test (shallow and deep health)
         working-directory: backend
         env:
