@@ -28,7 +28,7 @@ struct AssetRoutes: RouteCollection {
         let segments = req.parameters.getCatchall()
         let imagesDirectory = directory + AssetVersions.imagesDirectoryName + "/"
         guard let path = Self.filePath(forSegments: segments, in: imagesDirectory) else {
-            throw APIError.notFoundUncached
+            throw APIError(.notFound)
         }
         return try await StaticFileResponder(cacheControl: Self.cacheControl).respond(to: req, withFileAt: path)
     }

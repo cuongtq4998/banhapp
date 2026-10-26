@@ -34,6 +34,16 @@ final class ErrorHandlingTests: XCTestCase {
         return try JSONDecoder().decode(APIErrorResponse.self, from: data)
     }
 
+    func testEveryNotFoundIsNoStore() async throws {
+        app.get("raises-not-found") { _ -> String in throw Abort(.notFound) }
+        for path in ["nope", "raises-not-found"] {
+            try await app.test(.GET, path) { res async throws in
+                XCTAssertEqual(res.status, .notFound, path)
+                XCTAssertEqual(res.headers.first(name: .cacheControl), "no-store", path)
+            }
+        }
+    }
+
     func testUnknownPathReturnsContractBody() async throws {
         try await app.test(.GET, "nope") { res async throws in
             XCTAssertEqual(res.status, .notFound)

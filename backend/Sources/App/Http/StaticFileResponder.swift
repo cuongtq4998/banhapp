@@ -12,7 +12,7 @@ struct StaticFileResponder {
     func respond(to request: Request, withFileAt path: String) async throws -> Response {
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory), !isDirectory.boolValue else {
-            throw APIError.notFoundUncached
+            throw APIError(.notFound)
         }
         let response = try await request.fileio.asyncStreamFile(at: path)
         response.headers.replaceOrAdd(name: .cacheControl, value: cacheControl)

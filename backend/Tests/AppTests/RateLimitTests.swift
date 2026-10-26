@@ -58,6 +58,48 @@ final class FixedWindowRateLimiterTests: XCTestCase {
         XCTAssertTrue(limiter.registerRequest(clientKey: "a", at: start.addingTimeInterval(-1_000)).isAllowed)
     }
 
+    func testEachAddressHasItsOwnWindowStartingAtItsFirstRequest() {
+        let limiter = FixedWindowRateLimiter(limit: 1, windowSeconds: 60)
+        XCTAssertTrue(limiter.registerRequest(clientKey: "a", at: start).isAllowed)
+        XCTAssertTrue(limiter.registerRequest(clientKey: "b", at: start.addingTimeInterval(50)).isAllowed)
+        // "a" window is over at +60 while "b" window runs until +110.
+        XCTAssertTrue(limiter.registerRequest(clientKey: "a", at: start.addingTimeInterval(60)).isAllowed)
+        let refused = limiter.registerRequest(clientKey: "b", at: start.addingTimeInterval(60))
+        XCTAssertFalse(refused.isAllowed)
+        XCTAssertEqual(refused.retryAfterSeconds, 50)
+    }
+
+    func testTheTableEvictsExpiredWindowsBeforeTheOldestOne() {
+        let limiter = FixedWindowRateLimiter(limit: 1, windowSeconds: 60, maxAddresses: 2)
+        XCTAssertTrue(limiter.registerRequest(clientKey: "old", at: start).isAllowed)
+        XCTAssertTrue(limiter.registerRequest(clientKey: "newer", at: start.addingTimeInterval(30)).isAllowed)
+        // "old" has expired, "newer" has not: only "old" may be evicted.
+        XCTAssertTrue(limiter.registerRequest(clientKey: "third", at: start.addingTimeInterval(61)).isAllowed)
+        XCTAssertFalse(limiter.registerRequest(clientKey: "newer", at: start.addingTimeInterval(62)).isAllowed)
+    }
+
+    func testTheOldestWindowIsEvictedWhenNoneHasExpired() {
+        let limiter = FixedWindowRateLimiter(limit: 1, windowSeconds: 60, maxAddresses: 2)
+        XCTAssertTrue(limiter.registerRequest(clientKey: "first", at: start).isAllowed)
+        XCTAssertTrue(limiter.registerRequest(clientKey: "second", at: start.addingTimeInterval(10)).isAllowed)
+        XCTAssertTrue(limiter.registerRequest(clientKey: "third", at: start.addingTimeInterval(20)).isAllowed)
+        XCTAssertFalse(limiter.registerRequest(clientKey: "second", at: start.addingTimeInterval(21)).isAllowed)
+        XCTAssertFalse(limiter.registerRequest(clientKey: "third", at: start.addingTimeInterval(21)).isAllowed)
+        XCTAssertTrue(limiter.registerRequest(clientKey: "first", at: start.addingTimeInterval(22)).isAllowed, "evicted, so counted from zero")
+    }
+
+    func testARefusedRequestNeverEvictsAnotherAddress() {
+        let limiter = FixedWindowRateLimiter(limit: 1, windowSeconds: 60, maxAddresses: 2)
+        _ = limiter.registerRequest(clientKey: "a", at: start)
+        _ = limiter.registerRequest(clientKey: "b", at: start.addingTimeInterval(1))
+        for second in 2...5 { _ = limiter.registerRequest(clientKey: "a", at: start.addingTimeInterval(Double(second))) }
+        XCTAssertFalse(limiter.registerRequest(clientKey: "b", at: start.addingTimeInterval(6)).isAllowed)
+    }
+
+    func testTheDefaultBoundIsTenThousandAddresses() {
+        XCTAssertEqual(FixedWindowRateLimiter.maxTrackedAddresses, 10_000)
+    }
+
     func testConcurrentRequestsNeverExceedTheLimit() async {
         let limiter = FixedWindowRateLimiter(limit: 50, windowSeconds: 60)
         let now = start
@@ -136,6 +178,21 @@ final class RateLimitMiddlewareTests: XCTestCase {
         }
         try await app.test(.GET, "v1/catalog", headers: ["X-Forwarded-For": "198.51.100.1, 203.0.113.9"]) { res async throws in
             XCTAssertEqual(res.status, .ok, "different last entry, different client")
+        }
+    }
+
+    func testTrustedProxyJoinsSeparateForwardedLinesAndUsesTheLastEntry() async throws {
+        let app = try await makeApp(limit: 1, trustProxy: true)
+        defer { Task { try? await app.asyncShutdown() } }
+        func headers(forged: String) -> HTTPHeaders {
+            var headers = HTTPHeaders()
+            headers.add(name: "X-Forwarded-For", value: forged)
+            headers.add(name: "X-Forwarded-For", value: "203.0.113.1")
+            return headers
+        }
+        try await app.test(.GET, "v1/catalog", headers: headers(forged: "198.51.100.1")) { res async throws in XCTAssertEqual(res.status, .ok) }
+        try await app.test(.GET, "v1/catalog", headers: headers(forged: "198.51.100.2")) { res async throws in
+            XCTAssertEqual(res.status, .tooManyRequests, "a forged first line must not choose the bucket")
         }
     }
 
