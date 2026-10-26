@@ -66,6 +66,20 @@ jobs:
           apt-get update -qq && apt-get install -y -qq postgresql-client
           psql "$DATABASE_MIGRATION_URL" -v ON_ERROR_STOP=1 -f backend/db/seed/sample.sql
           psql "$DATABASE_MIGRATION_URL" -v ON_ERROR_STOP=1 -f backend/db/seed/sample.sql
+      - name: Release binary smoke test (shallow and deep health)
+        working-directory: backend
+        env:
+          APP_ENV: local
+          PORT: "8081"
+        run: |
+          swift build -c release
+          apt-get install -y -qq curl > /dev/null
+          DATABASE_URL="$DATABASE_MIGRATION_URL" "$(swift build -c release --show-bin-path)/App" serve &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID' EXIT
+          for i in $(seq 1 30); do curl -sf "http://127.0.0.1:8081/healthz" > /dev/null && break; sleep 1; done
+          curl -sf "http://127.0.0.1:8081/healthz" | grep -q '"status":"ok"'
+          curl -sf "http://127.0.0.1:8081/healthz?deep=1" | grep -q '"status":"ok"'
 
   image:
     needs: test

@@ -29,7 +29,13 @@ jobs:
           java-version: "17"
       - uses: android-actions/setup-android@v3
         with:
-          packages: "platforms;android-37 build-tools;36.0.0"
+          # The action's own license step exits 1 on the preview-SDK license prompt; accept explicitly below.
+          accept-android-sdk-licenses: false
+          packages: ""
+      - name: Accept SDK licenses and install platform 37
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platforms;android-37" "build-tools;36.0.0"
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
