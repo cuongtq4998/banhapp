@@ -14,4 +14,17 @@ object ColorTokens {
     const val TEXT_SECONDARY = 0xFF4A5A4EL
     const val ERROR = 0xFFB3261EL
     const val ERROR_CONTAINER = 0xFFF9DEDCL
+    const val BLOB_GREEN = 0xFF8FC79AL
+    const val BLOB_CREAM = 0xFFF1D9A0L
+    const val SURFACE_GLASS = 0xFFFFFFFFL
+    const val SURFACE_STROKE = 0xFFFFFFFFL
+}
+
+// Opacity of translucent tokens (design-system.md sections 2.1 and 2.5, Android column).
+object AlphaTokens {
+    const val GLASS_SURFACE = 0.70f
+    const val SOLID_FALLBACK = 0.94f
+    const val STROKE = 0.60f
+    const val BLOB = 0.45f
+    const val DISABLED_FILL = 0.12f
 }

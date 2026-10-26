@@ -1,6 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Vietnamese is the only language (ADR-0007). Real copy arrives with the UI document keys in slice 1. -->
+<!-- Vietnamese is the only language (ADR-0007). Resource names are the keys of docs/design/place-order-ui.md
+     section 8 in lower case. Texts of later screens are added with those screens. -->
 <resources>
     <string name="app_name">Banh App</string>
-    <string name="shell_placeholder">Banh App</string>
+
+    <!-- Shared -->
+    <string name="logo_label">Logo cửa hàng</string>
+    <string name="common_retry">Thử lại</string>
+    <string name="common_back">Quay lại</string>
+    <string name="common_loading">Đang tải</string>
+    <string name="err_network_load">Không có kết nối mạng. Vui lòng kiểm tra kết nối và thử lại.</string>
+    <!-- Whole dong with the dong sign (design system principle 4); the amount is already grouped. -->
+    <string name="money_format">%1$s ₫</string>
+    <string name="price_each">%1$s/cái</string>
+
+    <!-- S-2 Home -->
+    <string name="home_btn_zalo">Zalo</string>
+    <string name="home_btn_phone">Gọi điện</string>
+    <string name="home_btn_products">Xem sản phẩm</string>
+    <string name="home_btn_order">Đặt bánh</string>
+    <string name="home_err">Không tải được thông tin cửa hàng. Vui lòng kiểm tra kết nối mạng và thử lại.</string>
+    <string name="err_open_zalo">Không mở được Zalo. Bạn có thể gọi điện cho cửa hàng.</string>
+    <string name="err_open_phone">Không mở được ứng dụng gọi điện.</string>
+
+    <!-- S-3 Products and S-4 Detail -->
+    <string name="products_title">Sản phẩm</string>
+    <string name="products_err">Không tải được thông tin bánh. Vui lòng thử lại.</string>
+    <string name="product_img_failed">Không tải được ảnh</string>
+    <string name="detail_btn_order">Đặt bánh này</string>
+
+    <!-- S-5 stub (order flow) -->
+    <string name="flow_title">Đặt bánh</string>
+    <string name="step_label">Bước %1$d/4</string>
+    <string name="step1">Chọn bánh</string>
 </resources>
