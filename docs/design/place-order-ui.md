@@ -2,12 +2,12 @@
 
 | Field        | Value                                                                 |
 | ------------ | --------------------------------------------------------------------- |
-| Version      | 1.2                                                                   |
+| Version      | 1.3 [v1.3 | 2026-10-26]                                              |
 | Last updated | 2026-10-26                                                            |
 | Status       | Draft                                                                 |
 | Owner        | canvas-ui                                                             |
 | Based on     | product/place-order.md v1.4 (Approved) [v1.2 | 2026-10-26]             |
-| Related      | design/design-system.md; pipeline/place-order/00-request.md; mockups (reference only, private link in the PRD) |
+| Related      | design/design-system.md (v1.2); design/reference/ (owner's design board, visual source of truth) [v1.3 | 2026-10-26]; pipeline/place-order/00-request.md |
 
 ## 1. Overview
 
@@ -22,7 +22,9 @@ Global rules that apply to every screen:
 - Dates and times are shown in Vietnam time (UTC+7), whatever the device time zone (A-1).
 - No screen offers tracking, status or cancellation (non-goals).
 
-Placeholders in text: `{n}`, `{min}`, `{max}`, `{days}`, `{amount}`, `{date}`, `{name}`, `{code}`, `{start}`, `{end}`. Values for `{min}` (MIN_QTY), `{days}` (LEAD_DAYS) and `{max}` (MAX_DAYS_AHEAD) come from configuration, never typed into copy.
+[v1.3 | 2026-10-26] Visual source of truth: the owner's design board in `docs/design/reference/` (24 screens, iOS 390 x 844 and Android 412 x 892; pictures of the slice 1 screens in `renders/`). Layout, sizes, colours and type come from the board through `design-system.md` v1.2; where this document and the board differed, this version follows the board unless the PRD or an ADR forbids what the board shows (section 5.11 lists those cases as open questions). The board is a design, not data: bracketed text such as `[Tên tiệm]`, `[Lời chào ngắn gọn]`, `[Giá]`, `[Số Zalo]`, and the label "Ảnh bánh" on picture frames are placeholders. The apps show shop data exactly as received (for example the shop name is shown as sent; the board's literal prefix "Bánh tét " is not added by the app) and real cake pictures.
+
+Placeholders in text: `{n}`, `{min}`, `{max}`, `{days}`, `{amount}`, `{date}`, `{name}`, `{code}`, `{start}`, `{end}`, `{number}` [v1.3 | 2026-10-26] (a shop contact number as received). Values for `{min}` (MIN_QTY), `{days}` (LEAD_DAYS) and `{max}` (MAX_DAYS_AHEAD) come from configuration, never typed into copy.
 
 ## 2. Research summary
 
@@ -49,6 +51,7 @@ flowchart TD
     S2 -->|Place order, saved draft: restored data| S5
     S2 -->|Zalo / Phone| EXT[Zalo app / phone dialer]
     S3 --> S4[S-4 Cake detail]
+    S3 -->|Place order, bar button, v1.3; disabled when zero cakes are active| S5
     S4 -->|Order this cake, qty 1| S5
     S5 -->|total >= MIN_QTY| S6[S-6 Date and time]
     S6 -->|date and slot chosen| S7[S-7 Recipient and address]
@@ -93,13 +96,13 @@ Error and offline states have no screens of their own. They are states of the sc
 
 ## 5. Screen Specs
 
-Common layout (all screens): `AppBackground` behind everything. `TopBar` at the top (S-1 and S-9 have none). Content scrolls vertically in `GlassCard` groups with `space.lg` between groups and `space.screenMargin` side margins. `BottomActionBar` floats above the safe area on S-2, S-4, S-5, S-6, S-7, S-8 and S-9; content has bottom padding equal to the bar height so nothing is hidden. In S-5 to S-8 the `TopBar` shows the back control and the `StepIndicator` sits directly below it.
+Common layout (all screens): `AppBackground` behind everything (gradient plus three blurred blobs, design-system 2.1). [v1.3 | 2026-10-26] `TopBar` is the board's custom header: a round glass back button (44 pt iOS, 48 dp Android) at the top left, and below it the large screen title; S-1, S-2 and S-9 have none, S-4 has only the back button floating over the picture. Content scrolls vertically in `GlassCard` groups with `space.cardGap` between groups and `space.screenMargin` side margins (16 pt iOS, 12 dp Android; headings use `space.textMargin`, 24 pt / 16 dp). `BottomActionBar` floats above the bottom edge on S-3, S-4, S-5, S-6, S-7, S-8 and S-9 (S-2 has the contact buttons in that place instead, section 5.2); content has bottom padding equal to the bar height so nothing is hidden. In S-5 to S-8 the `StepIndicator` sits to the right of the back button (the board shows the back button and the step capsule on one line, the title below).
 
 ### 5.1 S-1 Launch
 
 - Purpose: show the brand while the app starts (FR-1).
 - Entry/Exit: entry on app start. Exit to S-2 automatically after the start work finishes, shown for at least 1.0 s and at most 2.0 s (proposed values, adjustable). Nothing is tappable.
-- Layout: `AppBackground`; `LogoMark` (Large) centred, no text, no button, no loading text.
+- Layout: `AppBackground`; `LogoMark` (Large) centred in the screen, no text, no button, no loading text. [v1.3 | 2026-10-26] Board sizes: iOS glass rounded square 132 pt, corner 40 pt, mark 76 pt, `color.primary`; Android blob 168 dp filled `color.primaryContainer` with a 1 dp white-70% edge and a soft shadow, mark 96 dp. The board's launching screen is a link to Home (a prototype device); in the app nothing is tappable and the exit stays automatic.
 - Data shown: the logo only (FR-1). [v1.2 | 2026-10-26] The logo is a bundled app asset (iOS asset catalog image set, Android drawable), shown before any network call; the API has no logo field. Until the owner supplies the artwork, a neutral placeholder mark with no text is bundled (section 11). `LogoMark` on S-2 uses the same asset.
 - Actions: none.
 - States:
@@ -120,8 +123,33 @@ Common layout (all screens): `AppBackground` behind everything. `TopBar` at the 
 
 - Purpose: entry point (FR-2).
 - Entry/Exit: from S-1 and from S-9. Exits to S-3 (View products), S-5 (Place order), the Zalo app or the phone dialer.
-- Layout, top to bottom: `LogoMark` (Small) with shop name in `type.title.large`; greeting in `type.body` inside a `GlassCard`; a row of two `ContactButton` (Zalo, Phone; [v1.1 | 2026-10-25] the Zalo button shows a generic chat icon plus the word "Zalo", never the Zalo brand mark, ADR-0015); `BottomActionBar` with `PrimaryButton` "Place order" above `SecondaryButton` "View products".
-- Data shown: shop name, short greeting (both from shop data, no marker).
+- Layout, top to bottom [v1.3 | 2026-10-26] (follows the board; wireframe below): `LogoMark` (Small: 72 pt glass square on iOS, 88 dp blob on Android) centred; shop name centred in `type.display` (30 pt / 32 sp); greeting centred in `type.body`, `color.text.secondary`, at most 280 pt / 290 dp wide, plain text on the background (no card); two `HeroActionCard` stacked with `space.cardGap`: first "View products" (glass, `HOME_BTN_PRODUCTS`, subtitle `HOME_PRODUCTS_SUB`), then "Place order" (primary fill, `HOME_BTN_ORDER`, subtitle `HOME_ORDER_SUB`), each with a trailing chevron (Android: inside a 52 dp round badge); at the bottom edge, in place of a bar, two equal `ContactButton` capsules side by side (Zalo, Phone) with `space.barInset` margins. [v1.1 | 2026-10-25] The Zalo button shows a generic chat icon plus the word "Zalo", never the Zalo brand mark (ADR-0015); [v1.3 | 2026-10-26] the board adds the shop's Zalo number after the word and shows the shop's phone number as the phone button text.
+- Data shown: shop name, short greeting (both from shop data, no marker), the Zalo and phone numbers (shop data), the count of active cakes for `HOME_PRODUCTS_SUB` (hidden while no product answer exists, hidden at zero; see BQ-4).
+
+```
+iOS 390 x 844                         Android 412 x 892
++--------------------------+          +----------------------------+
+|        [glass logo 72]   |          |       [blob logo 88]       |
+|    {shop name, 30 pt}    |          |    {shop name, 32 sp}      |
+|    {greeting, 15 pt}     |          |    {greeting, 16 sp}       |
+|                          |          |                            |
+| +----------------------+ |          | +------------------------+ |
+| | Xem sản phẩm       > | | 132 pt   | | Xem sản phẩm        (>)| | 140 dp
+| | {n} loại bánh tét    | |  glass   | | {n} loại bánh tét      | |  glass
+| +----------------------+ |          | +------------------------+ |
+| +----------------------+ |          | +------------------------+ |
+| | Đặt bánh           > | | 132 pt   | | Đặt bánh            (>)| | 140 dp
+| | Chọn bánh, ngày giờ..| |  primary | | Chọn bánh, ngày giờ... | |  primary
+| +----------------------+ |          | +------------------------+ |
+|                          |          |                            |
+| [Zalo {number}] [{phone}]|  56 pt   | [Zalo {number}] [{phone}]  | 60 dp
++--------------------------+          +----------------------------+
+ x positions: cards 16 pt from the sides   cards 12 dp from the sides, top 296 dp
+ top of cards 290 pt; contacts 28 pt from  asymmetric corners (44 dp, one 16 dp)
+ the bottom edge
+```
+
+Measured values from the board (iOS / Android): logo block top padding 76 pt / 72 dp; gap logo to name 14 / 12; cards start 290 pt / 296 dp from the top; card padding 24 pt / 28 dp; contact capsules 10 pt apart.
 - Actions:
 
 | Action | Result | FR |
@@ -135,12 +163,12 @@ Common layout (all screens): `AppBackground` behind everything. `TopBar` at the 
 
 | State | Behaviour |
 | ----- | --------- |
-| Default | All six elements visible. |
-| Loading | Only when there is no cache: skeleton for name and greeting (`StateView` Loading); contact and order buttons visible but disabled. |
+| Default | All six elements visible. [v1.3 | 2026-10-26] `HOME_PRODUCTS_SUB` is shown only when the number of active cakes is known and at least 1 (for example "4 loại bánh tét"); it is never typed into the layout. |
+| Loading | Only when there is no cache: skeleton for name and greeting (`StateView` Loading); contact and order buttons visible but disabled. [v1.3 | 2026-10-26] The two action cards show their titles with no subtitle. |
 | Empty | N/A: shop information is required data; a missing value is treated as Error. |
 | Error | [v1.1 | 2026-10-25] Shown only when shop information could not be loaded and there is no cache (cache is valid up to 7 days, ADR-0011): `StateView` Error with `HOME_ERR` and `COMMON_RETRY`; all four action buttons disabled. When a cache exists, the cached data is shown at once (Default), refreshed in the background, and a failed refresh is silent. |
 | Disabled | Contact buttons are disabled while Loading and Error. The "Place order" and "View products" buttons follow the same rule. |
-| No cakes (sub-state of Default) [v1.2 | 2026-10-26] | Shown when the latest product answer has zero active cakes (BR-13, AC-33). Shop name, greeting and contact buttons work as in Default. `PrimaryButton` "Place order" is disabled (dimmed, still announced with its text and state "dimmed"). An `InlineMessage` (Info) `HOME_NO_CAKES` sits directly above the bottom bar content (inside the scroll area, under the greeting card). "View products" stays enabled and opens S-3, which shows its zero-cake Error state. The state ends as soon as a later answer has at least one active cake (refresh on screen appear and on returning to the foreground; no app reinstall, AC-33): the message disappears and the button is enabled. With no product answer yet (first launch, still loading) Place order is enabled; S-5 then handles zero (section 5.5). |
+| No cakes (sub-state of Default) [v1.2 | 2026-10-26] | Shown when the latest product answer has zero active cakes (BR-13, AC-33). Shop name, greeting and contact buttons work as in Default. The "Place order" `HeroActionCard` is disabled (dimmed to the disabled style of design-system 2.8, still announced with its text and state "dimmed"; [v1.3 | 2026-10-26] the title stays and the subtitle is hidden). An `InlineMessage` (Info) `HOME_NO_CAKES` sits between the "Place order" card and the contact capsules (the greeting is plain text on this screen, so there is no greeting card to place it under). "View products" stays enabled and opens S-3, which shows its zero-cake Error state. The state ends as soon as a later answer has at least one active cake (refresh on screen appear and on returning to the foreground; no app reinstall, AC-33): the message disappears and the button is enabled. With no product answer yet (first launch, still loading) Place order is enabled; S-5 then handles zero (section 5.5). |
 | Success | N/A: no submit on this screen. |
 
 - Validation: none.
@@ -148,10 +176,10 @@ Common layout (all screens): `AppBackground` behind everything. `TopBar` at the 
 ### 5.3 S-3 Product list
 
 - Purpose: show every active cake (FR-3, BR-13). [v1.2 | 2026-10-26]
-- Entry/Exit: from S-2. Exit to S-4 (tap a card) or back to S-2.
-- Layout: `TopBar` (large title `PRODUCTS_TITLE`, back); one `ProductCard` per active cake in a single-column vertical list, in the order the API returns. [v1.2 | 2026-10-26] 1, 2, 3 and 4 cards are all normal and use the same card size and spacing (`space.lg`); the list is simply shorter. There is no placeholder, empty slot, "coming soon" card, gap or reserved space for a hidden cake, and no text saying fewer cakes are shown. The list never needs to scroll for 1 to 3 cards on a typical phone; with 4 cards or large text it scrolls. No bottom bar (ordering starts from the detail view or from S-2, FR-4).
+- Entry/Exit: from S-2. Exit to S-4 (tap a card), to S-5 (bar button, [v1.3 | 2026-10-26]) or back to S-2.
+- Layout: `TopBar` (back button, then large title `PRODUCTS_TITLE` below it, `type.title.large`) [v1.3 | 2026-10-26]; one `ProductCard` per active cake in a single-column vertical list, in the order the API returns. [v1.3 | 2026-10-26] Each card (board): thumbnail 84 pt / 84 dp at the left, then name, a two-line description and the price, and a trailing chevron (a bare chevron on iOS; inside a 40 dp round `color.primaryContainer` badge on Android); card gap `space.cardGap` (12), card padding 12. [v1.2 | 2026-10-26] 1, 2, 3 and 4 cards are all normal and use the same card size and spacing (`space.lg`); the list is simply shorter. There is no placeholder, empty slot, "coming soon" card, gap or reserved space for a hidden cake, and no text saying fewer cakes are shown. The list never needs to scroll for 1 to 3 cards on a typical phone; with 4 cards or large text it scrolls. [v1.3 | 2026-10-26] A `BottomActionBar` with a full-width `PrimaryButton` `HOME_BTN_ORDER` floats at the bottom (the board shows it on this screen; the earlier "no bottom bar" rule is removed because neither the PRD nor an ADR forbids a second place to start an order; see BQ-5 for the open confirmation). Tap: same as "Place order" on S-2 (restored draft, or a new draft with no cake chosen, then S-5). It is disabled while the known active-cake count is zero, and in the zero-cake Error state. Content has bottom padding of about 130 pt for the bar.
 - Data shown per card: picture, name, short description, current price. Exactly the active cakes returned (AC-4, AC-32). [v1.2 | 2026-10-26]
-- Actions: tap a card to open S-4 (FR-3, FR-4).
+- Actions: tap a card to open S-4 (FR-3, FR-4); [v1.3 | 2026-10-26] tap the bar button `HOME_BTN_ORDER` to start an order as on S-2 (FR-2 entry rules, FR-15).
 - Wireframes [v1.2 | 2026-10-26]: the structure does not change with rotation (single column, cards fill the width inside `space.screenMargin`; in landscape the cards are wider and the list scrolls), so the wireframes are by card count at compact width, as the design process allows. `[card]` = picture, name, description, price.
 
 ```
@@ -166,7 +194,7 @@ Common layout (all screens): `AppBackground` behind everything. `TopBar` at the 
 +-----------+   +-----------+   +-----------+   +-----------+   +-----------+
 ```
 
-Landscape: the same single column with wider cards; with 1 or 2 cards the content stays at the top and the rest is background; the Error state is centred. No two-column variant is used, so a count of 3 never leaves an orphan cell.
+[v1.3 | 2026-10-26] In every variant the floating bar with `HOME_BTN_ORDER` sits at the bottom edge (not drawn above); the back button and title sit at the top. Landscape: the same single column with wider cards; with 1 or 2 cards the content stays at the top and the rest is background; the Error state is centred. No two-column variant is used, so a count of 3 never leaves an orphan cell.
 - States:
 
 | State | Behaviour |
@@ -175,7 +203,7 @@ Landscape: the same single column with wider cards; with 1 or 2 cards the conten
 | Loading | [v1.1 | 2026-10-25] Only when there is no cache: four skeleton cards (`StateView` Loading). With a cache, cached cards show at once. [v1.2 | 2026-10-26] The skeleton count is a visual placeholder only and disappears when the answer arrives; it never implies four cakes. |
 | Empty | [v1.2 | 2026-10-26] Zero active cakes (a successful answer with an empty list): `StateView` Error layout with an icon, `PRODUCTS_EMPTY` (Vietnamese text in section 8) and the action `COMMON_RETRY` (reloads the list; the shop may have made a cake active again, AC-33). No list, no placeholder cards. This is the only count-based Error (BR-13). A cached non-empty list is replaced by the zero answer when a fresh answer says zero. |
 | Error | [v1.1 | 2026-10-25] Only when there is no cache: `StateView` Error with `PRODUCTS_ERR` and `COMMON_RETRY` (load failure, different from the zero-cake state). With a cache, a failed refresh is silent. A single failed picture shows a placeholder icon in the image frame (label `PRODUCT_IMG_FAILED`) while the card stays tappable. |
-| Disabled | N/A: cards are always tappable once shown. |
+| Disabled | Cards are always tappable once shown. [v1.3 | 2026-10-26] The bar button is disabled while the known active-cake count is zero (Empty state) and while Loading without cache. |
 | Success | N/A: no submit. |
 
 - Validation: none.
@@ -183,10 +211,10 @@ Landscape: the same single column with wider cards; with 1 or 2 cards the conten
 ### 5.4 S-4 Cake detail
 
 - Purpose: show one cake and start an order with it (FR-4).
-- Entry/Exit: from S-3. Exit to S-5 (order button) or back to S-3.
+- Entry/Exit: from S-3. Exit to S-5 (order button) or back to S-3 (back button; accessibility label `BACK_TO_LIST`).
 - Cake no longer available [v1.2 | 2026-10-26]: if the shop hides this cake while S-4 is open, the screen learns it on its background refresh, on returning to the foreground, or when `DETAIL_BTN_ORDER` is tapped (the tap rechecks the active list first). The screen then shows the Gone state below instead of starting an order.
-- Layout: `TopBar` (inline title is the cake name, back); large picture (`radius.image`); in a `GlassCard`: name (`type.title.large`), description (`type.body`), price (`type.body.strong`, with `PRICE_EACH`); `BottomActionBar` with `PrimaryButton` `DETAIL_BTN_ORDER`.
-- Data shown: picture, name, description, current price. No other attributes (none are in the PRD).
+- Layout [v1.3 | 2026-10-26] (follows the board): no title bar. A large hero picture at the top with the round glass back button floating over its top left corner (iOS: picture inset 16 pt from the sides, 56 pt from the top, 330 pt high, corner 36 pt; Android: picture full width from the top edge, 400 dp high, bottom corners 56 dp). Overlapping or just below the picture, a `GlassCard` (iOS top at 406 pt, 16 pt margins, padding 20 pt, corner 32 pt; Android top at 352 dp so it overlaps the picture by 48 dp, 12 dp margins, padding 22 dp, corner 40 dp) holds, top to bottom: cake name (`type.title.detail`), price (`type.price.detail`, with `PRICE_EACH`), description (`type.body`, `color.text.secondary`). `BottomActionBar` with `PrimaryButton` `DETAIL_BTN_ORDER`. The card order changed from "name, description, price" to "name, price, description".
+- Data shown: picture, name, description, current price. [v1.3 | 2026-10-26] The board also shows two chips under the description ("[Trọng lượng]" and "[Hạn dùng]", weight and shelf life). The PRD has no such attributes and the API has no such fields, so the chips are not specified or built; see BQ-3. If the owner confirms them, `InfoChip` (design-system 3) is used.
 - Actions: tap `DETAIL_BTN_ORDER` opens S-5 with this cake at quantity 1, other cakes at 0 (AC-5).
 - States:
 
@@ -376,6 +404,42 @@ Keyboards and input hints: name uses the name keyboard with sentence capitalisat
 | Connection returns | Any | No automatic send. The customer taps retry. A visible load error retries on `COMMON_RETRY` only. |
 | App goes to background and returns | S-5 to S-8 | Flow data kept. [v1.1 | 2026-10-25] The draft is also saved on the device and survives the system ending the app, for up to 24 hours without change; it is restored when the customer taps "Place order" on S-2 (no prompt) and deleted after a confirmed order (ADR-0011). |
 
+### 5.11 Board comparison and open points [v1.3 | 2026-10-26]
+
+Slice 1 screens (S-1 to S-4) were compared with the board line by line. This table lists every difference and what this version did.
+
+| Screen | Board shows | Earlier document | Action in v1.3 |
+| ------ | ----------- | ---------------- | -------------- |
+| S-1 | Logo only on the gradient and blobs; the whole screen is a link | Logo only, nothing tappable | Layout sizes taken from the board; link not copied (prototype device) |
+| S-2 | Logo, shop name, greeting as plain text; two large cards ("Xem sản phẩm" glass first, "Đặt bánh" green second) with subtitles; two contact capsules with the numbers at the bottom | Greeting in a card; Place order button above View products in a bar; contact row | Document follows the board (5.2); new copy keys; subtitle count and numbers need BQ-4 confirmation but are specified because they are shop data |
+| S-3 | Back button, large title, list rows with chevron, bar button "Đặt bánh" | No bottom bar | Bar added (5.3); BQ-5 asks for confirmation |
+| S-4 | Hero picture, floating back button, glass card (name, price, description, two chips), bar button "Đặt bánh" | Title bar with the cake name; order of name, description, price; no chips; "Đặt bánh này" | Layout and order follow the board; button text changed to "Đặt bánh"; chips NOT specified (not in PRD, BQ-3) |
+| All | Be Vietnam Pro / Roboto Flex, custom colours and glass values, no native navigation bar | System fonts, native bars | Design system v1.2; TQ-11 for fonts |
+
+Later screens on the board (screens 4 to 7 and A1 to A4) differ from the approved PRD in structure. They are not specified here; the visual styling already follows `design-system.md` v1.2 and their structure stays as in sections 5.5 to 5.9 until the questions below are answered. This is the board content and what it implies:
+
+| Board screen | Board content | Differs from PRD v1.4 / this document | Implied new or changed items |
+| ------------ | ------------- | ------------------------------------- | ---------------------------- |
+| 4 Choose cakes ("Chọn bánh tét", step 1 of 3) | One glass row per cake: 68 pt / 64 dp thumbnail, name, description, price, stepper; bar with "Tổng số bánh {n} cái" and "Tiếp tục" (disabled label "Chọn ít nhất 1 cái" when the total is 0) | No subtotal card and no `QTY_MIN_HINT` message (the disabled button label explains the rule); the prototype caps at 20 per cake (ADR-0009 says 99); "1" in the label is the minimum, which is configuration (MIN_QTY) | New keys for the bar total and the disabled label with `{min}`; move the total into the bar; decide whether the subtotal stays |
+| 5 Delivery ("Giao hàng", step 2 of 3) | One screen: day chips for the next five days (weekday letters CN, T2 to T7 and the day number), three time slot chips ("7:00–10:00", "10:00–14:00", "14:00–18:00"), then recipient fields (name, phone, one address line whose placeholder names district), button "Xem lại đơn" | PRD has a month calendar with capacity, lead days and horizon (FR-6, BR-1, BR-2, BR-8), a separate recipient step, a district picker with flat fee (FR-8, BR), a note field (FR-18) and four steps; the board has five fixed days, no district picker, no fee line, no note | See queries Q-S1 to Q-S5 below |
+| 6 Review ("Xem lại đơn", step 3 of 3) | Rows "name × n", "Tạm tính", "Phí giao hàng", "Tổng cộng"; one "Giao hàng" card with a single "Sửa" link and rows "Nhận hàng", "Người nhận", "Địa chỉ"; button "Đặt bánh" | No privacy sentence (PRD section 8), no note row, no separate edit links per block, no error banner states, button text "Đặt bánh" instead of "Xác nhận đơn hàng" | Q-S6 |
+| 7 Success ("Đặt bánh thành công") | Check mark; "Cảm ơn bạn. Cửa hàng sẽ liên hệ qua số điện thoại để xác nhận đơn."; card with "Mã đơn", "Nhận hàng", "Địa chỉ"; button "Về trang chọn bánh" (iOS) or "Về trang chủ" (Android) | PRD AC-15 and AC-25 and section 5.9: no recap, wording "received" not "accepted"; FR-12 asks Zalo and phone buttons here; the board has none; the two platforms of the board disagree on the button target | Q-S7 |
+| A1 Admin sign in | Phone number step, then 6-digit OTP step with a resend timer ("Gửi lại sau [30]s"), "Đổi số", remember-login note with N days, text that only phones added by the owner can sign in | Staff and owner apps are outside this feature (PRD non-goals); no authentication exists in the PRD or ADRs | Q-A1 |
+| A2 Admin orders | Title "Đơn hàng"; four status tabs (Mới, Xác nhận, Hoàn thành, Hủy); order cards with code, status badge, customer name, date and slot, count, total, district, a "Gọi khách" button; bottom tab bar (Đơn hàng, Cài đặt) | Order status and cancellation are non-goals for the customer app; no staff features exist | Q-A2 |
+| A3 Admin order detail | Code and status badge; customer card with "Gọi [number]" and "Nhắn Zalo"; delivery card; cakes card with fee and total; buttons "Hủy đơn" (destructive) and "Xác nhận đơn" | BR-9 and AC-28 (cancellation) exist only as business rules without UI | Q-A2 |
+| A4 Admin settings | Six rows: products and prices (on/off per cake), districts and fees, order limits (cakes per day, lead days, minimum per order), time slots, shop information, staff (add, lock); note that rows show for the owner only; sign out | Configuration is a launch-data table in the PRD, not an in-app feature | Q-A3 |
+
+Queries (details in the report to the orchestrator; ids used by scribe-requirements and atlas-architect):
+
+- Q-S1 (scribe) Three steps on the board against four in the PRD (G-1 allows at most 6): which wins? The board merges date, time and recipient.
+- Q-S2 (scribe, atlas) Five fixed days against a month calendar: how do lead days, horizon and daily capacity (BR-1, BR-2, BR-8) show on a five-day strip, and what happens when fewer than five days are available or the strip ends?
+- Q-S3 (scribe, atlas) District and fee: the board has no district picker or fee on the delivery step but shows "Phí giao hàng" on review. Is the district part of the single address line, or kept as a field?
+- Q-S4 (scribe) Note field (FR-18) is absent from the board delivery step.
+- Q-S5 (scribe) Time slots: the board shows three in a row; the number of slots is configuration. Row (wrap or scroll when more than three) or list?
+- Q-S6 (scribe) Review: privacy sentence, note row, "Tạm tính" line and one edit link: keep, add or drop?
+- Q-S7 (scribe) Success: recap rows, wording "thành công" and "xác nhận đơn", and the missing Zalo and phone buttons against AC-15, AC-25 and FR-12; home button target.
+- Q-A1 to Q-A3 (scribe, atlas) Admin sign-in by SMS code (a paid message service, owner money question), roles (owner and staff), order status flow and cancellation, settings editor: all outside the first slice; new PRD and ADRs are needed before any design work.
+
 ## 6. Platform Notes
 
 Identical on both platforms unless listed. Technology below follows section 2. [v1.1 | 2026-10-25] Minimum versions (owner decision): iOS 17 and Android 8.0 (API 26). Three rendering levels exist per platform; layout, sizes, copy and behaviour are identical in all of them.
@@ -390,13 +454,16 @@ The fallback levels keep text contrast of at least 4.5:1 by design (opaque or ne
 
 | Topic | iOS | Android |
 | ----- | --- | ------- |
-| UI technology | SwiftUI; Liquid Glass (`glassEffect` inside `GlassEffectContainer`, glass button styles) on iOS 26 and later | Jetpack Compose; Material 3 Expressive (`MaterialExpressiveTheme`, `ButtonGroup`, floating toolbar or flexible bottom app bar, `LoadingIndicator`) |
+| UI technology | SwiftUI; Liquid Glass (`glassEffect` inside `GlassEffectContainer`, glass button styles) on iOS 26 and later | Jetpack Compose; Material 3 Expressive (`MaterialExpressiveTheme`, floating toolbar or flexible bottom app bar, `LoadingIndicator`; [v1.3 | 2026-10-26] `ButtonGroup` only where it can be styled to the board's capsule stepper) |
 | Fallback | [v1.1 | 2026-10-25] iOS 17 to 25: `material.fallback` with the same layout; also used when Reduce Transparency is on | Android 8.0 to 11, or reduced transparency: `material.fallback` (opaque card surface) |
-| Logo container | Rounded square | Organic blob shape |
-| Top bar | Large title collapsing to inline, native back with swipe-back | Large flexible top app bar, system back and predictive back |
-| Bottom action bar | Floating glass bar | Floating toolbar / flexible bottom app bar, stays above gesture or button navigation |
+| Logo container | Glass rounded square (corner 40 pt large, 24 pt small) [v1.3 | 2026-10-26] | Organic blob shape, `color.primaryContainer` fill [v1.3 | 2026-10-26] |
+| Top bar | [v1.3 | 2026-10-26] Custom header: round glass back button, large title below, native navigation bar hidden; swipe-back kept | Round glass back button, large title below; system back and predictive back kept |
+| Bottom action bar | Floating glass bar, 16 pt sides, 28 pt from the bottom edge | Floating glass bar, 12 dp sides, 20 dp from the bottom edge; stays above gesture or button navigation |
+| Primary button fill | [v1.3 | 2026-10-26] Vertical gradient `color.primary.top` to `color.primary` with shadow | Flat `color.primary` |
+| Home action cards | [v1.3 | 2026-10-26] 132 pt high, symmetric corners 36 pt | 140 dp high, asymmetric corners (44 dp with one 16 dp corner) |
+| Typeface | [v1.3 | 2026-10-26] Be Vietnam Pro (pending TQ-11), system font fallback | Roboto Flex (pending TQ-11), Roboto fallback |
 | District picker | Sheet with list | Modal bottom sheet with list |
-| Steppers | Capsule with two buttons | `ButtonGroup` around a value |
+| Steppers | Glass capsule with two transparent buttons [v1.3 | 2026-10-26] | Capsule with a transparent minus and a filled plus button around the value [v1.3 | 2026-10-26] |
 | Loading | Skeleton, system spinner for the confirm button | Skeleton, `LoadingIndicator` for the confirm button |
 | Zalo and phone | [v1.1 | 2026-10-25] Zalo opens as a web link `https://zalo.me/<number>` and phone as `tel:` (ADR-0015); the Zalo button uses a generic chat icon (system symbol) plus the word "Zalo" | Same; generic chat icon (Material Symbol) plus the word "Zalo" |
 | Haptics and motion | See section 7 | See section 7 |
@@ -426,7 +493,15 @@ All display text is Vietnamese. Data-source values (shop name, greeting, cake na
 | `HOME_BTN_ZALO` | Zalo | S-2, S-9 |
 | `HOME_BTN_PHONE` | Gọi điện | S-2, S-9 |
 | `HOME_BTN_PRODUCTS` | Xem sản phẩm | S-2 |
-| `HOME_BTN_ORDER` | Đặt bánh | S-2 |
+| `HOME_BTN_ORDER` | Đặt bánh | S-2, S-3 [v1.3 | 2026-10-26] (board: same words on the S-2 card and the S-3 bar) |
+| `HOME_PRODUCTS_SUB` | [v1.3 | 2026-10-26] {n} loại bánh tét (board: "4 loại bánh tét"; {n} is the number of active cakes, never typed in; see BQ-4) | S-2 |
+| `HOME_ORDER_SUB` | [v1.3 | 2026-10-26] Chọn bánh, ngày giờ và địa chỉ | S-2 |
+| `HOME_BTN_ZALO_NUMBER` | [v1.3 | 2026-10-26] Zalo {number} (board: "Zalo [Số Zalo]"; {number} is the shop's Zalo number from shop data; when the number is missing the button shows `HOME_BTN_ZALO`) | S-2 |
+| `HOME_BTN_PHONE_NUMBER` | [v1.3 | 2026-10-26] {number} (board: "[Số điện thoại]"; the shop's phone number from shop data; when missing the button shows `HOME_BTN_PHONE`) | S-2 |
+| `HOME_BTN_ZALO_A11Y` | [v1.3 | 2026-10-26] Nhắn Zalo cho cửa hàng, số {number} | S-2 (screen reader) |
+| `HOME_BTN_PHONE_A11Y` | [v1.3 | 2026-10-26] Gọi điện cho cửa hàng, số {number} | S-2 (screen reader) |
+| `BACK_TO_HOME` | [v1.3 | 2026-10-26] Quay lại trang chủ (board `aria-label`) | S-3 back button (screen reader) |
+| `BACK_TO_LIST` | [v1.3 | 2026-10-26] Quay lại danh sách (board `aria-label`) | S-4 back button (screen reader) |
 | `HOME_ERR` | Không tải được thông tin cửa hàng. Vui lòng kiểm tra kết nối mạng và thử lại. | S-2 |
 | `ERR_OPEN_ZALO` | Không mở được Zalo. Bạn có thể gọi điện cho cửa hàng. | S-2, S-9 |
 | `ERR_OPEN_PHONE` | Không mở được ứng dụng gọi điện. | S-2, S-9 |
@@ -446,7 +521,7 @@ All display text is Vietnamese. Data-source values (shop name, greeting, cake na
 | `MONEY_FORMAT` | [v1.2 | 2026-10-26] {amount} ₫ (the amount is already grouped with dots, whole dong; code: Android `money_format` `%1$s ₫`) | every price, subtotal, fee and total |
 | `PRODUCT_IMG_FAILED` | Không tải được ảnh | S-3, S-4 |
 | `PRICE_EACH` | {amount}/cái | S-3, S-4, S-5 |
-| `DETAIL_BTN_ORDER` | Đặt bánh này | S-4 |
+| `DETAIL_BTN_ORDER` | [v1.3 | 2026-10-26] Đặt bánh (was "Đặt bánh này"; the board's S-4 bar button reads "Đặt bánh") | S-4 |
 | `FLOW_TITLE` | Đặt bánh | S-5 to S-8 |
 | `STEP_LABEL` | Bước {n}/4 ([v1.2 | 2026-10-26] the total 4 is part of the string, as in Android `step_label` `Bước %1$d/4`; the step count is fixed by G-1) | S-5 to S-8 |
 | `STEP1` | Chọn bánh | S-5 |
@@ -557,6 +632,9 @@ One list for both platforms: iOS `accessibilityIdentifier` and Android `Modifier
 | `home.orderButton` | Place order button (enabled or disabled) | S-2 | yes |
 | `home.skeleton` | Loading skeleton | S-2 | yes |
 | `home.noCakesNotice` | `HOME_NO_CAKES` message | S-2 | NO, new |
+| `home.productsCount` | [v1.3 | 2026-10-26] `HOME_PRODUCTS_SUB` subtitle on the "View products" card (absent while the count is unknown or zero) | S-2 | NO, new |
+| `nav.back` | [v1.3 | 2026-10-26] Round glass back button of the custom header (same identifier on every screen that has one; tests tell screens apart by the other identifiers on screen) | S-3, S-4, S-5 to S-8 | NO, new |
+| `products.orderButton` | [v1.3 | 2026-10-26] `HOME_BTN_ORDER` button in the S-3 bottom bar (enabled or disabled) | S-3 | NO, new |
 | `products.list` | Scrolling list container | S-3 | yes |
 | `products.card.<id>` | One cake card | S-3 | yes (function `productCard`) |
 | `products.skeleton.<index>` | Skeleton card, index from 0 | S-3 | yes (function `productCardSkeleton`) |
@@ -573,16 +651,18 @@ One list for both platforms: iOS `accessibilityIdentifier` and Android `Modifier
 | `state.retry` | Retry button inside `state.error` or `state.empty` | any | yes |
 | `state.empty` | Zero-cake `StateView` (`PRODUCTS_EMPTY`) | S-3, S-5 | NO, new |
 
-Differences for forge-dev: the Android file lacks `home.noCakesNotice`, `detail.imageFailed`, `detail.goneNotice`, `detail.goneAction`, `order.cakeRemovedNotice` and `state.empty` (add them with the zero-cake work). `state.retry` is shared by the Error and Empty states. The iOS app has no identifiers yet (the only UI test finds the text "Banh App": replace it). Full S-5 to S-9 identifiers will be published with their own stage.
+[v1.3 | 2026-10-26] `home.productsButton` and `home.orderButton` now sit on the two large home action cards (the whole card is the element; the title and subtitle are its children, so the card is one element). `home.zaloButton` and `home.phoneButton` sit on the two contact capsules at the bottom edge of S-2.
+
+Differences for forge-dev: the Android file lacks `home.noCakesNotice`, `home.productsCount`, `nav.back`, `products.orderButton`, `detail.imageFailed`, `detail.goneNotice`, `detail.goneAction`, `order.cakeRemovedNotice` and `state.empty` (add them with the zero-cake work and the board alignment). `state.retry` is shared by the Error and Empty states. The iOS app has no identifiers yet (the only UI test finds the text "Banh App": replace it). Full S-5 to S-9 identifiers will be published with their own stage.
 
 States each UI test must reach (both platforms, with the fake API or fixture):
 
 | Screen | States to reach |
 | ------ | --------------- |
 | S-1 | Default (`launch.logo` visible, then S-2 appears). |
-| S-2 | Default; Loading without cache (`home.skeleton`); Error without cache (`state.error`, `state.retry`, all four buttons disabled); No cakes (`home.noCakesNotice` visible, `home.orderButton` disabled, `home.productsButton` enabled, then back to Default after a cake becomes active). |
-| S-3 | Default with 4, 3, 2 and 1 cards (`products.card.<id>` count equals the active cakes, no extra card); Loading (`products.skeleton.0`); Error without cache (`state.error`); zero cakes (`state.empty`, no `products.list` cards, `state.retry` then a cake becomes active and its card appears); image failure (`detail.imageFailed`, card still tappable). |
-| S-4 | Default (name, description, price, order button); Gone (`detail.goneNotice`, `detail.goneAction`, no `detail.orderButton`); image failure. |
+| S-2 | Default (with `home.productsCount` showing the active count, [v1.3 | 2026-10-26]); Loading without cache (`home.skeleton`); Error without cache (`state.error`, `state.retry`, all four buttons disabled); No cakes (`home.noCakesNotice` visible, `home.orderButton` disabled, `home.productsButton` enabled, `home.productsCount` absent, then back to Default after a cake becomes active). |
+| S-3 | Default with 4, 3, 2 and 1 cards (`products.card.<id>` count equals the active cakes, no extra card; `products.orderButton` enabled [v1.3 | 2026-10-26]); Loading (`products.skeleton.0`); Error without cache (`state.error`); zero cakes (`state.empty`, no `products.list` cards, `products.orderButton` disabled, `state.retry` then a cake becomes active and its card appears); image failure (`detail.imageFailed`, card still tappable); `nav.back` returns to S-2. |
+| S-4 | Default (name, description, price, order button, `nav.back`); Gone (`detail.goneNotice`, `detail.goneAction`, no `detail.orderButton`); image failure. |
 | S-5 stub | `order.step` visible after tapping `home.orderButton` and after tapping `detail.orderButton`. |
 
 ## 10. Traceability
@@ -592,7 +672,7 @@ FR to screens. "X" means the screen implements or shows the requirement.
 | FR | S-1 | S-2 | S-3 | S-4 | S-5 | S-6 | S-7 | S-8 | S-9 | Notes |
 | -- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ----- |
 | FR-1 | X | | | | | | | | | Logo only, then S-2 |
-| FR-2 | | X | | | | | | | | Name, greeting, Zalo, phone, two buttons |
+| FR-2 | | X | X | | | | | | | Name, greeting, Zalo, phone, two buttons; [v1.3 | 2026-10-26] the S-3 bar repeats "Place order" |
 | FR-3 | | X | X | X | | | | | | Every active cake (1 to 4), picture, name, description, price; zero-cake Error on S-3, disabled order on S-2, Gone on S-4 [v1.2 | 2026-10-26] |
 | FR-4 | | | | X | X | | | | | Order button, quantity 1 |
 | FR-5 | | | | | X | | | | | Quantity per active cake; removed-cake message [v1.2 | 2026-10-26] |
@@ -617,18 +697,24 @@ Every FR is traced. No screen element is without an FR; the PRD items BR-1 to BR
 
 ## 11. Assets
 
-- Mockups: reference only, private link recorded in the PRD header. The text of this document is authoritative.
+- Design board [v1.3 | 2026-10-26]: `docs/design/reference/` holds the owner's board (24 screens) as markup and CSS plus pictures of the slice 1 screens. It is the visual source of truth for look, layout and size (through `design-system.md` v1.2); this document stays authoritative for states, behaviour and copy keys, and for anything the PRD or an ADR governs. The earlier "mockups, reference only" private link is superseded by this folder.
 - Pictures of the cakes: fake placeholder images supplied with launch data; no real customer data in any asset. No exported images are stored in the repository yet.
-- Logo [v1.2 | 2026-10-26]: S-1 must show the logo before the catalog loads and the API has no logo field, so the logo is a bundled asset: iOS asset catalog image set `ShopLogo`, Android drawable `shop_logo` (vector or PNG at 1x to 3x), used on S-1 (Large) and S-2 (Small). Shape and masking come from `LogoMark`. The owner supplies the artwork (see open question BQ-1); until then a neutral placeholder mark without text or any word "sample", "demo" or "test" is bundled. Replacing the artwork is an asset swap with no layout change. The shop name stays dynamic text from shop data.
-- Icons: native system symbols on iOS and Material Symbols on Android [v1.1 | 2026-10-25] The Zalo button uses a generic chat icon (SF Symbol / Material Symbol) with the word "Zalo"; the Zalo logo is not used (ADR-0015).
+- Logo [v1.2 | 2026-10-26]: S-1 must show the logo before the catalog loads and the API has no logo field, so the logo is a bundled asset: iOS asset catalog image set `ShopLogo`, Android drawable `shop_logo` (vector or PNG at 1x to 3x), used on S-1 (Large) and S-2 (Small). Shape and masking come from `LogoMark`. [v1.3 | 2026-10-26] The board draws a mark (rounded log rotated -20 degrees with three slanted ties, line style, design-system 2.7) on S-1, S-2 and the admin sign-in; it is the proposed placeholder artwork and BQ-1 asks the owner whether it is the real logo. The owner supplies the artwork (see open question BQ-1); until then a neutral placeholder mark without text or any word "sample", "demo" or "test" is bundled. Replacing the artwork is an asset swap with no layout change. The shop name stays dynamic text from shop data.
+- Icons: native system symbols on iOS and Material Symbols on Android, chosen and weighted to match the board's line icons (design-system 2.7) [v1.3 | 2026-10-26]. [v1.1 | 2026-10-25] The Zalo button uses a generic chat icon (SF Symbol / Material Symbol) with the word "Zalo"; the Zalo logo is not used (ADR-0015).
 
 ## 12. Open Questions / Change log
 
-Business questions: BQ-1 below (artwork only). [v1.1 | 2026-10-25] Copy is final; no key is pending. All technical questions are answered (below).
+Business questions: BQ-1 to BQ-5 below ([v1.3 | 2026-10-26]; BQ-1 is the artwork, BQ-2 to BQ-5 come from the design board comparison). [v1.1 | 2026-10-25] Copy is final; no key is pending. All technical questions are answered (below).
 
 | ID | Question | Why it matters | Blocking | Class | Status | Answer |
 | -- | -------- | -------------- | -------- | ----- | ------ | ------ |
-| BQ-1 | [v1.2 | 2026-10-26] Please supply the shop logo artwork (vector or PNG at least 512 px square, transparent background) | The logo is bundled in both apps (section 11); a neutral placeholder is used until it arrives | No | business | Open | Placeholder bundled meanwhile |
+| BQ-1 | [v1.2 | 2026-10-26] Please supply the shop logo artwork (vector or PNG at least 512 px square, transparent background). [v1.3 | 2026-10-26] The design board draws a bánh tét mark (rounded log with three ties): is that the real logo, or only a placeholder? | The logo is bundled in both apps (section 11); the board's mark is used as the placeholder until the owner answers | No | business | Open | Board mark bundled meanwhile |
+| BQ-2 | [v1.3 | 2026-10-26] Is the board's flow (screens 4 to 7: three steps, five day chips, three slot chips, one address line with no district picker, no note, no privacy sentence, success recap without contact buttons) what the owner wants instead of the approved PRD flow (four steps, month calendar with capacity, district with fee, note, privacy sentence, FR-12 contact buttons)? | Sections 5.5 to 5.9 and 5.11; decides the later slices; for scribe-requirements | No | business | Open | Until answered, the approved PRD flow stays specified; only styling follows the board |
+| BQ-3 | [v1.3 | 2026-10-26] The board's cake detail shows two chips, weight and shelf life. Does the shop want them shown (they need two new data fields per cake)? | Section 5.4 `InfoChip`; not in PRD or API | No | business | Open | Not specified or built meanwhile |
+| BQ-4 | [v1.3 | 2026-10-26] Home: show the number of active cakes under "Xem sản phẩm" ("{n} loại bánh tét") and the shop's Zalo and phone numbers on the two contact buttons, as the board does? | Section 5.2; shows shop data only, no new field except the count already known to the app | No | business | Open | Specified as on the board; hide the subtitle when unknown or zero |
+| BQ-5 | [v1.3 | 2026-10-26] Is a second "Đặt bánh" button on the product list (board S-3 bar) acceptable as an extra place to start an order? | Section 5.3; PRD FR-4 and FR-2 do not forbid it | No | business | Open | Specified as on the board |
+| TQ-11 | [v1.3 | 2026-10-26] Bundle Be Vietnam Pro (iOS) and Roboto Flex (Android) as app resources (variable or static files, app size, scaling with system text size, fallback to system font)? Same as DS-Q3 | Design-system 2.2; for atlas-architect | No | technical | Open | Proposed: yes (free licence); system font fallback |
+| TQ-12 | [v1.3 | 2026-10-26] Can the board's custom header (round glass back button, title on its own line, native navigation bar hidden) keep the native swipe-back gesture on iOS and predictive back on Android, and can the M3 Expressive bottom bar be styled to the board's glass bar, or is a custom surface used? | Sections 5 (common layout) and 6; for atlas-architect and forge-dev | No | technical | Open | Proposed: hidden native bar with a custom header, gesture kept; custom bar surface |
 | TQ-9 | [v1.2 | 2026-10-26] Does S-2 learn the active-cake count (needed to disable "Place order" at zero) from a catalog request at start-up, and is the refresh on screen appear and foreground return acceptable? | Section 5.2 No cakes state; for atlas-architect and forge-dev | No | technical | Open | Proposed: yes, with ETag revalidation (ADR-0017) |
 | TQ-10 | [v1.2 | 2026-10-26] S-5 drops a hidden cake's quantity from the draft: confirm the draft keeps date, slot and recipient data (ADR-0011) | Section 5.5 Cake removed state | No | technical | Open | Proposed as specified |
 
@@ -650,5 +736,6 @@ Assumptions: launch screen time 1.0 to 2.0 s; slots appear as a list and dates a
 | Version | Date | Change |
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version, based on product/place-order.md v1.2. |
+| 1.3 | 2026-10-26 | Reconciled with the owner's design board (`design/reference`) and design system v1.2: new common layout (custom header, floating bars, margins); S-1 sizes; S-2 rebuilt to the board (hero action cards, plain greeting, contact capsules with numbers, wireframe); S-3 back button, title and bottom order bar; S-4 hero picture layout, order name/price/description, button text "Đặt bánh", chips left out pending BQ-3; platform notes; new copy keys (`HOME_PRODUCTS_SUB`, `HOME_ORDER_SUB`, `HOME_BTN_ZALO_NUMBER`, `HOME_BTN_PHONE_NUMBER`, `HOME_BTN_ZALO_A11Y`, `HOME_BTN_PHONE_A11Y`, `BACK_TO_HOME`, `BACK_TO_LIST`, `DETAIL_BTN_ORDER` text); test identifiers `home.productsCount`, `nav.back`, `products.orderButton`; section 5.11 board comparison and later-slice queries; BQ-1 updated, BQ-2 to BQ-5, TQ-11, TQ-12 opened. |
 | 1.2 | 2026-10-26 | Based on PRD v1.4 (BR-13, AC-32 to AC-34): S-3 shows 1 to 4 cakes with width-based wireframes and a zero-cake Error state (`PRODUCTS_EMPTY`, retry); S-2 No cakes state (`HOME_NO_CAKES`, Place order disabled); S-4 Gone state and Loading corrected (DOC-9: S-4 is never restored); S-5 1 to 4 rows, zero state and Cake removed state; S-8 `ERR_PRODUCT_UNAVAILABLE` keeps data; new keys `PRODUCTS_EMPTY`, `HOME_NO_CAKES`, `DETAIL_GONE`, `DETAIL_GONE_ACTION`, `ORDER_CAKE_REMOVED`, `MONEY_FORMAT`; `STEP_LABEL` note; section 9.1 test identifiers and states; bundled logo asset, BQ-1, TQ-9, TQ-10. |
 | 1.1 | 2026-10-25 | Minimum iOS 17 / Android 8.0 with both fallbacks (section 6); cache-first Error rules on S-2 to S-5; saved-draft restore from S-2; S-8 price-change behaviour and final `MSG_PRICE_CHANGED`; new keys `ERR_PRODUCT_UNAVAILABLE`, `ERR_SLOT_UNAVAILABLE`, `ERR_RATE_LIMITED`, `ACTION_CHOOSE_SLOT`; Zalo button generic icon plus word; stepper cap 99; `ERR_PHONE_INVALID` mobile-only; TQ-1 to TQ-8 closed. |
