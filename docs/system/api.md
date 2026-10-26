@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.2 |
+| Version      | 1.3 |
 | Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -50,7 +50,7 @@ Error format (all non-2xx JSON responses):
 }
 ```
 
-`code` is machine-readable and stable. `message_key` is the UI document key (design/place-order-ui.md section 8); clients show the text for the key, never server text. `fields` appears only for `VALIDATION_FAILED`. `details` is specific to the code (stated per error). `request_id` helps support.
+`code` is machine-readable and stable. `message_key` is the UI document key (design/place-order-ui.md section 8); clients show the text for the key, never server text. The top-level `message_key` is fixed per code (column "Top-level `message_key`" in section 5); `fields[]` entries carry their own keys. [v1.3 | 2026-10-26] `fields` appears only for `VALIDATION_FAILED`. `details` is specific to the code (stated per error). `request_id` helps support.
 
 ## 2. Endpoint Index
 
@@ -233,29 +233,39 @@ Static product images and the logo; `Cache-Control: public, max-age=86400`. Imag
 
 ## 5. Error Catalogue
 
-| Code | HTTP | Meaning | Client behaviour (UI key) |
-| ---- | ---- | ------- | ------------------------- |
-| VALIDATION_FAILED | 422 | One or more fields invalid; `fields[]` lists them | Show next to the field: `ERR_NAME_REQUIRED`, `ERR_PHONE_REQUIRED`, `ERR_PHONE_INVALID`, `ERR_ADDRESS_REQUIRED`, `ERR_DISTRICT_REQUIRED`, `ERR_NOTE_MAX`; return to S-7. Other field errors (lengths, tampering) show `ERR_SERVER` |
-| MIN_QTY | 422 | Total cakes below `min_qty` | `ERR_MIN_QTY` with action to S-5 |
-| DATE_LEAD | 422 | Date too soon (also when midnight passed during the flow) | `ERR_DATE_LEAD`, action `ACTION_CHOOSE_DATE` |
-| DATE_HORIZON | 422 | Date too far | `ERR_DATE_HORIZON`, action `ACTION_CHOOSE_DATE` |
-| DATE_CAPACITY | 409 | Date no longer holds the order (AC-9, AC-22) | `ERR_DATE_CAPACITY`, action `ACTION_CHOOSE_DATE` |
-| DISTRICT_UNSERVED | 422 | District not served or inactive | `ERR_DISTRICT_UNSERVED`, action `ACTION_CHOOSE_DISTRICT` |
-| PRICE_CHANGED | 409 | Server total differs from `expected_total_vnd` (ADR-0010, Accepted) | Replace prices from `details`, return to the review, show `MSG_PRICE_CHANGED`, confirm enabled |
-| PRODUCT_UNAVAILABLE | 409 | A product is unknown or inactive | Refresh the catalog, go to S-5. Message key needed: `ERR_PRODUCT_UNAVAILABLE` (query to canvas-ui) |
-| SLOT_UNAVAILABLE | 409 | The slot is unknown or inactive | Refresh the catalog, go to S-6 (message key needed: `ERR_SLOT_UNAVAILABLE`, query to canvas-ui) |
-| IDEMPOTENCY_KEY_REQUIRED | 400 | Header missing | Client defect; show `ERR_SERVER` |
-| HEADER_INVALID | 400 | Header malformed | Client defect; `ERR_SERVER` |
-| IDEMPOTENCY_KEY_REUSED | 422 | Same key, different body | Client creates a new key and may retry once; else `ERR_SERVER` |
-| RATE_LIMITED | 429 | Too many requests or orders for this phone | `ERR_SERVER` for now; honour `Retry-After` before retry (key `ERR_RATE_LIMITED` requested from canvas-ui) |
-| PAYLOAD_TOO_LARGE | 413 | Body over 8 KB | `ERR_SERVER` (client defect) |
-| ORDERING_PAUSED | 503 | The owner paused ordering | `ERR_SERVER` (the customer can call the shop) |
-| SERVICE_UNAVAILABLE | 503 | Database unavailable | `ERR_SERVER` with retry; same key on retry |
-| INTERNAL_ERROR | 500 | Unexpected error | `ERR_SERVER` with retry; same key on retry |
+| Code | HTTP | Top-level `message_key` | Meaning | Client behaviour (UI key) |
+| ---- | ---- | ----------------------- | ------- | ------------------------- |
+| VALIDATION_FAILED | 422 | `ERR_SERVER` | One or more fields invalid; `fields[]` lists them | Show next to the field: `ERR_NAME_REQUIRED`, `ERR_PHONE_REQUIRED`, `ERR_PHONE_INVALID`, `ERR_ADDRESS_REQUIRED`, `ERR_DISTRICT_REQUIRED`, `ERR_NOTE_MAX`; return to S-7. Other field errors (lengths, tampering) show `ERR_SERVER` |
+| MIN_QTY | 422 | `ERR_MIN_QTY` | Total cakes below `min_qty` | `ERR_MIN_QTY` with action to S-5 |
+| DATE_LEAD | 422 | `ERR_DATE_LEAD` | Date too soon (also when midnight passed during the flow) | `ERR_DATE_LEAD`, action `ACTION_CHOOSE_DATE` |
+| DATE_HORIZON | 422 | `ERR_DATE_HORIZON` | Date too far | `ERR_DATE_HORIZON`, action `ACTION_CHOOSE_DATE` |
+| DATE_CAPACITY | 409 | `ERR_DATE_CAPACITY` | Date no longer holds the order (AC-9, AC-22) | `ERR_DATE_CAPACITY`, action `ACTION_CHOOSE_DATE` |
+| DISTRICT_UNSERVED | 422 | `ERR_DISTRICT_UNSERVED` | District not served or inactive | `ERR_DISTRICT_UNSERVED`, action `ACTION_CHOOSE_DISTRICT` |
+| PRICE_CHANGED | 409 | `MSG_PRICE_CHANGED` | Server total differs from `expected_total_vnd` (ADR-0010, Accepted) | Replace prices from `details`, return to the review, show `MSG_PRICE_CHANGED`, confirm enabled |
+| PRODUCT_UNAVAILABLE | 409 | `ERR_PRODUCT_UNAVAILABLE` | A product is unknown or inactive | Refresh the catalog, go to S-5 with `ERR_PRODUCT_UNAVAILABLE` [v1.3 | 2026-10-26] |
+| SLOT_UNAVAILABLE | 409 | `ERR_SLOT_UNAVAILABLE` | The slot is unknown or inactive | Refresh the catalog, go to S-6 with `ERR_SLOT_UNAVAILABLE` [v1.3 | 2026-10-26] |
+| IDEMPOTENCY_KEY_REQUIRED | 400 | `ERR_SERVER` | Header missing | Client defect; show `ERR_SERVER` |
+| HEADER_INVALID | 400 | `ERR_SERVER` | Header malformed | Client defect; `ERR_SERVER` |
+| IDEMPOTENCY_KEY_REUSED | 422 | `ERR_SERVER` | Same key, different body | Client creates a new key and may retry once; else `ERR_SERVER` |
+| RATE_LIMITED | 429 | `ERR_RATE_LIMITED` | Too many requests or orders for this phone | `ERR_RATE_LIMITED` (UI document v1.1), retry button stays enabled; show the message, offer retry after the `Retry-After` seconds [v1.3 | 2026-10-26] |
+| PAYLOAD_TOO_LARGE | 413 | `ERR_SERVER` | Body over 8 KB | `ERR_SERVER` (client defect) |
+| ORDERING_PAUSED | 503 | `ERR_SERVER` | The owner paused ordering | `ERR_SERVER` (the customer can call the shop) |
+| SERVICE_UNAVAILABLE | 503 | `ERR_SERVER` | Database unavailable | `ERR_SERVER` with retry; same key on retry |
+| INTERNAL_ERROR | 500 | `ERR_SERVER` | Unexpected error | `ERR_SERVER` with retry; same key on retry |
+| NOT_FOUND | 404 | `ERR_SERVER` | No route for the path (routing error, not raised by a business rule) | Client defect; `ERR_SERVER`, treated like `INTERNAL_ERROR` (retry is pointless but harmless) [v1.3 | 2026-10-26] |
+| METHOD_NOT_ALLOWED | 405 | `ERR_SERVER` | The path exists, the HTTP method does not | Same as `NOT_FOUND` [v1.3 | 2026-10-26] |
 | (no response) | n/a | No connection | `ERR_OFFLINE` with retry; same key |
 | (client timeout 10 s) | n/a | Unknown outcome | `ERR_TIMEOUT` with retry; same key, so a repeat returns the stored order (AC-19) |
 
 All 5xx and network failures keep all entered data (FR-17).
+
+Rules of the catalogue [v1.3 | 2026-10-26]:
+
+- The top-level `message_key` is `ERR_` plus the code for the codes the UI document shows by name (`MIN_QTY`, `DATE_LEAD`, `DATE_HORIZON`, `DATE_CAPACITY`, `DISTRICT_UNSERVED`, `PRODUCT_UNAVAILABLE`, `SLOT_UNAVAILABLE`, `RATE_LIMITED`), `MSG_PRICE_CHANGED` for `PRICE_CHANGED`, and `ERR_SERVER` for every other code. `VALIDATION_FAILED` has no single text: the app reads `fields[].message_key`; the top-level `ERR_SERVER` applies when `fields` is missing, empty or holds only keys the app does not know.
+- Unknown error codes: the client shows `ERR_SERVER`.
+- `RATE_LIMITED` carries the `Retry-After` header (seconds, an integer) and `details.retry_after_seconds` with the same value.
+- Framework errors never leave as framework bodies: the error middleware maps a Vapor `AbortError` by status (404 `NOT_FOUND`, 405 `METHOD_NOT_ALLOWED`, 413 `PAYLOAD_TOO_LARGE`, 429 `RATE_LIMITED`, 503 `SERVICE_UNAVAILABLE`, other 4xx `VALIDATION_FAILED` without `fields`, everything else `INTERNAL_ERROR`). A decoding failure of a body is therefore `VALIDATION_FAILED` without `fields`.
+- Database outage: `SERVICE_UNAVAILABLE` is answered only when a repository throws `APIError(.serviceUnavailable)`. The mapper does not read driver errors (they can hold SQL or customer data), so an unwrapped driver error becomes `INTERNAL_ERROR`. Every repository method that talks to the database must catch connection and pool errors and rethrow them as `APIError(.serviceUnavailable)` (slice 3 for orders; slice 1 for catalog and availability). Both codes are retryable with the same key.
 
 ## 6. Compatibility Policy
 
@@ -273,7 +283,7 @@ Every endpoint above is in the index with FRs. Every data field used traces to d
 
 | ID | Question | Why it matters | Blocking | Class | Status | Answer |
 | -- | -------- | -------------- | -------- | ----- | ------ | ------ |
-| API-Q1 | Message keys for `PRODUCT_UNAVAILABLE`, `SLOT_UNAVAILABLE`, `RATE_LIMITED` | Client text by code | No | technical | Query to canvas-ui | |
+| API-Q1 | Message keys for `PRODUCT_UNAVAILABLE`, `SLOT_UNAVAILABLE`, `RATE_LIMITED` | Client text by code | No | technical | Closed 2026-10-26: UI document v1.1 defines all three; table in section 5 lists the key per code | atlas-architect |
 | API-Q2 | Price-change behaviour (ADR-0010) | `expected_total_vnd`, `PRICE_CHANGED` | No | business | Closed: owner accepted option A (2026-10-25) | Owner |
 
 | Version | Date | Change |
@@ -281,3 +291,4 @@ Every endpoint above is in the index with FRs. Every data field used traces to d
 | 1.0 | 2026-10-25 | First version. |
 | 1.1 | 2026-10-25 | ADR-0010 accepted; Vapor implementation notes; shallow and deep health check; trial-host timeout note. |
 | 1.2 | 2026-10-26 | Health check consumers clarified (shallow for monitors, deep for operator and deploy checks). |
+| 1.3 | 2026-10-26 | Error catalogue: top-level `message_key` per code, `NOT_FOUND` and `METHOD_NOT_ALLOWED`, `RATE_LIMITED` key and `Retry-After`, framework error mapping, database outage wrapping rule; API-Q1 closed. |

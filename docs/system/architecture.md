@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.2 |
+| Version      | 1.3 |
 | Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -237,19 +237,28 @@ Mapping of the open technical questions: Q-T1 to ADR-0008; Q-T2 to ADR-0013; Q-T
 | 1.0 | 2026-10-25 | First version. |
 | 1.1 | 2026-10-25 | Owner decisions applied: Swift and Vapor, PostgreSQL, free trial hosting, layout, minimum OS, price change. Components, integrations, quality targets, risks updated. Slice plan added (section 11). |
 | 1.2 | 2026-10-26 | After slice 0: Android toolchain and CI, application identifiers (ADR-0016), code structure target and refactors before slice 1 (section 14). |
+| 1.3 | 2026-10-26 | After the backend refactor round: section 14 matches the built layout (`WallClock`, `DatabasePoolSizing`, `PostgresProbe` in `Repositories/`), error flow, collision retry owner, test target rules, remaining refactors. |
 
-## 14. Backend Code Structure Target [v1.2 | 2026-10-26]
+## 14. Backend Code Structure Target [v1.3 | 2026-10-26]
 
-Review of slice 0 (`backend/Sources/App`: `entrypoint`, `configure`, `AppConfig`, `HealthRoute`, `DatabaseProbe`, `Migrations/`). Strengths worth keeping: configuration parsed from a dictionary and never from the global environment; secrets never echoed in errors; the database behind a protocol (`DatabaseProbe`) so tests need no PostgreSQL; one forward-only migration runner with a tested SQL splitter; contract fixtures decoded in tests. What does not yet fit growth is listed as dev queries in the architect's report and summarised here. Target layout for slices 1 to 4:
+Review after the refactor round of slice 0 (`backend/Sources/App`, evidence read on 2026-10-26). Strengths worth keeping: configuration parsed from a dictionary and never from the global environment; secrets never echoed in errors; one place that turns any thrown error into the contract envelope; the database behind a protocol so tests need no PostgreSQL; one forward-only migration runner with a tested SQL splitter; contract fixtures decoded in tests; real-database tests that roll back. Layout as built, and the rule for each folder in slices 1 to 4:
 
-| Folder under `Sources/App` | Holds | Rule |
-| -------------------------- | ----- | ---- |
-| `Config/` | `AppConfig` (one place for variable names and defaults) | Every variable of deployment.md section 3 gets a typed field when its slice reads it |
-| `Http/` | `APIError` (typed error with the api.md section 5 code, HTTP status, details), error middleware, request-id and access-log middleware, rate-limit middleware | The only place that turns an error into the response envelope |
-| `Routes/` | One `RouteCollection` per endpoint group (`HealthRoutes`, `CatalogRoutes`, `AvailabilityRoutes`, `OrderRoutes`) | Parse, call a service, encode; no SQL, no rules |
-| `Services/` | Rules and use cases (`AvailabilityService`, `OrderPlacementService`, `OrderRules`, `ShopCalendar`) | Pure Swift; time, randomness and storage come in as protocols |
-| `Repositories/` | Protocols (`CatalogRepository`, `DayLoadRepository`, `OrderRepository`) and their PostgreSQL implementations with the exact SQL of ADR-0008 | Only SQL lives here |
-| `Support/` | `Clock`, `OrderCodeGenerator`, `withDeadline` | No Vapor types |
-| `Migrations/` | Runner (exists) | Unchanged |
+| Folder under `Sources/App` | Holds (built) | Rule |
+| -------------------------- | ------------- | ---- |
+| `Config/` | `AppConfig` (variable names and defaults), `DatabasePoolSizing` (event loops times connections per loop stays within `DATABASE_POOL_MAX`) | Every variable of deployment.md section 3 gets a typed field when its slice reads it |
+| `Http/` | `APIError`, `APIErrorCode` (one table: code, HTTP status, top-level `message_key`; api.md section 5), `APIErrorMiddleware`, `RequestIDMiddleware`, `AccessLogMiddleware` | The only place that turns an error into the response envelope. Order: request id, access log, error mapper innermost. Rate-limit middleware (ADR-0014) joins here |
+| `Routes/` | `HealthRoutes`; later `CatalogRoutes`, `AvailabilityRoutes`, `OrderRoutes` | Parse, call a service, encode; no SQL, no rules |
+| `Services/` | `HealthService`, `ShopCalendar`, `BusinessDate`; later `AvailabilityService`, `OrderPlacementService`, `OrderRules` | Pure Swift; time, randomness and storage come in as protocols |
+| `Repositories/` | `PostgresProbe`; later the protocols `CatalogRepository`, `DayLoadRepository`, `OrderRepository` with their PostgreSQL implementations (exact SQL of ADR-0008) | Only SQL lives here. Every method wraps connection and pool failures as `APIError(.serviceUnavailable)` (api.md section 5) |
+| `Support/` | `WallClock` (protocol, `SystemWallClock`, `FixedWallClock`; named so because `Clock` is a Swift standard library protocol), `OrderCodeGenerator`, `DatabaseProbe`, `withDeadline` | No Vapor types |
+| `Migrations/` | Runner and SQL splitter | Unchanged |
 
-Composition root: `configure` builds one `AppServices` value (repositories, clock, probe, generators) and stores it on the `Application`; tests replace the whole value or single members. This supersedes the one-off `Application.databaseProbe` storage key.
+Composition root: `configure` builds one `AppServices` value (clock, probe, order code generator; repositories join in the slices that introduce them), stores it on the `Application`; tests replace the whole value or single members.
+
+Error flow: services and repositories throw `APIError`; the middleware maps it. Anything else is mapped by status when it is a Vapor `AbortError`, otherwise `INTERNAL_ERROR`, logging only the type name. The mapper never parses driver errors, so a database outage is `SERVICE_UNAVAILABLE` only when a repository throws it explicitly (api.md section 5).
+
+Order code collisions: the generator only draws a code; the order service of slice 3 retries up to 5 draws when the unique index rejects the insert (ADR-0009).
+
+Tests: `AppTests` is one target. Database tests (`Tests/AppTests/Database`, base class `DatabaseTestCase`) run inside that same target and only when `DATABASE_MIGRATION_URL` is set; otherwise they skip, so `swift test` works without a database. They apply the real migrations and run each test in a transaction that is rolled back. The URL must point at a throwaway database only (the CI service container or a local container), never staging or production.
+
+Fitness for slices 1 to 3: the layering fits. Remaining refactors (dev queries in the architect report): repositories need a per-request or per-transaction database handle, so `AppServices` should hold factories, not connected repositories; the access log still lacks platform, app version and error code; the default body limit must be set to 8 KB; `Retry-After` is not yet written by the mapper; `withDeadline` leaves its timer task running after success.
