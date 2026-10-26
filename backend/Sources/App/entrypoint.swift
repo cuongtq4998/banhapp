@@ -18,7 +18,7 @@ enum Entrypoint {
         // the event loop count depends on it: `migrate` must not need the
         // variables only `serve` uses.
         let variables = ProcessInfo.processInfo.environment
-        let isMigrating = env.arguments.dropFirst().first == migrateCommandName
+        let isMigrating = requestedCommand(in: env.arguments) == migrateCommandName
         let loops: Int
         let setUp: (Application) async throws -> Void
         if isMigrating {

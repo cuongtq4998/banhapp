@@ -7,10 +7,6 @@ import FluentPostgresDriver
 private let migrationsDirectory = "db/migrations/"
 private let listenHostname = "0.0.0.0"
 
-/// Name of the Vapor command that applies migrations; the only command that
-/// uses `configureMigrator` instead of `configure`.
-let migrateCommandName = "migrate"
-
 /// Builds the application for `serve` from `config`. The caller owns the
 /// process environment; nothing here reads it directly so tests can inject
 /// values.

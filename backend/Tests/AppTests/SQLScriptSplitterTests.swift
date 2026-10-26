@@ -59,6 +59,27 @@ final class SQLScriptSplitterTests: XCTestCase {
         XCTAssertEqual(SQLScriptSplitter.statements(in: #"SELECT date'x\'; SELECT 2"#).count, 2)
     }
 
+    func testDollarInsideIdentifierDoesNotOpenADollarQuote() {
+        XCTAssertEqual(SQLScriptSplitter.statements(in: "SELECT a$b$c FROM t; SELECT 2"), ["SELECT a$b$c FROM t", "SELECT 2"])
+        XCTAssertEqual(SQLScriptSplitter.statements(in: "SELECT 1 AS x$$y; SELECT 2").count, 2)
+        XCTAssertEqual(SQLScriptSplitter.statements(in: "SELECT col1$tag$ FROM t; SELECT 2").count, 2)
+    }
+
+    func testDollarQuoteStillOpensAfterNonIdentifierCharacters() {
+        for before in [" ", "(", "=", ",", "\n", "'a'"] {
+            let sql = "SELECT\(before)$q$a;b$q$; SELECT 2"
+            XCTAssertEqual(SQLScriptSplitter.statements(in: sql).count, 2, "before: \(before.debugDescription)")
+        }
+    }
+
+    func testDollarQuotedFunctionBodiesInRealMigrationStayWhole() throws {
+        let script = try String(contentsOfFile: TestPaths.migrations + "/0001_init.sql", encoding: .utf8)
+        let bodies = SQLScriptSplitter.statements(in: script).filter { $0.contains("$$") }
+        XCTAssertFalse(bodies.isEmpty)
+        // An opening and a closing delimiter in the same statement.
+        XCTAssertTrue(bodies.allSatisfy { $0.components(separatedBy: "$$").count % 2 == 1 })
+    }
+
     func testKeepsSemicolonInsideQuotedIdentifier() {
         let sql = #"CREATE TABLE "a;b" ("c""d;" int); SELECT 1"#
         XCTAssertEqual(SQLScriptSplitter.statements(in: sql), [#"CREATE TABLE "a;b" ("c""d;" int)"#, "SELECT 1"])

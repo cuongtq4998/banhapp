@@ -40,6 +40,6 @@ docker build --platform linux/amd64 -f backend/Dockerfile .   # from the reposit
 
 Database URLs use the `postgres://user:password@host:5432/db` form; take the local values from `docker-compose.yml`. Never commit real URLs. <!-- secret-scan:allow -->
 
-Configuration per command: `serve` needs `APP_ENV`, `PORT` and (outside local) `DATABASE_URL`; `migrate` needs only `APP_ENV` and `DATABASE_MIGRATION_URL`. Values are trimmed of whitespace and newlines.
+Configuration per command: `serve` needs `APP_ENV`, `PORT` and (outside local) `DATABASE_URL`; `migrate` needs only `APP_ENV` and `DATABASE_MIGRATION_URL`. The command is the first argument that does not start with `-`, as in Vapor, so `App --yes migrate` and `App --env staging migrate` select `migrate`. Values are trimmed of whitespace and newlines.
 
-Migration files: the SQL splitter understands standard and `E'...'` strings, quoted identifiers, dollar quoting and nested comments. Anything else that holds a `;` inside a single statement is not supported.
+Migration files: the SQL splitter understands standard and `E'...'` strings, quoted identifiers, dollar quoting (opened only where PostgreSQL lexes it, not inside an identifier such as `a$b$c`) and nested comments. Anything else that holds a `;` inside a single statement is not supported.
