@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.4 |
+| Version      | 1.5 |
 | Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | atlas-architect (design), forge-dev (keeps it true) |
@@ -70,8 +70,10 @@ Deploy hook rule [v1.4 | 2026-10-26]: Render's documentation says a deploy hook 
 
 Backend deploy job [v1.4 | 2026-10-26]: `deploy-staging` has its own concurrency group with `cancel-in-progress: false`, so a newer push never cancels a deploy after migrations ran but before the hook was called; the build and test jobs keep `cancel-in-progress: true`. The smoke check after the hook retries the shallow and the deep health check, because the free host needs about a minute to wake and swap. The QA package under `backend/Tests/qa` (edge cases and database tests) also runs in the `test` job.
 
+Image visibility rule [v1.5 | 2026-10-26] (ADR-0003 v1.3): the image holds no secret or customer data (checked against `backend/Dockerfile` and `backend/Dockerfile.dockerignore`). A new GHCR package is private; the owner makes it public once in GitHub (package settings, Danger Zone, Change visibility; free, irreversible), after the first push to main. `deploy-staging` logs in to GHCR with `GITHUB_TOKEN` (`packages: read`) so migrations run either way. Render pulls without credentials only when the package is public; a private package would need a registry credential in Render (a read-only token held by the host), which we avoid.
+
 1. Pull request: backend `swift build` and `swift test` on Linux (XCTVapor) against a PostgreSQL service container (including the parallel-order test of AC-22), with the SwiftPM `.build` cache; SwiftLint [v1.1 | 2026-10-25]; Android build and unit tests; iOS build and unit tests (macOS runner); contract fixture checks; lint.
-2. Merge to main: build the multi-stage image for `linux/amd64` (Swift toolchain image to build with `--static-swift-stdlib`, slim Ubuntu to run, non-root user), push it to GHCR as a public package tagged with the commit, run migrations (`DATABASE_MIGRATION_URL`) first, then call the staging service's Render deploy hook with the image reference in the `imgURL` query parameter, URL-encoded (Render does not redeploy on push; see the hook rule below [v1.4 | 2026-10-26]; migrations are forward-compatible, data-model.md section 8). [v1.1 | 2026-10-25]
+2. Merge to main: build the multi-stage image for `linux/amd64` (Swift toolchain image to build with `--static-swift-stdlib`, slim Ubuntu to run, non-root user), push it to GHCR tagged with the commit (the package starts private; the target state is public, see the image rule below [v1.5 | 2026-10-26]), run migrations (`DATABASE_MIGRATION_URL`) first, then call the staging service's Render deploy hook with the image reference in the `imgURL` query parameter, URL-encoded (Render does not redeploy on push; see the hook rule below [v1.4 | 2026-10-26]; migrations are forward-compatible, data-model.md section 8). [v1.1 | 2026-10-25]
 3. Release tag `backend-vX.Y.Z`: operator approves, the same image digest is deployed to production through its deploy hook [v1.1 | 2026-10-25]. The image holds no secrets or data; all configuration comes from environment variables.
 4. Mobile: tags `ios-vX.Y.Z` and `android-vX.Y.Z`; signed builds are produced locally or by CI with signing secrets (not in the repository); upload to TestFlight and Play internal testing.
 
@@ -193,3 +195,4 @@ Paid always-on path (when real customers order):
 | 1.2 | 2026-10-26 | After slice 0: CI files and runners, which health endpoint each consumer uses, `DATABASE_URL` optional locally, variables read only from later slices, sample-row warning moved to slice 4. |
 | 1.3 | 2026-10-26 | CI: release binary smoke test, database tests in the `AppTests` target (throwaway database only), Android platform 37 and explicit licence step. |
 | 1.4 | 2026-10-26 | After backend round 2: `migrate` needs only `APP_ENV` and `DATABASE_MIGRATION_URL`; iOS runner corrected to `macos-26`; Android platform `android-37.0`; deploy job concurrency, smoke retry, QA package in CI; deploy hook parameter checked against Render docs (`imgURL`, not `imgRef`). |
+| 1.5 | 2026-10-26 | D-12: image visibility and pull credentials, CI login before migrations, owner action to make the package public. |
