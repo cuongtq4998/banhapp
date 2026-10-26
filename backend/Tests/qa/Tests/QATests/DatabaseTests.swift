@@ -106,8 +106,8 @@ final class DatabaseTests: XCTestCase {
             throw XCTSkip("DATABASE_MIGRATION_URL not set; database-level tests skipped")
         }
         app = try await Application.make(.testing)
-        let config = AppConfig(stage: .local, port: 8080, databaseURL: url, databaseMigrationURL: url)
-        try await configure(app, config: config, migrationFiles: MigrationFiles.load(from: QAPaths.migrations))
+        let config = MigrationConfig(stage: .local, databaseMigrationURL: url)
+        try configureMigrator(app, config: config, migrationFiles: MigrationFiles.load(from: QAPaths.migrations))
         try await app.autoMigrate()
     }
 

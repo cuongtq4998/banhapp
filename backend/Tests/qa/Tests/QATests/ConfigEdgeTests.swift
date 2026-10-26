@@ -58,24 +58,72 @@ final class ConfigEdgeTests: XCTestCase {
         }
     }
 
-    func testMigrationUrlIsOptionalAndTrimmed() throws {
-        XCTAssertNil(try config([:]).databaseMigrationURL)
-        XCTAssertEqual(try config(["DATABASE_MIGRATION_URL": " postgres://m "]).databaseMigrationURL, "postgres://m")
+    // ---- Migration command configuration (D-2, retested in round 2) ----
+
+    private func migration(_ vars: [String: String]) throws -> MigrationConfig {
+        try MigrationConfig(variables: vars)
     }
 
-    // ---- Defects ----
-
-    /// D-2: the staging deploy job runs `migrate` with only APP_ENV and
-    /// DATABASE_MIGRATION_URL (backend.yml); the config parser demands PORT
-    /// and DATABASE_URL as well, so the process exits before migrating.
-    func testDefectMigrateNeedsOnlyTheMigrationRole() {
-        let vars = ["APP_ENV": "staging", "DATABASE_MIGRATION_URL": "postgres://migrator-placeholder"]
-        XCTAssertNoThrow(try AppConfig(variables: vars))
+    /// D-2: the staging deploy job passes only APP_ENV and DATABASE_MIGRATION_URL.
+    func testMigrateNeedsOnlyTheMigrationRole() throws {
+        let config = try migration(["APP_ENV": "staging", "DATABASE_MIGRATION_URL": "postgres://migrator-placeholder"])
+        XCTAssertEqual(config.stage, .staging)
+        XCTAssertEqual(config.databaseMigrationURL, "postgres://migrator-placeholder")
     }
 
-    /// D-5 (low): a value pasted with a trailing newline (common in secret
-    /// stores) is rejected for PORT because only spaces and tabs are trimmed.
-    func testDefectTrailingNewlineIsTrimmed() {
-        XCTAssertNoThrow(try config(["PORT": "8080\n"]))
+    func testMigrationUrlIsRequiredAndTrimmed() throws {
+        XCTAssertThrowsError(try migration(["APP_ENV": "staging"])) {
+            XCTAssertEqual($0 as? AppConfig.Failure, .missing("DATABASE_MIGRATION_URL"))
+        }
+        XCTAssertThrowsError(try migration(["APP_ENV": "staging", "DATABASE_MIGRATION_URL": " \n "]))
+        XCTAssertEqual(
+            try migration(["APP_ENV": "local", "DATABASE_MIGRATION_URL": " postgres://m \n"]).databaseMigrationURL,
+            "postgres://m"
+        )
+    }
+
+    func testMigrationStageIsRequiredAndValidated() {
+        XCTAssertThrowsError(try migration(["DATABASE_MIGRATION_URL": "postgres://m"])) {
+            XCTAssertEqual($0 as? AppConfig.Failure, .missing("APP_ENV"))
+        }
+        XCTAssertThrowsError(try migration(["APP_ENV": "Staging", "DATABASE_MIGRATION_URL": "postgres://m"])) {
+            XCTAssertEqual($0 as? AppConfig.Failure, .invalid("APP_ENV"))
+        }
+    }
+
+    func testMigrationConfigNeverEchoesTheUrl() {
+        XCTAssertThrowsError(try migration(["APP_ENV": "zz-secret", "DATABASE_MIGRATION_URL": "postgres://zz-secret"])) {
+            XCTAssertFalse(String(describing: $0).contains("zz-secret"))
+            XCTAssertFalse(String(reflecting: $0).contains("zz-secret"))
+        }
+    }
+
+    /// The serve configuration must not take over the migration URL any more.
+    func testServeConfigIgnoresTheMigrationUrl() throws {
+        XCTAssertThrowsError(try config(["DATABASE_URL": nil, "DATABASE_MIGRATION_URL": "postgres://m"]),
+                             "a staging server must not fall back to the DDL role")
+    }
+
+    /// D-5: a value pasted with a trailing newline is trimmed.
+    func testTrailingNewlineIsTrimmed() throws {
+        XCTAssertEqual(try config(["PORT": "8080\n"]).port, 8080)
+        XCTAssertEqual(try config(["PORT": "\r\n8080\r\n"]).port, 8080)
+        XCTAssertEqual(try config(["DATABASE_URL": "postgres://x\n"]).databaseURL, "postgres://x")
+    }
+
+    func testPoolMaxZeroIsRejected() {
+        XCTAssertThrowsError(try config(["DATABASE_POOL_MAX": "0"]))
+    }
+
+    func testPoolSizingNeverExceedsTheBudget() {
+        for poolMax in 1...40 {
+            for cores in [1, 2, 4, 8, 10, 16, 64] {
+                let loops = DatabasePoolSizing.eventLoopCount(poolMax: poolMax, coreCount: cores)
+                let per = DatabasePoolSizing.connectionsPerLoop(poolMax: poolMax, eventLoopCount: loops)
+                XCTAssertGreaterThanOrEqual(loops, 1)
+                XCTAssertGreaterThanOrEqual(per, 1)
+                XCTAssertLessThanOrEqual(loops * per, poolMax, "poolMax=\(poolMax) cores=\(cores)")
+            }
+        }
     }
 }
