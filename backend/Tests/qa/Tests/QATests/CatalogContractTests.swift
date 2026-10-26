@@ -5,9 +5,9 @@ import FluentSQL
 @testable import AppUnderTest
 
 /// Slice 1, `GET /v1/catalog` against the sample seed (api.md 4.1, ADR-0011,
-/// ADR-0013). Needs DATABASE_MIGRATION_URL (a throwaway PostgreSQL 14+); skips
-/// without it. EXPECTED-FAIL until the slice 1 backend merges: the route does
-/// not exist in e9c097b, so every request answers 404.
+/// ADR-0013, ADR-0017). Needs DATABASE_MIGRATION_URL (a throwaway PostgreSQL
+/// 14+); skips without it, so on a host without PostgreSQL these are NOT RUN,
+/// and they run in the GitHub CI QA step.
 final class CatalogContractTests: XCTestCase {
     private var app: Application!
 
@@ -114,7 +114,7 @@ final class CatalogContractTests: XCTestCase {
         XCTAssertEqual(reply.status, .ok)
         XCTAssertEqual(reply.header("Cache-Control")?.lowercased(), "no-cache")
         let etag = try XCTUnwrap(reply.header("ETag"), "ETag missing")
-        XCTAssertTrue(etag.range(of: "^(W/)?\"[^\"]+\"$", options: .regularExpression) != nil, "ETag must be a quoted entity tag: \(etag)")
+        XCTAssertNotNil(etag.range(of: "^\"[0-9a-f]{32}\"$", options: .regularExpression), "api.md 4.1 (ADR-0017): strong tag, quoted 32 lowercase hex: \(etag)")
     }
 
     func testTC3_SameDataSameEtagAndConditionalRequestIs304WithEmptyBody() async throws {
@@ -127,8 +127,9 @@ final class CatalogContractTests: XCTestCase {
         XCTAssertEqual(conditional.status, .notModified)
         XCTAssertEqual(conditional.body.count, 0)
         XCTAssertEqual(conditional.header("ETag"), etag, "RFC 9110 15.4.5: 304 repeats the ETag")
-        XCTAssertNotNil(conditional.header("Cache-Control"), "RFC 9110 15.4.5: 304 repeats Cache-Control")
+        XCTAssertEqual(conditional.header("Cache-Control"), "no-cache", "api.md 4.1: a 304 repeats Cache-Control")
         XCTAssertNotNil(conditional.header("X-Request-Id"))
+        XCTAssertNil(conditional.header("Content-Type"), "api.md 4.1: a 304 does not repeat Content-Type")
     }
 
     func testExtra_EtagChangesWhenOnlyServerDateChanges() async throws {
@@ -210,12 +211,11 @@ final class CatalogContractTests: XCTestCase {
 
     // MARK: Other methods, parameters, paths (extra)
 
-    func testExtra_HeadMirrorsGetWithoutBody() async throws {
-        let get = try await catalog()
+    /// api.md 4.1 (v1.6): HEAD is not part of the contract; an unrouted method answers 404 NOT_FOUND.
+    func testExtra_HeadIsNotPartOfTheContract() async throws {
         let head = try await app.qaSend(.HEAD, Slice1.catalogPath)
-        XCTAssertEqual(head.status, .ok)
-        XCTAssertEqual(head.body.count, 0)
-        XCTAssertEqual(head.header("ETag"), get.header("ETag"))
+        XCTAssertLessThan(head.status.code, 500)
+        if head.status != .ok { XCTAssertEqual(head.status, .notFound) }
     }
 
     func testExtra_OtherMethodsAreTheDocumentedNotFoundEnvelope() async throws {
@@ -227,18 +227,14 @@ final class CatalogContractTests: XCTestCase {
     }
 
     func testExtra_UnknownQueryParametersAreHarmlessAndDoNotForkTheCache() async throws {
-        // api.md 4.1 says "Request parameters: none" and is silent on extras (document question Q-A3).
-        // Accept 200 with an identical body or a 422; never a 5xx and never different data.
+        // api.md 4.1 (v1.6): any query parameter is ignored; 200 with the same body and ETag, never 422 or 5xx.
         let base = try await catalog()
         for query in ["?x=1", "?slot_id=00000000-0000-4000-8000-000000000031", "?cakes=2", "?%00=%00", "?a=" + String(repeating: "z", count: 5000), "?deep=1", "?page=2&limit=1"] {
             let r = try await app.qaSend(.GET, Slice1.catalogPath + query)
             XCTAssertLessThan(r.status.code, 500, query)
-            if r.status == .ok {
-                XCTAssertEqual(r.body, base.body, "query \(query) changed the data")
-                XCTAssertEqual(r.header("ETag"), base.header("ETag"), query)
-            } else {
-                XCTAssertEqual(r.status, .unprocessableEntity, query)
-            }
+            XCTAssertEqual(r.status, .ok, query)
+            XCTAssertEqual(r.body, base.body, "query \(query) changed the data")
+            XCTAssertEqual(r.header("ETag"), base.header("ETag"), query)
         }
     }
 
@@ -281,11 +277,12 @@ final class CatalogContractTests: XCTestCase {
         let (_, json) = try await okCatalog()
         for product in try XCTUnwrap(json["products"]?.array) {
             let url = try XCTUnwrap(product["image_url"]?.string)
-            guard url.hasPrefix("/") else { continue } // absolute https URLs belong to PUBLIC_ASSET_BASE_URL
+            XCTAssertTrue(url.hasPrefix("/assets/images/"), url)
+            XCTAssertNotNil(url.range(of: "\\?v=[0-9a-f]{8}$", options: .regularExpression), "version query missing: \(url)")
             let r = try await app.qaSend(.GET, String(url.dropFirst()))
             XCTAssertEqual(r.status, .ok, url)
             XCTAssertTrue(r.header("Content-Type")?.hasPrefix("image/") ?? false, "\(url): \(r.header("Content-Type") ?? "nil")")
-            XCTAssertEqual(r.header("Cache-Control")?.replacingOccurrences(of: " ", with: ""), "public,max-age=86400", url)
+            XCTAssertEqual(r.header("Cache-Control"), "public, max-age=31536000, immutable", url)
             XCTAssertGreaterThan(r.body.count, 0, url)
             XCTAssertLessThan(r.body.count, 1_000_000, "\(url) is larger than 1 MB (mobile data, FR-3)")
             let png = Data([0x89, 0x50, 0x4E, 0x47]), jpg = Data([0xFF, 0xD8, 0xFF])
@@ -339,8 +336,116 @@ final class CatalogContractTests: XCTestCase {
         let product = "'00000000-0000-4000-8000-000000000013'"
         try await execute("UPDATE product SET is_active = false WHERE id = \(product)")
         let (_, json) = try await okCatalog()
-        XCTAssertEqual(json["products"]?.array?.count, 3, "api.md: active products only; the app treats fewer than four as Error (UI 5.3)")
+        XCTAssertEqual(json["products"]?.array?.count, 3, "api.md 4.1 v1.6: active products only, one to four are normal (AC-32)")
         try await restoreSample()
+    }
+
+    // MARK: AC-32, AC-33 (owner decision of 2026-10-26: 1 to 4 active cakes are normal, zero is the error screen)
+
+    /// AC-32 at the API level: for 1, 2 and 3 active cakes exactly those are listed, in sort order, no padding.
+    func testAC32_OneTwoOrThreeActiveCakesAreListedExactly() async throws {
+        try XCTSkipUnless(Slice1.mutationAllowed, "set \(Slice1.mutationVariable)=1 on a throwaway database")
+        let ids = Slice1.Seed.products.map { $0.4 }
+        do {
+            for keep in [3, 2, 1] {
+                try await execute("UPDATE product SET is_active = (id IN (\(ids.prefix(keep).map { "'\($0)'" }.joined(separator: ","))))")
+                let (_, json) = try await okCatalog()
+                XCTAssertEqual(json["products"]?.array?.map { $0["slug"]?.string }, Slice1.Seed.products.prefix(keep).map { $0.0 }, "\(keep) active")
+                XCTAssertEqual(Slice1.shapeProblems(json, productCount: keep), [], "\(keep) active")
+                XCTAssertEqual(Slice1.forbiddenHits(in: json.allText), [])
+            }
+            // a hidden cake in the middle: the others keep their order
+            try await execute("UPDATE product SET is_active = (id <> '\(ids[1])')")
+            let (_, middle) = try await okCatalog()
+            XCTAssertEqual(middle["products"]?.array?.map { $0["slug"]?.string }, ["banana", "mung-bean-vegetarian", "mung-bean-egg-yolk-pork-fat"])
+        } catch {
+            try await restoreSample()
+            throw error
+        }
+        try await restoreSample()
+    }
+
+    /// AC-33 at the API level: zero active cakes is 200 with `products: []`, other lists intact, and one cake
+    /// made active again shows up on the next request (new ETag, no restart).
+    func testAC33_ZeroActiveCakesIsAnEmptyListNotAnError() async throws {
+        try XCTSkipUnless(Slice1.mutationAllowed, "set \(Slice1.mutationVariable)=1 on a throwaway database")
+        do {
+            let before = try await catalog()
+            try await execute("UPDATE product SET is_active = false")
+            let (reply, json) = try await okCatalog()
+            XCTAssertEqual(json["products"]?.array?.count, 0)
+            XCTAssertEqual(Slice1.shapeProblems(json, productCount: 0), [])
+            XCTAssertNotEqual(reply.header("ETag"), before.header("ETag"))
+            XCTAssertEqual(json["districts"]?.array?.count, 5, "districts are not affected by hidden cakes")
+            XCTAssertEqual(json["slots"]?.array?.count, 4)
+            let conditional = try await catalog(["If-None-Match": try XCTUnwrap(before.header("ETag"))])
+            XCTAssertEqual(conditional.status, .ok, "the old tag must not give 304 after the list became empty")
+
+            try await execute("UPDATE product SET is_active = true WHERE id = '\(Slice1.Seed.products[2].4)'")
+            let (_, again) = try await okCatalog()
+            XCTAssertEqual(again["products"]?.array?.map { $0["slug"]?.string }, [Slice1.Seed.products[2].0])
+        } catch {
+            try await restoreSample()
+            throw error
+        }
+        try await restoreSample()
+    }
+
+    /// Empty districts and slots (all inactive) are valid answers too; the apps decide what to show.
+    func testExtra_AllDistrictsAndSlotsInactiveGiveEmptyLists() async throws {
+        try XCTSkipUnless(Slice1.mutationAllowed, "set \(Slice1.mutationVariable)=1 on a throwaway database")
+        do {
+            try await execute("UPDATE district SET is_active = false")
+            try await execute("UPDATE delivery_slot SET is_active = false")
+            let (_, json) = try await okCatalog()
+            XCTAssertEqual(Slice1.shapeProblems(json, minDistricts: 0, minSlots: 0), [])
+            XCTAssertEqual(json["districts"]?.array?.count, 0)
+            XCTAssertEqual(json["slots"]?.array?.count, 0)
+        } catch {
+            try await restoreSample()
+            throw error
+        }
+        try await restoreSample()
+    }
+
+    /// api.md 4.1: `note_max_length` is a code constant, not a shop_setting; other settings follow the table.
+    func testExtra_ChangedShopSettingIsServedAndNoteLengthStaysAConstant() async throws {
+        try XCTSkipUnless(Slice1.mutationAllowed, "set \(Slice1.mutationVariable)=1 on a throwaway database")
+        do {
+            try await execute("UPDATE shop_setting SET min_qty = 3, lead_days = 1")
+            let (_, json) = try await okCatalog()
+            XCTAssertEqual(json["settings"]?["min_qty"]?.int, 3)
+            XCTAssertEqual(json["settings"]?["lead_days"]?.int, 1)
+            XCTAssertEqual(json["settings"]?["note_max_length"]?.int, 200)
+        } catch {
+            try await restoreSample()
+            throw error
+        }
+        try await restoreSample()
+    }
+
+    /// A catalog for a SHOP_ID that has no rows: no crash, and no data of another shop (single-shop rule, ADR-0013).
+    func testExtra_UnknownShopIdDoesNotLeakOrCrash() async throws {
+        let other = try await CatalogApp.makeWithShop(UUID(uuidString: "00000000-0000-4000-8000-0000000000ff")!)
+        defer { Task { try? await other.asyncShutdown() } }
+        let r = try await other.qaSend(.GET, Slice1.catalogPath)
+        XCTAssertEqual(r.status, .internalServerError, "CatalogRepository doc: a deployment mistake is answered as INTERNAL_ERROR")
+        XCTAssertEqual(Slice1.envelopeProblems(r, code: "INTERNAL_ERROR", messageKey: "ERR_SERVER"), [])
+        XCTAssertFalse(r.text.contains("Tiệm Bánh An Nhiên"), "another shop's data must not be served")
+        XCTAssertNil(r.header("ETag"))
+    }
+
+    /// PUBLIC_ASSET_BASE_URL: `image_url` becomes base + path, still with the version query (api.md 4.6).
+    func testExtra_AssetBaseUrlPrefixesEveryImageUrl() async throws {
+        let cdn = try await CatalogApp.make(assetBaseURL: "https://cdn.example.test")
+        defer { Task { try? await cdn.asyncShutdown() } }
+        let r = try await cdn.qaSend(.GET, Slice1.catalogPath)
+        XCTAssertEqual(r.status, .ok)
+        for product in try XCTUnwrap(r.json?["products"]?.array) {
+            let url = try XCTUnwrap(product["image_url"]?.string)
+            XCTAssertTrue(url.hasPrefix("https://cdn.example.test/assets/images/"), url)
+            XCTAssertNotNil(url.range(of: "\\?v=[0-9a-f]{8}$", options: .regularExpression), url)
+        }
     }
 
     private func restoreSample() async throws {
