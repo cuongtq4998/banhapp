@@ -39,6 +39,8 @@ WORKDIR /app
 COPY --from=build --chown=vapor:vapor /staging/App ./App
 # SQL migrations are read from ./db/migrations by `App migrate`.
 COPY --chown=vapor:vapor backend/db ./db
+# Product images and the privacy page, served from ./assets (api.md 4.5, 4.6).
+COPY --chown=vapor:vapor backend/assets ./assets
 
 USER vapor
 # The host injects PORT (deployment.md section 3); EXPOSE is documentation only.

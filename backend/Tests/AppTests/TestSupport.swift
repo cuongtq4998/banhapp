@@ -18,9 +18,22 @@ enum TestPaths {
         .appendingPathComponent("contracts/fixtures")
 }
 
+struct StubCatalogRepository: CatalogRepository {
+    let behaviour: @Sendable (UUID) async throws -> CatalogSnapshot
+    func loadCatalog(shopID: UUID) async throws -> CatalogSnapshot { try await behaviour(shopID) }
+}
+
 struct StubProbe: DatabaseProbe {
     let behaviour: @Sendable () async throws -> Void
     func ping() async throws { try await behaviour() }
+}
+
+/// A value written by a stub and read by the test.
+final class LockedBox<Value: Sendable>: Sendable {
+    private let box: NIOLockedValueBox<Value>
+    init(_ value: Value) { box = NIOLockedValueBox(value) }
+    var value: Value { box.withLockedValue { $0 } }
+    func set(_ value: Value) { box.withLockedValue { $0 = value } }
 }
 
 /// Collects log lines so tests can assert on what would reach the log sink.
@@ -66,7 +79,34 @@ extension AppConfig {
     )
 }
 
+extension AppConfig {
+    static let testShopID = UUID(uuidString: "00000000-0000-4000-8000-000000000001")!
+
+    /// A local configuration that names a shop and (as above) has a database
+    /// handle nobody listens behind.
+    static func localWithShop(
+        rateLimitReadPerMinute: Int = Default.rateLimitReadPerMinute,
+        trustProxy: Bool = false,
+        publicAssetBaseURL: String = Default.publicAssetBaseURL
+    ) -> AppConfig {
+        AppConfig(
+            stage: .local,
+            port: 8080,
+            databaseURL: "postgres://test:test@127.0.0.1:1/test",
+            shopID: testShopID,
+            trustProxy: trustProxy,
+            rateLimitReadPerMinute: rateLimitReadPerMinute,
+            publicAssetBaseURL: publicAssetBaseURL
+        )
+    }
+}
+
 extension AppServices {
+    /// Replaces the catalogue repository factory with one answering `behaviour`.
+    mutating func stubCatalogRepository(_ behaviour: @escaping @Sendable (UUID) async throws -> CatalogSnapshot) {
+        repositories.makeCatalogRepository = { _ in StubCatalogRepository(behaviour: behaviour) }
+    }
+
     /// Replaces the database probe factory with one answering `behaviour`.
     mutating func stubDatabaseProbe(_ behaviour: @escaping @Sendable () async throws -> Void) {
         repositories.makeDatabaseProbe = { _ in StubProbe(behaviour: behaviour) }

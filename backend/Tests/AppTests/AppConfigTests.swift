@@ -5,7 +5,8 @@ final class AppConfigTests: XCTestCase {
     private let valid = [
         "APP_ENV": "staging",
         "PORT": "8080",
-        "DATABASE_URL": "postgres://placeholder"
+        "DATABASE_URL": "postgres://placeholder",
+        "SHOP_ID": "00000000-0000-4000-8000-000000000001"
     ]
 
     func testParsesRequiredValuesAndDefaults() throws {
@@ -14,6 +15,56 @@ final class AppConfigTests: XCTestCase {
         XCTAssertEqual(config.port, 8080)
         XCTAssertEqual(config.databaseURL, "postgres://placeholder")
         XCTAssertEqual(config.databasePoolMax, AppConfig.Default.databasePoolMax)
+        XCTAssertEqual(config.shopID, AppConfig.testShopID)
+        XCTAssertFalse(config.trustProxy)
+        XCTAssertEqual(config.rateLimitReadPerMinute, 120)
+        XCTAssertEqual(config.publicAssetBaseURL, "")
+    }
+
+    func testShopIDIsRequiredOutsideLocal() throws {
+        var vars = valid
+        vars.removeValue(forKey: AppConfig.Key.shopID)
+        XCTAssertThrowsError(try AppConfig(variables: vars)) {
+            XCTAssertEqual($0 as? AppConfig.Failure, .missing(AppConfig.Key.shopID))
+        }
+        vars[AppConfig.Key.appEnv] = "local"
+        XCTAssertNil(try AppConfig(variables: vars).shopID)
+    }
+
+    func testShopIDMustBeAUUID() {
+        var vars = valid
+        vars[AppConfig.Key.shopID] = "not-a-uuid"
+        XCTAssertThrowsError(try AppConfig(variables: vars)) {
+            XCTAssertEqual($0 as? AppConfig.Failure, .invalid(AppConfig.Key.shopID))
+        }
+    }
+
+    func testTrustProxyAcceptsOnlyTrueAndFalse() throws {
+        var vars = valid
+        vars[AppConfig.Key.trustProxy] = "TRUE"
+        XCTAssertTrue(try AppConfig(variables: vars).trustProxy)
+        vars[AppConfig.Key.trustProxy] = "false"
+        XCTAssertFalse(try AppConfig(variables: vars).trustProxy)
+        vars[AppConfig.Key.trustProxy] = "yes"
+        XCTAssertThrowsError(try AppConfig(variables: vars)) {
+            XCTAssertEqual($0 as? AppConfig.Failure, .invalid(AppConfig.Key.trustProxy))
+        }
+    }
+
+    func testReadRateLimitMustBePositive() throws {
+        var vars = valid
+        vars[AppConfig.Key.rateLimitReadPerMinute] = "30"
+        XCTAssertEqual(try AppConfig(variables: vars).rateLimitReadPerMinute, 30)
+        for bad in ["0", "-1", "many"] {
+            vars[AppConfig.Key.rateLimitReadPerMinute] = bad
+            XCTAssertThrowsError(try AppConfig(variables: vars), bad)
+        }
+    }
+
+    func testAssetBaseURLLosesTrailingSlashes() throws {
+        var vars = valid
+        vars[AppConfig.Key.publicAssetBaseURL] = "https://cdn.example//"
+        XCTAssertEqual(try AppConfig(variables: vars).publicAssetBaseURL, "https://cdn.example")
     }
 
     func testValuesAreTrimmedOfAllWhitespaceAndNewlines() throws {
@@ -79,7 +130,9 @@ final class AppConfigTests: XCTestCase {
     func testEnvExampleListsEveryKey() throws {
         let text = try String(contentsOf: TestPaths.backend.appendingPathComponent(".env.example"), encoding: .utf8)
         let keys = [AppConfig.Key.appEnv, AppConfig.Key.port, AppConfig.Key.databaseURL,
-                    AppConfig.Key.databaseMigrationURL, AppConfig.Key.databasePoolMax]
+                    AppConfig.Key.databaseMigrationURL, AppConfig.Key.databasePoolMax,
+                    AppConfig.Key.shopID, AppConfig.Key.trustProxy,
+                    AppConfig.Key.rateLimitReadPerMinute, AppConfig.Key.publicAssetBaseURL]
         for key in keys {
             XCTAssertTrue(text.contains("\(key)="), "\(key) missing from .env.example")
         }

@@ -9,12 +9,15 @@ struct APIError: Error, Sendable {
     /// Per-field problems; only for `VALIDATION_FAILED`.
     let fields: [APIErrorResponse.FieldError]?
     let details: [String: JSONValue]
+    /// Headers the response carries besides the envelope (for example
+    /// `Cache-Control`); `Retry-After` is derived, not listed here.
+    let headers: [String: String]
 
     var status: HTTPResponseStatus { code.status }
 
     /// A rate-limited error always carries its retry hint (api.md section 5),
     /// so a caller that forgot it still produces a complete response.
-    init(_ code: APIErrorCode, fields: [APIErrorResponse.FieldError]? = nil, details: [String: JSONValue] = [:]) {
+    init(_ code: APIErrorCode, fields: [APIErrorResponse.FieldError]? = nil, details: [String: JSONValue] = [:], headers: [String: String] = [:]) {
         var details = details
         if code == .rateLimited, details[Self.retryAfterDetailKey] == nil {
             details[Self.retryAfterDetailKey] = .int(Self.defaultRetryAfterSeconds)
@@ -22,7 +25,12 @@ struct APIError: Error, Sendable {
         self.code = code
         self.fields = fields
         self.details = details
+        self.headers = headers
     }
+
+    /// A 404 that caches and proxies must not remember: a file that is missing
+    /// today may be deployed tomorrow under the same URL.
+    static let notFoundUncached = APIError(.notFound, headers: [HTTPHeaders.Name.cacheControl.description: "no-store"])
 
     static let retryAfterDetailKey = "retry_after_seconds"
 

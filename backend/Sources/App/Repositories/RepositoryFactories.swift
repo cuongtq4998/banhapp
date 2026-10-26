@@ -9,8 +9,10 @@ import Fluent
 /// introduces them.
 struct RepositoryFactories: Sendable {
     var makeDatabaseProbe: @Sendable (any Database) -> any DatabaseProbe
+    var makeCatalogRepository: @Sendable (any Database) -> any CatalogRepository
 
     static let postgres = RepositoryFactories(
-        makeDatabaseProbe: { PostgresProbe(database: $0) }
+        makeDatabaseProbe: { PostgresProbe(database: $0) },
+        makeCatalogRepository: { PostgresCatalogRepository(database: $0) }
     )
 }
