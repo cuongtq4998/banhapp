@@ -16,11 +16,11 @@ concurrency:
 
 jobs:
   build-test:
-    runs-on: xcode-27
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
-      - name: Select the newest installed Xcode
-        # The project file format needs Xcode 27 or later (dev-guide, Troubleshooting).
+      - name: Select the newest installed Xcode (26.x on hosted runners)
+        # The project file format is 77 (Xcode 16.3+), so the hosted Xcode 26.x opens it; do not commit a 110 upgrade.
         run: |
           XCODE=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
           sudo xcode-select -s "$XCODE/Contents/Developer"

@@ -14,7 +14,7 @@ Git monorepo (ADR-0004), three components plus shared contracts:
 
 ## Swift app
 
-`xcodebuild` needs full Xcode. The active developer dir may be Command Line Tools, so prefix commands with `DEVELOPER_DIR=<path to a full Xcode>` (no sudo). The project file format needs Xcode 27 (the beta build works; Xcode 26.3 cannot open it). Check the installed names with `ls /Applications | grep Xcode`.
+`xcodebuild` needs full Xcode. The active developer dir may be Command Line Tools, so prefix commands with `DEVELOPER_DIR=<path to a full Xcode>` (no sudo). The project file format is 77, which Xcode 26.x and 27 both open; Xcode 27 may offer to upgrade it to format 110 (do not accept or commit that: the hosted CI runner only has Xcode 26.x). Check the installed names with `ls /Applications | grep Xcode`.
 
 ```
 cd ios

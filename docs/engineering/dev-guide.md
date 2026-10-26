@@ -16,7 +16,7 @@ Every command below was run on the author's machine unless the line says "unveri
 | Tool | Version | Needed for | Verified here |
 | ---- | ------- | ---------- | ------------- |
 | Swift | 6.2 | backend, contracts | yes |
-| Xcode | 27 or later (project format 110; 26.3 cannot open it) | iOS | yes (27.1 beta) |
+| Xcode | 26.x or 27 (project format 77; do not commit Xcode 27's upgrade to 110, hosted CI has 26.x) | iOS | yes (27.1 beta) |
 | Docker | current | local PostgreSQL, image build | no (not installed) |
 | PostgreSQL client (`psql`) | 16 | seed and migrations | no |
 | JDK | 17 | Android | no |
@@ -96,7 +96,7 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 
 | Problem | Fix |
 | ------- | --- |
-| Xcode says the project cannot be opened (format 110) | Use Xcode 27 or later (`DEVELOPER_DIR`) |
+| Xcode says the project cannot be opened (format 110) | `objectVersion` must stay 77; set it back by hand if Xcode 27 upgraded it |
 | iOS test run: "No matching device ... XCTestDevices" | Add `-parallel-testing-enabled NO` |
 | UI test cannot find Vietnamese text | The project development region must be `vi` |
 | Release build of the backend crashed on the deep health check | Fixed by the rewritten `withDeadline`; keep the live `?deep=1` check in CI and report any recurrence |
