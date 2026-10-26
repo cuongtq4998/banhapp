@@ -2,8 +2,8 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.1 |
-| Last updated | 2026-10-25 |
+| Version      | 1.2 |
+| Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | atlas-architect |
 | Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; design/design-system.md v1.0 |
@@ -50,8 +50,8 @@ The shop has no screen in this slice; it learns of orders from the database (ope
 
 | Name | Responsibility | Technology | Repo path | Talks to |
 | ---- | -------------- | ---------- | --------- | -------- |
-| iOS customer app | Nine screens S-1 to S-9, order flow, local cache and draft (FR-1 to FR-19) | Swift, SwiftUI, iOS 17+ (ADR-0005); Liquid Glass on iOS 26+, material blur on iOS 17 to 25 [v1.1 | 2026-10-25] | `ios/BanhApp/` (tests `ios/BanhAppTests/`, `ios/BanhAppUITests/`; ADR-0004) | Backend API, Zalo, dialer |
-| Android customer app | Same screens and flow | Kotlin, Jetpack Compose, Material3 Expressive, API 26+ (ADR-0005); blur on Android 12+, opaque cards below [v1.1 | 2026-10-25] | `android/app/` | Backend API, Zalo, dialer |
+| iOS customer app | Nine screens S-1 to S-9, order flow, local cache and draft (FR-1 to FR-19) | Swift, SwiftUI, iOS 17+ (ADR-0005); bundle id `app.banh.customer` (ADR-0016); Liquid Glass on iOS 26+, material blur on iOS 17 to 25 [v1.2 | 2026-10-26] | `ios/BanhApp/` (tests `ios/BanhAppTests/`, `ios/BanhAppUITests/`; ADR-0004) | Backend API, Zalo, dialer |
+| Android customer app | Same screens and flow | Kotlin 2.4, Jetpack Compose (BOM 2026.09.00, Material3 1.4), AGP 9.4 with built-in Kotlin, Gradle 9.6, JDK 17, API 26+ (ADR-0005, ADR-0007); blur on Android 12+, opaque cards below; application ID `app.banh.customer` (ADR-0016) [v1.2 | 2026-10-26] | `android/app/` | Backend API, Zalo, dialer |
 | Backend API | Serves catalog and availability, validates and creates orders, enforces rules and rate limits | Swift 6, Vapor 4, Fluent with PostgreSQL driver and raw SQL for the order transaction (ADR-0001) [v1.1 | 2026-10-25] | `backend/Sources/App/` (tests `backend/Tests/AppTests/`, package `backend/Package.swift`, `backend/Dockerfile`) | PostgreSQL |
 | Database | Stores configuration, orders, daily counters, audit events; enforces constraints and triggers | PostgreSQL 16+ (ADR-0002, Accepted) | Migrations `backend/db/migrations/`, seed `backend/db/seed/` | Backend API, backup job |
 | Static assets | Product images, logo, privacy page | Files served by the backend | `backend/assets/` | Apps (via API host) |
@@ -59,7 +59,7 @@ The shop has no screen in this slice; it learns of orders from the database (ope
 | Contracts package [v1.1 | 2026-10-25] | Codable request, response and error-code types shared by backend and iOS (optional for iOS; fixtures stay the contract) | SwiftPM library `BanhContracts`, Foundation only | `contracts/swift/` | Backend, iOS app |
 | Backend image [v1.1 | 2026-10-25] | The built container, produced in CI (never on the host) | Multi-stage Dockerfile, `linux/amd64`, public image on GHCR | `backend/Dockerfile`, `.github/workflows/backend.yml` | CI, host |
 | Backup job | Nightly encrypted dump to separate storage | GitHub Actions scheduled workflow, `pg_dump`, `age`, private GitHub repository as storage [v1.1 | 2026-10-25] | `.github/workflows/db-backup.yml` | Database, backup storage |
-| CI pipeline | Builds and tests the three components | GitHub Actions | `.github/workflows/` | Repository |
+| CI pipeline | Builds and tests the three components | GitHub Actions: `backend.yml` (Linux, PostgreSQL service, image, staging deploy), `ios.yml` (macOS runner, Xcode 27 needed), `android.yml` (Ubuntu, JDK 17) [v1.2 \| 2026-10-26] | `.github/workflows/` | Repository |
 
 Developer tooling (`ddagent`, installed from its own repository) is not part of the system.
 
@@ -210,6 +210,7 @@ Parallel work inside a slice: backend and the two apps start together from the c
 | [ADR-0013](../decisions/adr-0013-configuration-source-and-sample-data.md) | Configuration in tables, sample flag | Accepted |
 | [ADR-0014](../decisions/adr-0014-abuse-protection.md) | Rate limits, no SMS | Accepted |
 | [ADR-0015](../decisions/adr-0015-zalo-and-phone-contact.md) | Zalo web link and `tel:` | Accepted |
+| [ADR-0016](../decisions/adr-0016-application-identifiers.md) | Android application ID and iOS bundle id `app.banh.customer` | Accepted for development; frozen at first store upload |
 
 Mapping of the open technical questions: Q-T1 to ADR-0008; Q-T2 to ADR-0013; Q-T3 and TQ-1 to ADR-0005; Q-T4 to deployment.md section 4; Q-T5 to ADR-0003; Q-T6 and TQ-5, TQ-6 to ADR-0009; TQ-2 to ADR-0015; TQ-3 and TQ-7 to ADR-0011; TQ-4 to ADR-0010; TQ-8 to ADR-0012.
 
@@ -235,3 +236,20 @@ Mapping of the open technical questions: Q-T1 to ADR-0008; Q-T2 to ADR-0013; Q-T
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version. |
 | 1.1 | 2026-10-25 | Owner decisions applied: Swift and Vapor, PostgreSQL, free trial hosting, layout, minimum OS, price change. Components, integrations, quality targets, risks updated. Slice plan added (section 11). |
+| 1.2 | 2026-10-26 | After slice 0: Android toolchain and CI, application identifiers (ADR-0016), code structure target and refactors before slice 1 (section 14). |
+
+## 14. Backend Code Structure Target [v1.2 | 2026-10-26]
+
+Review of slice 0 (`backend/Sources/App`: `entrypoint`, `configure`, `AppConfig`, `HealthRoute`, `DatabaseProbe`, `Migrations/`). Strengths worth keeping: configuration parsed from a dictionary and never from the global environment; secrets never echoed in errors; the database behind a protocol (`DatabaseProbe`) so tests need no PostgreSQL; one forward-only migration runner with a tested SQL splitter; contract fixtures decoded in tests. What does not yet fit growth is listed as dev queries in the architect's report and summarised here. Target layout for slices 1 to 4:
+
+| Folder under `Sources/App` | Holds | Rule |
+| -------------------------- | ----- | ---- |
+| `Config/` | `AppConfig` (one place for variable names and defaults) | Every variable of deployment.md section 3 gets a typed field when its slice reads it |
+| `Http/` | `APIError` (typed error with the api.md section 5 code, HTTP status, details), error middleware, request-id and access-log middleware, rate-limit middleware | The only place that turns an error into the response envelope |
+| `Routes/` | One `RouteCollection` per endpoint group (`HealthRoutes`, `CatalogRoutes`, `AvailabilityRoutes`, `OrderRoutes`) | Parse, call a service, encode; no SQL, no rules |
+| `Services/` | Rules and use cases (`AvailabilityService`, `OrderPlacementService`, `OrderRules`, `ShopCalendar`) | Pure Swift; time, randomness and storage come in as protocols |
+| `Repositories/` | Protocols (`CatalogRepository`, `DayLoadRepository`, `OrderRepository`) and their PostgreSQL implementations with the exact SQL of ADR-0008 | Only SQL lives here |
+| `Support/` | `Clock`, `OrderCodeGenerator`, `withDeadline` | No Vapor types |
+| `Migrations/` | Runner (exists) | Unchanged |
+
+Composition root: `configure` builds one `AppServices` value (repositories, clock, probe, generators) and stores it on the `Application`; tests replace the whole value or single members. This supersedes the one-off `Application.databaseProbe` storage key.

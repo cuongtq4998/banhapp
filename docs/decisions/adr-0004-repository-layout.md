@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0004 |
-| Version  | 1.1 |
+| Version  | 1.2 |
 | Status   | Accepted (owner approved `docs/`, `backend/`, `ios/`, `android/`; `contracts/` added for shared fixtures and the Swift contracts package) [v1.1 | 2026-10-25] |
 | Date     | 2026-10-25 |
 | Decider  | Product owner (recommendation by atlas-architect) |
@@ -29,7 +29,7 @@ The repository has an Xcode project at the root (`BanhApp/`, `BanhAppTests/`, `B
 
 ## Decision (option A, accepted) [v1.1 | 2026-10-25]
 
-Monorepo with `ios/`, `android/`, `backend/`, `contracts/` (sample request and response fixtures used by all three test suites), `docs/`, `tools/`. Documents already use these paths. A git move preserves history. `contracts/` holds `fixtures/` (JSON) and `swift/` (the `BanhContracts` SwiftPM package, ADR-0001) [v1.1 | 2026-10-25]. Update of CLAUDE.md and rules is a task for the orchestrator after the owner decides (atlas cannot edit them).
+Monorepo with `ios/`, `android/`, `backend/`, `contracts/` (sample request and response fixtures used by all three test suites), `docs/`, `tools/`. Documents already use these paths. A git move preserves history. `contracts/` holds `fixtures/` (JSON) and `swift/` (the `BanhContracts` SwiftPM package, ADR-0001) [v1.1 | 2026-10-25]. The `BanhContracts` package declares platforms iOS 17 and macOS 14 (the iOS app minimum, ADR-0005, and the backend's macOS 14 for native Vapor builds; ADR-0001) [v1.2 | 2026-10-26]. CI paths are per component in `.github/workflows/{backend,ios,android}.yml`; the backend workflow also triggers on `contracts/**` [v1.2 | 2026-10-26]. Update of CLAUDE.md and rules is a task for the orchestrator after the owner decides (atlas cannot edit them).
 
 ## Consequences
 
@@ -54,3 +54,4 @@ Related: ADR-0001, ADR-0006.
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | Proposed. |
 | 1.1 | 2026-10-25 | Accepted by the owner. |
+| 1.2 | 2026-10-26 | Contracts platforms and CI workflow paths recorded after slice 0 (clarification). |

@@ -2,8 +2,8 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.1 |
-| Last updated | 2026-10-25 |
+| Version      | 1.2 |
+| Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | atlas-architect |
 | Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; data-model.md v1.0 |
@@ -221,7 +221,7 @@ Example response:
 
 ### 4.4 GET /healthz
 
-Role: anonymous. Shallow (default): returns 200 `{ "status": "ok" }` when the process runs, with no database query, so monitors never wake the free database. With `?deep=1`: also runs a trivial database query within 2 s; otherwise 503 `{ "status": "degraded" }` [v1.1 | 2026-10-25]. `Cache-Control: no-store`. No data about orders. Used by the host health check and the uptime monitor. Rate limit group: reads.
+Role: anonymous. Shallow (default): returns 200 `{ "status": "ok" }` when the process runs, with no database query, so monitors never wake the free database. With `?deep=1`: also runs a trivial database query within 2 s; otherwise 503 `{ "status": "degraded" }` [v1.1 | 2026-10-25]. `Cache-Control: no-store`. No data about orders. The host health check and the uptime monitor use the shallow form only; the deep form is for the operator and deploy verification (deployment.md section 7) [v1.2 | 2026-10-26]. Rate limit group: reads.
 
 ### 4.5 GET /privacy
 
@@ -280,3 +280,4 @@ Every endpoint above is in the index with FRs. Every data field used traces to d
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version. |
 | 1.1 | 2026-10-25 | ADR-0010 accepted; Vapor implementation notes; shallow and deep health check; trial-host timeout note. |
+| 1.2 | 2026-10-26 | Health check consumers clarified (shallow for monitors, deep for operator and deploy checks). |

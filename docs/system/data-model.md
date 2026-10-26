@@ -2,8 +2,8 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.1 |
-| Last updated | 2026-10-25 |
+| Version      | 1.2 |
+| Last updated | 2026-10-26 |
 | Status       | Draft |
 | Owner        | atlas-architect |
 | Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0 |
@@ -192,11 +192,13 @@ Purpose: append-only audit trail of an order's life.
 | event_type | text | no | | CHECK in `created`, `status_changed` | More types come with later slices |
 | from_status | text | yes | null | | Null for `created` |
 | to_status | text | no | | | |
-| actor_type | text | no | | CHECK in `customer`, `staff`, `owner`, `system` | Only `customer` is used in this slice |
-| actor_id | uuid | yes | null | | Null for `customer`; staff id in the later slice |
+| actor_type | text | no | | CHECK in `customer`, `staff`, `owner`, `system` | `customer` for the `created` event (written by the application). Status-change events are written by trigger with `system` unless the transaction sets `app.actor_type` [v1.2 \| 2026-10-26] |
+| actor_id | uuid | yes | null | | Null for `customer` and `system`; staff id in the later slice, taken from `app.actor_id` [v1.2 \| 2026-10-26] |
 | created_at | timestamptz | no | now() | | |
 
 The table rejects UPDATE and DELETE by trigger (append-only).
+
+Who writes it [v1.2 | 2026-10-26]: the `created` row is inserted by the order transaction. Every later row is inserted by the trigger `customer_order_release_capacity` on any status change (not only cancellation), so no code path can skip the audit. The trigger reads the actor from the transaction settings `app.actor_type` and `app.actor_id` (set with `set_config(name, value, true)` in the same transaction, before the status update); when absent or empty the actor is `system` with a null id. An `app.actor_type` outside the CHECK list fails the update. `customer_order.updated_at` is not maintained by a trigger: the application sets it in the same statement.
 
 ## 4. Enumerations
 
@@ -225,9 +227,11 @@ The table rejects UPDATE and DELETE by trigger (append-only).
 | UNIQUE `product (shop_id, slug)`, `district (shop_id, name)`, `delivery_slot (shop_id, start_time, end_time)` | | No duplicates in configuration |
 | FKs | `customer_order.slot_id`, `district_id`, `customer_order_item.product_id`, all `shop_id` | Integrity; `ON DELETE RESTRICT`: configuration rows used by an order cannot be deleted (use `is_active = false`) |
 | Trigger `customer_order_status_guard` (BEFORE UPDATE OF status) | Allows only the transitions in order-lifecycle.md section 6; rejects any other change including changes of a final state; sets `status_changed_at` | The server rejects invalid transitions even for direct SQL |
-| Trigger `customer_order_release_capacity` (AFTER UPDATE OF status) | When the new status is `Cancelled`, `UPDATE day_load SET cakes_accepted = cakes_accepted - OLD.total_cakes` for the order's date, and inserts an `order_event` row | BR-9, AC-28 |
+| Trigger `customer_order_release_capacity` (AFTER UPDATE OF status) | On every status change inserts an `order_event` (`status_changed`, from, to, actor from `app.actor_type` / `app.actor_id`, default `system`); when the new status is `Cancelled` it also runs `UPDATE day_load SET cakes_accepted = cakes_accepted - OLD.total_cakes` for the order's date. An update that leaves the status unchanged does nothing [v1.2 \| 2026-10-26] | BR-9, AC-28, audit (order-lifecycle.md section 8) |
 | Trigger `customer_order_immutable` (BEFORE UPDATE) | Rejects changes to any column except `status`, `payment_status`, `status_changed_at`, `updated_at`, `pii_purged_at` and the personal columns when `pii_purged_at` is being set | Snapshots must not change (BR-6) |
 | Trigger on `order_event` | Rejects UPDATE and DELETE | Append-only audit |
+
+Migration review 2026-10-26: `backend/db/migrations/0001_init.sql` matches sections 3 to 5 column by column, constraint by constraint and index by index; the only gap was the wording of the trigger row above, so the document changed and the migration did not. Trigger firing order on `customer_order` is alphabetical (`customer_order_immutable`, `customer_order_status_guard` before the update; `customer_order_release_capacity` after). [v1.2 | 2026-10-26]
 
 Rules enforced only in application code (they depend on configuration): lead time (BR-2), horizon (BR-8), minimum quantity (BR-4), served district (BR-3, also the foreign key and `is_active`), per-cake maximum, price acknowledgement (ADR-0010).
 
@@ -288,3 +292,4 @@ Backups contain personal data: they are encrypted (deployment.md section 6). Rea
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version. |
 | 1.1 | 2026-10-25 | PostgreSQL accepted; Swift/Fluent migration mechanics. |
+| 1.2 | 2026-10-26 | After slice 0: trigger writes an `order_event` on every status change with a session-settable actor; migration reviewed against the document; `updated_at` is set by the application. |
