@@ -13,3 +13,4 @@ Fake data only. This repository is public.
 | `error-date-capacity.json` | any | Error envelope without `fields` (api.md section 1) |
 | `error-validation-failed.json` | `POST /v1/orders` | Error envelope with `fields[]` |
 | `error-not-found.json` | any unknown path | Envelope for routing errors (code `NOT_FOUND`, proposed addition to api.md section 5) |
+| `error-rate-limited.json` | any | `RATE_LIMITED` envelope; `details.retry_after_seconds` equals the `Retry-After` header (api.md section 5) |

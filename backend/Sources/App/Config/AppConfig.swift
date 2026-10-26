@@ -1,6 +1,8 @@
 import Foundation
 
-/// Runtime settings read from environment variables.
+/// Settings of the `serve` command, read from environment variables. The
+/// `migrate` command needs less and has its own type (`MigrationConfig`), so a
+/// deploy step never has to set variables it does not use.
 ///
 /// Variable names are listed in `backend/.env.example` and in
 /// deployment.md section 3. The values are parsed from a plain dictionary so
@@ -45,33 +47,24 @@ struct AppConfig: Equatable, Sendable {
     let stage: Stage
     let port: Int
     let databaseURL: String?
-    let databaseMigrationURL: String?
     let databasePoolMax: Int
 
     init(
         stage: Stage,
         port: Int,
         databaseURL: String?,
-        databaseMigrationURL: String? = nil,
         databasePoolMax: Int = Default.databasePoolMax
     ) {
         self.stage = stage
         self.port = port
         self.databaseURL = databaseURL
-        self.databaseMigrationURL = databaseMigrationURL
         self.databasePoolMax = databasePoolMax
     }
 
     init(variables: [String: String]) throws {
-        func value(_ key: String) -> String? {
-            guard let raw = variables[key]?.trimmingCharacters(in: .whitespaces), !raw.isEmpty else {
-                return nil
-            }
-            return raw
-        }
-
-        guard let stageText = value(Key.appEnv) else { throw Failure.missing(Key.appEnv) }
-        guard let stage = Stage(rawValue: stageText) else { throw Failure.invalid(Key.appEnv) }
+        let environment = EnvironmentVariables(variables)
+        let value = environment.value
+        let stage = try environment.stage()
 
         guard let portText = value(Key.port) else { throw Failure.missing(Key.port) }
         guard let port = Int(portText), (1...65_535).contains(port) else { throw Failure.invalid(Key.port) }
@@ -91,8 +84,54 @@ struct AppConfig: Equatable, Sendable {
             stage: stage,
             port: port,
             databaseURL: databaseURL,
-            databaseMigrationURL: value(Key.databaseMigrationURL),
             databasePoolMax: poolMax
         )
+    }
+}
+
+/// Typed access to a plain dictionary of variables.
+struct EnvironmentVariables {
+    private let variables: [String: String]
+
+    init(_ variables: [String: String]) {
+        self.variables = variables
+    }
+
+    /// Trimmed of all whitespace and newlines (a value pasted into a host
+    /// console or read from a file often ends with one); empty counts as unset.
+    func value(_ key: String) -> String? {
+        guard let raw = variables[key]?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else {
+            return nil
+        }
+        return raw
+    }
+
+    func stage() throws -> AppConfig.Stage {
+        guard let text = value(AppConfig.Key.appEnv) else { throw AppConfig.Failure.missing(AppConfig.Key.appEnv) }
+        guard let stage = AppConfig.Stage(rawValue: text) else { throw AppConfig.Failure.invalid(AppConfig.Key.appEnv) }
+        return stage
+    }
+}
+
+/// Settings of the `migrate` command: the stage and the migration role's URL,
+/// nothing else (deployment.md section 3 lists what the deploy job passes).
+struct MigrationConfig: Equatable, Sendable {
+    let stage: AppConfig.Stage
+    let databaseMigrationURL: String
+
+    /// One connection is enough for forward-only DDL run one file at a time.
+    static let poolSize = 1
+
+    init(stage: AppConfig.Stage, databaseMigrationURL: String) {
+        self.stage = stage
+        self.databaseMigrationURL = databaseMigrationURL
+    }
+
+    init(variables: [String: String]) throws {
+        let environment = EnvironmentVariables(variables)
+        guard let url = environment.value(AppConfig.Key.databaseMigrationURL) else {
+            throw AppConfig.Failure.missing(AppConfig.Key.databaseMigrationURL)
+        }
+        self.init(stage: try environment.stage(), databaseMigrationURL: url)
     }
 }

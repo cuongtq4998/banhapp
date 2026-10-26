@@ -1,13 +1,12 @@
-import Vapor
 import Fluent
 import FluentSQL
 
-/// Runs a trivial query on the configured Fluent database.
+/// Runs a trivial query on the database handle it is given.
 struct PostgresProbe: DatabaseProbe {
-    let app: Application
+    let database: any Database
 
     func ping() async throws {
-        guard let sql = app.db as? SQLDatabase else { throw DatabaseProbeError() }
+        guard let sql = database as? any SQLDatabase else { throw DatabaseProbeError() }
         try await sql.raw("SELECT 1").run()
     }
 }

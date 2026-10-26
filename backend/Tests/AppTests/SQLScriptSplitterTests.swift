@@ -44,6 +44,37 @@ final class SQLScriptSplitterTests: XCTestCase {
         XCTAssertEqual(SQLScriptSplitter.statements(in: sql).count, 2)
     }
 
+    func testKeepsSemicolonAndBackslashQuoteInsideEscapeString() {
+        let sql = #"SELECT E'a\';b', e'x\\'; SELECT 2"#
+        XCTAssertEqual(SQLScriptSplitter.statements(in: sql), [#"SELECT E'a\';b', e'x\\'"#, "SELECT 2"])
+    }
+
+    func testBackslashIsLiteralInStandardStrings() {
+        // Standard strings do not treat the backslash as an escape.
+        XCTAssertEqual(SQLScriptSplitter.statements(in: #"SELECT 'a\'; SELECT 2"#), [#"SELECT 'a\'"#, "SELECT 2"])
+    }
+
+    func testELetterEndingAWordDoesNotStartAnEscapeString() {
+        // `name'..'` is not valid SQL, but `value` followed by a string must not be read as E'..'.
+        XCTAssertEqual(SQLScriptSplitter.statements(in: #"SELECT date'x\'; SELECT 2"#).count, 2)
+    }
+
+    func testKeepsSemicolonInsideQuotedIdentifier() {
+        let sql = #"CREATE TABLE "a;b" ("c""d;" int); SELECT 1"#
+        XCTAssertEqual(SQLScriptSplitter.statements(in: sql), [#"CREATE TABLE "a;b" ("c""d;" int)"#, "SELECT 1"])
+    }
+
+    func testNestedBlockCommentsAreOneComment() {
+        let sql = "SELECT 1 /* a; /* b; */ c; */; SELECT 2"
+        XCTAssertEqual(SQLScriptSplitter.statements(in: sql), ["SELECT 1 /* a; /* b; */ c; */", "SELECT 2"])
+        XCTAssertEqual(SQLScriptSplitter.statements(in: "/* x /* y */ ; */;"), [])
+    }
+
+    func testQuoteInsideCommentOrIdentifierDoesNotOpenAString() {
+        let sql = "-- it's\nSELECT \"it's\"; /* don't */ SELECT 2"
+        XCTAssertEqual(SQLScriptSplitter.statements(in: sql).count, 2)
+    }
+
     func testDropsCommentOnlyAndEmptyChunks() {
         XCTAssertEqual(SQLScriptSplitter.statements(in: "-- nothing\n;;\n/* x */;"), [])
     }

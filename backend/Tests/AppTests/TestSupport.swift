@@ -54,3 +54,21 @@ private struct CapturingHandler: LogHandler {
         capture.append("\(event.message)", metadata.merging(event.metadata ?? [:]) { $1 })
     }
 }
+
+extension AppConfig {
+    /// Points Fluent at a port nobody listens on: no connection is opened
+    /// until a query runs, so tests get a request database handle for free.
+    /// Fake credentials; this repository is public.
+    static let unreachableDatabase = AppConfig(
+        stage: .local,
+        port: 8080,
+        databaseURL: "postgres://test:test@127.0.0.1:1/test"
+    )
+}
+
+extension AppServices {
+    /// Replaces the database probe factory with one answering `behaviour`.
+    mutating func stubDatabaseProbe(_ behaviour: @escaping @Sendable () async throws -> Void) {
+        repositories.makeDatabaseProbe = { _ in StubProbe(behaviour: behaviour) }
+    }
+}

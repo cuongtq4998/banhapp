@@ -1,14 +1,15 @@
 import Vapor
+import Fluent
 
 /// Composition root: every edge dependency of the application in one value.
 ///
 /// `configure` builds it once; tests replace the whole value or one member
-/// (`app.services.databaseProbe = StubProbe { ... }`). Repositories join it
-/// in the slices that introduce them.
+/// (`app.services.clock = FixedWallClock(...)`). Repositories are factories
+/// that take a database handle (see `RepositoryFactories`).
 struct AppServices: Sendable {
     var clock: any WallClock
-    var databaseProbe: any DatabaseProbe
     var orderCodes: any OrderCodeGenerator
+    var repositories: RepositoryFactories
 
     /// Derived from `clock`, so replacing the clock also moves the calendar.
     var calendar: ShopCalendar { ShopCalendar(clock: clock) }
@@ -27,5 +28,15 @@ extension Application {
             return services
         }
         set { storage[ServicesKey.self] = newValue }
+    }
+}
+
+extension Request {
+    /// The request's database handle, or nil when no database is configured
+    /// (local runs only). Asking Fluent without one is a fatal error, so the
+    /// registered ids are checked first.
+    var databaseHandle: (any Database)? {
+        guard !application.databases.ids().isEmpty else { return nil }
+        return application.databases.database(logger: logger, on: eventLoop)
     }
 }

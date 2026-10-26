@@ -15,8 +15,10 @@ struct HealthRoutes: RouteCollection {
     }
 
     private func health(_ req: Request) async throws -> Response {
+        let probe = req.databaseHandle.map(req.application.services.repositories.makeDatabaseProbe)
+            ?? UnconfiguredProbe()
         let service = HealthService(
-            probe: req.application.services.databaseProbe,
+            probe: probe,
             deepTimeout: .seconds(AppConfig.Default.healthDeepTimeoutSeconds)
         )
         let deep = req.query[String.self, at: Self.deepQueryName] == Self.deepQueryEnabledValue
