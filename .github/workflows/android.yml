@@ -32,10 +32,10 @@ jobs:
           # The action's own license step exits 1 on the preview-SDK license prompt; accept explicitly below.
           accept-android-sdk-licenses: false
           packages: ""
-      - name: Accept SDK licenses and install platform 37
+      - name: Accept SDK licenses and install platform 37.0
         run: |
           yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platforms;android-37" "build-tools;36.0.0"
+          sdkmanager "platforms;android-37.0" "build-tools;36.0.0"
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
