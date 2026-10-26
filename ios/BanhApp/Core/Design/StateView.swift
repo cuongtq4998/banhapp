@@ -15,7 +15,7 @@ struct ErrorStateView: View {
                 .foregroundStyle(Palette.error)
                 .accessibilityHidden(true)
             Text(message)
-                .font(Typography.body)
+                .textStyle(Typography.body)
                 .foregroundStyle(Palette.textPrimary)
                 .multilineTextAlignment(.center)
             ActionButton(title: Strings.commonRetry, emphasis: .secondary, action: retry)

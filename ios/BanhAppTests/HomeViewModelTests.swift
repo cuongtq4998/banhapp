@@ -29,6 +29,15 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertTrue(model.actionsEnabled)
     }
 
+    func testProductCountComesFromTheCatalogOnceItIsKnown() async throws {
+        let loaded = try await makeModel(opener: RecordingOpener())
+        XCTAssertEqual(loaded.productCount, 4)
+        XCTAssertEqual(Strings.homeProductsHint(count: 4), "4 loại bánh tét")
+
+        let failed = try await makeModel(opener: RecordingOpener(), loaded: false)
+        XCTAssertNil(failed.productCount)
+    }
+
     func testActionsAreDisabledBeforeTheShopIsKnownAndAfterAFailedLoad() async throws {
         let failed = try await makeModel(opener: RecordingOpener(), loaded: false)
         XCTAssertFalse(failed.actionsEnabled)

@@ -2,8 +2,6 @@ import SwiftUI
 
 /// S-4: one cake and the button that starts an order with it.
 struct ProductDetailView: View {
-    private static let imageAspectRatio: CGFloat = 4.0 / 3.0
-
     @State var model: ProductDetailScreenModel
     let onOrder: () -> Void
 
@@ -11,7 +9,8 @@ struct ProductDetailView: View {
         ScrollView {
             content
                 .padding(.horizontal, Spacing.screenMargin)
-                .padding(.vertical, Spacing.lg)
+                .padding(.top, Spacing.backButtonTop)
+                .padding(.bottom, Spacing.lg)
         }
         .bottomActionBar {
             ActionButton(title: Strings.detailButtonOrder, action: onOrder)
@@ -19,8 +18,7 @@ struct ProductDetailView: View {
                 .accessibilityIdentifier(AccessibilityID.detailOrder)
         }
         .appBackground()
-        .navigationTitle(title)
-        .navigationBarTitleDisplayMode(.inline)
+        .customBackNavigation()
     }
 
     @ViewBuilder
@@ -29,46 +27,56 @@ struct ProductDetailView: View {
         case .ready(let item): detail(item)
         case .loading:
             VStack(spacing: Spacing.lg) {
-                SkeletonBlock(cornerRadius: Radius.image).aspectRatio(Self.imageAspectRatio, contentMode: .fit)
-                SkeletonBlock(cornerRadius: Radius.card).frame(height: Size.thumb)
+                pictureFrame { SkeletonBlock(cornerRadius: Radius.detailImage) }
+                SkeletonBlock(cornerRadius: Radius.detailCard).frame(height: Size.thumb)
             }
             .loadingAnnouncement(identifier: AccessibilityID.detailSkeleton)
         case .failed(let failure):
-            ErrorStateView(message: Strings.catalogLoadFailure(failure, screenMessage: Strings.productsError)) {
-                Task { await model.retry() }
+            VStack(alignment: .leading, spacing: Spacing.lg) {
+                BackButton()
+                ErrorStateView(message: Strings.catalogLoadFailure(failure, screenMessage: Strings.productsError)) {
+                    Task { await model.retry() }
+                }
             }
         }
     }
 
     private func detail(_ item: ProductItem) -> some View {
         VStack(spacing: Spacing.lg) {
-            ProductImage(url: item.imageURL, accessibilityName: item.name)
-                .aspectRatio(Self.imageAspectRatio, contentMode: .fit)
-            GlassCard {
-                VStack(alignment: .leading, spacing: Spacing.sm) {
+            pictureFrame {
+                ProductImage(url: item.imageURL, accessibilityName: item.name, cornerRadius: Radius.detailImage)
+            }
+            GlassCard(cornerRadius: Radius.detailCard, padding: Spacing.detailCardInset) {
+                VStack(alignment: .leading, spacing: Spacing.detailCardGap) {
                     Text(verbatim: item.name)
-                        .font(Typography.titleLarge)
+                        .textStyle(Typography.detailTitle)
                         .foregroundStyle(Palette.textPrimary)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier(AccessibilityID.detailName)
+                    Text(verbatim: Strings.priceEach(amount: item.priceText))
+                        .textStyle(Typography.detailPrice)
+                        .foregroundStyle(Palette.primaryDeep)
+                        .accessibilityIdentifier(AccessibilityID.detailPrice)
                     Text(verbatim: item.description)
-                        .font(Typography.body)
+                        .textStyle(Typography.body)
                         .foregroundStyle(Palette.textSecondary)
                         .accessibilityIdentifier(AccessibilityID.detailDescription)
-                    Text(verbatim: Strings.priceEach(amount: item.priceText))
-                        .font(Typography.bodyStrong)
-                        .foregroundStyle(Palette.textPrimary)
-                        .accessibilityIdentifier(AccessibilityID.detailPrice)
                 }
             }
         }
     }
 
-    private var isReady: Bool {
-        if case .ready = model.state { true } else { false }
+    /// The picture frame with the back button laid over its top-left corner, as on the board.
+    private func pictureFrame<Picture: View>(@ViewBuilder _ picture: () -> Picture) -> some View {
+        Color.clear
+            .aspectRatio(Size.detailImageAspect, contentMode: .fit)
+            .overlay { picture() }
+            .overlay(alignment: .topLeading) {
+                BackButton().padding(Spacing.backButtonOffset)
+            }
     }
 
-    private var title: Text {
-        if case .ready(let item) = model.state { Text(verbatim: item.name) } else { Text(verbatim: "") }
+    private var isReady: Bool {
+        if case .ready = model.state { true } else { false }
     }
 }

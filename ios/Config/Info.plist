@@ -5,6 +5,14 @@
 <dict>
 	<key>BanhAPIBaseURL</key>
 	<string>$(API_BASE_URL)</string>
+	<!-- Be Vietnam Pro (SIL OFL 1.1, licence next to the files). Registered here so SwiftUI can use it by name. -->
+	<key>UIAppFonts</key>
+	<array>
+		<string>BeVietnamPro-Regular.ttf</string>
+		<string>BeVietnamPro-Medium.ttf</string>
+		<string>BeVietnamPro-SemiBold.ttf</string>
+		<string>BeVietnamPro-Bold.ttf</string>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<!-- Lets a backend on this Mac or the local network answer over http during development. Public hosts stay https-only. -->

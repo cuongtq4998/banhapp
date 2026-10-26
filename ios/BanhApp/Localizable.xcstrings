@@ -1,196 +1,226 @@
 {
-  "sourceLanguage": "vi",
-  "strings": {
-    "LOGO_LABEL": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Logo cửa hàng"
+  "sourceLanguage" : "vi",
+  "strings" : {
+    "LOGO_LABEL" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logo cửa hàng"
           }
         }
       }
     },
-    "HOME_BTN_ZALO": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zalo"
+    "HOME_BTN_ZALO" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zalo"
           }
         }
       }
     },
-    "HOME_BTN_PHONE": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gọi điện"
+    "HOME_BTN_PHONE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gọi điện"
           }
         }
       }
     },
-    "HOME_BTN_PRODUCTS": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Xem sản phẩm"
+    "HOME_BTN_PRODUCTS" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xem sản phẩm"
           }
         }
       }
     },
-    "HOME_BTN_ORDER": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đặt bánh"
+    "HOME_BTN_ORDER" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt bánh"
           }
         }
       }
     },
-    "HOME_ERR": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không tải được thông tin cửa hàng. Vui lòng kiểm tra kết nối mạng và thử lại."
+    "HOME_ERR" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tải được thông tin cửa hàng. Vui lòng kiểm tra kết nối mạng và thử lại."
           }
         }
       }
     },
-    "ERR_OPEN_ZALO": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không mở được Zalo. Bạn có thể gọi điện cho cửa hàng."
+    "ERR_OPEN_ZALO" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không mở được Zalo. Bạn có thể gọi điện cho cửa hàng."
           }
         }
       }
     },
-    "ERR_OPEN_PHONE": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không mở được ứng dụng gọi điện."
+    "ERR_OPEN_PHONE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không mở được ứng dụng gọi điện."
           }
         }
       }
     },
-    "ERR_NETWORK_LOAD": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không có kết nối mạng. Vui lòng kiểm tra kết nối và thử lại."
+    "ERR_NETWORK_LOAD" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có kết nối mạng. Vui lòng kiểm tra kết nối và thử lại."
           }
         }
       }
     },
-    "COMMON_RETRY": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thử lại"
+    "COMMON_RETRY" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thử lại"
           }
         }
       }
     },
-    "COMMON_LOADING": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đang tải"
+    "COMMON_LOADING" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tải"
           }
         }
       }
     },
-    "PRODUCTS_TITLE": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sản phẩm"
+    "PRODUCTS_TITLE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sản phẩm"
           }
         }
       }
     },
-    "PRODUCTS_ERR": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không tải được thông tin bánh. Vui lòng thử lại."
+    "PRODUCTS_ERR" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tải được thông tin bánh. Vui lòng thử lại."
           }
         }
       }
     },
-    "PRODUCT_IMG_FAILED": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không tải được ảnh"
+    "PRODUCT_IMG_FAILED" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tải được ảnh"
           }
         }
       }
     },
-    "PRICE_EACH": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@/cái"
+    "PRICE_EACH" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@/cái"
           }
         }
       }
     },
-    "DETAIL_BTN_ORDER": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đặt bánh này"
+    "DETAIL_BTN_ORDER" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt bánh này"
           }
         }
       }
     },
-    "FLOW_TITLE": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đặt bánh"
+    "FLOW_TITLE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt bánh"
           }
         }
       }
     },
-    "STEP_LABEL": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bước %lld/4"
+    "STEP_LABEL" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bước %lld/4"
           }
         }
       }
     },
-    "STEP1": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chọn bánh"
+    "STEP1" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn bánh"
+          }
+        }
+      }
+    },
+    "COMMON_BACK" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quay lại"
+          }
+        }
+      }
+    },
+    "HOME_BTN_PRODUCTS_HINT" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld loại bánh tét"
+          }
+        }
+      }
+    },
+    "HOME_BTN_ORDER_HINT" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn bánh, ngày giờ và địa chỉ"
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

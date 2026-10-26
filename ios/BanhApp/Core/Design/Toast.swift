@@ -15,7 +15,7 @@ private struct ToastModifier: ViewModifier {
         content.overlay(alignment: .top) {
             if let message {
                 Text(message)
-                    .font(Typography.body)
+                    .textStyle(Typography.body)
                     .foregroundStyle(Palette.textPrimary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Spacing.lg)
