@@ -28,7 +28,9 @@ struct CatalogRoutes: RouteCollection {
         let tag = EntityTag(hashing: body)
 
         // A 304 must repeat the validators and carry no body (RFC 9110 15.4.5).
-        let notModified = tag.isListed(inIfNoneMatch: req.headers.first(name: .ifNoneMatch))
+        // Repeated If-None-Match lines combine into one comma-separated list (RFC 9110 5.3).
+        let ifNoneMatch = req.headers[.ifNoneMatch]
+        let notModified = tag.isListed(inIfNoneMatch: ifNoneMatch.isEmpty ? nil : ifNoneMatch.joined(separator: ","))
         let response = Response(status: notModified ? .notModified : .ok)
         response.headers.replaceOrAdd(name: .eTag, value: tag.headerValue)
         response.headers.replaceOrAdd(name: .cacheControl, value: Self.cacheControl)
