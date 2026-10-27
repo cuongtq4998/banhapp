@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.3 |
+| Version      | 1.5 |
 | Last updated | 2026-10-27 |
 | Status       | Draft |
 | Owner        | forge-dev (orchestrator wrote the first version) |
@@ -78,6 +78,7 @@ Principles every change must meet (the owner asked for code that stays easy to m
 | Explicit errors | Typed errors mapped once to the API error catalogue; error text never carries secrets or customer data. |
 | Small public surface | `internal` by default, `public` only for the `BanhContracts` package. |
 | Testability | Every rule has a unit test; time and concurrency are injected, not read from globals. |
+| Small files | At most 200 lines per hand-written file (source, tests, documents); split by responsibility, never by trimming. Generated files are exempt. [v1.5 \| 2026-10-27] |
 
 Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments are English and explain why. Layering: iOS and Android follow ADR-0007; the backend follows `docs/system/architecture.md`. Rules for Swift files: `.claude/rules/swift.md`.
 
@@ -125,3 +126,4 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 | 1.2 | 2026-10-26 | Slice 1 iOS: `API_BASE_URL`, stub backend launch argument, shared accessibility identifiers. |
 | 1.3 | 2026-10-27 | Known gaps: catalogue SQL and `SHOP_ID` smoke check are covered by CI. |
 | 1.4 | 2026-10-27 | Slice 2 backend: availability endpoint, `day_load` read SQL, fixture `availability-ok.json`. |
+| 1.5 | 2026-10-27 | Principle added: at most 200 lines per file. |

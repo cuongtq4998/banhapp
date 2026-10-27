@@ -40,6 +40,10 @@ ddagent doctor | run | prewarm | status | dashboard | lane acquire|release|list
 
 Pass the iOS project path `ios/BanhApp.xcodeproj` to it. Add `--mock` or `DDAGENT_MOCK=1` to run without Xcode. ddagent drives iOS/iPadOS simulators and, with pull request cuongtq4998/ddagent#3 (Android lanes, existing AVDs: `ddagent doctor --platform android`, `lane acquire --platform android`), Android emulators; the iOS 15.5 and 16.0 runtimes are unusable on this host, so use 17.5+ (e.g. `--target "iPhone 16"`). Real runs need `DEVELOPER_DIR` pointing at a full Xcode. See `.claude/skills/ddagent-lane`; bugs and design live in the ddagent repo.
 
+## Project rule: file size
+
+Every hand-written file has at most **200 lines**: source, tests and documents. Split by responsibility (one type, one test topic, one document subject) before a file passes the limit; do not trim comments or blank lines to fit. Generated or machine-owned files (the Xcode project file, lock files, JSON fixtures, font and image files) are exempt. A file already over the limit is split when it is next edited. Every agent brief (forge-dev, probe-qa, canvas-ui, atlas-architect, scribe-requirements) repeats this rule, and the orchestrator checks line counts before merging a stage.
+
 ## Agent pipeline (`/feature`)
 
 Features are built by a pipeline of subagents orchestrated from this session. Read `docs/process/README.md` before working on it; document standards are in `docs/process/standards/`.
