@@ -10,7 +10,6 @@
 295 docs/system/architecture.md
 247 backend/Tests/AppTests/ErrorHandlingTests.swift
 244 backend/Tests/qa/Tests/QATests/StaticContentTests.swift
-241 docs/product/place-order.md
 238 backend/Tests/AppTests/RateLimitTests.swift
 232 backend/Tests/qa/Tests/QATests/CatalogFailureAndLimitTests.swift
 212 ios/BanhApp/Core/Design/DesignTokens.swift
