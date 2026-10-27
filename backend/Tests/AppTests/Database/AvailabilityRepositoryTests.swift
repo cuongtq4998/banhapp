@@ -71,6 +71,8 @@ final class AvailabilityRepositoryTests: DatabaseTestCase {
     func testServiceOverRealSQLMatchesTheFixtureShape() async throws {
         try await withRolledBackTransaction { sql in
             try await Self.applySeed(on: sql)
+            // The sample seed uses a smaller daily limit than the fixture; the transaction is rolled back.
+            try await sql.raw("UPDATE shop_setting SET daily_limit = \(bind: AvailabilityTestData.rules.dailyLimit) WHERE shop_id = \(bind: AppConfig.testShopID)").run()
             for (date, accepted) in AvailabilityTestData.fixtureLoads {
                 try await Self.insertLoad(date.description, accepted: accepted, on: sql)
             }
