@@ -1,0 +1,17 @@
+name: file-size
+
+on:
+  pull_request:
+  push:
+    branches: [main, "feature/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: At most 200 lines per hand-written file
+        run: scripts/check-file-size.sh
