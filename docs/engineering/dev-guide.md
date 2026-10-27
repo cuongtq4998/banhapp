@@ -2,8 +2,8 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.1 |
-| Last updated | 2026-10-26 |
+| Version      | 1.3 |
+| Last updated | 2026-10-27 |
 | Status       | Draft |
 | Owner        | forge-dev (orchestrator wrote the first version) |
 | Based on     | architecture.md v1.1; ADR-0001, 0004, 0005, 0007; slice 0 code |
@@ -108,7 +108,7 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 
 ## 8. Known Gaps (slice 0)
 
-- Catalogue SQL (`PostgresCatalogRepository`) and its database tests have never run against PostgreSQL (none on the author's machine); CI is the first run. The `backend.yml` smoke test does not set `SHOP_ID`, so `/v1/catalog` is not covered by it. [v1.1 | 2026-10-26]
+- Catalogue SQL (`PostgresCatalogRepository`) has never run against PostgreSQL on the author's machine; only CI runs it. The CI database tests and the smoke test (which sets `SHOP_ID` and checks `/v1/catalog`) now run it on every push. [v1.3 | 2026-10-27]
 - Docker image, `0001_init.sql` on PostgreSQL, seed and the live deep health check have never run; the first CI run is the verification.
 - Android has never been built (no JDK, Gradle, SDK on the author's machine); Gradle wrapper missing.
 - Apple `DEVELOPMENT_TEAM` is no longer in the repository: copy `ios/Config/Local.xcconfig.example` to the git-ignored `ios/Config/Local.xcconfig` to sign for a device; unsigned builds need no file.
@@ -121,3 +121,4 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 | 1.0 | 2026-10-26 | First version after slice 0 merged. |
 | 1.1 | 2026-10-26 | Slice 1 backend: `SHOP_ID` for `serve`, catalogue, assets, rate limit; catalogue SQL not yet run against PostgreSQL. |
 | 1.2 | 2026-10-26 | Slice 1 iOS: `API_BASE_URL`, stub backend launch argument, shared accessibility identifiers. |
+| 1.3 | 2026-10-27 | Known gaps: catalogue SQL and `SHOP_ID` smoke check are covered by CI. |
