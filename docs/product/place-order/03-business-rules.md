@@ -1,0 +1,23 @@
+# Place Order: Business Rules (section 6)
+
+Part of [Place Order](../place-order.md) (PRD v1.4.1). Holds: BR-1 to BR-13. [v1.4.1 | 2026-10-27]
+
+## 6. Business Rules
+
+All numeric and list values are shop parameters. The system shall read them as configuration, not as fixed values in the requirements. Values already decided are stated here; values the shop must still supply are in "Launch data to be provided by the shop" (section 12.1). [v1.1 | 2026-10-25]
+
+| ID | Rule |
+| -- | ---- |
+| BR-1 | Daily limit: one shared total of cakes of all products (active or not) per receiving date [v1.4 | 2026-10-26] shall not exceed DAILY_LIMIT. A date is selectable only if its remaining amount (DAILY_LIMIT minus cakes already accepted for that date) is at least the total number of cakes in the order. An order that would push a date over the limit shall not be accepted. A cancelled order returns its cakes to the date's remaining amount (BR-9). The value of DAILY_LIMIT is provided by the shop. [v1.1 | 2026-10-25] |
+| BR-2 | Lead time: the receiving date shall be at least LEAD_DAYS calendar days after the order date; LEAD_DAYS is 2. Days are counted in calendar days with no daily cut-off time: an order placed at any time on day D can be received from D+2. The order date D is the server's current date in the shop time zone (A-1, A-8), never the device clock or device time zone. Tests set a controllable server clock; with the same server date, any time from 00:00:00 to 23:59:59 gives the same result, and the result changes at midnight shop time. [v1.3 | 2026-10-25] |
+| BR-3 | Delivery area: delivery is only to districts on the served list. The delivery fee is the flat fee of the district chosen; there is no free delivery. The district list and fees are provided by the shop. [v1.1 | 2026-10-25] |
+| BR-4 | Minimum quantity: the total number of cakes in one order shall be at least MIN_QTY; MIN_QTY is 2. There is no maximum per order other than the remaining amount of the chosen date (BR-1). Separately, as a technical input-safety bound that is not a business maximum, the app and server accept 1 to 99 of one cake in a line (ADR-0009, configuration key max_qty_per_cake); a line above 99 is rejected as invalid input, and the shop can raise the bound in configuration. [v1.3 | 2026-10-25] |
+| BR-5 | Order total = sum of (current price x quantity) for each cake + delivery fee. Prices are those shown at the time of review. Currency is Vietnamese dong (VND), amounts in whole dong (confirmed by the owner; no rounding is needed). [v1.2 | 2026-10-25] |
+| BR-6 | Prices may change; an order keeps the prices shown to the customer at confirmation. |
+| BR-7 | Identity: no account. An order is identified by its order code and holds the name, phone number, address and note given. [v1.1 | 2026-10-25] |
+| BR-8 | Booking horizon: the receiving date shall be no more than MAX_DAYS_AHEAD (30) calendar days after the order date. [v1.1 | 2026-10-25] |
+| BR-9 | Cancellation and capacity: when an order is later cancelled by the shop, its cakes count again toward the remaining amount of its receiving date. Cancellation itself is outside this slice (no screen or endpoint cancels an order), so in this slice this rule is testable at database level only (ADR-0008): a test sets an order to Cancelled in the database and checks the date's remaining amount. [v1.3 | 2026-10-25] |
+| BR-10 | Uniform rules: the same limit, lead time, slots and fees apply on every date; no closed days or special dates in this slice. [v1.1 | 2026-10-25] |
+| BR-11 | Slot capacity: delivery time slots have no capacity of their own; capacity is counted per day only (BR-1). [v1.1 | 2026-10-25] |
+| BR-12 | Contact data retention: name, phone number and address are kept only while needed to fulfil the order. The concrete period will be stated by the owner later (see 12.1). [v1.1 | 2026-10-25] |
+| BR-13 | Active cakes (owner decision 2026-10-26, Q-15): the shop can hide a cake temporarily; hidden cakes are not shown and not orderable, and customers can still order the active ones. The customer-facing catalog holds 1 to 4 active cakes as a normal case; only zero active cakes is an Error state. The daily limit (BR-1), minimum quantity (BR-4) and all other rules are unchanged and do not depend on the number of active cakes. An order already in progress that contains a cake hidden before confirmation is not confirmed; the customer is told in Vietnamese that the cake is no longer available and can change the order (kept data, FR-15). [v1.4 | 2026-10-26] |
