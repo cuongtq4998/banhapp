@@ -2,8 +2,8 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.6 |
-| Last updated | 2026-10-26 |
+| Version      | 1.8 |
+| Last updated | 2026-10-27 |
 | Status       | Draft |
 | Owner        | atlas-architect (design), forge-dev (keeps it true) |
 | Based on     | architecture.md v1.0; product/place-order.md v1.2 |
@@ -55,6 +55,8 @@ CI variables (names only) [v1.2 | 2026-10-26]: secrets `STAGING_DATABASE_MIGRATI
 Startup warning for sample rows (ADR-0013): the check that logs a warning when `APP_ENV=production` and any row has `is_sample = true` is not in slice 0; it is built in slice 4 (launch readiness). Until then the launch checklist item below is the only guard [v1.2 | 2026-10-26].
 
 ### 3.1 Client address behind the host proxy [v1.7 | 2026-10-26]
+
+Update [v1.8 | 2026-10-27]: the assumption "exactly one proxy" below is doubtful. The host's own articles state that inbound traffic to its web services passes through a CDN network and then the host's load balancers, and that the CDN appends to `X-Forwarded-For` (sources in ADR-0019); no reference page states how many entries reach the service. Until ADR-0019 is decided and the operator has run the verification on staging, treat the one-proxy rule as unproven. A wrong boolean only makes the limit too tight (all customers one key), not forgeable. ADR-0019 proposes `TRUST_PROXY_HOPS` instead of `TRUST_PROXY`.
 
 - Assumption: exactly one proxy (Render's load balancer) sits between the customer and the API, and no CDN. With `TRUST_PROXY=true` the API counts the last entry of `X-Forwarded-For`: a proxy appends the address it saw and keeps what the client sent, so a client can forge only the entries before the last one. With two or more proxies the last entry is the inner proxy, not the customer.
 - Source and confidence: Render's official documentation pages read on 2026-10-26 (https://render.com/docs/web-services; the load balancer terminates TLS and forwards to the service port) do not state how `X-Forwarded-For` is built. A Render staff reply in https://feedback.render.com/features/p/send-the-correct-xforwardedfor says Render sets the first IP in the list to the real client IP; a community thread (https://community.render.com/t/missing-x-forwarded-for-header-on-api-rewrites-to-backend/24481) reports that a client-sent header is kept and Render's view is appended. Both are consistent with "the last entry is the address Render saw" when no CDN is in front, but the exact behaviour is unverified in official documentation.
@@ -206,3 +208,4 @@ Paid always-on path (when real customers order):
 | 1.5 | 2026-10-26 | D-12: image visibility and pull credentials, CI login before migrations, owner action to make the package public. |
 | 1.6 | 2026-10-26 | DOC-1, DOC-3: `PUBLIC_ASSET_BASE_URL` rule, shared read budget wording, asset folder. |
 | 1.7 | 2026-10-26 | DOC-12: proxy-count assumption and client address rule (section 3.1), `TRUST_PROXY` needed from slice 1, `SHOP_ID` from slice 1 confirmed. |
+| 1.8 | 2026-10-27 | Section 3.1: one-proxy assumption contradicted by the host's articles; pointer to ADR-0019. |

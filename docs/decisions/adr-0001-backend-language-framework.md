@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0001 |
-| Version  | 1.2 |
+| Version  | 1.3 |
 | Status   | Accepted (owner decision, 2026-10-25) [v1.1 | 2026-10-25] |
 | Date     | 2026-10-25 (v1.1 2026-10-25) |
 | Decider  | Product owner |
@@ -79,3 +79,4 @@ Supersedes: v1.0 recommendation (TypeScript). Related: ADR-0002, ADR-0003, ADR-0
 | 1.0 | 2026-10-25 | Proposed, TypeScript recommended. |
 | 1.1 | 2026-10-25 | Owner chose Swift with Vapor; Accepted; trade-offs, stack details and shared contracts package added. |
 | 1.2 | 2026-10-26 | Contracts package platforms (iOS 17, macOS 14) confirmed; pinned Swift 6.2 recorded (clarification). |
+| 1.3 | 2026-10-27 | Toolchain floor: Swift 6.2 is the minimum for CI, the image and local builds (`swift:6.2-noble`); a developer toolchain older than 6.2 is unsupported (clarification). Backend module split: ADR-0018. |

@@ -2,8 +2,8 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.3 |
-| Last updated | 2026-10-25 |
+| Version      | 1.4 |
+| Last updated | 2026-10-27 |
 | Status       | Draft |
 | Owner        | atlas-architect |
 | Based on     | product/place-order.md v1.2 (BR-7); api.md v1.0 |
@@ -43,11 +43,11 @@ Authorization is enforced by the server. In this slice there is no endpoint that
 | ------- | ----------------------------- |
 | Read requests per IP | 120 per minute in one shared budget (all read routes and static files; 304 and 404 count, a 429 does not), then 429 with `Retry-After` [v1.3 \| 2026-10-26] |
 | `POST /v1/orders` per IP | 10 per hour, then 429 |
-| Accepted orders per normalised phone number | 5 per 24 hours (`ORDER_MAX_PER_PHONE_PER_DAY`), then 429 `RATE_LIMITED` |
+| Accepted orders per normalised phone number | 5 per 24 hours (`ORDER_MAX_PER_PHONE_PER_DAY`), then 429 `RATE_LIMITED`; **not built yet (slice 3)**; the in-memory address limits reset on restart and on wake from sleep, and a fixed window allows up to twice the limit across a boundary (ADR-0014 amendment) [v1.4 \| 2026-10-27] |
 | Request body size | 8 KB, then 413 |
 | Ordering switch | `ORDERING_ENABLED=false` returns 503 `ORDERING_PAUSED` |
 | Repeat requests | `Idempotency-Key` (api.md 4.3); a replay is not counted again |
-| Client IP | From the trusted proxy header set by the host (`TRUST_PROXY=true`); never from client-supplied values when the proxy is absent |
+| Client IP | From the trusted proxy header set by the host (`TRUST_PROXY=true`, one proxy assumed); never from client-supplied values when the proxy is absent. The one-proxy assumption is contradicted by the host's own articles and ADR-0019 (Proposed) replaces the boolean by a verified hop count [v1.4 \| 2026-10-27] |
 | Lockouts | None for customers (no login attempts exist) |
 | Timing and responses | Error bodies never contain stack traces, SQL or personal data |
 
@@ -99,3 +99,4 @@ Rotation: database passwords on staff change or suspected leak; at least once a 
 | 1.1 | 2026-10-25 | Backup storage secret replaced by a deploy key; deploy hook secrets; public image note. |
 | 1.2 | 2026-10-26 | Image visibility clarified (D-12). |
 | 1.3 | 2026-10-26 | Read limit wording: one shared budget per address (api.md section 1, ADR-0017). |
+| 1.4 | 2026-10-27 | ADR-0014 amendment and ADR-0019: per-phone limit not built, limiter caveats, client address trust. |

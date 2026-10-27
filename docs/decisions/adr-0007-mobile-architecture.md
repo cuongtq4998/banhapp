@@ -4,6 +4,7 @@
 | -------- | ----- |
 | ADR      | 0007 |
 | Status   | Accepted |
+| Version  | 1.4 |
 | Date     | 2026-10-25 |
 | Decider  | atlas-architect |
 | Based on | place-order-ui.md v1.0; ADR-0005, ADR-0006 |
@@ -34,7 +35,7 @@ iOS (`ios/BanhApp/`): SwiftUI, `@Observable` view models (iOS 17), `NavigationSt
 
 Android (`android/app/`): Kotlin, Jetpack Compose with Material3 (stable 1.4.x, Expressive APIs behind `@OptIn(ExperimentalMaterial3ExpressiveApi::class)`; move to 1.5.x when it is stable; no beta in releases), ViewModel with `StateFlow`, Navigation Compose, OkHttp with kotlinx.serialization, DataStore for the draft, manual wiring through one `AppContainer`. Packages: `ui/{home,products,order,confirmation}`, `data`, `design`.
 
-Android toolchain (as built in slice 0; versions read from the official pages on 2026-10-26) [v1.1 | 2026-10-26]:
+Android toolchain: the frozen version table of v1.1 to v1.3 was moved out of this ADR [v1.4 | 2026-10-27]. The current toolchain values (AGP, Kotlin, Compose BOM, Gradle, JDK, SDK levels, CI steps) live in `docs/engineering/dev-guide.md` and the Android build files (`android/gradle/libs.versions.toml` where present, `android/app/build.gradle.kts`), which change with every upgrade. What stays decided here: native Compose with Material3, AGP built-in Kotlin with the Compose compiler plugin at the Kotlin version, JDK 17, compileSdk at the level Compose requires while targetSdk stays one lower, explicit licence acceptance in CI. The table as it stood on 2026-10-26, kept for the record:
 
 | Item | Value | Note |
 | ---- | ----- | ---- |
@@ -58,6 +59,8 @@ Rules common to both:
 - Strings come from resource files keyed by the UI document keys (`Localizable.xcstrings`, `res/values/strings.xml` with Vietnamese as the only language).
 - Dates are shown in Vietnam time using the server date (`server_date`), not the device clock.
 - Network timeout for order submission: 10 s (PRD performance); loads: 15 s.
+
+Modularisation [v1.4 | 2026-10-27]: the folder structure above is the first stage. Whether and when it becomes separate modules or packages (iOS local packages, Android Gradle modules, backend targets) is decided in ADR-0018; until a trigger there fires, the single-module layout of this ADR stays.
 
 ## Consequences
 
@@ -90,3 +93,4 @@ Related: ADR-0005, ADR-0006, ADR-0011, ADR-0012, ADR-0016 (application identifie
 | 1.1 | 2026-10-26 | Android toolchain versions and CI runner recorded with sources (clarification only; decision unchanged). |
 | 1.2 | 2026-10-26 | compileSdk 37 (Compose 1.12 requirement), targetSdk stays 36; CI installs platform 37 and accepts licences explicitly. |
 | 1.3 | 2026-10-26 | CI platform package name corrected to `platforms;android-37.0` (clarification only). |
+| 1.4 | 2026-10-27 | Frozen toolchain table replaced by a pointer to the dev guide and build files (table kept as a dated record); modularisation pointer to ADR-0018. |
