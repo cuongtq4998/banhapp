@@ -1,0 +1,160 @@
+{
+  "server_date": "2026-11-02",
+  "dates": [
+    {
+      "date": "2026-11-02",
+      "available": false,
+      "reason": "TOO_SOON"
+    },
+    {
+      "date": "2026-11-03",
+      "available": false,
+      "reason": "TOO_SOON"
+    },
+    {
+      "date": "2026-11-04",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-05",
+      "available": false,
+      "reason": "FULL"
+    },
+    {
+      "date": "2026-11-06",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-07",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-08",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-09",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-10",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-11",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-12",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-13",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-14",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-15",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-16",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-17",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-18",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-19",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-20",
+      "available": false,
+      "reason": "FULL"
+    },
+    {
+      "date": "2026-11-21",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-22",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-23",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-24",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-25",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-26",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-27",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-28",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-29",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-11-30",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-12-01",
+      "available": true,
+      "reason": null
+    },
+    {
+      "date": "2026-12-02",
+      "available": true,
+      "reason": null
+    }
+  ]
+}

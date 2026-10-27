@@ -9,7 +9,7 @@
 | Based on     | architecture.md v1.1; ADR-0001, 0004, 0005, 0007; slice 0 code |
 | Related      | `backend/README.md`; `docs/system/deployment.md` |
 
-Every command below was run on the author's machine unless the line says "unverified". Slices 0 and 1 (backend): health check, empty app shells, first migration, read-only catalogue, assets, privacy page, read rate limit. [v1.1 | 2026-10-26]
+Every command below was run on the author's machine unless the line says "unverified". Slices 0 and 1 (backend): health check, empty app shells, first migration, read-only catalogue, assets, privacy page, read rate limit. [v1.1 | 2026-10-26] Slice 2 (backend): `GET /v1/availability`. [v1.4 | 2026-10-27]
 
 ## 1. Prerequisites
 
@@ -61,6 +61,8 @@ xcodebuild -project BanhApp.xcodeproj -scheme BanhApp -destination "generic/plat
 iOS configuration [v1.2 | 2026-10-26]: the API address is the build setting `API_BASE_URL` (default `http://localhost:8080` in `ios/Config/Project.xcconfig`; override it in the git-ignored `ios/Config/Local.xcconfig`, see the `.example` file; write `//` as `/$()/`). It reaches the app through `ios/Config/Info.plist` (`BanhAPIBaseURL`). UI tests run against an in-process stub chosen by the debug-only launch argument `-BanhStubBackend catalog|unavailable`; accessibility identifiers live in `ios/Shared/AccessibilityID.swift`, compiled into the app and the UI test target.
 
 Android (`android/`), unverified: create the wrapper once with `gradle wrapper --gradle-version 9.6.0`, commit it, then `./gradlew :app:assembleDebug`.
+
+Availability (slice 2, backend) [v1.4 | 2026-10-27]: `GET /v1/availability?cakes=N` needs `SHOP_ID` like the catalogue (without it: 503) and shares the read rate-limit budget. `AvailabilityRoutes` parses `cakes`, `AvailabilityService` applies lead time, horizon and capacity (rules written once, with the Vietnam date from the injected `ShopCalendar`), `AvailabilityRepository` (protocol) and `PostgresAvailabilityRepository` hold the read-only SQL on `shop_setting`, `product` and `day_load`. No migration: the slice reads existing tables. Tests inject `FakeAvailabilityRepository` and `FixedWallClock`; `Tests/AppTests/Database/AvailabilityRepositoryTests.swift` runs the SQL and needs `DATABASE_MIGRATION_URL` (skipped otherwise). The shared fixture is `contracts/fixtures/availability-ok.json`. `cakes` errors use field code `CAKES_INVALID` with key `ERR_SERVER` (not yet named in api.md).
 
 ## 4. Coding Conventions
 
@@ -122,3 +124,4 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 | 1.1 | 2026-10-26 | Slice 1 backend: `SHOP_ID` for `serve`, catalogue, assets, rate limit; catalogue SQL not yet run against PostgreSQL. |
 | 1.2 | 2026-10-26 | Slice 1 iOS: `API_BASE_URL`, stub backend launch argument, shared accessibility identifiers. |
 | 1.3 | 2026-10-27 | Known gaps: catalogue SQL and `SHOP_ID` smoke check are covered by CI. |
+| 1.4 | 2026-10-27 | Slice 2 backend: availability endpoint, `day_load` read SQL, fixture `availability-ok.json`. |
