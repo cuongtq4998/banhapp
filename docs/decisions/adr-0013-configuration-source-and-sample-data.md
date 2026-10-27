@@ -4,6 +4,7 @@
 | -------- | ----- |
 | ADR      | 0013 |
 | Status   | Accepted |
+| Version  | 1.2 |
 | Date     | 2026-10-25 |
 | Decider  | atlas-architect |
 | Based on | PRD Q-T2, section 12.1, AC-29; BR-1 to BR-4, BR-8, BR-10 |
@@ -30,6 +31,12 @@ Products, prices, districts, fees, slots, daily limit, lead days, minimum quanti
 
 Option A. Tables `shop`, `shop_setting`, `product`, `district`, `delivery_slot` (data-model.md). Every row of these tables has `is_sample boolean`; the seed file `backend/db/seed/sample.sql` inserts fake values with `is_sample = true` (the apps never read or show this flag; the API does not expose it). The shop's real values are applied by a reviewed seed or SQL change that sets `is_sample = false`; a startup check logs a warning (not an error) when `APP_ENV=production` and any row still has `is_sample = true`. The later owner slice replaces the seed script by authenticated write endpoints on the same tables. All order rules read these tables at request time; there are no rule constants in code except the input-safety bounds in ADR-0009 (including the note length 200 returned as `settings.note_max_length`, ADR-0017). Seed text that can reach a screen carries no sample marker [v1.1 | 2026-10-26].
 
+Amendments [v1.2 | 2026-10-27]:
+
+- The startup warning for sample rows (`APP_ENV=production` and any `is_sample = true`) is **not built**; it is deferred to slice 4 (launch readiness; deployment.md section 4). Until then the launch checklist item is the only guard.
+- The seed wording "fake values" is overridden by ADR-0017 item 8: seed text that can reach a screen carries no sample marker, and the seed phone numbers are `+849000000NN` (fake but valid in shape). `is_sample` stays the only marker, in the database.
+- Zero active products is a valid configuration (ADR-0017 item 7), not an error of this ADR.
+
 ## Consequences
 
 - Positive: no API change when owner configuration arrives; sample data cannot be confused with real data in the database.
@@ -45,3 +52,11 @@ Option A. Tables `shop`, `shop_setting`, `product`, `district`, `delivery_slot` 
 ## Links
 
 Related: ADR-0002, ADR-0010.
+
+## Change log
+
+| Version | Date | Change |
+| ------- | ---- | ------ |
+| 1.0 | 2026-10-25 | First version (Accepted). |
+| 1.1 | 2026-10-26 | Seed text carries no marker (ADR-0017). |
+| 1.2 | 2026-10-27 | Startup warning deferred to slice 4; seed wording overridden by ADR-0017 item 8. |
