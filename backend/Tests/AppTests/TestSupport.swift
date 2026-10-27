@@ -112,3 +112,31 @@ extension AppServices {
         repositories.makeDatabaseProbe = { _ in StubProbe(behaviour: behaviour) }
     }
 }
+
+/// In-memory availability repository: fixed rules and a fixed `day_load` table.
+/// Records the ranges it was asked for so tests can check what the service reads.
+final class FakeAvailabilityRepository: AvailabilityRepository {
+    let rules: AvailabilityRules
+    let accepted: [BusinessDate: Int]
+    private let ranges = LockedBox<[ClosedRange<BusinessDate>]>([])
+
+    init(rules: AvailabilityRules, accepted: [BusinessDate: Int] = [:]) {
+        self.rules = rules
+        self.accepted = accepted
+    }
+
+    var requestedRanges: [ClosedRange<BusinessDate>] { ranges.value }
+
+    func loadRules(shopID: UUID) async throws -> AvailabilityRules { rules }
+
+    func loadAcceptedCakes(shopID: UUID, from: BusinessDate, through: BusinessDate) async throws -> [BusinessDate: Int] {
+        ranges.set(ranges.value + [from...through])
+        return accepted.filter { (from...through).contains($0.key) }
+    }
+}
+
+extension AppServices {
+    mutating func stubAvailabilityRepository(_ repository: any AvailabilityRepository) {
+        repositories.makeAvailabilityRepository = { _ in repository }
+    }
+}

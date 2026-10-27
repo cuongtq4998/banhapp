@@ -15,3 +15,17 @@ struct BusinessDate: Hashable, Comparable, Sendable, CustomStringConvertible {
         String(format: "%04d-%02d-%02d", year, month, day)
     }
 }
+
+extension BusinessDate {
+    /// Parses the wire form `YYYY-MM-DD`; nil for anything else, including
+    /// a malformed shape or month, so a corrupt database value is not
+    /// silently accepted.
+    init?(isoString: String) {
+        let parts = isoString.split(separator: "-", omittingEmptySubsequences: false)
+        guard parts.count == 3,
+              parts[0].count == 4, parts[1].count == 2, parts[2].count == 2,
+              let year = Int(parts[0]), let month = Int(parts[1]), let day = Int(parts[2]),
+              (1...12).contains(month), (1...31).contains(day) else { return nil }
+        self.init(year: year, month: month, day: day)
+    }
+}
