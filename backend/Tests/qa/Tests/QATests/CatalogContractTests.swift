@@ -13,6 +13,8 @@ final class CatalogContractTests: XCTestCase {
 
     override func setUp() async throws {
         app = try await CatalogApp.make()
+        // Start from the seed even when an earlier run was interrupted halfway through a data change.
+        if Slice1.mutationAllowed { try await restoreSample() }
     }
 
     override func tearDown() async throws {
@@ -448,10 +450,15 @@ final class CatalogContractTests: XCTestCase {
         }
     }
 
+    /// Puts every row a test in this file may have changed back to the sample seed, so a test never sees the
+    /// leftovers of another one (the mutating tests share one database and run one after the other).
     private func restoreSample() async throws {
-        try await execute("UPDATE district SET is_active = true WHERE id = '00000000-0000-4000-8000-000000000025'")
-        try await execute("UPDATE delivery_slot SET is_active = true WHERE id = '00000000-0000-4000-8000-000000000034'")
-        try await execute("UPDATE product SET is_active = true WHERE id = '00000000-0000-4000-8000-000000000013'")
-        try await execute("UPDATE product SET sort_order = 4 WHERE id = '00000000-0000-4000-8000-000000000014'")
+        try await execute("UPDATE district SET is_active = true")
+        try await execute("UPDATE delivery_slot SET is_active = true")
+        try await execute("UPDATE product SET is_active = true")
+        for (position, product) in Slice1.Seed.products.enumerated() {
+            try await execute("UPDATE product SET sort_order = \(position + 1), price_vnd = \(product.3) WHERE id = '\(product.4)'")
+        }
+        try await execute("UPDATE shop_setting SET min_qty = \(Slice1.Seed.settings["min_qty"]!), lead_days = \(Slice1.Seed.settings["lead_days"]!)")
     }
 }
