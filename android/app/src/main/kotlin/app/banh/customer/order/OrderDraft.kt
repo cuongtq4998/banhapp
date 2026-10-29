@@ -17,11 +17,15 @@ data class OrderDraft(
     val address: String = "",
     val districtId: String? = null,
     val note: String = "",
-    /** One key for one order content; slice 3 sends it with the order (ADR-0008). Replaced when the content changes. */
+    /** One key for one order content; slice 3 sends it with the order (ADR-0008). Replaced on every change of a body field, kept for a pure retry (ADR-0008 v1.1). */
     val idempotencyKey: String,
     /** Set when the draft is written, to apply the 24 hour rule. */
     val savedAtEpochMillis: Long = 0L,
 ) {
+    /** True when every field that goes into the order request is equal; the key and the save time are not part of it. */
+    fun hasSameBodyAs(other: OrderDraft): Boolean =
+        copy(idempotencyKey = "", savedAtEpochMillis = 0L) == other.copy(idempotencyKey = "", savedAtEpochMillis = 0L)
+
     fun quantityOf(productId: String): Int = quantities[productId] ?: 0
 
     companion object {

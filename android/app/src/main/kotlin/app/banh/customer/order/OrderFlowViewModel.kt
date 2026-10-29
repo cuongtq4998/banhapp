@@ -50,7 +50,7 @@ class OrderFlowViewModel(
     }
 
     fun onIntent(intent: OrderIntent) {
-        mutableState.update { reduce(it, intent) }
+        mutableState.update { withKeyRule(it, reduce(it, intent), intent, newKey) }
         when (intent) {
             OrderIntent.LoadAvailability -> loadAvailability()
             OrderIntent.RetryCatalog -> viewModelScope.launch { dependencies.catalog.refresh() }

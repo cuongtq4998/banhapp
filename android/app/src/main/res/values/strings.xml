@@ -29,7 +29,7 @@
     <string name="products_err">Không tải được thông tin bánh. Vui lòng thử lại.</string>
     <string name="products_empty">Hiện cửa hàng chưa có bánh để đặt. Vui lòng quay lại sau hoặc liên hệ cửa hàng qua Zalo hoặc điện thoại.</string>
     <string name="product_img_failed">Không tải được ảnh</string>
-    <string name="detail_btn_order">Đặt bánh này</string>
+    <string name="detail_btn_order">Đặt bánh</string>
     <string name="detail_gone">Bánh này hiện không còn được bán.</string>
     <string name="detail_gone_action">Xem các bánh khác</string>
 

@@ -122,6 +122,7 @@ private fun DateCard(
                     serverDate.plusDays(settings.maxDaysAhead.toLong()).toDisplayText(),
                 ),
                 style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.testTag(TestTags.ORDER_DATE_RANGE_HINT),
             )
             DateGrid(calendar, state.draft.date?.toLocalDateOrNull(), DateRules(settings.leadDays, settings.maxDaysAhead)) {
                 onIntent(OrderIntent.ChooseDate(it.toString()))
