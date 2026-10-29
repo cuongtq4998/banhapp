@@ -2,8 +2,8 @@
 
 | Field        | Value                                                                 |
 | ------------ | --------------------------------------------------------------------- |
-| Version      | 1.4 [v1.4 | 2026-10-27]                                              |
-| Last updated | 2026-10-27                                                            |
+| Version      | 1.5 [v1.5 | 2026-10-29]                                              |
+| Last updated | 2026-10-29                                                            |
 | Status       | Draft                                                                 |
 | Owner        | canvas-ui                                                             |
 | Based on     | product/place-order.md v1.4 (Approved) [v1.2 | 2026-10-26]             |
@@ -22,6 +22,7 @@
 | 7 | [Platform notes, motion and haptics](place-order-ui/07-platform-motion.md) | 6, 7 |
 | 8 | [Content and copy keys](place-order-ui/08-copy.md) | 8 |
 | 9 | [Accessibility, test identifiers](place-order-ui/09-accessibility-test-ids.md) | 9, 9.1 |
+| 9b | [Test identifier deviations of the code](place-order-ui/09b-test-ids-deviations.md) [v1.5 | 2026-10-29] | 9.1 (iOS and Android against the canonical set) |
 | 10 | [Traceability, assets](place-order-ui/10-traceability-assets.md) | 10, 11 |
 | 11 | [Open questions, change log](place-order-ui/11-questions-changelog.md) | 12 |
 
@@ -31,4 +32,5 @@ Quick finds: copy keys (Vietnamese text) are in part 8; test identifiers (`home.
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.5 | 2026-10-29 | Slice 2 queries answered: new copy keys, {max} note length, canonical S-5 to S-8 test identifiers (parts 9, 9b), `DETAIL_BTN_ORDER` decision, owner question OQ-1 (part 11). |
 | 1.4 | 2026-10-27 | Split into 11 parts under `place-order-ui/` and this index; no change of meaning. The change history of versions 1.0 to 1.3 is in part 11. |

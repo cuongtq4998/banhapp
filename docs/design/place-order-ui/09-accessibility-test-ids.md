@@ -1,6 +1,6 @@
 # Place Order UI, part 9: Accessibility and test identifiers (sections 9, 9.1)
 
-[v1.4 | 2026-10-27] Part of the split UI specification; index: [place-order-ui.md](../place-order-ui.md). Content unchanged from v1.3; section numbers are the original ones.
+[v1.5 | 2026-10-29] Part of the split UI specification; index: [place-order-ui.md](../place-order-ui.md). Section numbers are the original ones. v1.5 adds the canonical S-5 to S-8 identifiers (9.1); the per-platform deviations are in [09b](09b-test-ids-deviations.md).
 
 ## 9. Accessibility
 
@@ -47,15 +47,43 @@ One list for both platforms: iOS `accessibilityIdentifier` and Android `Modifier
 | `detail.imageFailed` | Image failure placeholder | S-3 card and S-4 (`products.card.<id>` keeps its own id; this tag is inside it) | NO, new |
 | `detail.goneNotice` | `DETAIL_GONE` message | S-4 | NO, new |
 | `detail.goneAction` | `DETAIL_GONE_ACTION` button | S-4 | NO, new |
-| `order.step` | Step label of the S-5 stub (and S-5 in the full flow) | S-5 | yes (`ORDER_STUB_STEP`) |
-| `order.cakeRemovedNotice` | `ORDER_CAKE_REMOVED` message | S-5 | NO, new (full S-5 only, not in the stub) |
+| `order.step` | [v1.5 | 2026-10-29] `STEP_LABEL` ("Bước n/4") on every step | S-5 to S-8 | yes (`ORDER_STEP`) |
+| `order.title` | [v1.5 | 2026-10-29] Step title (`STEP1` to `STEP4`), the screen header | S-5 to S-8 | NO, new |
+| `order.next` | [v1.5 | 2026-10-29] `COMMON_NEXT` button (enabled or disabled) | S-5 to S-7 | yes |
+| `order.cakeRemovedNotice` | `ORDER_CAKE_REMOVED` message | S-5 | yes |
+| `order.qty.total` | [v1.5 | 2026-10-29] `QTY_TOTAL` | S-5 | yes |
+| `order.qty.subtotal` | [v1.5 | 2026-10-29] `QTY_SUBTOTAL` | S-5 | yes |
+| `order.qty.minHint` | [v1.5 | 2026-10-29] `QTY_MIN_HINT` | S-5 | yes |
+| `order.qty.<id>.inc` / `.dec` / `.value` | [v1.5 | 2026-10-29] Plus button, minus button, quantity value of one cake row | S-5 | yes |
+| `order.date.month` | [v1.5 | 2026-10-29] `DATE_MONTH_TITLE` | S-6 | yes |
+| `order.date.previous` / `order.date.next` | [v1.5 | 2026-10-29] Month controls (`DATE_MONTH_PREV`, `DATE_MONTH_NEXT`) | S-6 | yes |
+| `order.date.<yyyy-MM-dd>` | [v1.5 | 2026-10-29] One calendar day (enabled only when selectable) | S-6 | yes |
+| `order.date.rangeHint` | [v1.5 | 2026-10-29] `DATE_HINT_RANGE` | S-6 | NO, new |
+| `order.date.hint` | [v1.5 | 2026-10-29] `NEXT_HINT_DATE_TIME` (absent once date and time are chosen) | S-6 | yes |
+| `order.date.empty` / `order.date.emptyAction` | [v1.5 | 2026-10-29] `DATE_EMPTY` message and its `DATE_EMPTY_ACTION` button | S-6 | yes |
+| `order.date.cleared` | [v1.5 | 2026-10-29] `DATE_CLEARED` message | S-6 | yes |
+| `order.date.loading` | [v1.5 | 2026-10-29] Calendar skeleton while availability loads | S-6 | yes |
+| `order.slot.<slotId>` | [v1.5 | 2026-10-29] One time chip, `<slotId>` from the API | S-6 | yes |
+| `order.field.name` / `phone` / `address` / `district` / `note` | [v1.5 | 2026-10-29] The five inputs (`district` is the picker row) | S-7 | yes |
+| `order.error.<field>` | [v1.5 | 2026-10-29] Field error text, `<field>` is `name`, `phone`, `address`, `district` or `note` | S-7 | yes |
+| `order.note.counter` | [v1.5 | 2026-10-29] `NOTE_COUNTER` | S-7 | yes |
+| `order.district.fee` / `error` / `empty` | [v1.5 | 2026-10-29] `DISTRICT_FEE`, `DISTRICT_ERR`, `DISTRICT_EMPTY` | S-7 | yes |
+| `order.district.row.<districtId>` | [v1.5 | 2026-10-29] One row of the district sheet | S-7 | yes |
+| `review.item.<id>` | [v1.5 | 2026-10-29] One cake line (`REVIEW_ITEM`) | S-8 | yes, renamed |
+| `review.total` / `fee` / `date` / `time` | [v1.5 | 2026-10-29] Value of total, delivery fee, pickup date, pickup time | S-8 | yes, renamed |
+| `review.name` / `phone` / `address` / `note` | [v1.5 | 2026-10-29] Recipient values (`review.note` absent when no note) | S-8 | yes, renamed |
+| `review.privacy` | [v1.5 | 2026-10-29] `REVIEW_PRIVACY` (see owner question N-1/OQ-1) | S-8 | yes, renamed |
+| `review.confirm` | [v1.5 | 2026-10-29] `BTN_CONFIRM` button | S-8 | yes, renamed |
+| `review.message` / `review.messageAction` | [v1.5 | 2026-10-29] Blocking or error banner and its action button (`ACTION_CHOOSE_*`, `DATE_EMPTY_ACTION`) | S-8 | renamed / NO, new |
+| `review.edit.cakes` / `date` / `recipient` | [v1.5 | 2026-10-29] The three `COMMON_EDIT` links (`date` edits date and time) | S-8 | renamed |
+| `state.toast` | [v1.5 | 2026-10-29] Short notice at the top of a screen (for example a link that could not be opened) | any | NO, new |
 | `state.error` | Error `StateView` of any screen (load failure) | S-2 to S-5 | yes |
 | `state.retry` | Retry button inside `state.error` or `state.empty` | any | yes |
 | `state.empty` | Zero-cake `StateView` (`PRODUCTS_EMPTY`) | S-3, S-5 | NO, new |
 
 [v1.3 | 2026-10-26] `home.productsButton` and `home.orderButton` now sit on the two large home action cards (the whole card is the element; the title and subtitle are its children, so the card is one element). `home.zaloButton` and `home.phoneButton` sit on the two contact capsules at the bottom edge of S-2.
 
-Differences for forge-dev: the Android file lacks `home.noCakesNotice`, `home.productsCount`, `nav.back`, `products.orderButton`, `detail.imageFailed`, `detail.goneNotice`, `detail.goneAction`, `order.cakeRemovedNotice` and `state.empty` (add them with the zero-cake work and the board alignment). `state.retry` is shared by the Error and Empty states. The iOS app has no identifiers yet (the only UI test finds the text "Banh App": replace it). Full S-5 to S-9 identifiers will be published with their own stage.
+Differences for forge-dev: the Android file lacks `home.noCakesNotice`, `home.productsCount`, `nav.back`, `products.orderButton`, `detail.imageFailed`, `detail.goneNotice`, `detail.goneAction`, `order.cakeRemovedNotice` and `state.empty` (add them with the zero-cake work and the board alignment). `state.retry` is shared by the Error and Empty states. [v1.5 | 2026-10-29] The S-5 to S-8 rows above are the one canonical set (S-9 identifiers come with their own stage). Rule used to choose names: `<screen>.<element>` for S-8 (`review.*`, like `home.*`), `order.<area>.<element>` for S-5 to S-7 (area, then element; a parameter such as `<id>` sits right after the area, then the action), no camel-case joined area+element (`order.qty.total`, not `order.qtyTotal`). Where an iOS or Android constant differs from the table, see [09b](09b-test-ids-deviations.md); the table wins and forge-dev renames the code (one edit in `AccessibilityID.swift` / `TestTags.kt`, plus the tests that use it).
 
 States each UI test must reach (both platforms, with the fake API or fixture):
 
@@ -65,4 +93,7 @@ States each UI test must reach (both platforms, with the fake API or fixture):
 | S-2 | Default (with `home.productsCount` showing the active count, [v1.3 | 2026-10-26]); Loading without cache (`home.skeleton`); Error without cache (`state.error`, `state.retry`, all four buttons disabled); No cakes (`home.noCakesNotice` visible, `home.orderButton` disabled, `home.productsButton` enabled, `home.productsCount` absent, then back to Default after a cake becomes active). |
 | S-3 | Default with 4, 3, 2 and 1 cards (`products.card.<id>` count equals the active cakes, no extra card; `products.orderButton` enabled [v1.3 | 2026-10-26]); Loading (`products.skeleton.0`); Error without cache (`state.error`); zero cakes (`state.empty`, no `products.list` cards, `products.orderButton` disabled, `state.retry` then a cake becomes active and its card appears); image failure (`detail.imageFailed`, card still tappable); `nav.back` returns to S-2. |
 | S-4 | Default (name, description, price, order button, `nav.back`); Gone (`detail.goneNotice`, `detail.goneAction`, no `detail.orderButton`); image failure. |
-| S-5 stub | `order.step` visible after tapping `home.orderButton` and after tapping `detail.orderButton`. |
+| S-5 | `order.step` visible after tapping `home.orderButton` and after tapping `detail.orderButton` (from the detail, that cake at 1). [v1.5 | 2026-10-29] Total below the minimum (`order.qty.minHint`, `order.next` disabled); empty (`state.empty`); removed cake (`order.cakeRemovedNotice`). |
+| S-6 [v1.5 | 2026-10-29] | Loading (`order.date.loading`); default (`order.date.rangeHint`, `order.date.hint`, `order.next` disabled); day and slot chosen (hint gone, next enabled); no selectable day (`order.date.empty`, `order.date.emptyAction`); cleared date (`order.date.cleared`); load error (`state.error`, `state.retry`). |
+| S-7 [v1.5 | 2026-10-29] | Empty form; each `order.error.<field>` after a failed next; district chosen (`order.district.fee`); district list error or empty (`order.district.error`, `order.district.empty`); note at the limit (`order.note.counter`). |
+| S-8 [v1.5 | 2026-10-29] | Default (all `review.*` values, `review.confirm` enabled); blocked or failed (`review.message`, `review.messageAction`, `review.confirm` disabled when blocked); `review.edit.*` returns to the matching step with data kept. |
