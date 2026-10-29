@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.5 |
+| Version      | 1.6 |
 | Last updated | 2026-10-27 |
 | Status       | Draft |
 | Owner        | forge-dev (orchestrator wrote the first version) |
@@ -62,6 +62,8 @@ iOS configuration [v1.2 | 2026-10-26]: the API address is the build setting `API
 
 Android (`android/`), unverified: create the wrapper once with `gradle wrapper --gradle-version 9.6.0`, commit it, then `./gradlew :app:assembleDebug`.
 
+Android order flow (slice 2, S-5 to S-8) [v1.6 | 2026-10-29], unverified (not built, see section 8): one MVI store, `app.banh.customer.order.OrderFlowViewModel`, is scoped to the order navigation graph (`ui/order/OrderNavigation.kt`, `navController.getBackStackEntry("order")`, ADR-0007). Intents go through the pure `reduce` (`OrderFlowReducer.kt`, `RecipientReducer.kt`, `CatalogReconciler.kt`); the store saves the draft after every change (`FileDraftStore`, file in `noBackupFilesDir`, 24 hour rule, ADR-0011), loads `GET /v1/availability?cakes=N` for S-6 (`HttpAvailabilityApi`), and answers the S-7 check with an effect (`FocusField` or `GoToReview`). Rules of ADR-0009 are in `PhoneNumber.kt` and `FieldRules.kt` and are tested against `contracts/fixtures/validation.json`; the date grid is built from the server answer only (`DateCalendar.kt`). S-8 shows a confirm button that stays off until slice 3 passes `confirmEnabled`. Test identifiers of the flow are in `TestTags.kt` (proposed, canvas-ui publishes them). Unit tests use fakes in `src/test/.../testing/OrderFakes.kt` and `OrderFlowHarness.kt`; Compose tests use `ReducerHost` (a stateless screen driven by the real reducer) and `OrderFlowTest` (the whole graph with the availability fixture, which the `copyContractFixtures` task puts into the test APK assets). `ImportDirectionTest` checks the package directions of ADR-0018.
+
 Availability (slice 2, backend) [v1.4 | 2026-10-27]: `GET /v1/availability?cakes=N` needs `SHOP_ID` like the catalogue (without it: 503) and shares the read rate-limit budget. `AvailabilityRoutes` parses `cakes`, `AvailabilityService` applies lead time, horizon and capacity (rules written once, with the Vietnam date from the injected `ShopCalendar`), `AvailabilityRepository` (protocol) and `PostgresAvailabilityRepository` hold the read-only SQL on `shop_setting`, `product` and `day_load`. No migration: the slice reads existing tables. Tests inject `FakeAvailabilityRepository` and `FixedWallClock`; `Tests/AppTests/Database/AvailabilityRepositoryTests.swift` runs the SQL and needs `DATABASE_MIGRATION_URL` (skipped otherwise). The shared fixture is `contracts/fixtures/availability-ok.json`. `cakes` errors use field code `CAKES_INVALID` with key `ERR_SERVER` (not yet named in api.md).
 
 ## 4. Coding Conventions
@@ -89,7 +91,7 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 | Backend and contracts unit tests | `swift test` in `backend/` and in `contracts/swift/` | XCTVapor; no database needed (the database tests skip without `DATABASE_MIGRATION_URL`) [v1.1 \| 2026-10-26] |
 | Database behaviour | CI job `backend / test` against a `postgres:16` service | First real run of `0001_init.sql` happens in CI |
 | iOS | `xcodebuild ... -destination "platform=iOS Simulator,id=<id>" -parallel-testing-enabled NO test` in `ios/` | Without the flag the run fails with "No matching device ... XCTestDevices" |
-| Android | `./gradlew :app:testDebugUnitTest` | Unverified |
+| Android | `./gradlew :app:testDebugUnitTest` (JVM: reducers, rules, fixtures, view models, import directions) and `./gradlew :app:connectedDebugAndroidTest` (Compose UI tests on an emulator) | Unverified [v1.6 \| 2026-10-29] |
 | Contract fixtures | `contracts/fixtures/*.json` decoded by every suite | Add a fixture with every contract change |
 
 ## 6. Branching & Commits
@@ -113,7 +115,9 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 
 - Catalogue SQL (`PostgresCatalogRepository`) has never run against PostgreSQL on the author's machine; only CI runs it. The CI database tests and the smoke test (which sets `SHOP_ID` and checks `/v1/catalog`) now run it on every push. [v1.3 | 2026-10-27]
 - Docker image, `0001_init.sql` on PostgreSQL, seed and the live deep health check have never run; the first CI run is the verification.
-- Android has never been built (no JDK, Gradle, SDK on the author's machine); Gradle wrapper missing.
+- Android has never been built (no JDK, Gradle, SDK on the author's machine); Gradle wrapper missing. Slice 2 of the Android app (S-5 to S-8) was written on a machine with no usable JDK on the path, no Gradle cache and no Android platform 37, so neither the compile nor any test has run; CI is the first verification. [v1.6 | 2026-10-29]
+- Android structure (ADR-0018) is only partly done: the two design-to-app couplings (`R`, `TestTags` in `design/`) remain and are allow-listed in `ImportDirectionTest`; `ui/common` is not yet split and the `feature/*` and `core/*` packages are not laid out. [v1.6 | 2026-10-29]
+- Android S-7 has no autofill hints (the Compose API could not be checked against a build); the district picker is a dropdown menu, not a bottom sheet. [v1.6 | 2026-10-29]
 - Apple `DEVELOPMENT_TEAM` is no longer in the repository: copy `ios/Config/Local.xcconfig.example` to the git-ignored `ios/Config/Local.xcconfig` to sign for a device; unsigned builds need no file.
 - Startup warning for sample rows in production (ADR-0013) is left to slice 4.
 
@@ -127,3 +131,4 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 | 1.3 | 2026-10-27 | Known gaps: catalogue SQL and `SHOP_ID` smoke check are covered by CI. |
 | 1.4 | 2026-10-27 | Slice 2 backend: availability endpoint, `day_load` read SQL, fixture `availability-ok.json`. |
 | 1.5 | 2026-10-27 | Principle added: at most 200 lines per file. |
+| 1.6 | 2026-10-29 | Slice 2 Android: order flow store, availability client, draft file, validation fixture `validation.json`, test notes, known gaps. |
