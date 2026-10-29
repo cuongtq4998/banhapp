@@ -27,13 +27,38 @@ nonisolated struct OrderDraft: Codable, Equatable, Sendable {
     var address = ""
     var districtID: ResourceID?
     var note = ""
-    /// One key per attempt at one content (ADR-0008); replaced when the content changes under the
-    /// customer (a cake dropped from the draft).
+    /// The total the customer last saw, sent as `expected_total_vnd`; nil until the review sets it
+    /// (and after `PRICE_CHANGED` replaces it, slice 3).
+    var expectedTotalVND: Int?
+    /// One key per request body (ADR-0008 v1.1): `OrderFlow` replaces it on every change of a body
+    /// field and keeps it for a pure retry (offline, timeout, 5xx, 429, app restart).
     var idempotencyKey = UUID()
     var savedAt: Date
 
     init(savedAt: Date) {
         self.savedAt = savedAt
+    }
+
+    /// The fields of the `POST /v1/orders` body that decide whether a retry is the same request.
+    /// Cakes at quantity 0 are not sent, so they are not part of it; names are display only.
+    struct RequestBody: Equatable {
+        let quantities: [ResourceID: Int]
+        let date: ShopDate?
+        let slotID: ResourceID?
+        let name: String
+        let phone: String
+        let address: String
+        let districtID: ResourceID?
+        let note: String
+        let expectedTotalVND: Int?
+    }
+
+    var requestBody: RequestBody {
+        RequestBody(
+            quantities: Dictionary(uniqueKeysWithValues: items.filter { $0.quantity > 0 }.map { ($0.productID, $0.quantity) }),
+            date: date, slotID: slotID, name: name, phone: phone, address: address,
+            districtID: districtID, note: note, expectedTotalVND: expectedTotalVND
+        )
     }
 
     func isExpired(at now: Date) -> Bool {

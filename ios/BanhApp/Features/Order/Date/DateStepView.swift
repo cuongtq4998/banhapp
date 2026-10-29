@@ -26,7 +26,7 @@ struct DateStepView: View {
                 SkeletonBlock(cornerRadius: Radius.card).frame(height: Size.logoLarge * 2)
                 SkeletonBlock(cornerRadius: Radius.card).frame(height: Size.logoLarge)
             }
-            .loadingAnnouncement(identifier: AccessibilityID.homeSkeleton)
+            .loadingAnnouncement(identifier: AccessibilityID.dateLoading)
         case .failed(let failure):
             ErrorStateView(message: Strings.catalogLoadFailure(failure, screenMessage: OrderStrings.dateError)) {
                 Task { await model.load() }

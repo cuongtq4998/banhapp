@@ -50,11 +50,8 @@ final class OrderFlow {
         let gone = draft.items.filter { !offered.contains($0.productID) }
         guard !gone.isEmpty else { return }
         let hadQuantity = gone.filter { $0.quantity > 0 }
-        update { draft in
-            draft.items.removeAll { !offered.contains($0.productID) }
-            // The content changed under the customer, so the next attempt is a new one (ADR-0011).
-            if !hadQuantity.isEmpty { draft.idempotencyKey = UUID() }
-        }
+        // Dropping a cake with a quantity changes the body, so `update` also replaces the key.
+        update { $0.items.removeAll { !offered.contains($0.productID) } }
         removedCakeNames = hadQuantity.map(\.name)
     }
 
@@ -77,6 +74,16 @@ final class OrderFlow {
     func setDistrict(_ districtID: ResourceID?) { update { $0.districtID = districtID } }
     func setNote(_ value: String) { update { $0.note = value } }
 
+    // MARK: Idempotency key (ADR-0008 v1.1)
+
+    /// `PRICE_CHANGED` (slice 3): the app takes the server's total as the new expected total. The body
+    /// changed, so `update` replaces the key.
+    func applyPriceChange(expectedTotalVND: Int) { update { $0.expectedTotalVND = expectedTotalVND } }
+
+    /// `IDEMPOTENCY_KEY_REUSED` (slice 3): the server saw this key with another body. Replace the key
+    /// and retry once.
+    func replaceIdempotencyKey() { update { $0.idempotencyKey = UUID() } }
+
     /// Forgets the draft once the order is confirmed (slice 4 calls this).
     func discardDraft() {
         store.clear()
@@ -84,7 +91,10 @@ final class OrderFlow {
     }
 
     private func update(_ change: (inout OrderDraft) -> Void) {
+        let before = draft
         change(&draft)
+        // A changed body field means a new request; a pure retry keeps the key (ADR-0008 v1.1).
+        if draft.requestBody != before.requestBody { draft.idempotencyKey = UUID() }
         draft.savedAt = now()
         store.save(draft)
     }
