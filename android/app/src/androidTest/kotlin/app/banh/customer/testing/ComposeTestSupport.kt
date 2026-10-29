@@ -47,6 +47,11 @@ fun hasTestTagPrefix(prefix: String): SemanticsMatcher = SemanticsMatcher("test 
     it.config.getOrNull(SemanticsProperties.TestTag)?.startsWith(prefix) == true
 }
 
+/** Matches every node whose tag ends with [suffix], such as the value of every stepper. */
+fun hasTestTagSuffix(suffix: String): SemanticsMatcher = SemanticsMatcher("test tag ends with $suffix") {
+    it.config.getOrNull(SemanticsProperties.TestTag)?.endsWith(suffix) == true
+}
+
 /**
  * Asserts that no text at or under the element tagged [tag] is cut off: no line ends in an ellipsis, the text is not
  * taller than the space it was given, and the element lies inside the window. Reads the text layout, so it fails when a

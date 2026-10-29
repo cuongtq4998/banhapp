@@ -21,7 +21,8 @@ import app.banh.customer.ui.common.LocalImageLoader
 import app.banh.customer.ui.home.HomeRoute
 import app.banh.customer.ui.home.HomeViewModel
 import app.banh.customer.ui.launch.LaunchScreen
-import app.banh.customer.ui.order.OrderStubScreen
+import app.banh.customer.ui.order.OrderRoutes
+import app.banh.customer.ui.order.orderGraph
 import app.banh.customer.ui.products.ProductDetailRoute
 import app.banh.customer.ui.products.ProductDetailViewModel
 import app.banh.customer.ui.products.ProductsRoute
@@ -33,7 +34,6 @@ private object Routes {
     const val PRODUCTS = "products"
     const val PRODUCT_ID_ARG = "productId"
     const val PRODUCT_DETAIL = "products/{$PRODUCT_ID_ARG}"
-    const val ORDER = "order"
 
     fun productDetail(productId: String) = "products/$productId"
 }
@@ -71,7 +71,8 @@ private fun AppNavigation(container: AppContainer, navController: NavHostControl
             HomeRoute(
                 viewModel = viewModelOf { HomeViewModel(container.catalogRepository) },
                 onViewProducts = { navController.navigate(Routes.PRODUCTS) },
-                onPlaceOrder = { navController.navigate(Routes.ORDER) },
+                // The saved draft comes back with its quantities; no prompt (UI document 5.5, ADR-0011).
+                onPlaceOrder = { navController.navigate(OrderRoutes.cakes()) },
             )
         }
         composable(Routes.PRODUCTS) {
@@ -86,13 +87,11 @@ private fun AppNavigation(container: AppContainer, navController: NavHostControl
             ProductDetailRoute(
                 viewModel = viewModelOf { ProductDetailViewModel(container.catalogRepository, productId) },
                 onBack = { navController.popBackStack() },
-                // The ordering slice starts its flow with this cake before navigating (FR-4, AC-5).
-                onOrder = { navController.navigate(Routes.ORDER) },
+                // A new draft with this cake at quantity 1 (FR-4, AC-5).
+                onOrder = { navController.navigate(OrderRoutes.cakes(productId)) },
             )
         }
-        composable(Routes.ORDER) {
-            OrderStubScreen(onBack = { navController.popBackStack() })
-        }
+        orderGraph(navController, container.orderDependencies)
     }
 }
 

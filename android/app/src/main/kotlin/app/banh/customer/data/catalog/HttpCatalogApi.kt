@@ -4,8 +4,9 @@ import app.banh.customer.data.network.ApiException
 import app.banh.customer.data.network.ApiJson
 import app.banh.customer.data.network.await
 import app.banh.customer.data.network.parseApiError
+import app.banh.customer.data.network.retryTransient
+import app.banh.customer.data.network.toApiException
 import java.io.IOException
-import java.io.InterruptedIOException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,9 +22,6 @@ private const val ETAG_HEADER = "ETag"
 private const val IF_NONE_MATCH_HEADER = "If-None-Match"
 private const val RETRY_AFTER_HEADER = "Retry-After"
 private const val HTTP_NOT_MODIFIED = 304
-
-/** Reads are tried twice: the first call after idle can fail while the free host wakes (api.md section 1). */
-private const val READ_ATTEMPTS = 2
 
 class HttpCatalogApi(
     private val client: OkHttpClient,
@@ -78,19 +76,4 @@ class HttpCatalogApi(
     } catch (e: IllegalArgumentException) {
         throw ApiException.InvalidResponse(e)
     }
-
-    private suspend fun <T> retryTransient(block: suspend () -> T): T {
-        repeat(READ_ATTEMPTS - 1) {
-            try {
-                return block()
-            } catch (e: ApiException) {
-                if (!e.isTransient) throw e
-            }
-        }
-        return block()
-    }
 }
-
-// OkHttp reports its call timeout as an InterruptedIOException; SocketTimeoutException is a subclass.
-private fun IOException.toApiException(): ApiException =
-    if (this is InterruptedIOException) ApiException.Timeout(this) else ApiException.NetworkUnavailable(this)

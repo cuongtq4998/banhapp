@@ -86,6 +86,8 @@ dependencies {
 // instead of a path relative to the working directory.
 tasks.withType<Test>().configureEach {
     systemProperty("contracts.fixtures.dir", rootDir.resolve("../contracts/fixtures").canonicalPath)
+    // The import-direction test reads the production sources (ADR-0018).
+    systemProperty("app.sources.dir", projectDir.resolve("src/main/kotlin").canonicalPath)
 }
 
 // The same fixtures reach the emulator as assets of the test APK, so the UI tests and the backend read one source.
