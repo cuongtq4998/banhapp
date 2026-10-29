@@ -54,7 +54,7 @@ Errors (see section 5): 400 `IDEMPOTENCY_KEY_REQUIRED`, `HEADER_INVALID`; 409 `D
 
 Side effects: one row in `customer_order`, one per item in `customer_order_item`, an increase of `day_load.cakes_accepted`, one `order_event` of type `created` (all in one transaction). No notification in this slice.
 
-Idempotency: see ADR-0008. Same key and same normalised body returns the stored result (200). Same key and different body returns 422 `IDEMPOTENCY_KEY_REUSED`. Two simultaneous requests with the same key create one order. A key whose earlier attempt was rejected (no order exists) is processed again normally. The client keeps one key until the order content changes.
+Idempotency: see ADR-0008. Same key and same normalised body returns the stored result (200). Same key and different body returns 422 `IDEMPOTENCY_KEY_REUSED`. Two simultaneous requests with the same key create one order. A key whose earlier attempt was rejected (no order exists) is processed again normally. The client keeps one key until the order content changes [v1.11 | 2026-10-28]: it replaces the key on every change of any body field (including `expected_total_vnd`) and keeps it for a pure retry; the replay is evaluated before date, price and capacity rules and the hash includes `expected_total_vnd` (ADR-0008 v1.1, clarification only).
 
 Example request:
 

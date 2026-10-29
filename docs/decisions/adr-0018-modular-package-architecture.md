@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0018 |
-| Version  | 2.0 [v2.0 \| 2026-10-27] |
+| Version  | 2.1 [v2.1 \| 2026-10-28] |
 | Status   | Accepted by owner decision 2026-10-27. Replaces version 1.0 (Accepted earlier the same day), which had a calendar of extractions |
 | Date     | 2026-10-27 |
 | Decider  | Owner (decisions 3, 4, 5 of 2026-10-27); atlas-architect (writing, open gaps) |
@@ -75,6 +75,15 @@ Before extracting any iOS package (mitigations, none applies today):
 - `Bundle.module`: a package that holds resources needs its own bundle and lookups. Keep `Localizable.xcstrings` and assets in the app target; a package must not read strings. Verify with a test that fails when a resource lookup is nil.
 - Do not change the project file format 77 or the scheme name; add local packages to the existing project. A pure-Swift test target per package replaces app-hosted tests for rules and flow; UI tests stay in `BanhAppUITests` (ADR-0020).
 
+### Slice 2 review: Android applied partly [v2.1 | 2026-10-28]
+
+State on 2026-10-28: the Android import-direction JUnit test exists; the `feature/*` and `core/*` package layout is not done; `design` still reads `R` and `TestTags`; `ImportDirectionTest` allow-lists those two couplings. Decision: partial is acceptable for slice 2, because the ADR is trigger-based, the code is small and the allow-list makes the debt visible. Conditions:
+
+1. The allow-list may only shrink. A third coupling is a failure, not an allow-list entry.
+2. Remove the two couplings (design takes the test tag and strings as parameters; `ui/common` split into generic helpers and catalogue code) as the first Android task of slice 3, before any new screen is added.
+3. Lay out `feature/*` and `core/*` packages inside the module as the last Android task of slice 3, before the slice 3 pull request: slice 3 completes the order feature, so it moves once and whole. No new screen or view-model may be created outside the target layout from the start of slice 3. This is a timing rule inside the existing decision, not a new trigger; Gradle modules stay trigger-based.
+4. At that task the allow-list in `ImportDirectionTest` must be empty.
+
 ## Consequences
 
 - Positive: the cheap controls (tests, scripts, one error-type move, small files) land at once; splits happen only for a measured reason; no premature symmetry.
@@ -106,3 +115,4 @@ Related: ADR-0004, ADR-0007, ADR-0001, ADR-0011, ADR-0020; [architecture.md](../
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-27 | First version (Accepted). Symmetric target map and calendar of extractions. |
 | 2.0 | 2026-10-27 | Rewritten after owner decisions 3, 4, 5: trigger-only split policy, symmetric map reduced to a sketch, iOS `BanhFeatures` removed, triggers fixed per platform, backend `DomainError` and layering test confirmed (fails on unknown folders), 200-line file rule, open gaps closed (navigation intents, Android order store, DI, package failure modes, JUnit instead of Konsist). Status Accepted by owner. |
+| 2.1 | 2026-10-28 | Slice 2 review: partial Android application accepted; allow-list shrink-only; couplings removed first in slice 3, layout relocation closes slice 3. |

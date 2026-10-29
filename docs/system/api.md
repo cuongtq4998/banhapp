@@ -2,8 +2,8 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.10 |
-| Last updated | 2026-10-27 |
+| Version      | 1.11 |
+| Last updated | 2026-10-28 |
 | Status       | Draft |
 | Owner        | atlas-architect |
 | Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; data-model.md v1.0 |
@@ -47,3 +47,4 @@ This file is the index of the API specification. The body lives in the folder `a
 | 1.8 | 2026-10-26 | UI TQ-9, TQ-10: `PRODUCT_UNAVAILABLE` `details.product_ids`, nothing stored; catalog refresh counted against the read budget (ADR-0011). |
 | 1.9 | 2026-10-27 | Slice 2 gaps: `cakes` field error confirmed (`CAKES_INVALID`, `ERR_SERVER`), zero active products makes every `cakes` a 422, error responses carry no cache header except 404 (RFC 9110 15.1), field-level codes and the repository error name noted. Client address rule points to ADR-0019. (Version 1.8 above was UI TQ-9 and TQ-10.) |
 | 1.10 | 2026-10-27 | Split into the folder `api/` (file size rule, 200 lines); this file became the index with a section map. No contract change. The naming note in section 5 now points to the `DomainError` rule of ADR-0018. |
+| 1.11 | 2026-10-28 | Clarification only (ADR-0008 v1.1): key lifecycle and replay order in `POST /v1/orders`. No contract change. |
