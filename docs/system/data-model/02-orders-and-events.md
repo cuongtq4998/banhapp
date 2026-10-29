@@ -68,7 +68,7 @@ Purpose: append-only audit trail of an order's life.
 
 The table rejects UPDATE and DELETE by trigger (append-only).
 
-Who writes it [v1.2 | 2026-10-26]: the `created` row is inserted by the order transaction. Every later row is inserted by the trigger `customer_order_release_capacity` on any status change (not only cancellation), so no code path can skip the audit. The trigger reads the actor from the transaction settings `app.actor_type` and `app.actor_id` (set with `set_config(name, value, true)` in the same transaction, before the status update); when absent or empty the actor is `system` with a null id. An `app.actor_type` outside the CHECK list fails the update. `customer_order.updated_at` is not maintained by a trigger: the application sets it in the same statement.
+Who writes it [v1.2 | 2026-10-26]: the `created` row is inserted by the order transaction (opened inside `OrderRepository.insertOrder`, [v1.5 | 2026-10-29]); the per-phone limit counts rows of any status with `created_at` in the last 24 hours (served by the index `customer_order (customer_phone, created_at)`). Every later row is inserted by the trigger `customer_order_release_capacity` on any status change (not only cancellation), so no code path can skip the audit. The trigger reads the actor from the transaction settings `app.actor_type` and `app.actor_id` (set with `set_config(name, value, true)` in the same transaction, before the status update); when absent or empty the actor is `system` with a null id. An `app.actor_type` outside the CHECK list fails the update. `customer_order.updated_at` is not maintained by a trigger: the application sets it in the same statement.
 
 ## 4. Enumerations
 

@@ -19,7 +19,7 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 | [ADR-0011](../../decisions/adr-0011-offline-caching-and-draft.md) | Catalog cache and persisted draft | Accepted |
 | [ADR-0012](../../decisions/adr-0012-blur-glass-fallback.md) | Native glass/blur, solid fallback, no paid library | Accepted |
 | [ADR-0013](../../decisions/adr-0013-configuration-source-and-sample-data.md) | Configuration in tables, sample flag | Accepted |
-| [ADR-0014](../../decisions/adr-0014-abuse-protection.md) | Rate limits, no SMS (amended 2026-10-27: real limits, per-phone limit not built) | Accepted |
+| [ADR-0014](../../decisions/adr-0014-abuse-protection.md) | Rate limits, no SMS (amended 2026-10-29: per-address and per-phone limits built) | Accepted |
 | [ADR-0015](../../decisions/adr-0015-zalo-and-phone-contact.md) | Zalo web link and `tel:` | Accepted |
 | [ADR-0016](../../decisions/adr-0016-application-identifiers.md) | Android application ID and iOS bundle id `app.banh.customer` | Accepted for development; frozen at first store upload |
 | [ADR-0017](../../decisions/adr-0017-read-api-caching-rate-limit-assets.md) | Catalog ETag, shared read rate limit, versioned asset URLs, catalog size | Accepted |

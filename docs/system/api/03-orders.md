@@ -6,13 +6,13 @@ Part of [api.md](../api.md) (index, version, change log), sections 4.3. Moved fr
 
 ### 4.3 POST /v1/orders
 
-Role: anonymous. Purpose: confirm the order (FR-11). Header `Idempotency-Key` required (UUID v4, created by the client per confirmation attempt; ADR-0008). Headers `X-Platform`, `X-App-Version` required.
+Role: anonymous. Purpose: confirm the order (FR-11). Header `Idempotency-Key` required (UUID v4, created by the client per confirmation attempt; ADR-0008). Headers `X-Platform` (`ios` or `android`), `X-App-Version` (`N.N.N` digits only) required; otherwise 400 `HEADER_INVALID` [v1.12 | 2026-10-29].
 
 Request body:
 
 | Field | Type | Required | Rules |
 | ----- | ---- | -------- | ----- |
-| items | array | yes | 1 to the number of active products (four at most today); no duplicate `product_id` [v1.6 \| 2026-10-26] |
+| items | array | yes | At least 1; no duplicate `product_id`. No upper bound on the line count is checked: a line for a hidden or unknown product is `PRODUCT_UNAVAILABLE`, not a validation error (AC-34) [v1.12 \| 2026-10-29] |
 | items[].product_id | uuid | yes | An active product |
 | items[].quantity | integer | yes | 1 to `max_qty_per_cake`. Zero lines are not sent (AC-6) |
 | delivery_date | date | yes | `YYYY-MM-DD`; rules checked in section "Order of checks" |
@@ -28,13 +28,13 @@ Clients never send prices, fees, totals the server uses, or the order date. The 
 
 Order of checks (first failure is returned; the capacity step is last and is the only step that takes a lock):
 
-1. Rate limits (429), body size (413), required headers (400 `IDEMPOTENCY_KEY_REQUIRED`, `HEADER_INVALID`), `ORDERING_ENABLED` (503 `ORDERING_PAUSED`).
+1. Per-address rate limit (429; a global middleware, so it runs before the body is read and a replay counts; a 429 does not count) [v1.12 | 2026-10-29], body size (413), required headers (400 `IDEMPOTENCY_KEY_REQUIRED`, `HEADER_INVALID`), `ORDERING_ENABLED` (503 `ORDERING_PAUSED`).
 2. Schema and field validation (422 `VALIDATION_FAILED` with `fields[]`).
 3. Idempotency lookup (replay 200, or 422 `IDEMPOTENCY_KEY_REUSED`).
 4. Unknown or inactive product (409 `PRODUCT_UNAVAILABLE`, every offending `product_id` in `details`, nothing stored) [v1.8 | 2026-10-26], unknown or inactive slot (409 `SLOT_UNAVAILABLE`), district not served (422 `DISTRICT_UNSERVED`).
 5. Total cakes below `min_qty` (422 `MIN_QTY`), date earlier than order date plus `lead_days` (422 `DATE_LEAD`), later than order date plus `max_days_ahead` (422 `DATE_HORIZON`). The order date is the current date in shop time (A-8).
 6. Price acknowledgement: computed total differs from `expected_total_vnd` (409 `PRICE_CHANGED`).
-7. Per-phone limit (429 `RATE_LIMITED`).
+7. Per-phone limit (429 `RATE_LIMITED`, `Retry-After` 3600): stored orders of any status for the normalised phone in the last 24 hours, at least 5 [v1.12 | 2026-10-29]. Check, then insert: a burst of simultaneous orders on one phone can slip a few past the limit; capacity stays exact (step 8).
 8. Capacity, then insert, in one transaction (409 `DATE_CAPACITY`).
 
 201 response (created):
@@ -46,13 +46,13 @@ Order of checks (first failure is returned; the capacity step is last and is the
 
 Nothing else is returned: S-9 shows only the code and fixed text (FR-11, AC-15, AC-25). No status and no payment fields (FR-19).
 
-200 response (replay): same body as the original 201, header `Idempotent-Replay: true` (AC-19).
+200 response (replay): same body as the original 201, byte for byte (JSON keys are sorted), header `Idempotent-Replay: true` (AC-19). A replay passes the per-address limit and counts against it [v1.12 | 2026-10-29]; it is never counted by the per-phone limit, because no order is stored.
 
 Errors (see section 5): 400 `IDEMPOTENCY_KEY_REQUIRED`, `HEADER_INVALID`; 409 `DATE_CAPACITY`, `PRICE_CHANGED`, `PRODUCT_UNAVAILABLE`, `SLOT_UNAVAILABLE`; 413 `PAYLOAD_TOO_LARGE`; 422 `VALIDATION_FAILED`, `MIN_QTY`, `DATE_LEAD`, `DATE_HORIZON`, `DISTRICT_UNSERVED`, `IDEMPOTENCY_KEY_REUSED`; 429 `RATE_LIMITED`; 500 `INTERNAL_ERROR`; 503 `ORDERING_PAUSED`, `SERVICE_UNAVAILABLE`.
 
 `PRICE_CHANGED` `details`: `{ "items": [ { "product_id": uuid, "price_vnd": int } ], "delivery_fee_vnd": int, "total_vnd": int }`. `MIN_QTY` `details`: `{ "min_qty": int }`. `DATE_LEAD` `details`: `{ "lead_days": int }`. `DATE_HORIZON` `details`: `{ "max_days_ahead": int }`. `DATE_CAPACITY` `details`: `{ "delivery_date": date }`. `PRODUCT_UNAVAILABLE` `details`: `{ "product_ids": [uuid] }`, all products of the request that are unknown or inactive, in request order [v1.8 | 2026-10-26]. The check runs before capacity, so no `customer_order`, item, `day_load` or `order_event` row is written and no idempotency record is kept; the same key may be sent again with changed content (hidden cake in a draft, ADR-0011; AC-34).
 
-Side effects: one row in `customer_order`, one per item in `customer_order_item`, an increase of `day_load.cakes_accepted`, one `order_event` of type `created` (all in one transaction). No notification in this slice.
+Side effects: one row in `customer_order`, one per item in `customer_order_item`, an increase of `day_load.cakes_accepted`, one `order_event` of type `created` (all in one transaction, opened inside `OrderRepository.insertOrder` [v1.12 | 2026-10-29]). No notification in this slice.
 
 Idempotency: see ADR-0008. Same key and same normalised body returns the stored result (200). Same key and different body returns 422 `IDEMPOTENCY_KEY_REUSED`. Two simultaneous requests with the same key create one order. A key whose earlier attempt was rejected (no order exists) is processed again normally. The client keeps one key until the order content changes [v1.11 | 2026-10-28]: it replaces the key on every change of any body field (including `expected_total_vnd`) and keeps it for a pure retry; the replay is evaluated before date, price and capacity rules and the hash includes `expected_total_vnd` (ADR-0008 v1.1, clarification only).
 

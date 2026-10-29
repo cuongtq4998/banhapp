@@ -2,8 +2,8 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.8 |
-| Last updated | 2026-10-27 |
+| Version      | 1.9 |
+| Last updated | 2026-10-29 |
 | Status       | Draft |
 | Owner        | atlas-architect |
 | Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; design/design-system.md v1.0 |
@@ -37,3 +37,4 @@ This file is the index of the architecture document. The body lives in the folde
 | 1.6 | 2026-10-26 | Section 14: global middleware order, limiter scope and bound, `APIError.headers`, uncached static not-found; `TRUST_PROXY` and `SHOP_ID` needed from slice 1. |
 | 1.7 | 2026-10-27 | ADR review: index lists ADR-0017 to ADR-0020 and the amendments; slice plan note for the iOS package extraction; section 14 `DomainError` target and module map pointer. |
 | 1.8 | 2026-10-27 | Split into the folder `architecture/` (file size rule, 200 lines); this file became the index with a section map. Owner decisions of 2026-10-27 applied (ADR-0007 v1.5, ADR-0018 v2.0): iOS MVVM-C and Android MVI recorded in new section 15; section 11 note and section 14.1 changed from a calendar of extractions to trigger-only splits, `DomainError` and the layering test confirmed; section 12 index updated. |
+| 1.9 | 2026-10-29 | Slice 3 resync (06 code structure): transaction opened in `OrderRepository.insertOrder`; responses use sorted JSON keys so a replay is byte-identical; ADR-0014 status line. |

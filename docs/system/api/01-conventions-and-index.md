@@ -11,7 +11,7 @@ Part of [api.md](../api.md) (index, version, change log), sections 1 to 3. Moved
 | Money | Integer VND (whole dong), field suffix `_vnd` |
 | Dates and times | Dates `YYYY-MM-DD` in shop time (Asia/Ho_Chi_Minh). Slot times `HH:MM`. Instants ISO 8601 UTC with `Z` |
 | Authentication | None for the customer endpoints (anonymous customer, auth.md). Staff endpoints are a later slice and use a separate path prefix `/v1/staff` (reserved) |
-| Request headers | `X-Platform: ios` or `android` (required on `POST /orders`), `X-App-Version: <semver>` (required on `POST /orders`), `Idempotency-Key: <uuid>` (required on `POST /orders`) |
+| Request headers | `X-Platform: ios` or `android` (required on `POST /orders`), `X-App-Version: N.N.N` (digits only; required on `POST /orders`), `Idempotency-Key: <uuid>` (required on `POST /orders`) |
 | Response headers | `X-Request-Id` (uuid, echoed in logs), `Cache-Control` as stated per endpoint |
 | Idempotency | `POST /v1/orders` only (section 4.3). `GET` is safe |
 | Pagination | Not used (all lists are short and fixed) |
@@ -25,7 +25,7 @@ Rate limits (per client IP, in-memory limiter; numbers are configuration, defaul
 | Group | Limit |
 | ----- | ----- |
 | `GET /v1/*`, `/healthz`, `/privacy`, `/assets/*` (one shared budget) | 120 requests per minute |
-| `POST /v1/orders` | 10 requests per hour, and 5 accepted orders per normalised phone number per 24 hours |
+| `POST /v1/orders` | 10 requests per client address per hour (replays count, a 429 does not; fixed window, runs before the body is read), and, separately, 5 stored orders (any status) per normalised phone number per 24 hours, counted in the database [v1.12 \| 2026-10-29] |
 
 Error format (all non-2xx JSON responses):
 
