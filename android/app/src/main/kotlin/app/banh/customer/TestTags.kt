@@ -29,8 +29,9 @@ object TestTags {
     /** Round glass back button of the custom header, the same on every screen that has one (UI document 9.1). */
     const val NAV_BACK = "nav.back"
 
-    // Order flow, S-5 to S-8. The identifiers below are proposed by forge-dev for slice 2; canvas-ui publishes them
-    // in docs/design/place-order-ui/09-accessibility-test-ids.md and iOS uses the same strings.
+    // Order flow, S-5 to S-8. The identifiers below are proposed by forge-dev for slice 2; the canonical set is
+    // docs/design/place-order-ui/09-accessibility-test-ids.md section 9.1 (deviations: 09b).
+    const val ORDER_TITLE = "order.title"
     const val ORDER_STEP = "order.step"
     const val ORDER_NEXT = "order.next"
     const val ORDER_CAKE_REMOVED_NOTICE = "order.cakeRemovedNotice"
@@ -44,6 +45,7 @@ object TestTags {
     const val ORDER_DATE_EMPTY = "order.date.empty"
     const val ORDER_DATE_EMPTY_ACTION = "order.date.emptyAction"
     const val ORDER_DATE_CLEARED = "order.date.cleared"
+    const val ORDER_DATE_RANGE_HINT = "order.date.rangeHint"
     const val ORDER_DATE_HINT = "order.date.hint"
     const val ORDER_DATE_LOADING = "order.date.loading"
 
@@ -58,24 +60,26 @@ object TestTags {
     const val ORDER_DISTRICT_ERROR = "order.district.error"
     const val ORDER_DISTRICT_EMPTY = "order.district.empty"
 
-    const val REVIEW_TOTAL = "order.review.total"
-    const val REVIEW_FEE = "order.review.fee"
-    const val REVIEW_DATE = "order.review.date"
-    const val REVIEW_TIME = "order.review.time"
-    const val REVIEW_NAME = "order.review.name"
-    const val REVIEW_PHONE = "order.review.phone"
-    const val REVIEW_ADDRESS = "order.review.address"
-    const val REVIEW_NOTE = "order.review.note"
-    const val REVIEW_PRIVACY = "order.review.privacy"
-    const val REVIEW_CONFIRM = "order.review.confirm"
-    const val REVIEW_EDIT_CAKES = "order.review.editCakes"
-    const val REVIEW_EDIT_DELIVERY = "order.review.editDelivery"
-    const val REVIEW_EDIT_RECIPIENT = "order.review.editRecipient"
-    const val REVIEW_ISSUE = "order.review.issue"
+    const val REVIEW_TOTAL = "review.total"
+    const val REVIEW_FEE = "review.fee"
+    const val REVIEW_DATE = "review.date"
+    const val REVIEW_TIME = "review.time"
+    const val REVIEW_NAME = "review.name"
+    const val REVIEW_PHONE = "review.phone"
+    const val REVIEW_ADDRESS = "review.address"
+    const val REVIEW_NOTE = "review.note"
+    const val REVIEW_PRIVACY = "review.privacy"
+    const val REVIEW_CONFIRM = "review.confirm"
+    const val REVIEW_EDIT_CAKES = "review.edit.cakes"
+    const val REVIEW_EDIT_DELIVERY = "review.edit.date"
+    const val REVIEW_EDIT_RECIPIENT = "review.edit.recipient"
+    const val REVIEW_ISSUE = "review.message"
+    const val REVIEW_MESSAGE_ACTION = "review.messageAction"
 
     /** Load failure of any screen, the zero-cake state, and the retry button both of them share. */
     const val ERROR_STATE = "state.error"
     const val EMPTY_STATE = "state.empty"
+    const val STATE_TOAST = "state.toast"
     const val STATE_RETRY = "state.retry"
 
     fun productCard(productId: String) = "products.card.$productId"
@@ -91,5 +95,5 @@ object TestTags {
     fun orderFieldError(field: String) = "order.error.$field"
     fun orderDistrictRow(districtId: String) = "order.district.row.$districtId"
 
-    fun reviewItem(productId: String) = "order.review.item.$productId"
+    fun reviewItem(productId: String) = "review.item.$productId"
 }

@@ -61,7 +61,7 @@ fun OrderStepScaffold(
                 Text(
                     stringResource(stepTitle(step)),
                     style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.semantics { heading() },
+                    modifier = Modifier.semantics { heading() }.testTag(TestTags.ORDER_TITLE),
                 )
             }
             content()

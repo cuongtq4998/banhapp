@@ -88,6 +88,7 @@ private fun ReviewContent(state: OrderFlowState, catalog: Catalog, summary: Orde
                 text = stringResource(R.string.err_min_qty, state.minQty),
                 modifier = Modifier.testTag(TestTags.REVIEW_ISSUE),
                 actionLabel = stringResource(R.string.date_empty_action),
+                actionTestTag = TestTags.REVIEW_MESSAGE_ACTION,
                 onAction = actions.onEditCakes,
             )
         }
