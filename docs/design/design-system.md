@@ -2,8 +2,8 @@
 
 | Field        | Value                                                                 |
 | ------------ | --------------------------------------------------------------------- |
-| Version      | 1.3 [v1.3 | 2026-10-27]                                                |
-| Last updated | 2026-10-27                                                            |
+| Version      | 1.4 [v1.4 | 2026-10-29]                                                |
+| Last updated | 2026-10-29                                                            |
 | Status       | Draft                                                                 |
 | Owner        | canvas-ui                                                             |
 | Based on     | product/place-order.md v1.4 (first consumer); design/reference (owner's design board, visual source of truth) [v1.2 | 2026-10-26] |
@@ -26,4 +26,5 @@ Quick finds: color tokens in part 2; `type.*` tokens in part 3; `space.*`, `size
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.4 | 2026-10-29 | New component `PrivacyNoticeCard` (part 5); no new tokens. |
 | 1.3 | 2026-10-27 | Split into 6 parts under `design-system/` and this index; no change of meaning. The change history of versions 1.0 to 1.2 is in part 6. |

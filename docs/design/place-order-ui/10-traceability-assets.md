@@ -26,9 +26,11 @@ FR to screens. "X" means the screen implements or shows the requirement.
 | FR-16 | | | | | | | | X | | Confirm inert while sending |
 | FR-17 | | | | | | | | X | | Not-sent message, data kept |
 | FR-18 | | | | | | | X | X | | Note input, counter, shown on review |
+| FR-20 [v1.6 | 2026-10-29] | | | | | | | X | X | | Full privacy notice card on S-7 (AC-30); one-sentence reminder and link on S-8 |
+| FR-21 [v1.6 | 2026-10-29] | | | | X | X | | X | X | X | Date dd/MM/yyyy and money 120.000 ₫ everywhere (`MONEY_FORMAT`); confirmed by the owner |
 | FR-19 | | X | X | X | X | X | X | X | X | Constraint: no payment text anywhere |
 
-Non-FR items covered: privacy sentence before confirmation (PRD section 8, Privacy) on S-8; accessibility and performance (PRD section 8) in sections 5.8 and 9; AC-29 (no visible sample marker) in the global rules. ACs mapped to screens: AC-1 S-1; AC-2, AC-3 S-2; AC-4 S-3; [v1.2 | 2026-10-26] AC-32 S-3, S-5; AC-33 S-2, S-3, S-5; AC-34 S-5, S-8; AC-5 S-4 and S-5; AC-6 S-5, S-8; AC-7, AC-8, AC-10, AC-24 S-6; AC-9, AC-13, AC-22 S-8; AC-11, AC-12, AC-26 S-7; AC-14, AC-18, AC-19, AC-20 S-8; AC-15, AC-16, AC-17, AC-25 S-9; AC-21 all; AC-27 all.
+Non-FR items covered: [v1.6 | 2026-10-29] AC-30 on S-7 (privacy card) and S-8 (reminder); privacy sentence before confirmation (PRD section 8, Privacy) on S-8; accessibility and performance (PRD section 8) in sections 5.8 and 9; AC-29 (no visible sample marker) in the global rules. ACs mapped to screens: AC-1 S-1; AC-2, AC-3 S-2; AC-4 S-3; [v1.2 | 2026-10-26] AC-32 S-3, S-5; AC-33 S-2, S-3, S-5; AC-34 S-5, S-8; AC-5 S-4 and S-5; AC-6 S-5, S-8; AC-7, AC-8, AC-10, AC-24 S-6; AC-9, AC-13, AC-22 S-8; AC-11, AC-12, AC-26 S-7; AC-14, AC-18, AC-19, AC-20 S-8; AC-15, AC-16, AC-17, AC-25 S-9; AC-21 all; AC-27 all.
 
 Every FR is traced. No screen element is without an FR; the PRD items BR-1 to BR-12 appear only through the FRs above. AC-28 (cancellation) has no UI. [v1.1 | 2026-10-25] AC-23 (price kept after change) is covered on S-8 by the re-review on `PRICE_CHANGED` (section 5.8).
 

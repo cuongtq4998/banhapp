@@ -2,7 +2,7 @@
 
 | Field        | Value                                                                 |
 | ------------ | --------------------------------------------------------------------- |
-| Version      | 1.5 [v1.5 | 2026-10-29]                                              |
+| Version      | 1.6 [v1.6 | 2026-10-29]                                              |
 | Last updated | 2026-10-29                                                            |
 | Status       | Draft                                                                 |
 | Owner        | canvas-ui                                                             |
@@ -32,5 +32,6 @@ Quick finds: copy keys (Vietnamese text) are in part 8; test identifiers (`home.
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.6 | 2026-10-29 | OQ-1 answered: S-7 privacy card (FR-20, AC-30), S-8 reminder link, new copy keys and test ids (parts 5, 8, 9, 10, 11). |
 | 1.5 | 2026-10-29 | Slice 2 queries answered: new copy keys, {max} note length, canonical S-5 to S-8 test identifiers (parts 9, 9b), `DETAIL_BTN_ORDER` decision, owner question OQ-1 (part 11). |
 | 1.4 | 2026-10-27 | Split into 11 parts under `place-order-ui/` and this index; no change of meaning. The change history of versions 1.0 to 1.3 is in part 11. |
