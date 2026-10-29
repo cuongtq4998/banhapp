@@ -101,6 +101,14 @@
     <string name="err_district_required">Vui lòng chọn quận/huyện.</string>
     <string name="err_note_max">Ghi chú tối đa %1$d ký tự.</string>
 
+    <!-- S-7 privacy notice (FR-20, AC-30) -->
+    <string name="privacy_title">Thông tin của bạn được dùng như thế nào</string>
+    <string name="privacy_body">Để giao bánh, cửa hàng cần họ tên, số điện thoại, địa chỉ giao hàng và ghi chú (nếu bạn nhập). Cửa hàng chỉ dùng các thông tin này để giao đơn hàng và liên hệ với bạn.</string>
+    <string name="privacy_draft">Bản nháp đơn hàng chỉ được lưu trên điện thoại của bạn và tự xoá sau 24 giờ.</string>
+    <string name="privacy_link">Xem chính sách quyền riêng tư đầy đủ</string>
+    <string name="privacy_link_a11y_hint">Mở trang chính sách trong trình duyệt</string>
+    <string name="err_open_privacy">Không mở được trang chính sách. Vui lòng thử lại sau.</string>
+
     <!-- S-8 Review -->
     <string name="review_sec_cakes">Bánh đã chọn</string>
     <string name="review_item">%1$s × %2$d</string>
@@ -112,7 +120,8 @@
     <string name="review_phone">Số điện thoại</string>
     <string name="review_address">Địa chỉ giao hàng</string>
     <string name="review_note">Ghi chú</string>
-    <string name="review_privacy">Chúng tôi chỉ dùng họ tên, số điện thoại và địa chỉ của bạn để giao đơn hàng này và liên hệ với bạn.</string>
+    <string name="review_privacy">Chúng tôi chỉ dùng họ tên, số điện thoại, địa chỉ và ghi chú của bạn để giao đơn hàng này và liên hệ với bạn.</string>
+    <string name="review_privacy_link">Xem chính sách đầy đủ</string>
     <string name="btn_confirm">Xác nhận đơn hàng</string>
     <string name="err_min_qty">Đơn hàng cần ít nhất %1$d bánh. Vui lòng thêm bánh.</string>
 </resources>

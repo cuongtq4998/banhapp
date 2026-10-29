@@ -31,6 +31,7 @@ import app.banh.customer.order.OrderFlowViewModel
 import app.banh.customer.order.OrderIntent
 import app.banh.customer.order.RecipientError
 import app.banh.customer.order.RecipientField
+import app.banh.customer.ui.privacy.PrivacyNoticeCard
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -96,6 +97,7 @@ fun RecipientScreen(
             )
         },
     ) {
+        PrivacyNoticeCard()
         GlassCard(Modifier.fillMaxWidth()) {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
                 IdentityFields(state, onIntent, requesters)
