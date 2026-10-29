@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0014 |
-| Status   | Accepted (the per-phone daily limit is a default that the owner may change; see report). Slice 1 limits amended by ADR-0017 and ADR-0019 [v1.1 | 2026-10-27] |
+| Status   | Accepted (the per-phone daily limit is a default that the owner may change; see report). Slice 1 limits amended by ADR-0017 and ADR-0019 [v1.1 | 2026-10-27]; slice 3 built [v1.2 | 2026-10-29] |
 | Date     | 2026-10-25 |
 | Decider  | atlas-architect |
 | Based on | PRD BR-7, BR-1, G-2; standard 07 rule 4 |
@@ -36,9 +36,9 @@ Option A for this slice (numbers in auth.md section 5): per-IP limits on all `/v
 The text above is the slice 0 decision. What is built and what changed since:
 
 - Reads: one shared budget of 120 requests per minute per client address for every `GET` and `HEAD` route including `/healthz`, `/privacy` and `/assets/*` (ADR-0017 item 2; api.md section 1; auth.md section 4), not "per-IP limits on all `/v1` routes".
-- `POST /v1/orders`: 10 per hour per address; built in slice 3 (not yet).
-- The per-phone limit (5 accepted orders per normalised phone per 24 hours, `ORDER_MAX_PER_PHONE_PER_DAY`) is **not built yet**; slice 3. It is the only limit that survives a restart and a client address change, because it is counted in the database.
-- The limiter is in memory, one process: it **resets on every restart and on every wake from the free plan's sleep** (R-1), so the first minute after a wake has a fresh budget for everyone. The earlier sentence "the per-phone limit is in the database" is true only from slice 3.
+- `POST /v1/orders`: 10 per hour per address; built in slice 3 [v1.2 | 2026-10-29] as a global middleware before the body is read and before the idempotency lookup: a replay counts, a 429 does not (`OrderRateLimitMiddleware`, `OrderPolicy`).
+- The per-phone limit (5 accepted orders per normalised phone per 24 hours, `ORDER_MAX_PER_PHONE_PER_DAY`) is **built** in slice 3 [v1.2 | 2026-10-29]: it counts orders stored for the phone in the last 24 hours, of any status, before the insert (check-then-insert: a burst on one phone can slip a few orders past; capacity itself is exact), and answers 429 with `retry_after_seconds` 3600 (the cap; the true wait would depend on the oldest order). Whether cancelled orders should count is owner question Q-O3, pending; the built default counts all statuses. It is the only limit that survives a restart and a client address change, because it is counted in the database.
+- The limiter is in memory, one process: it **resets on every restart and on every wake from the free plan's sleep** (R-1), so the first minute after a wake has a fresh budget for everyone. The per-phone limit is in the database (slice 3) and survives restarts.
 - A fixed 60-second window per address allows up to twice the limit across a window boundary (a burst at the end of one window and the start of the next). Accepted at this size; a sliding window is not worth the code.
 - The address that is counted depends on the proxy trust model: ADR-0019.
 
@@ -65,3 +65,4 @@ Related: ADR-0008, ADR-0017 (read limit), ADR-0019 (client address). Detail: doc
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version (Accepted). |
 | 1.1 | 2026-10-27 | Amendment: real limits, per-phone limit not built, in-memory reset, window burst, pointers to ADR-0017 and ADR-0019. |
+| 1.2 | 2026-10-29 | Slice 3 built: per-address order limit (replays count), per-phone limit (any status, check-then-insert, 3600 s hint); Q-O3 pending. |

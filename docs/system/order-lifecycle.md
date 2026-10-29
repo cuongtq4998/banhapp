@@ -2,8 +2,8 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.3 |
-| Last updated | 2026-10-28 |
+| Version      | 1.4 |
+| Last updated | 2026-10-29 |
 | Status       | Draft |
 | Owner        | atlas-architect |
 | Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0 |
@@ -54,7 +54,7 @@ Steps:
 3. The customer chooses date, slot, enters recipient data and reviews. The app computes the displayed total from the catalog. FR-9, BR-5.
 4. On Confirm the app sends the order with a fresh `Idempotency-Key` and the shown total. The screen becomes inert. FR-16.
 5. The server checks limits, validates fields (FR-13), looks up the key, checks rules in the order of api.md 4.3, checks the price acknowledgement (ADR-0010).
-6. The server opens a transaction, takes capacity with the conditional update, inserts the order with status `New`, its items with price snapshots, and the `created` event, then commits. BR-1, BR-5, BR-6, BR-7.
+6. The repository (`OrderRepository.insertOrder`) opens the transaction, not the service [v1.4 | 2026-10-29]; it takes capacity with the conditional update, inserts the order with status `New`, its items with price snapshots, and the `created` event, then commits. BR-1, BR-5, BR-6, BR-7.
 7. The server returns the code; the app shows S-9 (FR-11). No status is shown (non-goal).
 
 ## 4. Alternate & Error Flows
@@ -71,7 +71,7 @@ Steps:
 | Customer taps Confirm twice | The UI is inert after the first tap; if two requests still arrive, the unique key resolves it | FR-16 |
 | Same key, edited order | 422 `IDEMPOTENCY_KEY_REUSED`; the app should have created a new key; it creates one and retries once | FR-16 |
 | Database unavailable | 503 `SERVICE_UNAVAILABLE`; transaction never committed; retry with the same key | FR-17 |
-| Order code collision | Draw again up to 5 times inside the transaction (savepoint); then 500 and retry | AC-16 |
+| Order code collision | Roll the whole transaction back (counter included) and run a new one with a new code, up to 5 draws; then 500 and retry [v1.4 | 2026-10-29] | AC-16 |
 | App killed after sending | The draft keeps the key; reopening and confirming again returns the stored order if it exists | ADR-0011 |
 | Too many orders from one phone or IP | 429 `RATE_LIMITED` | ADR-0014 |
 
@@ -152,3 +152,4 @@ Each flow step above traces to FR-9, FR-10, FR-11, FR-13, FR-16, FR-17, FR-18 an
 | 1.1 | 2026-10-25 | ADR-0010 accepted; no flow change. |
 | 1.2 | 2026-10-26 | Audit trigger wording aligned with the built migration (event on every status change). |
 | 1.3 | 2026-10-28 | Slice 2 review: split of local and server checks on S-8; key rule pointer to ADR-0008 v1.1. No flow change. |
+| 1.4 | 2026-10-29 | Slice 3 resync: transaction opened inside `OrderRepository.insertOrder`; collision retry is a new transaction, not a savepoint; replay body byte-identical (sorted keys). No flow change. |

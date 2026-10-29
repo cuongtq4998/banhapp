@@ -4,7 +4,7 @@
 | -------- | ----- |
 | ADR      | 0009 |
 | Status   | Accepted |
-| Date     | 2026-10-25 (v1.1 2026-10-26; v1.2 2026-10-28) |
+| Date     | 2026-10-25 (v1.1 2026-10-26; v1.2 2026-10-28; v1.3 2026-10-29) |
 | Decider  | atlas-architect |
 | Based on | PRD Q-T6; UI TQ-5, TQ-6; FR-8, FR-11, FR-13, FR-18, AC-12, AC-16, AC-26 |
 
@@ -38,7 +38,7 @@ Phone: (1) mobile only, 10 digits starting `0` plus `3`, `5`, `7`, `8` or `9`, o
 | Address | 1 | 250 |
 | Note | 0 | 200 (PRD FR-18) |
 
-Clients limit input to these maxima (like the note counter); the server rejects longer values with `VALIDATION_FAILED`. Control characters (except newline in address and note) are rejected.
+Clients limit input to these maxima (like the note counter); the server rejects longer values with `VALIDATION_FAILED`. Control characters (except newline in address and note) are rejected. [v1.3 | 2026-10-29] The line count is not validated against the number of active products: duplicates are rejected (`PRODUCT_DUPLICATE`), and a line for a hidden or unknown product is `PRODUCT_UNAVAILABLE` (AC-34), not `VALIDATION_FAILED`. Field codes and paths: api/04 section 5. Code collisions: the whole transaction rolls back and a new one runs with a new code, up to 5 draws.
 
 **Quantity.** One cake: 1 to 99 (the stepper stops at 99; configuration key `max_qty_per_cake`, default 99). This is an input-safety bound, not a business rule. The PRD limit per order is only the remaining amount of the date; if a shop sets DAILY_LIMIT above 99 per cake and needs more, the owner raises `max_qty_per_cake` in configuration.
 
@@ -83,3 +83,4 @@ Related: ADR-0008.
 | 1.0 | 2026-10-25 | First version. |
 | 1.1 | 2026-10-26 | Collision retry assigned to the order service, not the generator. |
 | 1.2 | 2026-10-28 | Canonical shape of `validation.json` (version 2): keys, readers, merge rule. No change to the validation rules. |
+| 1.3 | 2026-10-29 | Built-behaviour resync: no `items` upper bound check (AC-34); field codes pointer; collision retry per transaction. |

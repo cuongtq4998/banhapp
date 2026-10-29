@@ -2,8 +2,8 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.4 |
-| Last updated | 2026-10-27 |
+| Version      | 1.5 |
+| Last updated | 2026-10-29 |
 | Status       | Draft |
 | Owner        | atlas-architect |
 | Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0 |
@@ -41,3 +41,4 @@ This file is the index of the data model. The body lives in the folder `data-mod
 | 1.2 | 2026-10-26 | After slice 0: trigger writes an `order_event` on every status change with a session-settable actor; migration reviewed against the document; `updated_at` is set by the application. |
 | 1.3 | 2026-10-26 | QA findings DOC-1, DOC-5, DOC-6, DOC-7: `image_path` rule, products not limited to four, seed wording and fake phone rule, `note_max_length` constant. |
 | 1.4 | 2026-10-27 | Split into the folder `data-model/` (file size rule, 200 lines); this file became the index with a section map. No schema change. |
+| 1.5 | 2026-10-29 | Slice 3 resync (02 orders): the `created` event and the counter are written by the transaction inside `OrderRepository.insertOrder`; per-phone count reads `customer_order` of any status in the last 24 hours. No schema change. |

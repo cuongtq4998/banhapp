@@ -25,7 +25,7 @@ Static product images and the logo. Fake placeholder images only in the reposito
 
 | Code | HTTP | Top-level `message_key` | Meaning | Client behaviour (UI key) |
 | ---- | ---- | ----------------------- | ------- | ------------------------- |
-| VALIDATION_FAILED | 422 | `ERR_SERVER` | One or more fields invalid; `fields[]` lists them | Show next to the field: `ERR_NAME_REQUIRED`, `ERR_PHONE_REQUIRED`, `ERR_PHONE_INVALID`, `ERR_ADDRESS_REQUIRED`, `ERR_DISTRICT_REQUIRED`, `ERR_NOTE_MAX`; return to S-7. Other field errors (lengths, tampering) show `ERR_SERVER` |
+| VALIDATION_FAILED | 422 | `ERR_SERVER` | One or more fields invalid; `fields[]` lists them | Show next to the field: `ERR_NAME_REQUIRED`, `ERR_PHONE_REQUIRED`, `ERR_PHONE_INVALID`, `ERR_ADDRESS_REQUIRED`, `ERR_DISTRICT_REQUIRED`, `ERR_NOTE_MAX`; return to S-7. Other field errors (lengths, tampering) show `ERR_SERVER`; codes and paths in "Field-level codes" below [v1.12 | 2026-10-29] |
 | MIN_QTY | 422 | `ERR_MIN_QTY` | Total cakes below `min_qty` | `ERR_MIN_QTY` with action to S-5 |
 | DATE_LEAD | 422 | `ERR_DATE_LEAD` | Date too soon (also when midnight passed during the flow) | `ERR_DATE_LEAD`, action `ACTION_CHOOSE_DATE` |
 | DATE_HORIZON | 422 | `ERR_DATE_HORIZON` | Date too far | `ERR_DATE_HORIZON`, action `ACTION_CHOOSE_DATE` |
@@ -57,6 +57,31 @@ Rules of the catalogue [v1.3 | 2026-10-26]:
 - Naming note [v1.9 | 2026-10-27]: the backend error type `CatalogRepositoryError` is also thrown by the availability repository; the name is catalogue-flavoured. A shared rename (or folding into a Vapor-free `DomainError`) is a developer task under architecture.md section 14.1 and ADR-0018 [v1.10 | 2026-10-27]; it has no effect on this contract.
 - `RATE_LIMITED` carries the `Retry-After` header (seconds, an integer) and `details.retry_after_seconds` with the same value; the default is 60 seconds (the shortest window, the per-minute read limit, in the rate-limit table at the top) when the limiter gives no value [v1.4 | 2026-10-26].
 - Wrong method [v1.5 | 2026-10-26]: clients never send a method other than the one documented per endpoint. Any unrouted method and path pair answers `404 NOT_FOUND` (a `HEAD` on a routed `GET` path is not unrouted: it answers like `GET`, section 4.1) [v1.7 | 2026-10-26]; the API does not promise `405`. The 405 mapping stays in the error middleware only for a 405 that the framework or a handler raises, and clients treat both alike.
+### Field-level codes of `VALIDATION_FAILED` on `POST /v1/orders` [v1.12 | 2026-10-29]
+
+Each `fields[]` entry is `{ "field", "code", "message_key" }`. `field` is a path: `items`, `items[0].quantity`, `items[1].product_id`, `delivery_date`, `slot_id`, `customer`, `customer.name`, `customer.phone`, `customer.address`, `customer.district_id`, `note`, `expected_total_vnd`. Entries come in this order: items (in array order), `delivery_date`, `slot_id`, `customer` (name, phone, address, district), `note`, `expected_total_vnd`. Every problem found is listed (the parser does not stop at the first), unknown keys included. Built in `OrderFieldErrors.swift`, fixture `order-error-validation-failed.json`.
+
+| Code | Field | `message_key` | When |
+| ---- | ----- | ------------- | ---- |
+| NAME_REQUIRED | `customer.name` | `ERR_NAME_REQUIRED` | Missing, null, blank after trim |
+| PHONE_REQUIRED | `customer.phone` | `ERR_PHONE_REQUIRED` | Missing, null, blank |
+| PHONE_INVALID | `customer.phone` | `ERR_PHONE_INVALID` | Not a string, or not a Vietnamese mobile number after normalisation (ADR-0009) |
+| ADDRESS_REQUIRED | `customer.address` | `ERR_ADDRESS_REQUIRED` | Missing, null, blank |
+| DISTRICT_REQUIRED | `customer.district_id` | `ERR_DISTRICT_REQUIRED` | Missing or null |
+| NOTE_TOO_LONG | `note` | `ERR_NOTE_MAX` | Over 200 code points |
+| NAME_INVALID, ADDRESS_INVALID | `customer.name`, `customer.address` | `ERR_SERVER` | Wrong type, too long, forbidden control characters |
+| DISTRICT_INVALID, SLOT_INVALID, PRODUCT_INVALID | `customer.district_id`, `slot_id`, `items[i].product_id` | `ERR_SERVER` | Not a UUID string |
+| NOTE_INVALID | `note` | `ERR_SERVER` | Not a string or null, or forbidden characters |
+| ITEMS_INVALID | `items` or `items[i]` | `ERR_SERVER` | Not an array, empty, or an element that is not an object |
+| PRODUCT_DUPLICATE | `items[i].product_id` | `ERR_SERVER` | Product repeated (reported on the later line) |
+| QUANTITY_INVALID | `items[i].quantity` | `ERR_SERVER` | Not an integer, below 1, or above `max_qty_per_cake` (hard parser bound, then the shop setting) |
+| DELIVERY_DATE_INVALID | `delivery_date` | `ERR_SERVER` | Not a real `YYYY-MM-DD` day |
+| CUSTOMER_INVALID | `customer` | `ERR_SERVER` | Not an object (its subfields are then not checked) |
+| EXPECTED_TOTAL_INVALID | `expected_total_vnd` | `ERR_SERVER` | Not an integer, or negative |
+| FIELD_UNKNOWN | the unknown key (`customer.x`, `items[i].x`, `x`) | `ERR_SERVER` | Key not in the contract, listed in sorted order |
+
+A body that is not JSON, or not an object, is `VALIDATION_FAILED` without `fields`. There is no rule "items count at most active products" (removed [v1.12 | 2026-10-29]): a cart with a hidden cake must reach step 4 and answer `PRODUCT_UNAVAILABLE` (AC-34).
+
 - Framework errors never leave as framework bodies: the error middleware maps a Vapor `AbortError` by status (404 `NOT_FOUND`, 405 `METHOD_NOT_ALLOWED`, 413 `PAYLOAD_TOO_LARGE`, 429 `RATE_LIMITED`, 503 `SERVICE_UNAVAILABLE`, other 4xx `VALIDATION_FAILED` without `fields`, everything else `INTERNAL_ERROR`). A decoding failure of a body is therefore `VALIDATION_FAILED` without `fields`.
 - Database outage: `SERVICE_UNAVAILABLE` is answered only when a repository throws `APIError(.serviceUnavailable)`. The mapper does not read driver errors (they can hold SQL or customer data), so an unwrapped driver error becomes `INTERNAL_ERROR`. Every repository method that talks to the database must catch connection and pool errors and rethrow them as `APIError(.serviceUnavailable)` (slice 3 for orders; slice 1 for catalog and availability). Both codes are retryable with the same key.
 
@@ -64,7 +89,7 @@ Rules of the catalogue [v1.3 | 2026-10-26]:
 
 - Inside `v1`: additive only (new optional request fields, new response fields, new error codes, new enum values for `reason`). Clients ignore unknown response fields and treat unknown error codes as `INTERNAL_ERROR` behaviour.
 - A breaking change creates `/v2` and keeps `/v1` until the store statistics show old app versions are gone (a rule of thumb: at least 90 days after the new app release, unverified).
-- `X-App-Version` and `X-Platform` are logged to see which versions call the API.
+- `X-App-Version` and `X-Platform` are logged to see which versions call the API. On `POST /v1/orders` `X-App-Version` must be `N.N.N`: three groups of 1 to 5 digits (no `v`, no suffix like `-beta`); `X-Platform` must be `ios` or `android`; a missing, repeated or other form answers 400 `HEADER_INVALID` (same pattern as the access log) [v1.12 | 2026-10-29].
 - The price acknowledgement field (`expected_total_vnd`) and `PRICE_CHANGED` are final (ADR-0010 Accepted) [v1.1 | 2026-10-25].
 - Staff endpoints will live under `/v1/staff` and need new documents sections; they will not change the customer endpoints.
 
