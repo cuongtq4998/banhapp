@@ -4,7 +4,7 @@ Part of [Place Order](../place-order.md) (PRD v1.4.1). Holds: Q-1 to Q-15, Q-T1 
 
 ## 12. Open Questions
 
-Business questions are for the product owner; technical questions are for the architect (atlas-architect). No owner-decided question is reopened. Q-T1 to Q-T6 are closed by the ADRs (v1.3). Five new business questions (Q-O1 to Q-O5) and the items added in v1.3 are pending owner confirmation (12.2); none blocks the approved scope. [v1.3 | 2026-10-25]
+Business questions are for the product owner; technical questions are for the architect (atlas-architect). No owner-decided question is reopened. Q-T1 to Q-T6 are closed by the ADRs (v1.3). Five new business questions (Q-O1 to Q-O5) are pending owner confirmation (12.2); none blocks the approved scope. N-1 and N-2 (FR-20, FR-21) were answered by the owner on 2026-10-29. [v1.5 | 2026-10-29]
 
 | ID | Question | Why it matters | Blocking | Class | Status | Answer |
 | -- | -------- | -------------- | -------- | ----- | ------ | ------ |
@@ -41,8 +41,8 @@ Nothing in this section takes effect until the owner confirms it. Current behavi
 | Q-O3 | The limit of 5 accepted orders per phone per 24 hours (ADR-0014): do cancelled orders count toward it? | Not decided; ADR-0014 default only. | No | business | Pending owner |
 | Q-O4 | How long is customer contact data kept (BR-12)? | No period; no test expected in this slice. | No | business | Pending owner |
 | Q-O5 | If sample data is visible, which wording is allowed? Sample values use the Vietnamese word "mau" in some names (for example shop and district names). | AC-29 (v1.4): no marker word is customer-visible, and "mẫu" / "mau" in the sense of "sample" counts as a marker word, so displayed seed values must not contain it; technical documents may use it. Owner may overrule. | No | business | Pending owner (default applied in v1.4) |
-| N-1 | FR-20 / AC-30: privacy notice before data entry covering name, phone, address, note and the draft on the device. | Today the notice appears on the review step and names name, phone, address only. | No | business | Added in v1.3, pending owner confirmation |
-| N-2 | FR-21 / AC-31: dates dd/MM/yyyy and money in whole dong with dot thousands separators. | Display format not specified before. | No | business | Added in v1.3, pending owner confirmation |
+| N-1 | FR-20 / AC-30: privacy notice before data entry covering name, phone, address, note and the draft on the device. | Today the notice appears on the review step and names name, phone, address only. | No | business | Answered [v1.5 | 2026-10-29]: owner confirmed FR-20 as written, with the full privacy notice shown on S-7 (recipient screen) and a one-sentence reminder with link on S-8 (2026-10-29) |
+| N-2 | FR-21 / AC-31: dates dd/MM/yyyy and money in whole dong with dot thousands separators. | Display format not specified before. | No | business | Answered [v1.5 | 2026-10-29]: owner confirmed FR-21 as written (2026-10-29) |
 
 ### 12.1 Launch data to be provided by the shop [v1.1 | 2026-10-25]
 
