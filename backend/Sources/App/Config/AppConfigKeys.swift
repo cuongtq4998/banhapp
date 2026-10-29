@@ -13,6 +13,9 @@ extension AppConfig {
         static let trustProxy = "TRUST_PROXY"
         static let rateLimitReadPerMinute = "RATE_LIMIT_READ_PER_MINUTE"
         static let publicAssetBaseURL = "PUBLIC_ASSET_BASE_URL"
+        static let orderingEnabled = "ORDERING_ENABLED"
+        static let rateLimitOrderPerHour = "RATE_LIMIT_ORDER_PER_HOUR"
+        static let orderMaxPerPhonePerDay = "ORDER_MAX_PER_PHONE_PER_DAY"
     }
 
     enum Default {

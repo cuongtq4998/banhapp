@@ -87,7 +87,8 @@ extension AppConfig {
     static func localWithShop(
         rateLimitReadPerMinute: Int = Default.rateLimitReadPerMinute,
         trustProxy: Bool = false,
-        publicAssetBaseURL: String = Default.publicAssetBaseURL
+        publicAssetBaseURL: String = Default.publicAssetBaseURL,
+        orders: OrderPolicy = OrderPolicy()
     ) -> AppConfig {
         AppConfig(
             stage: .local,
@@ -96,7 +97,8 @@ extension AppConfig {
             shopID: testShopID,
             trustProxy: trustProxy,
             rateLimitReadPerMinute: rateLimitReadPerMinute,
-            publicAssetBaseURL: publicAssetBaseURL
+            publicAssetBaseURL: publicAssetBaseURL,
+            orders: orders
         )
     }
 }

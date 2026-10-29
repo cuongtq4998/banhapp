@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "MIN_QTY",
+    "message_key": "ERR_MIN_QTY",
+    "details": { "min_qty": 2 }
+  },
+  "request_id": "7f1c1a52-0c1e-4d6c-9a54-2d7f3d6a0010"
+}

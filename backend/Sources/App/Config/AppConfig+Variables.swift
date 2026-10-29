@@ -38,7 +38,8 @@ extension AppConfig {
             trustProxy: trustProxy,
             rateLimitReadPerMinute: readLimit,
             publicAssetBaseURL: value(Key.publicAssetBaseURL).map(Self.trimmingTrailingSlashes)
-                ?? Default.publicAssetBaseURL
+                ?? Default.publicAssetBaseURL,
+            orders: try OrderPolicy(environment: environment)
         )
     }
 

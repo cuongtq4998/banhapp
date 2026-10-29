@@ -29,6 +29,8 @@ struct AppConfig: Equatable, Sendable {
     /// Not an environment variable: the api.md window is fixed at one minute;
     /// tests shorten it to see the reset.
     let rateLimitWindowSeconds: TimeInterval
+    /// Switch and limits of `POST /v1/orders` (ADR-0014).
+    let orders: OrderPolicy
 
     init(
         stage: Stage,
@@ -39,7 +41,8 @@ struct AppConfig: Equatable, Sendable {
         trustProxy: Bool = false,
         rateLimitReadPerMinute: Int = Default.rateLimitReadPerMinute,
         publicAssetBaseURL: String = Default.publicAssetBaseURL,
-        rateLimitWindowSeconds: TimeInterval = Default.rateLimitWindowSeconds
+        rateLimitWindowSeconds: TimeInterval = Default.rateLimitWindowSeconds,
+        orders: OrderPolicy = OrderPolicy()
     ) {
         self.stage = stage
         self.port = port
@@ -50,5 +53,6 @@ struct AppConfig: Equatable, Sendable {
         self.rateLimitReadPerMinute = rateLimitReadPerMinute
         self.publicAssetBaseURL = publicAssetBaseURL
         self.rateLimitWindowSeconds = rateLimitWindowSeconds
+        self.orders = orders
     }
 }

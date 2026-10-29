@@ -1,0 +1,13 @@
+{
+  "items": [ { "product_id": "0b8f1f0e-1111-4a00-8000-000000000001", "quantity": 2 } ],
+  "delivery_date": "2026-11-05",
+  "slot_id": "0b8f1f0e-3333-4a00-8000-000000000001",
+  "customer": {
+    "name": "Nguyễn Văn A",
+    "phone": "0900 000 000",
+    "address": "1 Đường Số 5",
+    "district_id": "0b8f1f0e-2222-4a00-8000-000000000001"
+  },
+  "note": null,
+  "expected_total_vnd": 120000
+}

@@ -38,6 +38,7 @@ private func registerRoutes(_ app: Application, config: AppConfig) throws {
     try app.register(collection: HealthRoutes())
     try app.register(collection: CatalogRoutes(shopID: config.shopID, assets: assets))
     try app.register(collection: AvailabilityRoutes(shopID: config.shopID))
+    try app.register(collection: OrderRoutes(shopID: config.shopID, policy: config.orders))
     try app.register(collection: AssetRoutes(directory: assetsPath))
     try app.register(collection: PrivacyRoutes(directory: assetsPath))
 }
@@ -73,6 +74,10 @@ private func configureMiddleware(_ app: Application, config: AppConfig) {
     app.middleware.use(APIErrorMiddleware())
     app.middleware.use(RateLimitMiddleware(
         limiter: FixedWindowRateLimiter(limit: config.rateLimitReadPerMinute, windowSeconds: config.rateLimitWindowSeconds),
+        trustProxy: config.trustProxy
+    ))
+    app.middleware.use(OrderRateLimitMiddleware(
+        limiter: FixedWindowRateLimiter(limit: config.orders.perAddressPerHour, windowSeconds: config.orders.addressWindowSeconds),
         trustProxy: config.trustProxy
     ))
 }

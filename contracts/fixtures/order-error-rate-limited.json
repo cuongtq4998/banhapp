@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "RATE_LIMITED",
+    "message_key": "ERR_RATE_LIMITED",
+    "details": { "retry_after_seconds": 3600 }
+  },
+  "request_id": "7f1c1a52-0c1e-4d6c-9a54-2d7f3d6a0010"
+}
