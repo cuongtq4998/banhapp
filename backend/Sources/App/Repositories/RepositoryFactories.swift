@@ -11,10 +11,12 @@ struct RepositoryFactories: Sendable {
     var makeDatabaseProbe: @Sendable (any Database) -> any DatabaseProbe
     var makeCatalogRepository: @Sendable (any Database) -> any CatalogRepository
     var makeAvailabilityRepository: @Sendable (any Database) -> any AvailabilityRepository
+    var makeOrderRepository: @Sendable (any Database) -> any OrderRepository
 
     static let postgres = RepositoryFactories(
         makeDatabaseProbe: { PostgresProbe(database: $0) },
         makeCatalogRepository: { PostgresCatalogRepository(database: $0) },
-        makeAvailabilityRepository: { PostgresAvailabilityRepository(database: $0) }
+        makeAvailabilityRepository: { PostgresAvailabilityRepository(database: $0) },
+        makeOrderRepository: { PostgresOrderRepository(database: $0) }
     )
 }

@@ -17,15 +17,15 @@ struct AvailabilityService: Sendable {
 
         // Today is read once, so every date of one answer shares one day.
         let today = calendar.today()
-        let firstBookable = calendar.adding(days: rules.leadDays, to: today)
-        let last = calendar.adding(days: rules.maxDaysAhead, to: today)
+        let firstBookable = rules.firstBookableDate(today: today, calendar: calendar)
+        let last = rules.lastBookableDate(today: today, calendar: calendar)
         let accepted = try await repository.loadAcceptedCakes(shopID: shopID, from: today, through: last)
 
         let dates = (0...rules.maxDaysAhead).map { offset -> AvailabilityDate in
             let date = calendar.adding(days: offset, to: today)
             let reason = Self.unavailabilityReason(
                 of: date, cakes: cakes, firstBookable: firstBookable,
-                accepted: accepted[date] ?? 0, dailyLimit: rules.dailyLimit
+                accepted: accepted[date] ?? 0, rules: rules
             )
             return AvailabilityDate(date: date.description, available: reason == nil, reason: reason)
         }
@@ -53,12 +53,10 @@ extension AvailabilityService {
     /// such even when it is also full. `TOO_FAR` cannot occur because the list
     /// stops at the horizon.
     fileprivate static func unavailabilityReason(
-        of date: BusinessDate, cakes: Int, firstBookable: BusinessDate, accepted: Int, dailyLimit: Int
+        of date: BusinessDate, cakes: Int, firstBookable: BusinessDate, accepted: Int, rules: AvailabilityRules
     ) -> AvailabilityReason? {
         if date < firstBookable { return .tooSoon }
-        // The current daily limit is used, not the one stored with the row
-        // (data-model.md 3.6); an exact fit is still available.
-        if dailyLimit - accepted < cakes { return .full }
+        if !rules.hasRoom(forCakes: cakes, alreadyAccepted: accepted) { return .full }
         return nil
     }
 }

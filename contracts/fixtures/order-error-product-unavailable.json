@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "PRODUCT_UNAVAILABLE",
+    "message_key": "ERR_PRODUCT_UNAVAILABLE",
+    "details": { "product_ids": ["0b8f1f0e-1111-4a00-8000-000000000002"] }
+  },
+  "request_id": "7f1c1a52-0c1e-4d6c-9a54-2d7f3d6a0010"
+}

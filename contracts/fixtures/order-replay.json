@@ -1,0 +1,6 @@
+{
+  "description": "POST /v1/orders again with the same Idempotency-Key and the same normalised body: 200, the stored result, no new order (AC-19).",
+  "status": 200,
+  "response_headers": { "Idempotent-Replay": "true" },
+  "body": { "order_code": "BT-7K3M9Q", "created_at": "2026-11-02T03:15:09Z" }
+}

@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.5 |
+| Version      | 1.6 |
 | Last updated | 2026-10-27 |
 | Status       | Draft |
 | Owner        | forge-dev (orchestrator wrote the first version) |
@@ -63,6 +63,8 @@ iOS configuration [v1.2 | 2026-10-26]: the API address is the build setting `API
 Android (`android/`), unverified: create the wrapper once with `gradle wrapper --gradle-version 9.6.0`, commit it, then `./gradlew :app:assembleDebug`.
 
 Availability (slice 2, backend) [v1.4 | 2026-10-27]: `GET /v1/availability?cakes=N` needs `SHOP_ID` like the catalogue (without it: 503) and shares the read rate-limit budget. `AvailabilityRoutes` parses `cakes`, `AvailabilityService` applies lead time, horizon and capacity (rules written once, with the Vietnam date from the injected `ShopCalendar`), `AvailabilityRepository` (protocol) and `PostgresAvailabilityRepository` hold the read-only SQL on `shop_setting`, `product` and `day_load`. No migration: the slice reads existing tables. Tests inject `FakeAvailabilityRepository` and `FixedWallClock`; `Tests/AppTests/Database/AvailabilityRepositoryTests.swift` runs the SQL and needs `DATABASE_MIGRATION_URL` (skipped otherwise). The shared fixture is `contracts/fixtures/availability-ok.json`. `cakes` errors use field code `CAKES_INVALID` with key `ERR_SERVER` (not yet named in api.md).
+
+Orders (slice 3, backend) [v1.6 | 2026-10-29]: `POST /v1/orders` runs the checks of api.md 4.3 in order. `OrderRateLimitMiddleware` (global, per address, `RATE_LIMIT_ORDER_PER_HOUR`, a replay counts, a 429 does not) runs before the body is read; `OrderRoutes` checks headers (`OrderHeaders`), `ORDERING_ENABLED` (`OrderPolicy`), parses the body (`OrderRequestParser` on `JSONValue`, unknown keys rejected, `PhoneNumber`, `OrderText`) and calls `OrderPlacementService`, which reads through `OrderRepository` and prices with `OrderQuote`. Date rules are the ones of `AvailabilityRules` (shared with the date list). The idempotency lookup happens before product, date, price and capacity checks; the hash is `OrderRequestHash` (normalised request, includes `expected_total_vnd`). `PostgresOrderRepository.insertOrder` is the one transaction of ADR-0008 (`day_load` guarded update, order, items, `created` event); a lost race is resolved by reading the winner. The per-phone limit (`ORDER_MAX_PER_PHONE_PER_DAY`) counts stored orders of the last 24 hours before the insert; it is check-then-insert, so a burst on one phone can pass by a few orders (the daily capacity is exact). No migration. Fixtures: `contracts/fixtures/order-*.json`; `ValidationFixtureTests` reads the canonical keys of `validation.json` (set `VALIDATION_FIXTURE` to use another copy; skipped when the file is absent). Order DB tests (`Tests/AppTests/Database/Order*`) commit to the database named by `DATABASE_MIGRATION_URL` (own fake shop per test, rows stay: use a throwaway database); they include the parallel no-oversell tests (AC-22) and parallel same-key retries (AC-19). Verified here against PostgreSQL 16 on 127.0.0.1.
 
 ## 4. Coding Conventions
 
@@ -127,3 +129,4 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 | 1.3 | 2026-10-27 | Known gaps: catalogue SQL and `SHOP_ID` smoke check are covered by CI. |
 | 1.4 | 2026-10-27 | Slice 2 backend: availability endpoint, `day_load` read SQL, fixture `availability-ok.json`. |
 | 1.5 | 2026-10-27 | Principle added: at most 200 lines per file. |
+| 1.6 | 2026-10-29 | Slice 3 backend: order placement, order fixtures, order database and concurrency tests. |

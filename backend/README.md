@@ -9,7 +9,7 @@ Swift 6 and Vapor 4 (ADR-0001). Source of truth for the contract: `docs/system/a
 | `Sources/App/configure.swift`, `AppServices.swift`, `entrypoint.swift` | Composition root: `configure` builds middleware and one `AppServices` value (clock, order code generator, repository factories) stored on the `Application` |
 | `Sources/App/Config/` | `AppConfig` (variable names, defaults), `MigrationConfig`, `DatabasePoolSizing` |
 | `Sources/App/Http/` | `APIError` and `APIErrorCode` (api.md section 5), error, request-id, access-log and rate-limit middleware (`FixedWindowRateLimiter`), `EntityTag` (ETag), static file responder |
-| `Sources/App/Routes/` | One `RouteCollection` per endpoint group (`HealthRoutes`, `CatalogRoutes`, `AssetRoutes`, `PrivacyRoutes`) |
+| `Sources/App/Routes/` | One `RouteCollection` per endpoint group (`HealthRoutes`, `CatalogRoutes`, `AvailabilityRoutes`, `OrderRoutes`, `AssetRoutes`, `PrivacyRoutes`) |
 | `Sources/App/Services/` | Rules: `HealthService`, `CatalogService`, `ShopCalendar`, `BusinessDate` |
 | `Sources/App/Repositories/` | SQL behind protocols (`DatabaseProbe`, `CatalogRepository`) with their PostgreSQL implementations, `RepositoryFactories`, and `translatingDatabaseErrors` (driver failure to `SERVICE_UNAVAILABLE`) |
 | `Sources/App/Support/` | `WallClock`, `OrderCodeGenerator`, `withDeadline` |
@@ -26,6 +26,8 @@ Conventions: a route parses and encodes, a service decides, a repository runs SQ
 Logging policy (auth.md): access log lines carry method, route template, status, duration, request id, error code, platform and app version only (platform and version are logged only when they match a strict pattern, else `-`); unexpected errors log the error type, never its text. Keep it that way in new code.
 
 Every repository method wraps its work in `translatingDatabaseErrors`: connection and pool failures become `APIError(.serviceUnavailable)`, a statement the server rejects stays an internal error. Every GET shares one per-client budget in a fixed 60 s window (`RATE_LIMIT_READ_PER_MINUTE`; a 429 does not count; the window length is `AppConfig.rateLimitWindowSeconds`, shortened by tests). `image_url` carries `?v=` with the first 8 hex of the file's SHA-256, computed at start (`AssetVersions`), and images are served immutable for a year; behind a proxy set `TRUST_PROXY=true`, which makes the limiter use the last `X-Forwarded-For` entry.
+
+Orders: `OrderRoutes` parses, `OrderPlacementService` decides, `PostgresOrderRepository` runs the ADR-0008 transaction; limits and the pause switch are `OrderPolicy` (`ORDERING_ENABLED`, `RATE_LIMIT_ORDER_PER_HOUR`, `ORDER_MAX_PER_PHONE_PER_DAY`). Order database tests commit rows (fake shop per test); use a throwaway database.
 
 Database tests: set `DATABASE_MIGRATION_URL` to a throwaway database (they apply the migrations, then run every test in a rolled-back transaction). Without it they are skipped.
 
