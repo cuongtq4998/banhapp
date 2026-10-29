@@ -2,8 +2,8 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.2 |
-| Last updated | 2026-10-26 |
+| Version      | 1.3 |
+| Last updated | 2026-10-28 |
 | Status       | Draft |
 | Owner        | atlas-architect |
 | Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0 |
@@ -74,6 +74,10 @@ Steps:
 | Order code collision | Draw again up to 5 times inside the transaction (savepoint); then 500 and retry | AC-16 |
 | App killed after sending | The draft keeps the key; reopening and confirming again returns the stored order if it exists | ADR-0011 |
 | Too many orders from one phone or IP | 429 `RATE_LIMITED` | ADR-0014 |
+
+Local and server checks on S-8 [v1.3 | 2026-10-28]. The app blocks the Confirm button only for what it can know without the clock and capacity of the server: total cakes below the minimum (BR-4), a cake no longer in the catalogue (BR-13), missing date or slot, and a district not served (BR-3, from the cached catalogue). Lead time (BR-2), horizon (BR-8), capacity (BR-1) and price (BR-5, BR-6) are never decided locally, because the cached `server_date` and catalogue can be up to 7 days old (ADR-0011) and a local verdict would be wrong in both directions. They are answered by the server (`DATE_LEAD`, `DATE_HORIZON`, `DATE_CAPACITY`, `PRICE_CHANGED`) and shown as errors on S-8; the dates offered on S-6 come from a fresh availability call. Field format rules (ADR-0009) are checked locally and again by the server.
+
+Idempotency key [v1.3 | 2026-10-28]: replaced on every change of the request body, kept for a pure retry (ADR-0008 v1.1). The "Fresh Idempotency-Key" in step 4 means a key belonging to the current content.
 
 ## 5. Business Rules Applied
 
@@ -147,3 +151,4 @@ Each flow step above traces to FR-9, FR-10, FR-11, FR-13, FR-16, FR-17, FR-18 an
 | 1.0 | 2026-10-25 | First version. |
 | 1.1 | 2026-10-25 | ADR-0010 accepted; no flow change. |
 | 1.2 | 2026-10-26 | Audit trigger wording aligned with the built migration (event on every status change). |
+| 1.3 | 2026-10-28 | Slice 2 review: split of local and server checks on S-8; key rule pointer to ADR-0008 v1.1. No flow change. |

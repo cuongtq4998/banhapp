@@ -4,7 +4,7 @@
 | -------- | ----- |
 | ADR      | 0009 |
 | Status   | Accepted |
-| Date     | 2026-10-25 (v1.1 2026-10-26) |
+| Date     | 2026-10-25 (v1.1 2026-10-26; v1.2 2026-10-28) |
 | Decider  | atlas-architect |
 | Based on | PRD Q-T6; UI TQ-5, TQ-6; FR-8, FR-11, FR-13, FR-18, AC-12, AC-16, AC-26 |
 
@@ -42,6 +42,21 @@ Clients limit input to these maxima (like the note counter); the server rejects 
 
 **Quantity.** One cake: 1 to 99 (the stepper stops at 99; configuration key `max_qty_per_cake`, default 99). This is an input-safety bound, not a business rule. The PRD limit per order is only the remaining amount of the date; if a shop sets DAILY_LIMIT above 99 per cake and needs more, the owner raises `max_qty_per_cake` in configuration.
 
+**Fixture shape** [v1.2 | 2026-10-28]. `contracts/fixtures/validation.json` has one canonical shape (version 2). Slice 2 left two shapes in the file (Android: `phone_pattern`, `phone_cases`, `text_limits`, `text_cases`; iOS: `phone`, `text`, `decomposed`, `quantity`, `quantity_max_per_cake`). The iOS key names are kept, because they are the shorter list; the Android-only keys go.
+
+| Key | Content | Read by |
+| --- | ------- | ------- |
+| `version` | Integer, `2` | none (documentation) |
+| `phone_pattern` | The regular expression of this ADR, applied after normalisation | all three suites |
+| `phone` | List of `{input, valid, normalized, e164, reason?}`. When `valid` is true, `normalized` and `e164` are required; when false they are omitted (the suites assert only `valid`, and that no E.164 value is produced) | all three |
+| `text_limits` | `{name: 100, address: 250, note: 200}`, code points after trim and NFC | all three |
+| `text` | List of `{field, value, valid, reason?}` or, for long input, `{field, repeat, count, valid, reason?}` where `repeat` is a string repeated `count` times (the value is the repetition) | all three |
+| `decomposed` | `{composed, decomposed, length_after_nfc}` | all three |
+| `quantity` | List of `{per_cake, valid}` | all three |
+| `quantity_max_per_cake` | Integer, `99` | all three |
+
+Removed keys: `phone_cases`, `text_cases` (merged into `phone` and `text`). The merge keeps the union of both lists with duplicates removed (same field and value, or same phone input): from Android the cases "newline in a name is invalid", "60 decomposed letters count 60 after NFC", "`0112345678` invalid", "`091-234-5678` and `(091) 234.5678` valid" and the control-character cases for the three fields; from iOS the rest. Where two cases collide with different results, the ADR text decides (the pattern above, NFC counting, newline allowed only in address and note). The backend suite (slice 3) reads the same keys; it needs no key that the clients do not read. A key added later is added here first.
+
 ## Consequences
 
 - Positive: codes are dictatable; one validation spec for three implementations; fixtures in `contracts/fixtures/validation.json`.
@@ -67,3 +82,4 @@ Related: ADR-0008.
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-25 | First version. |
 | 1.1 | 2026-10-26 | Collision retry assigned to the order service, not the generator. |
+| 1.2 | 2026-10-28 | Canonical shape of `validation.json` (version 2): keys, readers, merge rule. No change to the validation rules. |

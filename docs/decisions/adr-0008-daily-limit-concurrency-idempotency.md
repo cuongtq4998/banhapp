@@ -4,7 +4,7 @@
 | -------- | ----- |
 | ADR      | 0008 |
 | Status   | Accepted |
-| Date     | 2026-10-25 |
+| Date     | 2026-10-25 (v1.1 2026-10-28) |
 | Decider  | atlas-architect |
 | Based on | PRD Q-T1; BR-1, BR-9, FR-16, AC-19, AC-22, AC-28 |
 
@@ -39,7 +39,15 @@ Capacity: option A.
 4. A trigger on the order table decrements the counter when status becomes `Cancelled` (BR-9, AC-28) in the same transaction as the status change.
 5. A second order on the same date blocks on the row lock until the first commits and then re-evaluates the WHERE clause on the new row version (documented PostgreSQL behaviour), so exactly one of two competing orders succeeds (AC-22).
 
-Idempotency: option 1. The client creates a UUID per confirmation attempt and sends it in the `Idempotency-Key` header. The order table has a unique index on `(shop_id, idempotency_key)` and stores a SHA-256 hash of the normalised request. Same key and same hash returns the stored result (HTTP 200 with `Idempotent-Replay: true`); same key and different hash returns 422 `IDEMPOTENCY_KEY_REUSED`; two simultaneous requests with one key resolve through the unique index (the loser reads the winner's order). The key is stored with the draft (ADR-0011) so a retry after the app was killed does not create a second order. A new key is created when the customer changes the order content. Option 2 would wrongly merge two legitimate identical orders; option 3 does not meet FR-16.
+Idempotency: option 1. The client creates a UUID per confirmation attempt and sends it in the `Idempotency-Key` header. The order table has a unique index on `(shop_id, idempotency_key)` and stores a SHA-256 hash of the normalised request. Same key and same hash returns the stored result (HTTP 200 with `Idempotent-Replay: true`); same key and different hash returns 422 `IDEMPOTENCY_KEY_REUSED`; two simultaneous requests with one key resolve through the unique index (the loser reads the winner's order). The key is stored with the draft (ADR-0011) so a retry after the app was killed does not create a second order. A new key is created when the order content changes (exact rule below, v1.1). Option 2 would wrongly merge two legitimate identical orders; option 3 does not meet FR-16.
+
+**Key lifecycle and replay** [v1.1 | 2026-10-28] (clarification of the contract; the API does not change):
+
+- The key stands for one request body. The client replaces it (new UUID v4) on every change of any body field: items, quantities, delivery date, slot, name, phone, address, district, note, and `expected_total_vnd` (also when the app, not the customer, updates the total after `PRICE_CHANGED`). Cakes dropped because they are hidden (ADR-0011) are such a change. The replacement happens at the edit, in the draft, so the saved draft always holds the key of its current content.
+- The client keeps the key, unchanged, for a pure retry of the same body: `ERR_OFFLINE`, `ERR_TIMEOUT`, a lost response, 5xx, 429, `SERVICE_UNAVAILABLE`, `ORDERING_PAUSED`, and a restart of the app (the key is in the draft). It deletes the draft and key after a 201 or 200, and starts the next order with a new key. On `IDEMPOTENCY_KEY_REUSED` it replaces the key and retries once (order-lifecycle.md section 4).
+- Replacing the key more often than needed is harmless, because a rejected request leaves no record. Replacing it too rarely is the defect: the server then answers 422 `IDEMPOTENCY_KEY_REUSED` or, worse, replays an older order.
+- Server: the lookup is step 3 of the checks (api/03-orders.md), before date, price and capacity rules. A stored key with the same SHA-256 of the normalised body (trimmed, NFC, phone as E.164, items sorted by `product_id`, `expected_total_vnd` included) returns the original 201 body as 200 with `Idempotent-Replay: true`, even if the date has since become too soon or the price has changed, and without a new rate-limit count. A different hash returns 422 `IDEMPOTENCY_KEY_REUSED`. A key with no stored order (earlier request rejected) is processed as new. The key lives as long as the order row (unique index; no separate expiry).
+- Known residual case: a timeout, then the customer edits the order and confirms again, creates a second order if the first had been stored. The customer chose a different order; the shop sees both and confirms by contact (A-6). Not prevented, by design.
 
 Order of work in the transaction: validate, check rules, check price acknowledgement, take capacity last, insert order and items, commit. Failures before the capacity step take no lock.
 
@@ -59,3 +67,10 @@ Order of work in the transaction: validate, check rules, check price acknowledge
 ## Links
 
 Related: ADR-0002, ADR-0009, ADR-0011.
+
+## Change log
+
+| Version | Date | Change |
+| ------- | ---- | ------ |
+| 1.0 | 2026-10-25 | First version (Accepted). |
+| 1.1 | 2026-10-28 | Key lifecycle: when the client replaces the key, when it keeps it, replay behaviour. Clarification, no contract change. |

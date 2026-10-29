@@ -4,7 +4,7 @@
 | -------- | ----- |
 | ADR      | 0007 |
 | Status   | Accepted. v1.5: iOS MVVM-C and Android MVI by owner decision 2026-10-27 [v1.5 | 2026-10-27] |
-| Version  | 1.5 |
+| Version  | 1.6 |
 | Date     | 2026-10-25 |
 | Decider  | atlas-architect |
 | Based on | place-order-ui.md v1.0; ADR-0005, ADR-0006; ADR-0018 v2.0; a research review of 2026-10-27 (summarised under Options) |
@@ -50,7 +50,7 @@ Conditions (the coordinator stays thin): no business logic in a coordinator; a c
 
 ### Android (`android/app/`): MVI
 
-Kotlin, Jetpack Compose with Material3 (stable 1.4.x, Expressive APIs behind `@OptIn(ExperimentalMaterial3ExpressiveApi::class)`; move to 1.5.x when it is stable; no beta in releases), OkHttp with kotlinx.serialization, DataStore for the draft. Hand-written MVI, no MVI library:
+Kotlin, Jetpack Compose with Material3 (stable 1.4.x, Expressive APIs behind `@OptIn(ExperimentalMaterial3ExpressiveApi::class)`; move to 1.5.x when it is stable; no beta in releases), OkHttp with kotlinx.serialization, a JSON file in `noBackupFilesDir` for the draft [v1.6 | 2026-10-28] (was DataStore; amended after slice 2, ADR-0011 v1.2). Hand-written MVI, no MVI library:
 
 - One immutable `State` data class per screen, a sealed `Intent` (user actions) and a sealed `Effect` (one-shot events: navigate, toast).
 - A pure `reduce(state, result): State` function that is unit-tested without Android.
@@ -120,3 +120,4 @@ Related: ADR-0005, ADR-0006, ADR-0011, ADR-0012, ADR-0016 (application identifie
 | 1.3 | 2026-10-26 | CI platform package name corrected to `platforms;android-37.0` (clarification only). |
 | 1.4 | 2026-10-27 | Frozen toolchain table replaced by a pointer to the dev guide and build files (table kept as a dated record); modularisation pointer to ADR-0018. |
 | 1.5 | 2026-10-27 | Owner decision: iOS MVVM-C (coordinator conditions, navigation intents), Android MVI (hand-written, `OrderFlow` store scoped to the order graph), manual DI kept. Options, decision, consequences and risks rewritten; the dissenting research score is recorded. Toolchain, rules common to both and the manual-DI and no-package statements unchanged. |
+| 1.6 | 2026-10-28 | Android draft store: file in `noBackupFilesDir` instead of DataStore (accepted, ADR-0011 v1.2). No other change. |
