@@ -1,6 +1,6 @@
 # Place Order UI, part 8: Content and copy keys (section 8)
 
-[v1.5 | 2026-10-29] Part of the split UI specification; index: [place-order-ui.md](../place-order-ui.md). Section numbers are the original ones. Code comments cite this part as "place-order-ui.md section 8". Changes in v1.5: calendar, weekday, spoken-date and removed-cake-unknown keys added; `NOTE_COUNTER` and `ERR_NOTE_MAX` take {max}; `DETAIL_BTN_ORDER` decision recorded. Key names are the iOS String Catalog keys; Android resource names (`date_prev_month`, `date_weekday_n` and so on) may differ, the Vietnamese text must not.
+[v1.6 | 2026-10-29] Privacy notice keys `PRIVACY_*`, `ERR_OPEN_PRIVACY`, `REVIEW_PRIVACY_LINK` added; `REVIEW_PRIVACY` now also names the note. [v1.5 | 2026-10-29] Part of the split UI specification; index: [place-order-ui.md](../place-order-ui.md). Section numbers are the original ones. Code comments cite this part as "place-order-ui.md section 8". Changes in v1.5: calendar, weekday, spoken-date and removed-cake-unknown keys added; `NOTE_COUNTER` and `ERR_NOTE_MAX` take {max}; `DETAIL_BTN_ORDER` decision recorded. Key names are the iOS String Catalog keys; Android resource names (`date_prev_month`, `date_weekday_n` and so on) may differ, the Vietnamese text must not.
 
 ## 8. Content & Copy
 
@@ -100,7 +100,14 @@ All display text is Vietnamese. Data-source values (shop name, greeting, cake na
 | `REVIEW_PHONE` | Số điện thoại | S-8 |
 | `REVIEW_ADDRESS` | Địa chỉ giao hàng | S-8 |
 | `REVIEW_NOTE` | Ghi chú | S-8 |
-| `REVIEW_PRIVACY` | Chúng tôi chỉ dùng họ tên, số điện thoại và địa chỉ của bạn để giao đơn hàng này và liên hệ với bạn. | S-8 |
+| `PRIVACY_TITLE` | [v1.6 | 2026-10-29] Thông tin của bạn được dùng như thế nào | S-7 |
+| `PRIVACY_BODY` | [v1.6 | 2026-10-29] Để giao bánh, cửa hàng cần họ tên, số điện thoại, địa chỉ giao hàng và ghi chú (nếu bạn nhập). Cửa hàng chỉ dùng các thông tin này để giao đơn hàng và liên hệ với bạn. | S-7 |
+| `PRIVACY_DRAFT` | [v1.6 | 2026-10-29] Bản nháp đơn hàng chỉ được lưu trên điện thoại của bạn và tự xoá sau 24 giờ. | S-7 |
+| `PRIVACY_LINK` | [v1.6 | 2026-10-29] Xem chính sách quyền riêng tư đầy đủ | S-7 |
+| `PRIVACY_LINK_A11Y_HINT` | [v1.6 | 2026-10-29] Mở trang chính sách trong trình duyệt | S-7, S-8 |
+| `ERR_OPEN_PRIVACY` | [v1.6 | 2026-10-29] Không mở được trang chính sách. Vui lòng thử lại sau. | S-7, S-8 |
+| `REVIEW_PRIVACY` | [v1.6 | 2026-10-29] Chúng tôi chỉ dùng họ tên, số điện thoại, địa chỉ và ghi chú của bạn để giao đơn hàng này và liên hệ với bạn. | S-8 |
+| `REVIEW_PRIVACY_LINK` | [v1.6 | 2026-10-29] Xem chính sách đầy đủ | S-8 |
 | `BTN_CONFIRM` | Xác nhận đơn hàng | S-8 |
 | `BTN_SENDING` | Đang gửi đơn | S-8 |
 | `ERR_MIN_QTY` | Đơn hàng cần ít nhất {min} bánh. Vui lòng thêm bánh. | S-8 |

@@ -1,12 +1,12 @@
 # Place Order UI, part 5: Screen specs S-7 Recipient, S-8 Review, S-9 Confirmation (sections 5.7 to 5.9)
 
-[v1.4 | 2026-10-27] Part of the split UI specification; index: [place-order-ui.md](../place-order-ui.md). Content unchanged from v1.3; section numbers are the original ones.
+[v1.6 | 2026-10-29] Part of the split UI specification; index: [place-order-ui.md](../place-order-ui.md). Section numbers are the original ones. v1.6: S-7 privacy notice card (FR-20, AC-30) and the S-8 reminder link; the rest is unchanged from v1.4.
 
 ### 5.7 S-7 Order step 3: Recipient and address
 
-- Purpose: collect name, phone, delivery address, district, optional note (FR-8, FR-18).
+- Purpose: collect name, phone, delivery address, district, optional note (FR-8, FR-18). [v1.6 | 2026-10-29] Also shows the full privacy notice before the first field is edited (FR-20, AC-30; owner decision: the notice lives on S-7).
 - Entry/Exit: from S-6, or from S-8 via back or Edit. Exit to S-8, or back to S-6.
-- Layout: `TopBar`, `StepIndicator` (`STEP3`); `GlassCard` with `TextField` Text `FIELD_NAME`, `TextField` Phone `FIELD_PHONE`, `TextField` Text (multiline, two lines) `FIELD_ADDRESS`, `PickerField` `FIELD_DISTRICT`; a fee line `DISTRICT_FEE` appears under the picker once a district is chosen; `GlassCard` with `TextField` Multiline `FIELD_NOTE` and counter `NOTE_COUNTER`; `BottomActionBar` with `PrimaryButton` `COMMON_NEXT`.
+- Layout: `TopBar`, `StepIndicator` (`STEP3`); [v1.6 | 2026-10-29] `PrivacyNoticeCard` as the first element of the scrolling content, directly under the header and above every field (title `PRIVACY_TITLE`, body `PRIVACY_BODY`, draft line `PRIVACY_DRAFT`, link `PRIVACY_LINK`); `GlassCard` with `TextField` Text `FIELD_NAME`, `TextField` Phone `FIELD_PHONE`, `TextField` Text (multiline, two lines) `FIELD_ADDRESS`, `PickerField` `FIELD_DISTRICT`; a fee line `DISTRICT_FEE` appears under the picker once a district is chosen; `GlassCard` with `TextField` Multiline `FIELD_NOTE` and counter `NOTE_COUNTER`; `BottomActionBar` with `PrimaryButton` `COMMON_NEXT`.
 - Data shown: the entered values; the flat fee of the chosen district (AC-11, no free-delivery wording exists); the list of served districts only, so an unserved district cannot be chosen (AC-11).
 - Actions:
 
@@ -17,12 +17,15 @@
 | Type in note | Up to 200 characters. A 201st typed or pasted character is not inserted; `ERR_NOTE_MAX` appears next to the field; pasted text is cut at 200 (AC-26). | FR-18 |
 | Tap `COMMON_NEXT` | Validates all required fields at once. If any fails, an error appears next to each failing field, focus moves to the first failing field, and the flow does not advance (AC-12). If all pass, go to S-8. | FR-13 |
 | Back | Return to S-6, nothing lost. | FR-15 |
+| Tap `PRIVACY_LINK` [v1.6 | 2026-10-29] | Opens the shop's privacy page (the backend `/privacy` page, `GET /privacy` on the API base URL, api.md 4.5) in the in-app browser (iOS `SFSafariViewController`, Android Custom Tab); closing it returns to S-7 with every field value, focus-independent scroll position and the draft unchanged. If it cannot open (offline, no browser), `Toast` `ERR_OPEN_PRIVACY`; the card text stays readable because it is local. | FR-20 |
+
+- Privacy card rules [v1.6 | 2026-10-29] (FR-20, AC-30): (1) Position: first content element, above the name field, so it is on screen before any field can be edited on a normal phone. (2) Always visible: no checkbox, no dismiss, no collapse, no "do not show again", no extra tap to continue; it shows on every visit to S-7 including after Edit from S-8. (3) Content is fixed local text (works offline) and names name, phone, delivery address, the optional note, the purpose and that the draft stays on the device; it carries no data from the customer. (4) Small screens and large text: the card grows in height and wraps, never truncates or scrolls inside itself; the whole screen scrolls, so on a small phone or at the largest text size the first field may sit below the fold, which is accepted because the card is always above it in reading and focus order; when a field gets focus the keyboard may scroll the card out of view. (5) Failed Next: focus goes to the first failing field as before (AC-12), not to the card. (6) Screen reader: the card is one container; title is a heading, then body, draft line, then the link as the only interactive element; it is read before the first field (focus order top to bottom); the card is not announced as an alert. (7) Reduce Motion: no animation on appear. Tokens: see `PrivacyNoticeCard` (design-system 3).
 
 - States:
 
 | State | Behaviour |
 | ----- | --------- |
-| Default | Empty fields on first visit, filled when revisiting. Next is enabled (errors are shown on tap, so the customer sees what to fix). |
+| Default | Empty fields on first visit, filled when revisiting. Next is enabled (errors are shown on tap, so the customer sees what to fix). `PrivacyNoticeCard` is visible in every state of this screen (Loading, Empty, Error, Disabled included); it has no state of its own. [v1.6 | 2026-10-29] |
 | Loading | District list loading: the picker shows a spinner state and is disabled; other fields are usable. Next is enabled but treats district as missing. |
 | Empty | District list is empty: picker shows `DISTRICT_EMPTY`, Next stays disabled. |
 | Error | District list failed to load: `InlineMessage` `DISTRICT_ERR` with `COMMON_RETRY` next to the picker. Field errors follow the Validation table. |
@@ -48,7 +51,7 @@ Keyboards and input hints: name uses the name keyboard with sentence capitalisat
 
 - Purpose: show the full order before confirmation, state which data is collected and why, and confirm (FR-9, FR-10, FR-11 trigger, FR-16, FR-17).
 - Entry/Exit: from S-7. Exit to S-9 on success; Edit controls go to S-5, S-6 or S-7; back goes to S-7.
-- Layout: `TopBar`, `StepIndicator` (`STEP4`); `InlineMessage` area at the top for rule and send errors (hidden in Default); `GlassCard` "cakes": section title `REVIEW_SEC_CAKES`, one `SummaryRow` per cake with quantity above 0 (`REVIEW_ITEM` and line price), `COMMON_EDIT` control to S-5; `GlassCard` totals: `SummaryRow` Money `REVIEW_FEE`, `SummaryRow` Total `REVIEW_TOTAL`; `GlassCard` delivery: `REVIEW_DATE`, `REVIEW_TIME` (edit to S-6), `REVIEW_NAME`, `REVIEW_PHONE`, `REVIEW_ADDRESS` (address and district), `REVIEW_NOTE` only when a note was entered (edit to S-7); `NoticeText` `REVIEW_PRIVACY`; `BottomActionBar` with `PrimaryButton` `BTN_CONFIRM`.
+- Layout: `TopBar`, `StepIndicator` (`STEP4`); `InlineMessage` area at the top for rule and send errors (hidden in Default); `GlassCard` "cakes": section title `REVIEW_SEC_CAKES`, one `SummaryRow` per cake with quantity above 0 (`REVIEW_ITEM` and line price), `COMMON_EDIT` control to S-5; `GlassCard` totals: `SummaryRow` Money `REVIEW_FEE`, `SummaryRow` Total `REVIEW_TOTAL`; `GlassCard` delivery: `REVIEW_DATE`, `REVIEW_TIME` (edit to S-6), `REVIEW_NAME`, `REVIEW_PHONE`, `REVIEW_ADDRESS` (address and district), `REVIEW_NOTE` only when a note was entered (edit to S-7); `NoticeText` `REVIEW_PRIVACY` [v1.6 | 2026-10-29] followed on the next line by a text link `REVIEW_PRIVACY_LINK` (same target and behaviour as `PRIVACY_LINK` on S-7, including `ERR_OPEN_PRIVACY`; the link is disabled while the order is sending); `BottomActionBar` with `PrimaryButton` `BTN_CONFIRM`.
 - Data shown: only cakes with quantity above 0 (AC-6); line price = price x quantity; delivery fee of the chosen district; total = sum of line prices + fee (BR-5, AC-14); date, time, name, phone, address, note if any. No payment line, method or instruction (AC-27).
 - Actions:
 

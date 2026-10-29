@@ -17,6 +17,7 @@ Defaults from standard 02 apply: touch target at least 44 pt (iOS) and 48 dp (An
 | Motion | Reduce Motion and remove-animation settings turn all movement into 150 ms cross-fades. |
 | Focus | Visible focus ring `color.focus` for external keyboards and switch control. |
 | Language | The screen reader language for all text is Vietnamese. |
+| Privacy card [v1.6 | 2026-10-29] | S-7 `PrivacyNoticeCard`: one container read first, title as heading, link announced as a link with hint `PRIVACY_LINK_A11Y_HINT`; link target at least 44 pt / 48 dp high and full card width; text `color.text.primary` and `color.text.secondary` on `color.surface.glass` (solid fallback as in Contrast); link not by colour alone (underlined). |
 | Zero-cake and gone states [v1.2 | 2026-10-26] | `PRODUCTS_EMPTY`, `HOME_NO_CAKES`, `DETAIL_GONE` and `ORDER_CAKE_REMOVED` are announced as they appear (polite for S-2 and S-4, alert for S-5 after S-8 sends the customer back). The disabled "Place order" button is read with its text and the state "dimmed"; the message above it explains why. |
 
 ### 9.1 Test identifiers [v1.2 | 2026-10-26]
@@ -72,7 +73,11 @@ One list for both platforms: iOS `accessibilityIdentifier` and Android `Modifier
 | `review.item.<id>` | [v1.5 | 2026-10-29] One cake line (`REVIEW_ITEM`) | S-8 | yes, renamed |
 | `review.total` / `fee` / `date` / `time` | [v1.5 | 2026-10-29] Value of total, delivery fee, pickup date, pickup time | S-8 | yes, renamed |
 | `review.name` / `phone` / `address` / `note` | [v1.5 | 2026-10-29] Recipient values (`review.note` absent when no note) | S-8 | yes, renamed |
-| `review.privacy` | [v1.5 | 2026-10-29] `REVIEW_PRIVACY` (see owner question N-1/OQ-1) | S-8 | yes, renamed |
+| `review.privacy` | [v1.5 | 2026-10-29] `REVIEW_PRIVACY` [v1.6 | 2026-10-29] (OQ-1 answered; the full notice is on S-7) | S-8 | yes, renamed |
+| `review.privacy.link` | [v1.6 | 2026-10-29] `REVIEW_PRIVACY_LINK` text link | S-8 | NO, new |
+| `order.privacy.card` | [v1.6 | 2026-10-29] `PrivacyNoticeCard` container (assert it is visible on first appearance of S-7 and above `order.field.name`) | S-7 | NO, new |
+| `order.privacy.title` / `order.privacy.body` / `order.privacy.draft` | [v1.6 | 2026-10-29] `PRIVACY_TITLE`, `PRIVACY_BODY`, `PRIVACY_DRAFT` texts | S-7 | NO, new |
+| `order.privacy.link` | [v1.6 | 2026-10-29] `PRIVACY_LINK` text link | S-7 | NO, new |
 | `review.confirm` | [v1.5 | 2026-10-29] `BTN_CONFIRM` button | S-8 | yes, renamed |
 | `review.message` / `review.messageAction` | [v1.5 | 2026-10-29] Blocking or error banner and its action button (`ACTION_CHOOSE_*`, `DATE_EMPTY_ACTION`) | S-8 | renamed / NO, new |
 | `review.edit.cakes` / `date` / `recipient` | [v1.5 | 2026-10-29] The three `COMMON_EDIT` links (`date` edits date and time) | S-8 | renamed |
@@ -95,5 +100,5 @@ States each UI test must reach (both platforms, with the fake API or fixture):
 | S-4 | Default (name, description, price, order button, `nav.back`); Gone (`detail.goneNotice`, `detail.goneAction`, no `detail.orderButton`); image failure. |
 | S-5 | `order.step` visible after tapping `home.orderButton` and after tapping `detail.orderButton` (from the detail, that cake at 1). [v1.5 | 2026-10-29] Total below the minimum (`order.qty.minHint`, `order.next` disabled); empty (`state.empty`); removed cake (`order.cakeRemovedNotice`). |
 | S-6 [v1.5 | 2026-10-29] | Loading (`order.date.loading`); default (`order.date.rangeHint`, `order.date.hint`, `order.next` disabled); day and slot chosen (hint gone, next enabled); no selectable day (`order.date.empty`, `order.date.emptyAction`); cleared date (`order.date.cleared`); load error (`state.error`, `state.retry`). |
-| S-7 [v1.5 | 2026-10-29] | Empty form; each `order.error.<field>` after a failed next; district chosen (`order.district.fee`); district list error or empty (`order.district.error`, `order.district.empty`); note at the limit (`order.note.counter`). |
-| S-8 [v1.5 | 2026-10-29] | Default (all `review.*` values, `review.confirm` enabled); blocked or failed (`review.message`, `review.messageAction`, `review.confirm` disabled when blocked); `review.edit.*` returns to the matching step with data kept. |
+| S-7 [v1.5 | 2026-10-29] | [v1.6 | 2026-10-29] `order.privacy.card` visible on entry, on every revisit and while the district list is loading or failed, with no dismiss control; `order.privacy.link` opens the page and returns with fields kept (browser stubbed in tests; failure shows `state.toast`); empty form; each `order.error.<field>` after a failed next; district chosen (`order.district.fee`); district list error or empty (`order.district.error`, `order.district.empty`); note at the limit (`order.note.counter`). |
+| S-8 [v1.5 | 2026-10-29] | Default (all `review.*` values, `review.confirm` enabled); blocked or failed (`review.message`, `review.messageAction`, `review.confirm` disabled when blocked); `review.privacy` and `review.privacy.link` visible [v1.6 | 2026-10-29]; `review.edit.*` returns to the matching step with data kept. |

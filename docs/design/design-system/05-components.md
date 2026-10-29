@@ -1,6 +1,6 @@
 # Design System, part 5: Components and glass fallbacks (section 3)
 
-[v1.3 | 2026-10-27] Part of the split design system; index: [design-system.md](../design-system.md). Content unchanged from v1.2; section numbers are the original ones.
+[v1.4 | 2026-10-29] Part of the split design system; index: [design-system.md](../design-system.md). v1.4 adds `PrivacyNoticeCard` (no new tokens) and a link on `NoticeText`. Otherwise unchanged from v1.2; section numbers are the original ones.
 
 ## 3. Components
 
@@ -28,7 +28,8 @@ Platform mapping column gives the native building block (names are indicative; t
 | `PickerField` | Choose district | Opens list | Default, Selected, Error, Loading, Disabled | Field opening a sheet list (or menu) | Exposed dropdown or modal bottom sheet list |
 | `SummaryRow` | Label and value on review | Text value, Money value, Multiline value, Total (emphasized) | Default | HStack in `GlassCard`, divider `color.divider` before the money rows | Row in `GlassCard` |
 | `InlineMessage` | Message near a control or at the top of a section | Error, Info | Visible, hidden | Icon plus text on `color.errorContainer` or `color.warningContainer` | Same |
-| `NoticeText` | Short privacy sentence | One | Default | `type.caption` text | `type.caption` text |
+| `NoticeText` | Short privacy sentence (S-8) with an optional text link below it [v1.4 | 2026-10-29] | One | Default | `type.caption` text | `type.caption` text |
+| `PrivacyNoticeCard` [v1.4 | 2026-10-29] | Full privacy notice shown before data entry (S-7, FR-20); not dismissible, not collapsible | One | Default only | `GlassCard` (`radius.card`, `space.cardPadding`, `space.cardGap` below, `material.fallback` as for any card); leading icon (SF Symbol `lock.shield`, 20 pt, `color.accentText`) beside the title in `type.section`; body and draft line in `type.body` (not `type.caption`, the notice must stay readable), `color.text.secondary`; link row in `type.body.strong`, `color.accentText`, underlined, at least 44 pt high, full card width; `space.sm` between paragraphs; grows with text size, never truncated | Same card (`radius.card`, opaque below Android 12); Material Symbol `lock` 20 dp in `color.primary`; same text styles, link at least 48 dp high; grows with text size |
 | `OrderCodeDisplay` | Large order code | One | Default | Selectable text, `type.display` | Selectable text, `type.display` |
 | `StateView` | Full-area loading, empty or error | Loading (skeleton or spinner), Empty, Error with retry | Loading, Empty, Error | Skeleton placeholders; error uses icon, text, `SecondaryButton` | Expressive `LoadingIndicator`; same layout |
 | `Toast` | Short non-blocking notice (cannot open Zalo or dialer) | One | Shown 4 s | Glass capsule at top | Snackbar above the bar |
