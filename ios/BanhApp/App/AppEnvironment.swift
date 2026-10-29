@@ -3,6 +3,8 @@ import Foundation
 /// Composition root (ADR-0007: manual wiring, no DI framework). One instance lives as long as the process.
 struct AppEnvironment {
     let catalogRepository: CatalogRepository
+    let availabilityAPI: any AvailabilityAPI
+    let draftStore: any DraftStore
     let urlOpener: any URLOpener
     /// Pictures and other assets are resolved against this address (ADR-0017).
     let assetBaseURL: URL
@@ -35,8 +37,12 @@ struct AppEnvironment {
         )
         let cache = (try? FileCatalogCache.inApplicationSupport()).map { $0 as any CatalogCache }
             ?? InMemoryCatalogCache()
+        let draftStore = (try? FileDraftStore.inApplicationSupport()).map { $0 as any DraftStore }
+            ?? InMemoryDraftStore()
         return AppEnvironment(
             catalogRepository: CatalogRepository(api: HTTPCatalogAPI(client: client), cache: cache),
+            availabilityAPI: HTTPAvailabilityAPI(client: client),
+            draftStore: draftStore,
             urlOpener: SystemURLOpener(),
             assetBaseURL: baseURL
         )

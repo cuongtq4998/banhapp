@@ -7,7 +7,9 @@ final class LocalizationTests: XCTestCase {
     private static let forbiddenWords = ["mẫu", "sample", "test", "demo", "fake"]
 
     private let catalogURL = Fixtures.repositoryRoot.appendingPathComponent("ios/BanhApp/Localizable.xcstrings")
-    private let stringsSourceURL = Fixtures.repositoryRoot.appendingPathComponent("ios/BanhApp/Core/Localization/Strings.swift")
+    private let stringsSourceURLs = ["Strings.swift", "OrderStrings.swift"].map {
+        Fixtures.repositoryRoot.appendingPathComponent("ios/BanhApp/Core/Localization/\($0)")
+    }
 
     private func catalogValues() throws -> [String: String] {
         let root = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: catalogURL)) as? [String: Any])
@@ -27,9 +29,9 @@ final class LocalizationTests: XCTestCase {
     }
 
     func testEveryKeyUsedInStringsExistsInTheCatalog() throws {
-        let source = try String(contentsOf: stringsSourceURL, encoding: .utf8)
+        let source = try stringsSourceURLs.map { try String(contentsOf: $0, encoding: .utf8) }.joined(separator: "\n")
         let keys = source.matches(of: /LocalizedStringResource\("([A-Z0-9_]+)"\)/).map { String($0.1) }
-        XCTAssertGreaterThanOrEqual(keys.count, 19)
+        XCTAssertGreaterThanOrEqual(keys.count, 90)
         let catalog = try catalogValues()
         for key in keys {
             XCTAssertNotNil(catalog[key], "\(key) is missing from Localizable.xcstrings")
@@ -46,5 +48,22 @@ final class LocalizationTests: XCTestCase {
     func testFormattedKeysFillTheirPlaceholders() {
         XCTAssertEqual(Strings.priceEach(amount: "35.000 ₫"), "35.000 ₫/cái")
         XCTAssertEqual(Strings.stepLabel(step: 1), "Bước 1/4")
+        XCTAssertEqual(OrderStrings.format(OrderStrings.qtyTotal, 5), "Tổng số bánh: 5")
+        XCTAssertEqual(OrderStrings.format(OrderStrings.qtyValue, "Bánh chuối", 2), "Bánh chuối, số lượng 2")
+        XCTAssertEqual(OrderStrings.format(OrderStrings.slotLabel, "08:00", "10:00"), "08:00 – 10:00")
+        XCTAssertEqual(OrderStrings.format(OrderStrings.noteCounter, 12, 200), "12/200")
+        XCTAssertEqual(OrderStrings.format(OrderStrings.monthTitle, 11, 2026), "Tháng 11 năm 2026")
+        XCTAssertEqual(OrderStrings.format(OrderStrings.errorNoteMax, 200), "Ghi chú tối đa 200 ký tự.")
+        XCTAssertEqual(OrderStrings.format(OrderStrings.reviewItem, "Bánh chuối", 2), "Bánh chuối × 2")
+        XCTAssertEqual(OrderStrings.format(OrderStrings.dateTooSoon, "03/11/2026", 2), "03/11/2026, chưa thể chọn vì cần đặt trước ít nhất 2 ngày")
+    }
+
+    func testNoOrderTextMentionsPayment() throws {
+        // FR-19, AC-27.
+        for (key, value) in try catalogValues() {
+            for word in ["thanh toán", "chuyển khoản", "payment", "momo", "ngân hàng"] {
+                XCTAssertFalse(value.lowercased().contains(word), "\(key) mentions payment")
+            }
+        }
     }
 }

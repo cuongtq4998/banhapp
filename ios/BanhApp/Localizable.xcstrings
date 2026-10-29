@@ -220,6 +220,726 @@
           }
         }
       }
+    },
+    "COMMON_NEXT" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiếp tục"
+          }
+        }
+      }
+    },
+    "COMMON_EDIT" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sửa"
+          }
+        }
+      }
+    },
+    "PRODUCTS_EMPTY" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiện cửa hàng chưa có bánh để đặt. Vui lòng quay lại sau hoặc liên hệ cửa hàng qua Zalo hoặc điện thoại."
+          }
+        }
+      }
+    },
+    "ORDER_CAKE_REMOVED" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ hiện không còn được bán và đã được bỏ khỏi đơn. Các bánh khác và thông tin bạn đã nhập vẫn được giữ lại."
+          }
+        }
+      }
+    },
+    "STEP2" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngày và giờ nhận"
+          }
+        }
+      }
+    },
+    "STEP3" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Người nhận và địa chỉ"
+          }
+        }
+      }
+    },
+    "STEP4" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xem lại đơn hàng"
+          }
+        }
+      }
+    },
+    "QTY_TOTAL" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tổng số bánh: %lld"
+          }
+        }
+      }
+    },
+    "QTY_SUBTOTAL" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiền bánh: %@"
+          }
+        }
+      }
+    },
+    "QTY_MIN_HINT" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đơn hàng cần ít nhất %lld bánh."
+          }
+        }
+      }
+    },
+    "QTY_INC_A11Y" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tăng số lượng %@"
+          }
+        }
+      }
+    },
+    "QTY_DEC_A11Y" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giảm số lượng %@"
+          }
+        }
+      }
+    },
+    "QTY_VALUE_A11Y" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, số lượng %2$lld"
+          }
+        }
+      }
+    },
+    "DATE_TITLE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn ngày nhận"
+          }
+        }
+      }
+    },
+    "DATE_HINT_RANGE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhận bánh từ %1$@ đến %2$@."
+          }
+        }
+      }
+    },
+    "DATE_LEGEND_FULL" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngày gạch chéo không còn đủ chỗ cho đơn của bạn."
+          }
+        }
+      }
+    },
+    "DATE_A11Y_SELECTED" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, đã chọn"
+          }
+        }
+      }
+    },
+    "DATE_A11Y_FULL" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, không còn đủ chỗ cho đơn này"
+          }
+        }
+      }
+    },
+    "DATE_A11Y_TOO_SOON" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, chưa thể chọn vì cần đặt trước ít nhất %2$lld ngày"
+          }
+        }
+      }
+    },
+    "DATE_A11Y_TOO_FAR" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, chưa thể chọn vì chỉ nhận đặt trước tối đa %2$lld ngày"
+          }
+        }
+      }
+    },
+    "DATE_EMPTY" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có ngày nào còn đủ chỗ cho đơn của bạn. Hãy giảm số lượng bánh."
+          }
+        }
+      }
+    },
+    "DATE_EMPTY_ACTION" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sửa số lượng"
+          }
+        }
+      }
+    },
+    "DATE_ERR" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tải được lịch nhận bánh. Vui lòng thử lại."
+          }
+        }
+      }
+    },
+    "DATE_CLEARED" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngày bạn chọn không còn đủ chỗ cho đơn của bạn. Vui lòng chọn ngày khác."
+          }
+        }
+      }
+    },
+    "TIME_TITLE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn giờ nhận"
+          }
+        }
+      }
+    },
+    "SLOT_LABEL" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ – %2$@"
+          }
+        }
+      }
+    },
+    "NEXT_HINT_DATE_TIME" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn ngày và giờ nhận để tiếp tục."
+          }
+        }
+      }
+    },
+    "DATE_MONTH_TITLE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tháng %1$lld năm %2$lld"
+          }
+        }
+      }
+    },
+    "DATE_MONTH_PREV" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tháng trước"
+          }
+        }
+      }
+    },
+    "DATE_MONTH_NEXT" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tháng sau"
+          }
+        }
+      }
+    },
+    "WEEKDAY_1" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T2"
+          }
+        }
+      }
+    },
+    "WEEKDAY_2" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T3"
+          }
+        }
+      }
+    },
+    "WEEKDAY_3" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T4"
+          }
+        }
+      }
+    },
+    "WEEKDAY_4" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T5"
+          }
+        }
+      }
+    },
+    "WEEKDAY_5" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T6"
+          }
+        }
+      }
+    },
+    "WEEKDAY_6" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T7"
+          }
+        }
+      }
+    },
+    "WEEKDAY_7" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CN"
+          }
+        }
+      }
+    },
+    "FIELD_NAME" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Họ và tên"
+          }
+        }
+      }
+    },
+    "FIELD_PHONE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Số điện thoại"
+          }
+        }
+      }
+    },
+    "FIELD_ADDRESS" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Địa chỉ giao hàng"
+          }
+        }
+      }
+    },
+    "FIELD_DISTRICT" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quận/huyện"
+          }
+        }
+      }
+    },
+    "DISTRICT_PLACEHOLDER" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn quận/huyện"
+          }
+        }
+      }
+    },
+    "DISTRICT_FEE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phí giao hàng: %@"
+          }
+        }
+      }
+    },
+    "DISTRICT_ERR" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tải được danh sách khu vực giao hàng."
+          }
+        }
+      }
+    },
+    "DISTRICT_EMPTY" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiện chưa có khu vực giao hàng nào. Vui lòng liên hệ cửa hàng."
+          }
+        }
+      }
+    },
+    "FIELD_NOTE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ghi chú (không bắt buộc)"
+          }
+        }
+      }
+    },
+    "NOTE_COUNTER" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "ERR_NAME_REQUIRED" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vui lòng nhập họ và tên."
+          }
+        }
+      }
+    },
+    "ERR_PHONE_REQUIRED" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vui lòng nhập số điện thoại."
+          }
+        }
+      }
+    },
+    "ERR_PHONE_INVALID" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vui lòng nhập số điện thoại di động Việt Nam (10 số, ví dụ 09xx xxx xxx)."
+          }
+        }
+      }
+    },
+    "ERR_ADDRESS_REQUIRED" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vui lòng nhập địa chỉ giao hàng."
+          }
+        }
+      }
+    },
+    "ERR_DISTRICT_REQUIRED" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vui lòng chọn quận/huyện."
+          }
+        }
+      }
+    },
+    "ERR_NOTE_MAX" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ghi chú tối đa %lld ký tự."
+          }
+        }
+      }
+    },
+    "REVIEW_SEC_CAKES" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bánh đã chọn"
+          }
+        }
+      }
+    },
+    "REVIEW_ITEM" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ × %2$lld"
+          }
+        }
+      }
+    },
+    "REVIEW_FEE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phí giao hàng"
+          }
+        }
+      }
+    },
+    "REVIEW_TOTAL" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tổng cộng"
+          }
+        }
+      }
+    },
+    "REVIEW_DATE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngày nhận"
+          }
+        }
+      }
+    },
+    "REVIEW_TIME" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giờ nhận"
+          }
+        }
+      }
+    },
+    "REVIEW_NAME" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Người nhận"
+          }
+        }
+      }
+    },
+    "REVIEW_PHONE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Số điện thoại"
+          }
+        }
+      }
+    },
+    "REVIEW_ADDRESS" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Địa chỉ giao hàng"
+          }
+        }
+      }
+    },
+    "REVIEW_NOTE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ghi chú"
+          }
+        }
+      }
+    },
+    "REVIEW_PRIVACY" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chúng tôi chỉ dùng họ tên, số điện thoại và địa chỉ của bạn để giao đơn hàng này và liên hệ với bạn."
+          }
+        }
+      }
+    },
+    "BTN_CONFIRM" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xác nhận đơn hàng"
+          }
+        }
+      }
+    },
+    "ERR_MIN_QTY" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đơn hàng cần ít nhất %lld bánh. Vui lòng thêm bánh."
+          }
+        }
+      }
+    },
+    "ERR_DISTRICT_UNSERVED" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cửa hàng chưa giao đến khu vực này. Vui lòng chọn quận/huyện khác."
+          }
+        }
+      }
+    },
+    "ACTION_CHOOSE_DATE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn ngày khác"
+          }
+        }
+      }
+    },
+    "ACTION_CHOOSE_DISTRICT" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn khu vực khác"
+          }
+        }
+      }
+    },
+    "ACTION_CHOOSE_SLOT" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn giờ khác"
+          }
+        }
+      }
+    },
+    "ERR_PRODUCT_UNAVAILABLE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Có bánh trong đơn hiện không còn được bán. Vui lòng chọn lại bánh. Đơn hàng chưa được gửi. Thông tin của bạn vẫn được giữ lại."
+          }
+        }
+      }
+    },
+    "ERR_SLOT_UNAVAILABLE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khung giờ nhận bánh bạn chọn không còn khả dụng. Vui lòng chọn giờ khác."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

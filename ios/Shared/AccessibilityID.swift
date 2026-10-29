@@ -22,6 +22,51 @@ nonisolated enum AccessibilityID {
     static let detailOrder = "detail.orderButton"
 
     static let orderStep = "order.step"
+    static let orderNext = "order.next"
+    static let orderTitle = "order.title"
+    static let orderCakeRemovedNotice = "order.cakeRemovedNotice"
+
+    static let qtyTotal = "order.qtyTotal"
+    static let qtySubtotal = "order.qtySubtotal"
+    static let qtyMinHint = "order.qtyMinHint"
+
+    static let dateMonthTitle = "order.date.monthTitle"
+    static let dateMonthPrevious = "order.date.monthPrevious"
+    static let dateMonthNext = "order.date.monthNext"
+    static let dateRangeHint = "order.date.rangeHint"
+    static let dateEmptyNotice = "order.date.emptyNotice"
+    static let dateEmptyAction = "order.date.emptyAction"
+    static let dateClearedNotice = "order.date.clearedNotice"
+    static let dateNextHint = "order.nextHint"
+
+    static let fieldName = "order.field.name"
+    static let fieldPhone = "order.field.phone"
+    static let fieldAddress = "order.field.address"
+    static let fieldDistrict = "order.field.district"
+    static let fieldNote = "order.field.note"
+    static let noteCounter = "order.noteCounter"
+    static let districtFee = "order.districtFee"
+    static let districtEmpty = "order.districtEmpty"
+    static let districtError = "order.districtError"
+
+    static let reviewTotal = "review.total"
+    static let reviewFee = "review.fee"
+    static let reviewDate = "review.date"
+    static let reviewTime = "review.time"
+    static let reviewName = "review.name"
+    static let reviewPhone = "review.phone"
+    static let reviewAddress = "review.address"
+    static let reviewNote = "review.note"
+    static let reviewPrivacy = "review.privacy"
+    static let reviewConfirm = "review.confirm"
+    static let reviewMessage = "review.message"
+    static let reviewMessageAction = "review.messageAction"
+    static let reviewEditCakes = "review.edit.cakes"
+    static let reviewEditDate = "review.edit.date"
+    static let reviewEditRecipient = "review.edit.recipient"
+
+    /// Zero-cake `StateView` of S-5 (`PRODUCTS_EMPTY`).
+    static let emptyState = "state.empty"
 
     /// Round back button of S-3 and S-4 (the navigation bar is hidden there).
     static let backButton = "nav.backButton"
@@ -35,6 +80,16 @@ nonisolated enum AccessibilityID {
 
     static func productCard(_ productID: String) -> String { "products.card.\(productID)" }
     static func productCardSkeleton(_ index: Int) -> String { "products.skeleton.\(index)" }
+
+    /// `<id>` is the cake id, `<date>` is `YYYY-MM-DD`, the other ids are those of the API.
+    static func qtyIncrease(_ productID: String) -> String { "order.qty.inc.\(productID)" }
+    static func qtyDecrease(_ productID: String) -> String { "order.qty.dec.\(productID)" }
+    static func qtyValue(_ productID: String) -> String { "order.qty.value.\(productID)" }
+    static func dateCell(_ iso: String) -> String { "order.date.\(iso)" }
+    static func slotChip(_ slotID: String) -> String { "order.slot.\(slotID)" }
+    static func districtRow(_ districtID: String) -> String { "order.district.row.\(districtID)" }
+    static func fieldError(_ field: String) -> String { "order.error.\(field)" }
+    static func reviewItem(_ productID: String) -> String { "review.item.\(productID)" }
 }
 
 /// Launch arguments that only a debug build reads (see `Debug/UITestStub.swift`); shared so the UI
@@ -44,4 +99,6 @@ nonisolated enum LaunchArgument {
     static let stubBackend = "BanhStubBackend"
     static let stubModeCatalog = "catalog"
     static let stubModeUnavailable = "unavailable"
+    /// The catalog loads but `GET /v1/availability` fails (S-6 error state).
+    static let stubModeAvailabilityFails = "availabilityFails"
 }
