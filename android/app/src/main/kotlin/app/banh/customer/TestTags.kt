@@ -60,6 +60,12 @@ object TestTags {
     const val ORDER_DISTRICT_ERROR = "order.district.error"
     const val ORDER_DISTRICT_EMPTY = "order.district.empty"
 
+    const val ORDER_PRIVACY_CARD = "order.privacy.card"
+    const val ORDER_PRIVACY_TITLE = "order.privacy.title"
+    const val ORDER_PRIVACY_BODY = "order.privacy.body"
+    const val ORDER_PRIVACY_DRAFT = "order.privacy.draft"
+    const val ORDER_PRIVACY_LINK = "order.privacy.link"
+
     const val REVIEW_TOTAL = "review.total"
     const val REVIEW_FEE = "review.fee"
     const val REVIEW_DATE = "review.date"
@@ -69,6 +75,7 @@ object TestTags {
     const val REVIEW_ADDRESS = "review.address"
     const val REVIEW_NOTE = "review.note"
     const val REVIEW_PRIVACY = "review.privacy"
+    const val REVIEW_PRIVACY_LINK = "review.privacy.link"
     const val REVIEW_CONFIRM = "review.confirm"
     const val REVIEW_EDIT_CAKES = "review.edit.cakes"
     const val REVIEW_EDIT_DELIVERY = "review.edit.date"

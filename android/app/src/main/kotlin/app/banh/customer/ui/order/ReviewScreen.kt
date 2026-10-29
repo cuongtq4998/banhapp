@@ -28,6 +28,7 @@ import app.banh.customer.order.OrderSummary
 import app.banh.customer.order.toDisplayText
 import app.banh.customer.order.toLocalDateOrNull
 import app.banh.customer.ui.common.catalogLoadFailureText
+import app.banh.customer.ui.privacy.ReviewPrivacyNotice
 
 /** Where each Edit control and issue action leads; the host maps them to routes (ADR-0007). */
 class ReviewActions(
@@ -54,6 +55,7 @@ fun ReviewScreen(
     actions: ReviewActions,
     onRetryCatalog: () -> Unit = {},
     confirmEnabled: Boolean = false,
+    sending: Boolean = false,
 ) {
     val summary = state.summary
     // A rule that the client can already see broken blocks the button and names the step to fix (FR-10, AC-13).
@@ -74,14 +76,14 @@ fun ReviewScreen(
             Load.Loading -> Text(stringResource(R.string.common_loading), style = MaterialTheme.typography.bodyLarge)
             is Load.Failed -> ErrorState(stringResource(catalogLoadFailureText(catalog.failure)), onRetryCatalog)
             is Load.Ready -> {
-                if (summary != null) ReviewContent(state, catalog.value, summary, quantityIssue, actions)
+                if (summary != null) ReviewContent(state, catalog.value, summary, quantityIssue, actions, sending)
             }
         }
     }
 }
 
 @Composable
-private fun ReviewContent(state: OrderFlowState, catalog: Catalog, summary: OrderSummary, quantityIssue: Boolean, actions: ReviewActions) {
+private fun ReviewContent(state: OrderFlowState, catalog: Catalog, summary: OrderSummary, quantityIssue: Boolean, actions: ReviewActions, sending: Boolean) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.lg)) {
         if (quantityIssue) {
             ErrorMessage(
@@ -105,11 +107,7 @@ private fun ReviewContent(state: OrderFlowState, catalog: Catalog, summary: Orde
             }
         }
         DeliveryCard(state, catalog, summary, actions)
-        Text(
-            stringResource(R.string.review_privacy),
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.testTag(TestTags.REVIEW_PRIVACY),
-        )
+        ReviewPrivacyNotice(sending = sending)
     }
 }
 
