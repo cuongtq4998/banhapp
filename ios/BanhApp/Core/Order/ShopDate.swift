@@ -46,6 +46,11 @@ nonisolated struct ShopDate: Hashable, Comparable, Codable, Sendable {
     /// `dd/MM/yyyy` (FR-21, AC-31).
     var displayText: String { String(format: "%02d/%02d/%04d", day, month, year) }
 
+    /// `DATE_SPOKEN`: "ngày {d} tháng {m} năm {y}", what a screen reader says for the date.
+    var spokenText: String {
+        String(format: String(localized: LocalizedStringResource("DATE_SPOKEN")), day, month, year)
+    }
+
     func adding(days: Int) -> ShopDate {
         ShopDate(foundation: Self.calendar.date(byAdding: .day, value: days, to: foundationDate!)!)
     }

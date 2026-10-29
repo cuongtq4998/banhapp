@@ -97,4 +97,61 @@ final class OrderFlowTests: XCTestCase {
         XCTAssertNil(store.load(now: OrderTestSupport.now))
         XCTAssertEqual(flow.draft.name, "")
     }
+
+    // MARK: Idempotency key (ADR-0008 v1.1)
+
+    func testEveryBodyFieldChangeReplacesTheKey() async throws {
+        let flow = try await OrderTestSupport.flow()
+        let product = OrderTestSupport.product(0, in: flow)
+        let changes: [(String, () -> Void)] = [
+            ("quantity", { flow.setQuantity(2, of: product) }),
+            ("quantity again", { flow.setQuantity(3, of: product) }),
+            ("date", { flow.setDate(ShopDate(year: 2026, month: 11, day: 4)) }),
+            ("slot", { flow.setSlot(OrderTestSupport.id(31)) }),
+            ("name", { flow.setName("An") }),
+            ("phone", { flow.setPhone("0912345678") }),
+            ("address", { flow.setAddress("12 Đường Số 3") }),
+            ("district", { flow.setDistrict(OrderTestSupport.id(21)) }),
+            ("note", { flow.setNote("Giao sớm") }),
+            ("expected total", { flow.applyPriceChange(expectedTotalVND: 135_000) })
+        ]
+        for (field, change) in changes {
+            let before = flow.draft.idempotencyKey
+            change()
+            XCTAssertNotEqual(flow.draft.idempotencyKey, before, "\(field) must replace the key")
+        }
+    }
+
+    func testAPureRetryKeepsTheKey() async throws {
+        let store = InMemoryDraftStore()
+        let flow = try await OrderTestSupport.flow(store: store)
+        flow.setQuantity(2, of: OrderTestSupport.product(0, in: flow))
+        flow.setName("An")
+        let key = flow.draft.idempotencyKey
+        // Same values written again, a quantity-0 cake added, a catalog refresh: the body is the same.
+        flow.setName("An")
+        flow.setQuantity(2, of: OrderTestSupport.product(0, in: flow))
+        flow.setQuantity(0, of: OrderTestSupport.product(1, in: flow))
+        flow.reconcileWithCatalog()
+        XCTAssertEqual(flow.draft.idempotencyKey, key)
+        // An app restart reloads the same draft with the same key.
+        XCTAssertEqual(store.load(now: OrderTestSupport.now)?.idempotencyKey, key)
+    }
+
+    func testTheSavedDraftAlwaysHoldsTheKeyOfItsContent() async throws {
+        let store = InMemoryDraftStore()
+        let flow = try await OrderTestSupport.flow(store: store)
+        flow.setNote("a")
+        XCTAssertEqual(store.load(now: OrderTestSupport.now)?.idempotencyKey, flow.draft.idempotencyKey)
+    }
+
+    func testKeyReusedReplacesTheKeyWithoutChangingTheBody() async throws {
+        let flow = try await OrderTestSupport.flow()
+        flow.setName("An")
+        let body = flow.draft.requestBody
+        let key = flow.draft.idempotencyKey
+        flow.replaceIdempotencyKey()
+        XCTAssertNotEqual(flow.draft.idempotencyKey, key)
+        XCTAssertEqual(flow.draft.requestBody, body)
+    }
 }

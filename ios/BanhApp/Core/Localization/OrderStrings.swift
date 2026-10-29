@@ -25,6 +25,8 @@ enum OrderStrings {
     static let dateTitle = LocalizedStringResource("DATE_TITLE")
     static let dateRangeHint = LocalizedStringResource("DATE_HINT_RANGE")
     static let dateLegendFull = LocalizedStringResource("DATE_LEGEND_FULL")
+    static let dateAvailable = LocalizedStringResource("DATE_A11Y_AVAILABLE")
+    static let dateSpoken = LocalizedStringResource("DATE_SPOKEN")
     static let dateSelected = LocalizedStringResource("DATE_A11Y_SELECTED")
     static let dateFull = LocalizedStringResource("DATE_A11Y_FULL")
     static let dateTooSoon = LocalizedStringResource("DATE_A11Y_TOO_SOON")

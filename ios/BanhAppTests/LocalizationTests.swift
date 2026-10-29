@@ -58,6 +58,13 @@ final class LocalizationTests: XCTestCase {
         XCTAssertEqual(OrderStrings.format(OrderStrings.dateTooSoon, "03/11/2026", 2), "03/11/2026, chưa thể chọn vì cần đặt trước ít nhất 2 ngày")
     }
 
+    func testSpokenDateAndDetailButton() {
+        let date = ShopDate(year: 2026, month: 11, day: 4)
+        XCTAssertEqual(date.spokenText, "ngày 4 tháng 11 năm 2026")
+        XCTAssertEqual(OrderStrings.format(OrderStrings.dateAvailable, date.spokenText), "ngày 4 tháng 11 năm 2026, có thể chọn")
+        XCTAssertEqual(String(localized: Strings.detailButtonOrder), "Đặt bánh")
+    }
+
     func testNoOrderTextMentionsPayment() throws {
         // FR-19, AC-27.
         for (key, value) in try catalogValues() {

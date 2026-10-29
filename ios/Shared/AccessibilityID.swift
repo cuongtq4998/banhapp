@@ -26,28 +26,29 @@ nonisolated enum AccessibilityID {
     static let orderTitle = "order.title"
     static let orderCakeRemovedNotice = "order.cakeRemovedNotice"
 
-    static let qtyTotal = "order.qtyTotal"
-    static let qtySubtotal = "order.qtySubtotal"
-    static let qtyMinHint = "order.qtyMinHint"
+    static let qtyTotal = "order.qty.total"
+    static let qtySubtotal = "order.qty.subtotal"
+    static let qtyMinHint = "order.qty.minHint"
 
-    static let dateMonthTitle = "order.date.monthTitle"
-    static let dateMonthPrevious = "order.date.monthPrevious"
-    static let dateMonthNext = "order.date.monthNext"
+    static let dateMonthTitle = "order.date.month"
+    static let dateMonthPrevious = "order.date.previous"
+    static let dateMonthNext = "order.date.next"
     static let dateRangeHint = "order.date.rangeHint"
-    static let dateEmptyNotice = "order.date.emptyNotice"
+    static let dateEmptyNotice = "order.date.empty"
     static let dateEmptyAction = "order.date.emptyAction"
-    static let dateClearedNotice = "order.date.clearedNotice"
-    static let dateNextHint = "order.nextHint"
+    static let dateLoading = "order.date.loading"
+    static let dateClearedNotice = "order.date.cleared"
+    static let dateNextHint = "order.date.hint"
 
     static let fieldName = "order.field.name"
     static let fieldPhone = "order.field.phone"
     static let fieldAddress = "order.field.address"
     static let fieldDistrict = "order.field.district"
     static let fieldNote = "order.field.note"
-    static let noteCounter = "order.noteCounter"
-    static let districtFee = "order.districtFee"
-    static let districtEmpty = "order.districtEmpty"
-    static let districtError = "order.districtError"
+    static let noteCounter = "order.note.counter"
+    static let districtFee = "order.district.fee"
+    static let districtEmpty = "order.district.empty"
+    static let districtError = "order.district.error"
 
     static let reviewTotal = "review.total"
     static let reviewFee = "review.fee"
@@ -69,7 +70,7 @@ nonisolated enum AccessibilityID {
     static let emptyState = "state.empty"
 
     /// Round back button of S-3 and S-4 (the navigation bar is hidden there).
-    static let backButton = "nav.backButton"
+    static let backButton = "nav.back"
 
     /// Error state of any screen and its retry button.
     static let errorState = "state.error"
@@ -82,9 +83,9 @@ nonisolated enum AccessibilityID {
     static func productCardSkeleton(_ index: Int) -> String { "products.skeleton.\(index)" }
 
     /// `<id>` is the cake id, `<date>` is `YYYY-MM-DD`, the other ids are those of the API.
-    static func qtyIncrease(_ productID: String) -> String { "order.qty.inc.\(productID)" }
-    static func qtyDecrease(_ productID: String) -> String { "order.qty.dec.\(productID)" }
-    static func qtyValue(_ productID: String) -> String { "order.qty.value.\(productID)" }
+    static func qtyIncrease(_ productID: String) -> String { "order.qty.\(productID).inc" }
+    static func qtyDecrease(_ productID: String) -> String { "order.qty.\(productID).dec" }
+    static func qtyValue(_ productID: String) -> String { "order.qty.\(productID).value" }
     static func dateCell(_ iso: String) -> String { "order.date.\(iso)" }
     static func slotChip(_ slotID: String) -> String { "order.slot.\(slotID)" }
     static func districtRow(_ districtID: String) -> String { "order.district.row.\(districtID)" }

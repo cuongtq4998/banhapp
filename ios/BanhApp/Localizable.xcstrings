@@ -156,7 +156,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Đặt bánh này"
+            "value" : "Đặt bánh"
           }
         }
       }
@@ -377,6 +377,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ngày gạch chéo không còn đủ chỗ cho đơn của bạn."
+          }
+        }
+      }
+    },
+    "DATE_A11Y_AVAILABLE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, có thể chọn"
+          }
+        }
+      }
+    },
+    "DATE_SPOKEN" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ngày %1$lld tháng %2$lld năm %3$lld"
           }
         }
       }

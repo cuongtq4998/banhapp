@@ -118,9 +118,9 @@ private struct DayCell: View {
     }
 
     private var spokenLabel: String {
-        let text = date.displayText
+        let text = date.spokenText
         switch state {
-        case .available: return text
+        case .available: return OrderStrings.format(OrderStrings.dateAvailable, text)
         case .selected: return OrderStrings.format(OrderStrings.dateSelected, text)
         case .full: return OrderStrings.format(OrderStrings.dateFull, text)
         case .tooSoon: return OrderStrings.format(OrderStrings.dateTooSoon, text, model.leadDays)
