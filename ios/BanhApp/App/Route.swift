@@ -4,6 +4,6 @@ import BanhContracts
 enum Route: Hashable {
     case products
     case productDetail(ResourceID)
-    /// The order flow, from S-2 or S-4. The ordering slice passes the chosen cake (FR-4, AC-5).
-    case order
+    /// One step of the order flow, S-5 to S-8; `OrderCoordinator` builds them.
+    case orderStep(OrderStep)
 }

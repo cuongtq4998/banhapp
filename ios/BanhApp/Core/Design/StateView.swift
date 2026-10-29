@@ -6,6 +6,8 @@ struct ErrorStateView: View {
     private static let symbolName = "exclamationmark.triangle"
 
     let message: LocalizedStringResource
+    /// `state.error` for a failed load; the zero-cake state of S-5 passes `state.empty`.
+    var identifier = AccessibilityID.errorState
     let retry: () -> Void
 
     var body: some View {
@@ -24,7 +26,7 @@ struct ErrorStateView: View {
         .padding(Spacing.xl)
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .contain)
-        .accessibilityIdentifier(AccessibilityID.errorState)
+        .accessibilityIdentifier(identifier)
     }
 }
 

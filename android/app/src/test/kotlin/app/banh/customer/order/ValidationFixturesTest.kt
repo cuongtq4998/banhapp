@@ -38,8 +38,7 @@ class ValidationFixturesTest {
         assertEquals(limits.getValue("name").jsonPrimitive.int, FieldRules.NAME_MAX)
         assertEquals(limits.getValue("address").jsonPrimitive.int, FieldRules.ADDRESS_MAX)
         assertEquals(limits.getValue("note").jsonPrimitive.int, FieldRules.NOTE_MAX)
-        val quantity = root.getValue("quantity").jsonObject
-        assertEquals(quantity.getValue("max_per_cake").jsonPrimitive.intOrNull, OrderFlowState.DEFAULT_MAX_QTY_PER_CAKE)
+        assertEquals(root.getValue("quantity_max_per_cake").jsonPrimitive.intOrNull, OrderFlowState.DEFAULT_MAX_QTY_PER_CAKE)
     }
 
     @Test

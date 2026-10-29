@@ -3,7 +3,7 @@
 | Field        | Value |
 | ------------ | ----- |
 | Version      | 1.6 |
-| Last updated | 2026-10-27 |
+| Last updated | 2026-10-29 |
 | Status       | Draft |
 | Owner        | forge-dev (orchestrator wrote the first version) |
 | Based on     | architecture.md v1.1; ADR-0001, 0004, 0005, 0007; slice 0 code |
@@ -58,7 +58,9 @@ export DEVELOPER_DIR=/Applications/<Xcode 27>.app/Contents/Developer
 xcodebuild -project BanhApp.xcodeproj -scheme BanhApp -destination "generic/platform=iOS Simulator" CODE_SIGNING_ALLOWED=NO build
 ```
 
-iOS configuration [v1.2 | 2026-10-26]: the API address is the build setting `API_BASE_URL` (default `http://localhost:8080` in `ios/Config/Project.xcconfig`; override it in the git-ignored `ios/Config/Local.xcconfig`, see the `.example` file; write `//` as `/$()/`). It reaches the app through `ios/Config/Info.plist` (`BanhAPIBaseURL`). UI tests run against an in-process stub chosen by the debug-only launch argument `-BanhStubBackend catalog|unavailable`; accessibility identifiers live in `ios/Shared/AccessibilityID.swift`, compiled into the app and the UI test target.
+iOS configuration [v1.2 | 2026-10-26]: the API address is the build setting `API_BASE_URL` (default `http://localhost:8080` in `ios/Config/Project.xcconfig`; override it in the git-ignored `ios/Config/Local.xcconfig`, see the `.example` file; write `//` as `/$()/`). It reaches the app through `ios/Config/Info.plist` (`BanhAPIBaseURL`). UI tests run against an in-process stub chosen by the debug-only launch argument `-BanhStubBackend catalog|unavailable|availabilityFails`; accessibility identifiers live in `ios/Shared/AccessibilityID.swift`, compiled into the app and the UI test target.
+
+Order flow, iOS (slice 2) [v1.6 | 2026-10-29]: S-5 to S-8 are MVVM-C. `App/OrderCoordinator` owns the `OrderFlow` (`Features/Order/OrderFlow.swift`, the draft plus catalog access) and builds each step (`Features/Order/{Cakes,Date,Recipient,Review}`, one `@Observable` view model each); `Route.orderStep(OrderStep)` is the only route. Pure rules are in `Core/Order` (`OrderValidation` reads the shared `contracts/fixtures/validation.json`, `OrderPricing`, `ShopDate` for shop-time dates, `OrderDraft` with `FileDraftStore`: excluded from backup, complete file protection, discarded after 24 hours). `Core/Availability` calls `GET /v1/availability`. The debug stub serves `availability-ok.json` rules (2026-11-05 holds 98 cakes, 2026-11-20 holds 100) and the fixture districts and slots. S-8 confirm is disabled until slice 3 passes `confirmAction`. Unit tests: `xcodebuild ... -destination "platform=iOS Simulator,id=<iPhone 16 on iOS 17.5+>" -parallel-testing-enabled NO -only-testing:BanhAppTests test` (155 tests, run on 2026-10-29); UI tests with `-only-testing:BanhAppUITests` (10 tests).
 
 Android (`android/`), unverified: create the wrapper once with `gradle wrapper --gradle-version 9.6.0`, commit it, then `./gradlew :app:assembleDebug`.
 
@@ -131,4 +133,4 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 | 1.3 | 2026-10-27 | Known gaps: catalogue SQL and `SHOP_ID` smoke check are covered by CI. |
 | 1.4 | 2026-10-27 | Slice 2 backend: availability endpoint, `day_load` read SQL, fixture `availability-ok.json`. |
 | 1.5 | 2026-10-27 | Principle added: at most 200 lines per file. |
-| 1.6 | 2026-10-29 | Slice 2 Android: order flow store, availability client, draft file, validation fixture `validation.json`, test notes, known gaps. |
+| 1.6 | 2026-10-29 | Slice 2 iOS (order rules, availability client, draft store, S-5 to S-8, UI test stub) and Android: order flow store, availability client, draft file, validation fixture `validation.json`, test notes, known gaps. |

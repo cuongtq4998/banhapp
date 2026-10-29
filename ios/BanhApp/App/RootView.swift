@@ -1,3 +1,4 @@
+import BanhContracts
 import SwiftUI
 
 /// S-1 first, then the navigation stack from S-2. Owns the navigation path and creates each screen's
@@ -11,11 +12,13 @@ struct RootView: View {
     @State private var phase: Phase = .launching
     @State private var path: [Route] = []
     @State private var home: HomeViewModel
+    @State private var order: OrderCoordinator
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(environment: AppEnvironment, launchGate: LaunchGate = LaunchGate()) {
         self.environment = environment
         self.launchGate = launchGate
+        _order = State(initialValue: OrderCoordinator(environment: environment))
         _home = State(initialValue: HomeViewModel(
             repository: environment.catalogRepository,
             contact: ContactActions(opener: environment.urlOpener)
@@ -45,7 +48,7 @@ struct RootView: View {
             HomeView(
                 model: home,
                 onViewProducts: { path.append(.products) },
-                onPlaceOrder: { path.append(.order) }
+                onPlaceOrder: { startOrder() }
             )
             .navigationDestination(for: Route.self, destination: destination)
         }
@@ -57,16 +60,21 @@ struct RootView: View {
         case .products:
             ProductsView(model: .products(
                 repository: environment.catalogRepository, assetBaseURL: environment.assetBaseURL
-            ), onOrder: { path.append(.order) })
+            ), onOrder: { startOrder() })
         case .productDetail(let id):
             ProductDetailView(
                 model: .product(
                     id: id, repository: environment.catalogRepository, assetBaseURL: environment.assetBaseURL
                 ),
-                onOrder: { path.append(.order) }
+                onOrder: { startOrder(with: id) }
             )
-        case .order:
-            OrderStubView()
+        case .orderStep(let step):
+            order.screen(for: step, path: $path)
         }
+    }
+
+    /// From S-2 and S-3 the saved draft returns; from a cake (S-4) a new draft begins with that cake.
+    private func startOrder(with cake: ResourceID? = nil) {
+        path.append(order.start(startingWith: cake))
     }
 }

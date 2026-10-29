@@ -23,8 +23,11 @@ nonisolated struct APIClient: Sendable {
 
     /// Returns the response for a 2xx status and for 304 (a conditional GET answered "not modified").
     /// Any other status throws the typed error of the contract body.
-    func get(path: String, headers: [String: String] = [:]) async throws -> (data: Data, response: HTTPURLResponse) {
-        var request = URLRequest(url: baseURL.appending(path: path))
+    func get(
+        path: String, query: [URLQueryItem] = [], headers: [String: String] = [:]
+    ) async throws -> (data: Data, response: HTTPURLResponse) {
+        let url = baseURL.appending(path: path)
+        var request = URLRequest(url: query.isEmpty ? url : url.appending(queryItems: query))
         request.httpMethod = "GET"
         request.setValue(Self.platformName, forHTTPHeaderField: Self.platformHeader)
         request.setValue(appVersion, forHTTPHeaderField: Self.appVersionHeader)
