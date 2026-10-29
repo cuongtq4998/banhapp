@@ -1,6 +1,6 @@
 # Place Order UI, part 8: Content and copy keys (section 8)
 
-[v1.4 | 2026-10-27] Part of the split UI specification; index: [place-order-ui.md](../place-order-ui.md). Content unchanged from v1.3; section numbers are the original ones. Code comments cite this part as "place-order-ui.md section 8".
+[v1.5 | 2026-10-29] Part of the split UI specification; index: [place-order-ui.md](../place-order-ui.md). Section numbers are the original ones. Code comments cite this part as "place-order-ui.md section 8". Changes in v1.5: calendar, weekday, spoken-date and removed-cake-unknown keys added; `NOTE_COUNTER` and `ERR_NOTE_MAX` take {max}; `DETAIL_BTN_ORDER` decision recorded. Key names are the iOS String Catalog keys; Android resource names (`date_prev_month`, `date_weekday_n` and so on) may differ, the Vietnamese text must not.
 
 ## 8. Content & Copy
 
@@ -37,10 +37,11 @@ All display text is Vietnamese. Data-source values (shop name, greeting, cake na
 | `DETAIL_GONE` | [v1.2 | 2026-10-26] Bánh này hiện không còn được bán. | S-4 |
 | `DETAIL_GONE_ACTION` | [v1.2 | 2026-10-26] Xem các bánh khác | S-4 |
 | `ORDER_CAKE_REMOVED` | [v1.2 | 2026-10-26] {name} hiện không còn được bán và đã được bỏ khỏi đơn. Các bánh khác và thông tin bạn đã nhập vẫn được giữ lại. | S-5 |
+| `ORDER_CAKE_REMOVED_UNKNOWN` | [v1.5 | 2026-10-29] Một loại bánh (used as {name} of `ORDER_CAKE_REMOVED` when the removed cake was never seen in this run, for example after a restored draft) | S-5 |
 | `MONEY_FORMAT` | [v1.2 | 2026-10-26] {amount} ₫ (the amount is already grouped with dots, whole dong; code: Android `money_format` `%1$s ₫`) | every price, subtotal, fee and total |
 | `PRODUCT_IMG_FAILED` | Không tải được ảnh | S-3, S-4 |
 | `PRICE_EACH` | {amount}/cái | S-3, S-4, S-5 |
-| `DETAIL_BTN_ORDER` | [v1.3 | 2026-10-26] Đặt bánh (was "Đặt bánh này"; the board's S-4 bar button reads "Đặt bánh") | S-4 |
+| `DETAIL_BTN_ORDER` | [v1.3 | 2026-10-26] Đặt bánh (was "Đặt bánh này"; the board's S-4 bar button reads "Đặt bánh") [v1.5 | 2026-10-29] Confirmed: this text wins, screen design 5.4 and the board agree; iOS and Android code still read "Đặt bánh này" and must change | S-4 |
 | `FLOW_TITLE` | Đặt bánh | S-5 to S-8 |
 | `STEP_LABEL` | Bước {n}/4 ([v1.2 | 2026-10-26] the total 4 is part of the string, as in Android `step_label` `Bước %1$d/4`; the step count is fixed by G-1) | S-5 to S-8 |
 | `STEP1` | Chọn bánh | S-5 |
@@ -62,6 +63,12 @@ All display text is Vietnamese. Data-source values (shop name, greeting, cake na
 | `DATE_A11Y_TOO_FAR` | {date}, chưa thể chọn vì chỉ nhận đặt trước tối đa {max} ngày | S-6 |
 | `DATE_EMPTY` | Không có ngày nào còn đủ chỗ cho đơn của bạn. Hãy giảm số lượng bánh. | S-6 |
 | `DATE_EMPTY_ACTION` | Sửa số lượng | S-6, S-8 |
+| `DATE_MONTH_TITLE` | [v1.5 | 2026-10-29] Tháng {m} năm {y} (month title above the grid; {m} is 1 to 12 without a leading zero) | S-6 |
+| `DATE_MONTH_PREV` | [v1.5 | 2026-10-29] Tháng trước (screen reader label of the previous-month control) | S-6 |
+| `DATE_MONTH_NEXT` | [v1.5 | 2026-10-29] Tháng sau (screen reader label of the next-month control) | S-6 |
+| `WEEKDAY_1` to `WEEKDAY_7` | [v1.5 | 2026-10-29] T2, T3, T4, T5, T6, T7, CN (Monday first; `WEEKDAY_1` = T2 ... `WEEKDAY_6` = T7, `WEEKDAY_7` = CN) | S-6 (grid header) |
+| `DATE_A11Y_AVAILABLE` | [v1.5 | 2026-10-29] {date}, có thể chọn (both platforms read it for a selectable, unselected day) | S-6 (screen reader) |
+| `DATE_SPOKEN` | [v1.5 | 2026-10-29] ngày {d} tháng {m} năm {y} (the spoken {date} inside every `DATE_A11Y_*` text; the visible date stays dd/MM/yyyy, FR-21) | S-6 (screen reader) |
 | `DATE_ERR` | Không tải được lịch nhận bánh. Vui lòng thử lại. | S-6 |
 | `DATE_CLEARED` | Ngày bạn chọn không còn đủ chỗ cho đơn của bạn. Vui lòng chọn ngày khác. | S-6 |
 | `TIME_TITLE` | Chọn giờ nhận | S-6 |
@@ -76,13 +83,13 @@ All display text is Vietnamese. Data-source values (shop name, greeting, cake na
 | `DISTRICT_ERR` | Không tải được danh sách khu vực giao hàng. | S-7 |
 | `DISTRICT_EMPTY` | Hiện chưa có khu vực giao hàng nào. Vui lòng liên hệ cửa hàng. | S-7 |
 | `FIELD_NOTE` | Ghi chú (không bắt buộc) | S-7 |
-| `NOTE_COUNTER` | {n}/200 | S-7 |
+| `NOTE_COUNTER` | [v1.5 | 2026-10-29] {n}/{max} ({max} is `settings.note_max_length` from the catalog; fallback 200 when the setting is missing; never typed in) | S-7 |
 | `ERR_NAME_REQUIRED` | Vui lòng nhập họ và tên. | S-7 |
 | `ERR_PHONE_REQUIRED` | Vui lòng nhập số điện thoại. | S-7 |
 | `ERR_PHONE_INVALID` | [v1.1 | 2026-10-25] Vui lòng nhập số điện thoại di động Việt Nam (10 số, ví dụ 09xx xxx xxx). | S-7 |
 | `ERR_ADDRESS_REQUIRED` | Vui lòng nhập địa chỉ giao hàng. | S-7 |
 | `ERR_DISTRICT_REQUIRED` | Vui lòng chọn quận/huyện. | S-7 |
-| `ERR_NOTE_MAX` | Ghi chú tối đa 200 ký tự. | S-7 |
+| `ERR_NOTE_MAX` | [v1.5 | 2026-10-29] Ghi chú tối đa {max} ký tự. ({max} as in `NOTE_COUNTER`) | S-7 |
 | `REVIEW_SEC_CAKES` | Bánh đã chọn | S-8 |
 | `REVIEW_ITEM` | {name} × {n} | S-8 |
 | `REVIEW_FEE` | Phí giao hàng | S-8 |
