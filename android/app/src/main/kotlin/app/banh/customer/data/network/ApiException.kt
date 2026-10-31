@@ -1,6 +1,7 @@
 package app.banh.customer.data.network
 
 import java.io.IOException
+import kotlinx.serialization.json.JsonObject
 
 /** Every way a call to the backend can fail, so callers branch on types and never on message text. */
 sealed class ApiException(message: String, cause: Throwable? = null) : Exception(message, cause) {
@@ -22,6 +23,10 @@ sealed class ApiException(message: String, cause: Throwable? = null) : Exception
         val messageKey: String,
         val httpStatus: Int,
         val requestId: String?,
+        /** The `details` object of the envelope; its keys depend on the code (api.md 4.3). */
+        val details: JsonObject? = null,
+        /** The `fields[]` of a `VALIDATION_FAILED` answer, in the server's order. */
+        val fields: List<FieldIssue> = emptyList(),
     ) : ApiException("API error $code ($httpStatus)")
 
     class RateLimited(val retryAfterSeconds: Int, val requestId: String?) :

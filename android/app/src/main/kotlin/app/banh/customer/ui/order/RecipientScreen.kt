@@ -55,6 +55,8 @@ fun RecipientRoute(flow: OrderFlowViewModel, onBack: () -> Unit, onNext: () -> U
             when (effect) {
                 is OrderEffect.FocusField -> focusEvents.emit(effect.field)
                 OrderEffect.GoToReview -> currentOnNext()
+                // Meant for S-8; S-7 is not the one that sends.
+                OrderEffect.GoToRecipient -> Unit
             }
         }
     }

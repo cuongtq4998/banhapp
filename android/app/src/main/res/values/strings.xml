@@ -124,4 +124,26 @@
     <string name="review_privacy_link">Xem chính sách đầy đủ</string>
     <string name="btn_confirm">Xác nhận đơn hàng</string>
     <string name="err_min_qty">Đơn hàng cần ít nhất %1$d bánh. Vui lòng thêm bánh.</string>
+    <string name="btn_sending">Đang gửi đơn</string>
+    <string name="err_date_capacity">Ngày %1$s không còn đủ chỗ cho đơn của bạn. Vui lòng chọn ngày khác.</string>
+    <string name="err_date_lead">Ngày nhận phải sau ngày đặt ít nhất %1$d ngày. Vui lòng chọn ngày khác.</string>
+    <string name="err_date_horizon">Chỉ nhận đặt trước tối đa %1$d ngày. Vui lòng chọn ngày sớm hơn.</string>
+    <string name="err_district_unserved">Cửa hàng chưa giao đến khu vực này. Vui lòng chọn quận/huyện khác.</string>
+    <string name="action_choose_date">Chọn ngày khác</string>
+    <string name="action_choose_district">Chọn khu vực khác</string>
+    <string name="action_choose_slot">Chọn giờ khác</string>
+    <string name="err_product_unavailable">Có bánh trong đơn hiện không còn được bán. Vui lòng chọn lại bánh. Đơn hàng chưa được gửi. Thông tin của bạn vẫn được giữ lại.</string>
+    <string name="err_slot_unavailable">Khung giờ nhận bánh bạn chọn không còn khả dụng. Vui lòng chọn giờ khác.</string>
+    <string name="err_rate_limited">Đơn hàng chưa được gửi vì có quá nhiều yêu cầu. Thông tin của bạn vẫn được giữ lại. Vui lòng đợi một lát rồi thử lại.</string>
+    <string name="err_offline">Đơn hàng chưa được gửi vì không có kết nối mạng. Thông tin của bạn vẫn được giữ lại.</string>
+    <string name="err_server">Đơn hàng chưa được gửi do có lỗi. Thông tin của bạn vẫn được giữ lại. Vui lòng thử lại.</string>
+    <string name="err_timeout">Đơn hàng chưa được gửi vì mất quá nhiều thời gian. Thông tin của bạn vẫn được giữ lại. Vui lòng thử lại.</string>
+    <string name="msg_price_changed">Giá đã thay đổi nên đơn hàng chưa được gửi. Vui lòng xem lại giá và tổng cộng mới, rồi bấm xác nhận lại.</string>
+
+    <!-- S-9 Confirmation -->
+    <string name="conf_title">Đã nhận đơn hàng</string>
+    <string name="conf_code_label">Mã đơn hàng</string>
+    <string name="conf_code_a11y">Mã đơn hàng %1$s</string>
+    <string name="conf_message">Cửa hàng đã nhận được đơn của bạn và sẽ liên hệ với bạn. Khi cần, bạn có thể nhắn Zalo hoặc gọi điện cho cửa hàng và cho biết mã đơn hàng.</string>
+    <string name="conf_btn_home">Về trang chủ</string>
 </resources>

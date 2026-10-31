@@ -1,6 +1,7 @@
 package app.banh.customer.ui.order
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -102,12 +103,12 @@ class ReviewScreenTest {
         rule.onNodeWithTag(TestTags.REVIEW_NOTE).assertTextEquals(note)
     }
 
-    // Slice 3 enables the send; until then the button is present and off.
+    // Slice 3: a complete order can be confirmed.
     @Test
-    fun confirmIsPresentButNotYetEnabled() {
+    fun confirmIsEnabledForACompleteOrder() {
         show()
 
-        rule.onNodeWithTag(TestTags.REVIEW_CONFIRM).assertIsDisplayed().assertIsNotEnabled()
+        rule.onNodeWithTag(TestTags.REVIEW_CONFIRM).assertIsDisplayed().assertIsEnabled()
     }
 
     // AC-18: each Edit control leads to the step that holds the data.

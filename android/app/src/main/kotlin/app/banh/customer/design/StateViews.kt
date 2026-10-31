@@ -16,31 +16,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import app.banh.customer.TestTags
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
-import app.banh.customer.R
-
-/** Full-area error: icon, message and a retry button (`StateView` Error). */
-@Composable
-fun ErrorState(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
-    StateMessage(message, onRetry, TestTags.ERROR_STATE, modifier)
-}
 
 /**
- * Zero cakes to show: the Error layout with its own tag, so a test (and the reader of the code) can tell
- * "the shop has nothing to sell" from "the data could not be loaded" (BR-13).
+ * Full-area message: icon, message and a retry button (`StateView` Error). Text, icon and test tags come from the
+ * caller (ADR-0018: design imports neither the resource class nor the test tags); `ui.common` binds them.
+ * The caller picks [stateTag] so a test can tell "the shop has nothing to sell" from "the data could not be loaded".
  */
 @Composable
-fun EmptyState(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
-    StateMessage(message, onRetry, TestTags.EMPTY_STATE, modifier)
-}
-
-@Composable
-private fun StateMessage(message: String, onRetry: () -> Unit, stateTag: String, modifier: Modifier) {
+fun StateMessage(
+    message: String,
+    retryLabel: String,
+    icon: Painter,
+    stateTag: String,
+    retryTag: String,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -50,22 +45,22 @@ private fun StateMessage(message: String, onRetry: () -> Unit, stateTag: String,
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         Icon(
-            painter = painterResource(R.drawable.ic_error),
+            painter = icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.error,
         )
         Text(message, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
         SecondaryButton(
-            text = stringResource(R.string.common_retry),
+            text = retryLabel,
             onClick = onRetry,
-            modifier = Modifier.testTag(TestTags.STATE_RETRY),
+            modifier = Modifier.testTag(retryTag),
         )
     }
 }
 
 /** Information next to the content it explains (`InlineMessage`, Info); the tag goes on the whole message. */
 @Composable
-fun InfoMessage(text: String, modifier: Modifier = Modifier) {
+fun InfoMessageView(text: String, icon: Painter, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -74,7 +69,7 @@ fun InfoMessage(text: String, modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.spacedBy(Spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(painter = painterResource(R.drawable.ic_info), contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+        Icon(painter = icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
         Text(text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
     }
 }
@@ -91,8 +86,6 @@ fun SkeletonBlock(modifier: Modifier = Modifier, shape: RoundedCornerShape = Rou
 }
 
 /** Marks a group of skeleton blocks as one "loading" element for the screen reader. */
-@Composable
-fun Modifier.loadingSemantics(): Modifier {
-    val label = stringResource(R.string.common_loading)
+fun Modifier.loadingSemanticsLabeled(label: String): Modifier {
     return semantics(mergeDescendants = true) { contentDescription = label }
 }

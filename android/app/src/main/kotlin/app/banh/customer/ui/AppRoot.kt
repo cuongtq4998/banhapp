@@ -91,7 +91,12 @@ private fun AppNavigation(container: AppContainer, navController: NavHostControl
                 onOrder = { navController.navigate(OrderRoutes.cakes(productId)) },
             )
         }
-        orderGraph(navController, container.orderDependencies)
+        orderGraph(
+            navController,
+            container.orderDependencies,
+            // Back to S-2 with everything above it gone, the order graph and its store included.
+            onFinished = { navController.popBackStack(Routes.HOME, inclusive = false) },
+        )
     }
 }
 

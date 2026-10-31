@@ -36,8 +36,8 @@ import app.banh.customer.R
 import app.banh.customer.TestTags
 import app.banh.customer.data.Load
 import app.banh.customer.data.catalog.District
-import app.banh.customer.design.ErrorMessage
-import app.banh.customer.design.InfoMessage
+import app.banh.customer.ui.common.ErrorMessage
+import app.banh.customer.ui.common.InfoMessage
 import app.banh.customer.design.Radii
 import app.banh.customer.design.Spacing
 import app.banh.customer.ui.common.formatMoney

@@ -14,6 +14,7 @@ object ColorTokens {
     const val TEXT_SECONDARY = 0xFF4A5A4EL
     const val ERROR = 0xFFB3261EL
     const val ERROR_CONTAINER = 0xFFF9DEDCL
+    const val WARNING_CONTAINER = 0xFFFFF1CCL
     const val BLOB_GREEN = 0xFF8FC79AL
     const val BLOB_CREAM = 0xFFF1D9A0L
     const val SURFACE_GLASS = 0xFFFFFFFFL

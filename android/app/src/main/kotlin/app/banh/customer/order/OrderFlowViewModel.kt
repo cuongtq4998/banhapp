@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import app.banh.customer.data.Load
 import app.banh.customer.data.LoadFailure
 import app.banh.customer.data.availability.Availability
+import app.banh.customer.data.network.ApiErrorCode
 import app.banh.customer.data.network.ApiException
 import java.util.UUID
 import kotlinx.coroutines.Job
@@ -22,8 +23,8 @@ import kotlinx.coroutines.launch
 
 /**
  * The order flow store (ADR-0007), scoped to the order navigation graph so S-5 to S-8 share one draft (FR-15). It
- * applies intents with [reduce], saves the draft after every change (ADR-0011), loads availability for S-6, and
- * turns the check on S-7 into an effect.
+ * applies intents with [reduce], saves the draft after every change (ADR-0011), loads availability for S-6, turns the
+ * check on S-7 into an effect, and sends the order (ADR-0008, see [submit]).
  */
 class OrderFlowViewModel(
     private val dependencies: OrderDependencies,
@@ -36,6 +37,7 @@ class OrderFlowViewModel(
     val effects: Flow<OrderEffect> = effectChannel.receiveAsFlow()
 
     private var availabilityJob: Job? = null
+    private var submitJob: Job? = null
 
     // The draft as it is on disk, so a change that only the catalog caused (a hidden cake) is saved too, and a draft that
     // was just read is not written back unchanged.
@@ -50,8 +52,12 @@ class OrderFlowViewModel(
     }
 
     fun onIntent(intent: OrderIntent) {
+        val wasSending = mutableState.value.submit is SubmitState.Sending
+        if (intent is OrderIntent.FinishOrder) forgetSavedDraft(intent.freshKey)
         mutableState.update { withKeyRule(it, reduce(it, intent), intent, newKey) }
         when (intent) {
+            // Only the tap that moved the state to Sending starts a send; a second tap finds it already Sending.
+            OrderIntent.Confirm -> if (!wasSending && mutableState.value.submit is SubmitState.Sending) submit()
             OrderIntent.LoadAvailability -> loadAvailability()
             OrderIntent.RetryCatalog -> viewModelScope.launch { dependencies.catalog.refresh() }
             OrderIntent.SubmitRecipient -> announceRecipientCheck()
@@ -102,6 +108,56 @@ class OrderFlowViewModel(
             }
             onIntent(OrderIntent.AvailabilityLoaded(cakes, result))
         }
+    }
+
+    /**
+     * One send. The key stays as the draft holds it, so a retry after a timeout or an outage is the same request and
+     * returns the stored order (AC-19). `IDEMPOTENCY_KEY_REUSED` means the body changed under the key: replace it and
+     * send once more (ADR-0008 v1.1).
+     */
+    private fun submit() {
+        submitJob?.cancel()
+        submitJob = viewModelScope.launch {
+            var keyReplaced = false
+            while (true) {
+                val state = mutableState.value
+                val request = state.toOrderRequest()
+                    ?: return@launch onIntent(OrderIntent.SubmitFailed(SubmitFailure.Problem(SubmitProblem.NotSent(NotSentReason.SERVER)), newKey()))
+                try {
+                    val receipt = dependencies.orders.submit(request, state.draft.idempotencyKey)
+                    // The order exists now: the saved draft must not offer it again after a restart.
+                    dependencies.drafts.clear()
+                    return@launch onIntent(OrderIntent.Submitted(receipt.orderCode))
+                } catch (e: ApiException) {
+                    if (!keyReplaced && e is ApiException.Service && e.code == ApiErrorCode.IDEMPOTENCY_KEY_REUSED) {
+                        keyReplaced = true
+                        onIntent(OrderIntent.ReplaceKey(newKey()))
+                        continue
+                    }
+                    return@launch fail(classifySubmitFailure(e))
+                }
+            }
+        }
+    }
+
+    private fun fail(failure: SubmitFailure) {
+        onIntent(OrderIntent.SubmitFailed(failure, newKey()))
+        when {
+            failure is SubmitFailure.Invalid && mutableState.value.recipientErrors.isNotEmpty() ->
+                effectChannel.trySend(OrderEffect.GoToRecipient)
+            // A cake or slot the shop took away: the catalog is out of date (UI document 5.8).
+            failure is SubmitFailure.ProductsGone || failure.isSlotUnavailable() ->
+                viewModelScope.launch { dependencies.catalog.refresh() }
+        }
+    }
+
+    private fun SubmitFailure.isSlotUnavailable(): Boolean =
+        this is SubmitFailure.Problem && (problem as? SubmitProblem.Rule)?.rule == SubmitRule.SLOT_UNAVAILABLE
+
+    // The order data is gone for good: the saved copy goes too, and the store does not write the blank draft back.
+    private fun forgetSavedDraft(freshKey: String) {
+        persistedDraft = OrderDraft.blank(freshKey)
+        viewModelScope.launch { dependencies.drafts.clear() }
     }
 
     private fun announceRecipientCheck() {

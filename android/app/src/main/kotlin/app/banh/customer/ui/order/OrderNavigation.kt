@@ -20,7 +20,7 @@ import androidx.navigation.navArgument
 import app.banh.customer.order.OrderDependencies
 import app.banh.customer.order.OrderFlowViewModel
 
-/** Routes of the order flow, S-5 to S-8. The graph owns the [OrderFlowViewModel]; its steps share it (FR-15). */
+/** Routes of the order flow, S-5 to S-9. The graph owns the [OrderFlowViewModel]; its steps share it (FR-15). */
 object OrderRoutes {
     const val GRAPH = "order"
     const val PRODUCT_ID_ARG = "productId"
@@ -28,6 +28,7 @@ object OrderRoutes {
     const val DATE = "order/date"
     const val RECIPIENT = "order/recipient"
     const val REVIEW = "order/review"
+    const val CONFIRMATION = "order/confirmation"
 
     /** Opens S-5 with the saved draft, or, with [productId], with a new draft holding that cake at 1 (FR-4, AC-5). */
     fun cakes(productId: String? = null): String =
@@ -38,7 +39,7 @@ object OrderRoutes {
  * Adds the order graph to [NavGraphBuilder]. The steps move forward with Next and back with the back control; Edit on
  * the review returns to the step in the stack, so every entry made on the way is still there (AC-18).
  */
-fun NavGraphBuilder.orderGraph(navController: NavHostController, dependencies: OrderDependencies) {
+fun NavGraphBuilder.orderGraph(navController: NavHostController, dependencies: OrderDependencies, onFinished: () -> Unit = {}) {
     navigation(startDestination = OrderRoutes.CAKES, route = OrderRoutes.GRAPH) {
         composable(
             route = OrderRoutes.CAKES,
@@ -76,8 +77,15 @@ fun NavGraphBuilder.orderGraph(navController: NavHostController, dependencies: O
                     onEditCakes = { navController.popBackStack(OrderRoutes.CAKES, inclusive = false) },
                     onEditDelivery = { navController.popBackStack(OrderRoutes.DATE, inclusive = false) },
                     onEditRecipient = { navController.popBackStack(OrderRoutes.RECIPIENT, inclusive = false) },
+                    // S-8 leaves the stack, so no back path returns to it and a second send is impossible (UI document 5.9).
+                    onConfirmed = {
+                        navController.navigate(OrderRoutes.CONFIRMATION) { popUpTo(OrderRoutes.REVIEW) { inclusive = true } }
+                    },
                 ),
             )
+        }
+        composable(OrderRoutes.CONFIRMATION) { entry ->
+            ConfirmationRoute(flow = rememberOrderFlow(navController, entry, dependencies), onHome = onFinished)
         }
     }
 }

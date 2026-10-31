@@ -19,7 +19,7 @@ import app.banh.customer.R
 import app.banh.customer.TestTags
 import app.banh.customer.design.BanhScreen
 import app.banh.customer.design.BottomActionBar
-import app.banh.customer.design.InlineTopBar
+import app.banh.customer.ui.common.InlineTopBar
 import app.banh.customer.design.Spacing
 
 @StringRes

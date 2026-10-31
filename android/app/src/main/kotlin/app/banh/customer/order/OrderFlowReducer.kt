@@ -23,6 +23,13 @@ fun reduce(state: OrderFlowState, intent: OrderIntent): OrderFlowState = when (i
     is OrderIntent.ChooseDistrict,
     OrderIntent.SubmitRecipient,
     -> reduceRecipient(state, intent)
+    OrderIntent.Confirm,
+    is OrderIntent.Submitted,
+    is OrderIntent.SubmitFailed,
+    is OrderIntent.ReplaceKey,
+    OrderIntent.LeaveReview,
+    is OrderIntent.FinishOrder,
+    -> reduceSubmit(state, intent)
     OrderIntent.RetryCatalog -> state
     is OrderIntent.CatalogChanged -> reconcile(withCatalog(state, intent.catalog), intent.replacementKey)
     is OrderIntent.DraftRestored -> reconcile(
@@ -40,6 +47,8 @@ private fun startNew(state: OrderFlowState, intent: OrderIntent.StartNew): Order
     dateCleared = false,
     recipientErrors = emptyMap(),
     noteLimitHit = false,
+    submit = SubmitState.Idle,
+    priceUpdate = null,
 )
 
 private fun setQuantity(state: OrderFlowState, intent: OrderIntent.SetQuantity): OrderFlowState {

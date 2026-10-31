@@ -9,8 +9,7 @@ import org.junit.Test
  * Keeps the package directions of ADR-0018 true with a plain JUnit scan of the `import` lines (Konsist is not verified).
  * A package the test does not know fails it, so new code in a new place forces a decision here.
  *
- * Directions: `data` imports only `data`; `design` imports only `design`, plus the two known couplings in
- * [DESIGN_ROOT_COUPLINGS] that ADR-0018 asks to remove; `order` (flow rules and the store) imports only `data` and
+ * Directions: `data` imports only `data`; `design` imports only `design` (the former couplings to `R` and `TestTags` are removed); `order` (flow rules and the store) imports only `data` and
  * itself; `ui` may import every package.
  */
 class ImportDirectionTest {
@@ -41,8 +40,8 @@ class ImportDirectionTest {
     }
 
     @Test
-    fun designImportsNoDataOrScreensExceptTheKnownCouplings() {
-        assertEquals(emptyList<String>(), violations("design") { it.startsWith("design.") || it in DESIGN_ROOT_COUPLINGS })
+    fun designImportsNothingOutsideDesign() {
+        assertEquals(emptyList<String>(), violations("design") { it.startsWith("design.") })
     }
 
     @Test
@@ -54,8 +53,5 @@ class ImportDirectionTest {
         private const val IMPORT_PREFIX = "import app.banh.customer."
         private const val ROOT = "(root)"
         private val KNOWN_PACKAGES = setOf(ROOT, "data", "design", "order", "ui")
-
-        /** The generated resource class and the test tags: ADR-0018 asks for design to take both as parameters. */
-        private val DESIGN_ROOT_COUPLINGS = setOf("R", "TestTags")
     }
 }

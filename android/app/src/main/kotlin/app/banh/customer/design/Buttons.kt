@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -18,10 +21,14 @@ import androidx.compose.ui.graphics.painter.Painter
 
 private fun Modifier.fullWidthButton(): Modifier = fillMaxWidth().heightIn(min = Sizes.buttonHeight)
 
-/** Main action of a screen. */
+/** Main action of a screen. With [loading] a spinner stands before the text (the caller also disables the button). */
 @Composable
-fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, loading: Boolean = false) {
     Button(onClick = onClick, modifier = modifier.fullWidthButton(), enabled = enabled) {
+        if (loading) {
+            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+            Spacer(Modifier.width(Spacing.sm))
+        }
         Text(text, style = MaterialTheme.typography.labelLarge)
     }
 }

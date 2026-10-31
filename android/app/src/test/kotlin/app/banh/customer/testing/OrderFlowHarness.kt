@@ -12,8 +12,16 @@ class OrderFlowHarness {
     val clock = MutableClock()
     private var keyCount = 0
 
-    fun viewModel(availability: FakeAvailabilityApi = FakeAvailabilityApi(fixtureAvailability())) =
-        OrderFlowViewModel(OrderDependencies(catalog, availability, drafts, clock)) { "key-${++keyCount}" }
+    fun viewModel(
+        availability: FakeAvailabilityApi = FakeAvailabilityApi(fixtureAvailability()),
+        orders: FakeOrderApi = FakeOrderApi(fixtureReceipt()),
+    ) = OrderFlowViewModel(OrderDependencies(catalog, availability, drafts, clock, orders)) { "key-${++keyCount}" }
+
+    /** A store that restored [savedDraft]: complete, so confirm is on. */
+    fun readyViewModel(orders: FakeOrderApi): OrderFlowViewModel {
+        drafts.draft = savedDraft()
+        return viewModel(orders = orders)
+    }
 
     /** A complete draft written a moment ago; every field is filled so a restore is checked field by field. */
     fun savedDraft() = OrderDraft(
