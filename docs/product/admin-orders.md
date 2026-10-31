@@ -2,26 +2,26 @@
 
 | Field        | Value                                                                 |
 | ------------ | --------------------------------------------------------------------- |
-| Version      | 1.3 [v1.3 | 2026-10-31]                                               |
+| Version      | 1.4 [v1.4 | 2026-10-31]                                               |
 | Last updated | 2026-10-31                                                            |
-| Status       | Approved (owner approval of v1.2, 2026-10-31). v1.3 records new owner decisions and closes review findings; items marked "proposed in v1.3" (Q-18 to Q-20) await owner confirmation [v1.3 | 2026-10-31] |
+| Status       | Approved (owner approval of v1.2, 2026-10-31). v1.3 recorded owner decisions and closed review findings. v1.4 records Q-20, Q-22 (changed: Unfinished view) and Q-24 (new-device notice); only Q-23 (daily reminder push, default none) is open and does not block [v1.4 | 2026-10-31] |
 | Owner        | scribe-requirements                                                   |
 | Based on     | docs/pipeline/admin-orders/00-request.md (2026-10-31); docs/product/place-order.md v1.5 |
 | Related      | docs/system/order-lifecycle.md; docs/system/auth.md; docs/system/data-model.md; docs/design/reference/screens/ (A1 to A4, ios and android, reference only) |
 
-This document is split into parts of at most 200 lines each (project file size rule). Cite ids (FR-n, BR-n, AC-n, Q-n) as written. Lines changed in v1.1 end with [v1.1 | 2026-10-31]; lines changed in v1.2 end with [v1.2 | 2026-10-31]; lines changed in v1.3 end with [v1.3 | 2026-10-31].
+This document is split into parts of at most 200 lines each (project file size rule). Cite ids (FR-n, BR-n, AC-n, Q-n) as written. Lines changed in v1.1 end with [v1.1 | 2026-10-31]; lines changed in v1.2 end with [v1.2 | 2026-10-31]; lines changed in v1.3 end with [v1.3 | 2026-10-31]; lines changed in v1.4 end with [v1.4 | 2026-10-31].
 
 ## Parts
 
 | Part | Sections | Ids held |
 | ---- | -------- | -------- |
 | [01-overview.md](admin-orders/01-overview.md) | 1 Summary, 2 Background & Problem, 3 Goals / Non-goals, 4 Users & Scenarios, owner decisions D-1 and D-2 | G-1 to G-4, D-1, D-2 |
-| [02-functional-requirements.md](admin-orders/02-functional-requirements.md) | 5 Functional Requirements | FR-1 to FR-46 [v1.3 | 2026-10-31] |
-| [03-business-rules.md](admin-orders/03-business-rules.md) | 6 Business Rules | BR-1 to BR-25 [v1.3 | 2026-10-31] |
+| [02-functional-requirements.md](admin-orders/02-functional-requirements.md) | 5 Functional Requirements | FR-1 to FR-52 [v1.4 | 2026-10-31] |
+| [03-business-rules.md](admin-orders/03-business-rules.md) | 6 Business Rules | BR-1 to BR-28 [v1.4 | 2026-10-31] |
 | [04-acceptance-criteria-sign-in-orders.md](admin-orders/04-acceptance-criteria-sign-in-orders.md) | 7 Acceptance Criteria: sign-in, list, detail | AC-1 to AC-30 |
-| [05-acceptance-criteria-settings-notifications.md](admin-orders/05-acceptance-criteria-settings-notifications.md) | 7 Acceptance Criteria: settings, notifications, sessions and recovery, cakes and rules, order window and cancel reasons, review findings | AC-31 to AC-93 [v1.3 | 2026-10-31] |
+| [05-acceptance-criteria-settings-notifications.md](admin-orders/05-acceptance-criteria-settings-notifications.md) | 7 Acceptance Criteria: settings, notifications, sessions and recovery, cakes and rules, order window and cancel reasons, review findings, new-device notice and unfinished orders | AC-31 to AC-103 [v1.4 | 2026-10-31] |
 | [06-nfr-dependencies-assumptions-sources.md](admin-orders/06-nfr-dependencies-assumptions-sources.md) | 8 Non-functional, 9 Impact & Dependencies, 10 Assumptions, 11 Research & Sources | A-1 to A-10, S-1 to S-6 |
-| [07-open-questions.md](admin-orders/07-open-questions.md) | 12 Open Questions, 13 Change log | Q-1 to Q-22, TQ-1 to TQ-11 [v1.3 | 2026-10-31] |
+| [07-open-questions.md](admin-orders/07-open-questions.md) | 12 Open Questions, 13 Change log | Q-1 to Q-24, TQ-1 to TQ-13 [v1.4 | 2026-10-31] |
 
 ## Summary of v1.1
 
@@ -41,10 +41,13 @@ The owner decided Q-1 to Q-14 (all closed). The admin app is separate, built for
 | Q-12 repeat-order limit | FR-44 | BR-16 | AC-70 to AC-72 |
 | Q-13 90-day window | FR-41 | BR-20 | AC-67, AC-68 |
 | Q-14 backup e-mail recovery | FR-42, FR-43 | BR-17 | AC-57 to AC-59 |
+| Q-20 no time lock (v1.4) | FR-6 | BR-5, BR-17 | AC-8, AC-77, AC-78 |
+| Q-22 Unfinished view (v1.4) | FR-41, FR-48 to FR-52 | BR-20, BR-27, BR-28 | AC-83, AC-96 to AC-103 |
+| Q-24 new-device notice (v1.4) | FR-47 | BR-26 | AC-94, AC-95 |
 
 ## Status note
 
-Approved by the product owner on 2026-10-31. In v1.3 no question blocks; Q-20 and Q-22 are proposals with a default applied and await confirmation. Q-15 (the 7-day sign-in restarts on each use), Q-16 (two different recovery codes, one per mailbox, both required) and Q-17 (at most 12 cakes, active plus hidden) were decided with the recommended options. Technical questions TQ-1 to TQ-10 remain for the architect. [v1.2 | 2026-10-31]
+Approved by the product owner on 2026-10-31. In v1.4 no question blocks; Q-23 (daily reminder push) is open with the default "no push". [v1.4 | 2026-10-31] Q-15 (the 7-day sign-in restarts on each use), Q-16 (two different recovery codes, one per mailbox, both required) and Q-17 (at most 12 cakes, active plus hidden) were decided with the recommended options. Technical questions TQ-1 to TQ-10 remain for the architect. [v1.2 | 2026-10-31]
 
 ## Summary of v1.3
 
