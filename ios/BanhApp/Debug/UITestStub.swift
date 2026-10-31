@@ -9,9 +9,13 @@ enum UITestStub {
     /// Pictures resolve to a port nothing listens on, so they fail at once and the placeholder shows.
     private static let unreachableAssetBase = URL(string: "http://localhost:9")!
 
+    /// Not an http(s) address, so the privacy page cannot open.
+    private static let unusablePrivacyBase = URL(string: "file:///none")!
+
     @MainActor
     static func environment(for mode: String?) -> AppEnvironment? {
         let catalog: Result<CatalogResponse, APIError>
+        var apiBaseURL = unreachableAssetBase
         var availability: any AvailabilityAPI = StubAvailabilityAPI(result: nil)
         switch mode {
         case LaunchArgument.stubModeCatalog: catalog = .success(UITestStubData.catalog)
@@ -19,6 +23,9 @@ enum UITestStub {
         case LaunchArgument.stubModeAvailabilityFails:
             catalog = .success(UITestStubData.catalog)
             availability = StubAvailabilityAPI(result: .failure(.networkUnavailable))
+        case LaunchArgument.stubModePrivacyFails:
+            catalog = .success(UITestStubData.catalog)
+            apiBaseURL = unusablePrivacyBase
         default: return nil
         }
         return AppEnvironment(
@@ -26,7 +33,9 @@ enum UITestStub {
             availabilityAPI: availability,
             draftStore: InMemoryDraftStore(),
             urlOpener: AcceptingURLOpener(),
-            assetBaseURL: unreachableAssetBase
+            assetBaseURL: unreachableAssetBase,
+            apiBaseURL: apiBaseURL,
+            usesStubPrivacyBrowser: true
         )
     }
 

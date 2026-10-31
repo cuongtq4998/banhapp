@@ -11,7 +11,8 @@ final class OrderCoordinatorTests: XCTestCase {
             availabilityAPI: try StubAvailability.fixture(),
             draftStore: store,
             urlOpener: StubOpener(),
-            assetBaseURL: URL(string: "http://localhost:9")!
+            assetBaseURL: URL(string: "http://localhost:9")!,
+            apiBaseURL: URL(string: "http://localhost:9")!
         )
         return (OrderCoordinator(environment: environment, now: { OrderTestSupport.now }), store, environment)
     }

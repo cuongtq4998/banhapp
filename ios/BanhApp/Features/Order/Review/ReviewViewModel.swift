@@ -90,6 +90,9 @@ final class ReviewViewModel {
 
     func refresh() async { await flow.refreshCatalog() }
 
+    /// True while the order is on its way (the sending slice sets it); the privacy link is disabled then.
+    var isSending = false
+
     var canConfirm: Bool { confirmAction != nil && blocker == nil }
 
     func confirm() {

@@ -3,12 +3,14 @@ import SwiftUI
 /// S-7, step 3 of 4: who receives the order and where.
 struct RecipientStepView: View {
     @State var model: RecipientViewModel
+    let privacy: PrivacyLink
     let onNext: () -> Void
     @FocusState private var focus: RecipientViewModel.Field?
 
     var body: some View {
         OrderStepScaffold(step: .recipient, title: OrderStrings.step3) {
             VStack(alignment: .leading, spacing: Spacing.cardGap) {
+                PrivacyNoticeCard(open: privacy.open)
                 GlassCard { recipientFields }
                 GlassCard { noteField }
             }
@@ -17,6 +19,7 @@ struct RecipientStepView: View {
                 .disabled(!model.canContinue)
                 .accessibilityIdentifier(AccessibilityID.orderNext)
         }
+        .privacyPage(privacy)
         .onChange(of: model.focusRequest) { _, request in
             guard let request else { return }
             focus = request

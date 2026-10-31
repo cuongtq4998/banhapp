@@ -9,10 +9,14 @@ final class OrderCoordinator {
     private let environment: AppEnvironment
     private let now: () -> Date
     private var flow: OrderFlow?
+    private let privacy: PrivacyLink
 
     init(environment: AppEnvironment, now: @escaping () -> Date = { Date() }) {
         self.environment = environment
         self.now = now
+        privacy = PrivacyLink(
+            apiBaseURL: environment.apiBaseURL, usesStubBrowser: environment.usesStubPrivacyBrowser
+        )
     }
 
     /// Starts the flow and returns the route of its first screen. From a cake detail (`cake` given) a
@@ -73,12 +77,12 @@ final class OrderCoordinator {
             )
         case .recipient:
             RecipientStepView(
-                model: RecipientViewModel(flow: flow),
+                model: RecipientViewModel(flow: flow), privacy: privacy,
                 onNext: { self.advance(from: .recipient, path: &path.wrappedValue) }
             )
         case .review:
             ReviewStepView(
-                model: ReviewViewModel(flow: flow),
+                model: ReviewViewModel(flow: flow), privacy: privacy,
                 onEdit: { self.edit($0, path: &path.wrappedValue) }
             )
         }

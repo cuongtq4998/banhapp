@@ -68,16 +68,35 @@ class BanhUITestCase: XCTestCase {
         tap(app, AccessibilityID.orderNext)
     }
 
+    /// Scrolls S-7 until the element can be tapped. The privacy card above the fields pushes the lower
+    /// ones under the keyboard; a swipe also dismisses the keyboard (`scrollDismissesKeyboard`).
+    func reveal(_ app: XCUIApplication, _ identifier: String, file: StaticString = #filePath, line: UInt = #line) {
+        let target = waitFor(app, identifier, file: file, line: line)
+        var attempts = 0
+        while !target.isHittable && attempts < 4 {
+            app.swipeUp()
+            attempts += 1
+        }
+    }
+
     /// S-7 filled with fake data and the district Quận 5 (fee 20.000), then Next.
-    func fillRecipient(_ app: XCUIApplication, district: String = Fake.district5) {
+    func fillRecipient(_ app: XCUIApplication, district: String = Fake.district5, note: String? = nil) {
         waitFor(app, AccessibilityID.fieldName).tap()
         app.typeText("Nguyen Van An")
         element(app, AccessibilityID.fieldPhone).tap()
         app.typeText("0912345678")
+        reveal(app, AccessibilityID.fieldAddress)
         element(app, AccessibilityID.fieldAddress).tap()
         app.typeText("12 Duong So 3")
+        reveal(app, AccessibilityID.fieldDistrict)
         tap(app, AccessibilityID.fieldDistrict)
         tap(app, AccessibilityID.districtRow(district))
+        if let note {
+            reveal(app, AccessibilityID.fieldNote)
+            tap(app, AccessibilityID.fieldNote)
+            app.typeText(note)
+            app.swipeDown()
+        }
         tap(app, AccessibilityID.orderNext)
     }
 }

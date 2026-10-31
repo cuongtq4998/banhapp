@@ -50,6 +50,15 @@ nonisolated enum AccessibilityID {
     static let districtEmpty = "order.district.empty"
     static let districtError = "order.district.error"
 
+    static let privacyCard = "order.privacy.card"
+    static let privacyTitle = "order.privacy.title"
+    static let privacyBody = "order.privacy.body"
+    static let privacyDraft = "order.privacy.draft"
+    static let privacyLink = "order.privacy.link"
+    /// Debug-only stand-in for the in-app browser in UI tests.
+    static let privacyBrowserStub = "privacy.browser.stub"
+    static let privacyBrowserStubClose = "privacy.browser.stub.close"
+
     static let reviewTotal = "review.total"
     static let reviewFee = "review.fee"
     static let reviewDate = "review.date"
@@ -59,6 +68,7 @@ nonisolated enum AccessibilityID {
     static let reviewAddress = "review.address"
     static let reviewNote = "review.note"
     static let reviewPrivacy = "review.privacy"
+    static let reviewPrivacyLink = "review.privacy.link"
     static let reviewConfirm = "review.confirm"
     static let reviewMessage = "review.message"
     static let reviewMessageAction = "review.messageAction"
@@ -102,4 +112,6 @@ nonisolated enum LaunchArgument {
     static let stubModeUnavailable = "unavailable"
     /// The catalog loads but `GET /v1/availability` fails (S-6 error state).
     static let stubModeAvailabilityFails = "availabilityFails"
+    /// Catalog as usual, but the privacy page address is unusable, so opening it fails.
+    static let stubModePrivacyFails = "privacyFails"
 }
