@@ -1,6 +1,6 @@
 # System Architecture: Admin technical answers (UI questions and QA review items)
 
-Part of [architecture.md](../architecture.md) (index, version, change log), section 24. New in v1.11 [v1.11 | 2026-10-31]. Answers the technical questions TQ-D1 to TQ-D7 of `design/admin-orders/11-traceability-questions-changelog.md` and the review items owned by the architect in `test/admin-orders-test-plan/08-review-findings.md`. Where an answer changes a contract, the contract file is named; this file adds no endpoint.
+Part of [architecture.md](../architecture.md) (index, version, change log), section 24. New in v1.11 [v1.11 | 2026-10-31]; R-7 and TQ-12/13 pointer in v1.12 [v1.12 | 2026-10-31]. Answers the technical questions TQ-D1 to TQ-D7 of `design/admin-orders/11-traceability-questions-changelog.md` and the review items owned by the architect in `test/admin-orders-test-plan/08-review-findings.md`. Where an answer changes a contract, the contract file is named; this file adds no endpoint.
 
 ## 24.1 Answers to the UI questions
 
@@ -30,7 +30,7 @@ Residual risk: a person photographing the screen, or screenshots on iOS. Not red
 | ID | Answer | Written in |
 | -- | ------ | ---------- |
 | R-6 | Limits per client address now cover every `/v1/auth` route (20 code and recovery requests an hour, 60 an hour for the others) and 401 answers on admin and owner routes (60 a minute). Mail flooding of third parties is bounded by design: mail goes only to registered active addresses (at most 31), 3 an hour each, plus the daily cap. The client address is unreliable behind the proxy (ADR-0019 open), so these limits are an extra; the address and global keys do the work | auth/abuse-secrets-threats.md 4.2; api/05 section 9; deployment/04 |
-| R-7 | Recovery codes share the counters, the 30 s wait, the 3 an hour limit and the lockout with ordinary codes; a recovery request counts once (two mails, both counted against the daily cap). Consequence: a locked owner address also blocks recovery until the lock ends | auth/abuse-secrets-threats.md 4.2; ADR-0022 v1.1 |
+| R-7 | Superseded by PRD v1.4 (Q-20, BR-5, BR-17) [v1.12 \| 2026-10-31]: no address lock; the 5th wrong entry voids the code (counted on `auth_code.wrong_count`); recovery has its own counters, so ordinary and recovery sign-in never block each other; only the daily mail cap is global (a recovery request counts as two mails) | auth/abuse-secrets-threats.md 4.2; ADR-0022 v1.2 |
 | R-10 | The per-phone limit ignores cancelled orders except `fake_spam` (BR-16, FR-44) in auth, api/01, ADR-0014 and data-model. `auth.md` v2.0 already removed phone and SMS sign-in; the "later slice" wording of staff features is removed from order-lifecycle.md v1.6 and data-model/02 | order-lifecycle.md; api/01; ADR-0014 |
 | R-12 | A grace window of 20 s (`REFRESH_GRACE_SECONDS`): a retry with the previous refresh token inside it returns a new pair; later reuse revokes the session. Accepted by the owner | ADR-0022 v1.1; api/05 10.3 |
 | R-14 | Keyset paging on keys that never change: no repeat; new and status-changed orders appear on the next refresh from page 1; a row can leave the filter before it is fetched. Not a snapshot | ADR-0029 v1.1; api/06 10.9 |

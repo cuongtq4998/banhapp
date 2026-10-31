@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0024 |
-| Version  | 1.1 [v1.1 | 2026-10-31] |
+| Version  | 1.2 [v1.2 | 2026-10-31] |
 | Status   | Accepted (free services; the Apple Developer Program fee is already needed for the customer app; no customer data in the payload) |
 | Date     | 2026-10-31 |
 | Decider  | atlas-architect |
@@ -36,7 +36,7 @@ Dispatch: after the order transaction commits, an in-process task reads the push
 
 Delivery settings (TQ-D3) [v1.1 | 2026-10-31]: Android channel `new_orders`, importance HIGH (sound and heads-up, default system sound, vibration on), created at first launch; the channel id is also set in each FCM message (`android.notification.channel_id`), priority high, `ttl` 3600 s. iOS: `apns-push-type: alert`, `apns-priority: 10`, `apns-expiration` now plus 3600 s, interruption level `active` (default sound), not `time-sensitive` (it needs an extra capability and pierces Focus; a missed night order is acceptable because the list is the truth), `thread-id` `new_orders` so orders group. A notification older than one hour is not delivered. Android permission and iOS authorisation are asked after sign-in, with the explanation screen of the UI spec (FR-34). The channel can be changed by the user in system settings; an app update cannot raise it later, so the value is fixed now.
 
-Tokens: one row per device session; sign-out, revoke, deactivation and token refresh by the app delete or replace it (data-model/04). Permission denied: the app registers no token and shows the hint (FR-34).
+Tokens: two columns of the device session row (merged from a separate table in v1.2, the relation was 1 to 1) [v1.2 | 2026-10-31]; sign-out, revoke, deactivation and token refresh by the app delete or replace it (data-model/04). Permission denied: the app registers no token and shows the hint (FR-34).
 
 ## Consequences
 

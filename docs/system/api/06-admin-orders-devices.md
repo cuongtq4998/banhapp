@@ -1,6 +1,6 @@
 # API Specification: Admin session, devices, push token, orders
 
-Part of [api.md](../api.md) (index, version, change log), sections 10.6 to 10.12. New in v1.13 [v1.13 | 2026-10-31]. Auth: Bearer access token, roles owner and staff unless stated (api/05 section 9). All responses `no-store`.
+Part of [api.md](../api.md) (index, version, change log), sections 10.6 to 10.12. New in v1.13 [v1.13 | 2026-10-31]; Unfinished view and push token columns in v1.15 [v1.15 | 2026-10-31]. Auth: Bearer access token, roles owner and staff unless stated (api/05 section 9). All responses `no-store`.
 
 ### 10.6 GET /v1/admin/me and DELETE /v1/admin/session
 
@@ -12,7 +12,7 @@ Part of [api.md](../api.md) (index, version, change log), sections 10.6 to 10.12
 
 ### 10.8 PUT and DELETE /v1/admin/push-token
 
-`PUT` body `{ "platform": "ios"|"android", "token": string (1 to 512), "apns_environment": "production"|"sandbox" (required for ios) }`; 204. Replaces the token of the calling device and moves a token seen on another session to this one. `DELETE` removes it (204, also when absent). Errors: 422 `VALIDATION_FAILED`. Rate limit: shared. FR-31, FR-34 (the app does not call `PUT` when permission is denied).
+`PUT` body `{ "platform": "ios"|"android", "token": string (1 to 512), "apns_environment": "production"|"sandbox" (required for ios) }`; 204. Writes `device_session.push_token` of the calling device and moves a token seen on another session to this one. `DELETE` clears it (204, also when absent). Errors: 422 `VALIDATION_FAILED`. Rate limit: shared. FR-31, FR-34 (the app does not call `PUT` when permission is denied).
 
 ### 10.9 GET /v1/admin/orders
 
@@ -23,22 +23,24 @@ Part of [api.md](../api.md) (index, version, change log), sections 10.6 to 10.12
 | date_from, date_to | date | Inclusive range of delivery dates; `date_from <= date_to`, at most 120 days apart |
 | q | string | 2 to 50 characters; order code, part of the name, part of the phone (ADR-0029) |
 | cursor | string | Opaque, from `next_cursor` |
+| view | string | Only `unfinished` (FR-48, BR-27): orders New or Confirmed with `delivery_date <= server_date`, any age. Excludes `status`, `date_*`, `q` (422 `VALIDATION_FAILED`). Same sort, paging and row fields; no extra endpoint [v1.15 | 2026-10-31] |
 
-Unknown parameters are rejected as `VALIDATION_FAILED`. Only orders placed in the last 90 days are returned, whatever the filters (FR-41). Sort: `delivery_date`, slot start, `created_at`, id, ascending (BR-13); these keys never change, so pages do not repeat rows; new and status-changed orders appear on the next refresh from page 1 (ADR-0029, R-14) [v1.14 | 2026-10-31]. 200 response:
+Unknown parameters are rejected as `VALIDATION_FAILED`. Without `view`, only orders placed in the last 90 days are returned, whatever the filters (FR-41); with `view=unfinished` the 90-day rule does not apply (BR-20). Sort: `delivery_date`, slot start, `created_at`, id, ascending (BR-13); these keys never change, so pages do not repeat rows; new and status-changed orders appear on the next refresh from page 1 (ADR-0029, R-14) [v1.14 | 2026-10-31]. 200 response:
 
 | Field | Type | Notes |
 | ----- | ---- | ----- |
 | items | array (at most 50) | `order_code`, `status`, `customer_name`, `delivery_date`, `slot` (`start`, `end`), `total_cakes`, `total_vnd`, `district_name`, `created_at` |
 | next_cursor | string or null | Null at the end; no row repeats between pages |
 | new_count | integer | Orders in New inside the window, whatever the filters (FR-12) |
+| unfinished_count | integer | Orders of the Unfinished view (BR-27), whatever the filters or `view`; the app shows 99+ above 99 (FR-49) [v1.15 | 2026-10-31] |
 | server_date | date | |
 | server_time | instant | "Updated at" (AC-21) |
 
-Errors: 401, 422 `VALIDATION_FAILED` (`fields` name the parameter), 429, 503. Side effects: none. Review accounts see only `is_demo` rows. Example: `GET /v1/admin/orders?status=New&date_preset=today` returns `{ "items": [ { "order_code": "BT-7K3M9Q", "status": "New", "customer_name": "Tran Thi B", "delivery_date": "2026-11-02", "slot": { "start": "08:00", "end": "10:00" }, "total_cakes": 2, "total_vnd": 120000, "district_name": "Quan An Phu", "created_at": "2026-10-31T03:15:09Z" } ], "next_cursor": null, "new_count": 1, "server_date": "2026-11-02", "server_time": "2026-11-02T03:20:00Z" }`.
+Errors: 401, 422 `VALIDATION_FAILED` (`fields` name the parameter), 429, 503. Side effects: none. Review accounts see only `is_demo` rows. Example: `GET /v1/admin/orders?status=New&date_preset=today` returns `{ "items": [ { "order_code": "BT-7K3M9Q", "status": "New", "customer_name": "Tran Thi B", "delivery_date": "2026-11-02", "slot": { "start": "08:00", "end": "10:00" }, "total_cakes": 2, "total_vnd": 120000, "district_name": "Quan An Phu", "created_at": "2026-10-31T03:15:09Z" } ], "next_cursor": null, "new_count": 1, "unfinished_count": 0, "server_date": "2026-11-02", "server_time": "2026-11-02T03:20:00Z" }`.
 
 ### 10.10 GET /v1/admin/orders/{order_code}
 
-`order_code` matches `^BT-[2-9A-HJKMNP-Z]{6}$` (else 404). 200: the summary fields of 10.9 plus `customer_phone` (E.164), `customer_address`, `note`, `items` (`product_name`, `quantity`, `unit_price_vnd`, `line_total_vnd`; stored values, FR-14), `items_subtotal_vnd`, `delivery_fee_vnd`, `cancel_reason` (or null), `allowed_actions` (subset of `confirm`, `complete`, `cancel`, computed from the status; empty for final states), and `history`, oldest first: `{ "event_type", "from_status", "to_status", "actor_name", "actor_kind" ("customer"|"staff"|"owner"|"system"), "reason", "at" }`. A code that does not exist, an order older than 90 days and (for review accounts) a non-demo order all answer 404 `ORDER_NOT_FOUND`. This route is what a push tap calls (FR-33). The response is personal data: never logged. FR-14, FR-20, FR-41.
+`order_code` matches `^BT-[2-9A-HJKMNP-Z]{6}$` (else 404). 200: the summary fields of 10.9 plus `customer_phone` (E.164), `customer_address`, `note`, `items` (`product_name`, `quantity`, `unit_price_vnd`, `line_total_vnd`; stored values, FR-14), `items_subtotal_vnd`, `delivery_fee_vnd`, `cancel_reason` (or null), `allowed_actions` (subset of `confirm`, `complete`, `cancel`, computed from the status; empty for final states), and `history`, oldest first: `{ "event_type", "from_status", "to_status", "actor_name", "actor_kind" ("customer"|"staff"|"owner"|"system"), "reason", "at" }`. The window function of ADR-0029 v1.2 applies: an order older than 90 days is returned only while it is still unfinished (New or Confirmed, delivery date today or earlier), so staff can close it; once closed it answers 404 like any old order [v1.15 | 2026-10-31]. A code that does not exist, any other order older than 90 days and (for review accounts) a non-demo order all answer 404 `ORDER_NOT_FOUND`. This route is what a push tap calls (FR-33). The response is personal data: never logged. FR-14, FR-20, FR-41.
 
 ### 10.11 POST /v1/admin/orders/{order_code}/status
 
@@ -47,7 +49,7 @@ Request: `expected_status` (the status the client shows), `to_status`, `cancel_r
 | Status | Code | Body |
 | ------ | ---- | ---- |
 | 200 | | The order detail of 10.10 after the change; header `Idempotent-Replay: true` when the repeat rule of ADR-0028 applied |
-| 404 | `ORDER_NOT_FOUND` | Unknown or outside the window |
+| 404 | `ORDER_NOT_FOUND` | Unknown or outside the window (the unfinished exception of 10.10 applies; the replay rule of ADR-0028 does not outlive the window, so a lost reply for closing an old order answers 404 and the app refreshes) |
 | 409 | `ORDER_STATE_CHANGED` | `details.order` is the current detail of 10.10; the client shows the current status (FR-19) |
 | 422 | `STATUS_TRANSITION_INVALID` | The pair is not allowed (for example New to Completed, or from a final state); `details.status` is `expected_status` |
 | 422 | `CANCEL_REASON_REQUIRED` | Cancelled without a valid reason |

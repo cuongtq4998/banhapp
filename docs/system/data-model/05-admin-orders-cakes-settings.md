@@ -25,7 +25,7 @@ Migration guard: a `DO` block raises an error if any `Cancelled` row exists befo
 
 Per-phone rule (ADR-0030): a stored order counts toward the limit when `status <> 'Cancelled' OR cancel_reason = 'fake_spam'`.
 
-Indexes added: `customer_order (shop_id, created_at)` (90-day window scan, ADR-0029). The existing `(shop_id, delivery_date, status)`, `(shop_id, status, created_at)` and `(customer_phone, created_at)` serve the list, the New count and the per-phone check. Extension `unaccent` (ADR-0029).
+Indexes added: `customer_order (shop_id, created_at)` (90-day window scan, ADR-0029). The existing `(shop_id, delivery_date, status)`, `(shop_id, status, created_at)` and `(customer_phone, created_at)` serve the list, the New count and the per-phone check. Extension `unaccent` (ADR-0029). Partial index `customer_order (shop_id, delivery_date) WHERE status IN ('New','Confirmed')` serves the Unfinished view and its count (ADR-0029 v1.2, TQ-12); it holds only open orders, so it stays tiny [v1.8 | 2026-10-31].
 
 ## 12. product, product_image (FR-22, FR-38, FR-39; BR-11, BR-18, BR-19; ADR-0025, ADR-0031)
 
@@ -67,13 +67,13 @@ New CHECKs on `shop_setting`: `daily_limit <= 9999`, `lead_days <= 14`, `min_qty
 
 ## 14. Retention and purge jobs
 
-A maintenance task inside the backend (once at start-up and then every 24 h; idempotent, safe to run twice) deletes: `auth_code` and `auth_email_state` rows 24 h after expiry or last update; revoked or expired `device_session` rows 30 days later; `security_event` rows older than 180 days. Orders are not purged (retention pending, DM-Q1); the 90-day display window is not retention (ADR-0029).
+A maintenance task inside the backend (once at start-up and then every 24 h; idempotent, safe to run twice) deletes: `auth_code` rows 24 h after expiry; revoked or expired `device_session` rows 30 days later; `security_event` rows older than 180 days. Orders are not purged (retention pending, DM-Q1); the 90-day display window is not retention (ADR-0029).
 
 ## 15. Migrations
 
 | File | Content |
 | ---- | ------- |
-| `0002_admin_auth.sql` | Tables of sections 3.10 to 3.16, triggers, indexes |
+| `0002_admin_auth.sql` | Tables `account`, `device_session`, `auth_code`, `security_event`, `settings_change` (sections 3.10 to 3.16), triggers, indexes |
 | `0003_admin_orders_catalog.sql` | Section 11 to 13 changes, extension `unaccent`, replaced trigger functions |
 
 Both are forward-only and additive: the previous backend release still runs against them (the new columns have defaults or are nullable; the replaced triggers write the same event shape plus nulls). The first owner row comes from the `bootstrap-owner` command, not from a migration. Sample seed gets no accounts.
@@ -84,11 +84,11 @@ Both are forward-only and additive: the previous backend release still runs agai
 | ---------------- | ------- |
 | account | FR-1, FR-5, FR-27, FR-42, BR-1, BR-7, BR-8 |
 | device_session | FR-4, FR-7, FR-36, FR-37, BR-6, BR-8 |
-| auth_code, auth_email_state | FR-1 to FR-3, FR-6, FR-43, BR-5, BR-17 |
-| push_token | FR-31, FR-33 to FR-35 |
+| auth_code (with `wrong_count`) | FR-1 to FR-3, FR-6, FR-43, BR-5, BR-17 |
+| device_session.push_token | FR-31, FR-33 to FR-35 |
 | security_event | FR-37, G-4 (audit of access) |
 | settings_change | FR-30 |
 | cancel_reason, order_event.reason, actor_name | FR-18, FR-20, FR-44, BR-4, BR-16 |
 | product removal, product_image | FR-22, FR-38, FR-39, BR-11, BR-18, BR-19 |
 | shop_setting CHECKs | FR-24, FR-28, FR-40, BR-9, BR-21 |
-| window index | FR-41, BR-20 |
+| window index, open-orders partial index | FR-41, FR-48, FR-49, BR-20, BR-27 |

@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.14 [v1.14 | 2026-10-31] |
+| Version      | 1.15 [v1.15 | 2026-10-31] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -55,3 +55,4 @@ This file is the index of the API specification. The body lives in the folder `a
 | 1.13 | 2026-10-31 | admin-orders: new files 05 to 08 (sign-in by e-mail code, refresh, recovery, devices, push token, orders list/detail/status, owner settings, cakes with image upload, staff, backup e-mail; error codes). Prefixes `/v1/auth`, `/v1/admin`, `/v1/owner`; `/v1/staff` released. Place Order: per-phone limit ignores cancelled orders except `fake_spam` (api/03 step 7); catalog may list up to 12 cakes (api/02); uploaded images at `/assets/cakes/{id}`. |
 | 1.12 | 2026-10-29 | Resync with built slice 3: field-level `VALIDATION_FAILED` codes, paths and order (api/04 section 5); per-address limit counts replays; per-phone limit built (any status, 24 h, check-then-insert, `Retry-After` 3600); `X-App-Version` `N.N.N`; rule "items at most active products" removed; sorted JSON keys; transaction inside the repository. |
 | 1.14 | 2026-10-31 | Owner decisions and technical answers: one image route with its own exact body limit (5,308,416 bytes), per-client-address limits on all `/v1/auth` routes, device name format, ordering save returns `over_limit`, last write wins for settings, list paging consistency, offline sign-out, push delivery settings pointer. No new endpoint. |
+| 1.15 | 2026-10-31 | PRD v1.4: `CODE_LOCKED` removed (no address lock, a void code answers `CODE_EXPIRED`), recovery counted separately, new-device notice after sign-in; order list gains `view=unfinished` and `unfinished_count`; old unfinished orders reachable for detail and status change. No new endpoint. |

@@ -28,16 +28,16 @@ All limits apply to registered and unregistered addresses alike. None relies on 
 | ------- | ----- |
 | Code lifetime | 10 minutes, one use |
 | Wait between codes | 30 s per address (`CODE_RESEND_WAIT`) |
-| Codes per address | 3 per rolling hour, sign-in, recovery and backup codes together (`CODE_REQUEST_LIMIT`) |
-| Wrong codes | 5 per address, then locked 15 minutes; a locked address refuses even the right code (`CODE_LOCKED`); a success resets the counter |
+| Codes per address | 3 per rolling hour per purpose: sign-in, recovery and backup-confirm are counted separately (`CODE_REQUEST_LIMIT`) [v2.2 | 2026-10-31] |
+| Wrong codes | 5 wrong entries void the current code (counted on the code, `auth_code.wrong_count`); the right digits of a void code are refused (`CODE_EXPIRED`, request a new one); no time lock on the address; a stranger gets at most 15 guesses an hour per address (Q-20, BR-5) [v2.2 | 2026-10-31] |
 | Code and recovery requests per client address | 20 per hour (in memory, resets on restart; extra only) |
 | Other `/v1/auth` routes per client address | 60 per hour for sessions, recovery-sessions and refresh together (`RATE_LIMIT_AUTH_PER_HOUR_IP`); unauthenticated requests to `/v1/admin` and `/v1/owner` that answer 401 count 60 per minute per client address (stops token guessing). In memory, extra only (R-6) [v2.1 \| 2026-10-31] |
-| Recovery and ordinary codes | Same counters, same 30 s wait, same 3 an hour, same lock; a recovery request counts once although it sends two mails (both count against the daily cap). A locked owner address therefore also blocks recovery until the lock ends (R-7) [v2.1 \| 2026-10-31] |
+| Recovery and ordinary codes | Separate counters, same values (30 s, 3 an hour, 5 wrong void); a recovery request counts once although it sends two mails (both count against the daily cap, the only shared limit). Voided or used-up ordinary sign-in never blocks recovery (BR-17, AC-78; shared counters rejected) [v2.2 \| 2026-10-31] |
 | Global mail cap | `MAIL_MAX_PER_DAY` default 80 per UTC day; above it requests answer as `CODE_REQUEST_LIMIT` and no mail is sent (protects the provider quota; it can be used to block sign-in for a day, risk R-AO-2) |
 | Refresh | Shared admin limit; reuse detection of auth.md section 2 |
 | Signed-in routes | 240 requests per minute per device session |
 | Cake upload | Owner only; 5 MB; 30 uploads per hour per account |
-| Notices | A recovery sign-in and a backup-address change send a notice to the old and new mailboxes |
+| Notices | A recovery sign-in, a backup-address change and an owner sign-in on a new device send a notice (no code); notices are not counted in the daily cap (ADR-0022) [v2.2 \| 2026-10-31] |
 
 ## 5. Secrets & Key Handling
 
@@ -77,13 +77,13 @@ Access and refresh tokens are not configured secrets: they are random per sessio
 | Data in transit | HTTPS only; no cleartext traffic in either app |
 | Draft left on a lost phone | App-private storage, 24 hour expiry, excluded from backups (ADR-0011) |
 | Cross-origin web abuse | No browser clients; CORS disabled |
-| Guessing a 6-digit code | 5 wrong codes lock the address 15 minutes; HMAC with a server secret; 10-minute life |
+| Guessing a 6-digit code | 5 wrong entries void the code; 3 codes an hour, so at most 15 guesses an hour per address; HMAC with a server secret; 10-minute life |
 | Mail flooding of a third party | 30 s wait, 3 an hour per address, global cap; mail only to registered active addresses |
 | Account enumeration | Same response, timing and later errors for unknown addresses (phantom rows, mail after response); 404 for another person's device |
-| Locking an account out by wrong codes | Accepted by BR-5; existing sessions keep working; lock ends in 15 minutes |
+| Locking an account out by wrong codes | No lock exists (Q-20): a stranger can only void codes and use the hourly requests; signed-in devices are unaffected, recovery has its own counters, the operator can recover (A-7) |
 | Stolen refresh token | Rotation; reuse revokes the session; owner can revoke devices; sign-in restarts on use with no absolute cap (owner decision Q-15; R-AO-4) |
 | Lost phone | Owner revokes the device; staff data cleared at sign-out; Keychain or Keystore storage; device passcode |
-| Owner mailbox compromised | Not prevented by two-code recovery (ordinary owner sign-in needs one code, owner decision 2026-10-31). Mitigation: device list and revoke, notices on backup-address change and on recovery, proposed notice on owner sign-in (SL-Q2) [v2.1 \| 2026-10-31] |
+| Owner mailbox compromised | Not prevented by two-code recovery (ordinary owner sign-in needs one code, owner decision 2026-10-31). Mitigation: device list and revoke, notices on backup-address change and on recovery, notice to owner and backup address on owner sign-in from a new device (Q-24) [v2.2 \| 2026-10-31] |
 | Privilege escalation | `RequireRole` per group, service re-check; tests with staff tokens on every owner route |
 | Customer data in push | Payload holds code, cakes, date only |
 | Malicious image upload | Signature and dimension checks, size cap, owner-only, served with fixed content type and `nosniff` (ADR-0025) |

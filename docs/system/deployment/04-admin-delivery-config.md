@@ -71,10 +71,10 @@ Log fields stay as section 7; the admin routes add role but never e-mail address
 | Alert | Threshold | Action |
 | ----- | --------- | ------ |
 | Mail send failures | 3 consecutive provider errors or any 4xx for the sender domain | Check key, domain status, provider status; staff can wait or use an already signed-in device |
-| Mail daily cap use | Above 60 of 80 | Look for abuse in `CODE_REQUEST_LIMIT` counts; raise the cap or block |
+| Mail daily cap use | Above 60 of 80 | Look for abuse in `CODE_REQUEST_LIMIT` counts (a stranger can use up the cap, which also delays recovery; the operator recovers, A-7); raise the cap or block |
 | Push failures | More than 20 percent of sends fail in an hour | Check APNs key and FCM account; list still works |
 | `refresh_reuse_detected` | 3 in a day | Ask the owner to review the device list |
-| Code lockouts | More than 10 `CODE_LOCKED` answers in an hour | Possible guessing; check security events |
+| Voided codes | More than 10 log lines `code_voided` (5th wrong entry; no address in the line) in an hour | Possible guessing or a prank; there is no lock, so nothing is blocked; look at request ids |
 | Orders without a push record | More than 1 percent over 30 days | Decide on an outbox (ADR-0024) |
 | Database size | Above 80 percent of 1 GB (images and history count) | Plan upgrade (owner approval) |
 

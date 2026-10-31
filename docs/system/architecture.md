@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.11 [v1.11 | 2026-10-31] |
+| Version      | 1.12 [v1.12 | 2026-10-31] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -25,6 +25,7 @@ This file is the index of the architecture document. The body lives in the folde
 | 15 | Client code structure (iOS MVVM-C, Android MVI) | [architecture/06-code-structure.md](architecture/06-code-structure.md) |
 | 16 to 22 | Admin apps: scope, context, components, flows, integrations, quality, risks [v1.10 \| 2026-10-31] | [architecture/07-admin-orders.md](architecture/07-admin-orders.md) |
 | 24 | Admin technical answers (UI questions TQ-D1 to TQ-D7, QA review items, measurable targets) [v1.11 | 2026-10-31] | [architecture/08-admin-technical-answers.md](architecture/08-admin-technical-answers.md) |
+| 25 | Admin simplification, answers to TQ-11 to TQ-13 (Unfinished view, new-device notice), how deferred features drop out [v1.12 \| 2026-10-31] | [architecture/09-admin-simplification.md](architecture/09-admin-simplification.md) |
 
 ## Change log
 
@@ -42,3 +43,4 @@ This file is the index of the architecture document. The body lives in the folde
 | 1.10 | 2026-10-31 | admin-orders: new file 07 (sections 16 to 22): separate admin apps `ios/BanhAdmin*` and `android/admin` with shared packages and modules (ADR-0021, ADR-0018 trigger fired), backend admin feature folders without a new top-level folder, mail, APNs and FCM integrations with failure behaviour, quality targets, risks R-AO-1 to R-AO-8. Decision index extended (ADR-0021 to ADR-0031). Sections 1, 9, 10 statements that staff features are out of scope are superseded by section 16. |
 | 1.9 | 2026-10-29 | Slice 3 resync (06 code structure): transaction opened in `OrderRepository.insertOrder`; responses use sorted JSON keys so a replay is byte-identical; ADR-0014 status line. |
 | 1.11 | 2026-10-31 | Owner decisions of 2026-10-31 applied (ADR-0022, 0026, 0027 accepted; free tier only, go-live blocked on money; retention still open). New file 08 with the answers to TQ-D1 to TQ-D7 and review items. Slice A6 marked blocked. |
+| 1.12 | 2026-10-31 | Aligned with PRD v1.4 and the owner directive to keep things simple: new file 09 (section 25); lock removed, tables 7 to 5, R-7 superseded. |
