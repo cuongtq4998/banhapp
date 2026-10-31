@@ -2,11 +2,11 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 2.1 [v2.1 | 2026-10-31] |
+| Version      | 2.2 [v2.2 | 2026-10-31] |
 | Last updated | 2026-10-31 |
 | Status       | Draft (ADR-0022 and ADR-0027 accepted by the owner 2026-10-31) |
 | Owner        | atlas-architect |
-| Based on     | product/place-order.md v1.2 (BR-7); product/admin-orders.md v1.2 [v2.0 | 2026-10-31] |
+| Based on     | product/place-order.md v1.2 (BR-7); product/admin-orders.md v1.4 [v2.2 | 2026-10-31] |
 | Related      | ADR-0014, ADR-0019, ADR-0022, ADR-0023, ADR-0027; session-lifecycle.md; api/05; data-model/04; auth/abuse-secrets-threats.md |
 
 Scope [v2.0 | 2026-10-31]: the anonymous customer slice and the admin apps (owner and staff). Sign-in is by e-mail address and a one-time code sent by e-mail. The earlier text about staff sign-in by phone number and SMS is removed (PRD Q-3: no SMS, no message cost). Sections 5 to 7 are in [auth/abuse-secrets-threats.md](auth/abuse-secrets-threats.md).
@@ -36,7 +36,7 @@ sequenceDiagram
     API->>DB: auth_code (real or phantom)
     API-->>App: 202 (same for every address)
     App->>API: POST /v1/auth/sessions {email, code, installation_id, device_name}
-    API->>DB: lock and code check, new device_session
+    API->>DB: code check (wrong_count), new device_session
     API-->>App: 201 access + refresh tokens
     App->>API: GET /v1/admin/... (Bearer access token)
     API->>DB: session and account check on every request
@@ -47,7 +47,7 @@ sequenceDiagram
 
 Owner sign-in (owner decision 2026-10-31, closes SL-Q1) [v2.1 | 2026-10-31]: the owner signs in on any device with ONE code sent to the owner address, exactly like staff, always; a backup address is not needed for it.
 
-Owner recovery (FR-42, FR-43, BR-17) is a separate flow: `recovery-requests` sends one code to the owner address and a different one to the confirmed backup address; `recovery-sessions` needs both. What it is and is not, plainly [v2.1 | 2026-10-31]:
+Owner recovery (FR-42, FR-43, BR-17) is a separate flow with its own counters (30 s, 3 an hour, 5 wrong void the attempt; nothing is shared with ordinary sign-in, so neither blocks the other) [v2.2 | 2026-10-31]: `recovery-requests` sends one code to the owner address and a different one to the confirmed backup address; `recovery-sessions` needs both. What it is and is not, plainly [v2.1 | 2026-10-31]:
 
 | It does | It does not |
 | ------- | ----------- |
@@ -55,14 +55,14 @@ Owner recovery (FR-42, FR-43, BR-17) is a separate flow: `recovery-requests` sen
 | Sends a notice to both mailboxes when it is used and when the backup address changes, so a second person can see that something happened | Restore access if the owner mailbox is lost: it needs a code from that mailbox too |
 | Gives the owner a way to prove the backup address works (it is confirmed by a code before it is saved) | Stop an attacker who already has a signed-in device; only revoking the device does |
 
-So the second code adds a tripwire and a check of the backup address, not protection. The one real defence against a mailbox takeover is the device list with revoke and the notices; a notice to the backup address on every owner sign-in is proposed and not decided (session-lifecycle.md SL-Q2). Details: session-lifecycle.md.
+So the second code adds a tripwire and a check of the backup address, not protection. The real defence against a mailbox takeover is the device list with revoke plus the notices. Decided (Q-24, FR-47, BR-26) [v2.2 | 2026-10-31]: when the owner signs in with a code on a device not in the device list, one notice (device name, time, no code, no link) goes to the owner address and the backup address; a failed notice never blocks sign-in (ADR-0022, session-lifecycle.md section 3). Details: session-lifecycle.md.
 
 | Item | Value |
 | ---- | ----- |
-| Code | 6 digits, 10 minutes, one use, newer code voids older |
+| Code | 6 digits, 10 minutes, one use, newer code voids older; the 5th wrong entry voids the code; no time lock on the address (Q-20) [v2.2 | 2026-10-31] |
 | Access token | 300 s, opaque, checked against the session row on every request (revocation is immediate; the PRD bound of 5 minutes holds even without that check) |
 | Refresh token | 7 days sliding, rotated on each use; previous token tolerated 20 s (lost response); later reuse revokes the session |
-| Sign-out | Revokes this session and deletes its push token |
+| Sign-out | Revokes this session and clears its push token |
 | Revocation | Owner revokes a device; deactivating an account revokes all its sessions in one transaction; renewal fails at once, data access ends on the next request |
 | Device identity | Session id; app-generated `installation_id` and model name only (no hardware id) |
 | Storage on device | iOS Keychain (after first unlock, this device only); Android Keystore-wrapped key over app-private storage; cleared at sign-out (BR-15) |
@@ -91,6 +91,8 @@ Staff cannot edit orders, delete orders or see payment data (BR-1): no such endp
 | AU-Q1 | Is the per-phone limit of 5 orders per 24 hours acceptable to the shop? | Visible limit on repeat customers | No | business | Default applied; owner may change | |
 | AU-Q2 | Confirm ADR-0022 (security design) and ADR-0027 (store review account) | Security and customer data | No | technical (owner confirms) | Closed 2026-10-31: both Accepted; ADR-0027 option B (fixed code, fake demo orders only) | Owner |
 | AU-Q3 | One code or two for the owner's ordinary sign-in (SL-Q1) | Business behaviour | No | business | Closed 2026-10-31: always ONE code; two-code recovery stays a separate flow | Owner |
+| AU-Q4 | Lock the address for 15 minutes after 5 wrong codes? | Denial of sign-in by a stranger | No | business | Closed 2026-10-31 (Q-20): no lock; the 5th wrong entry voids the code; shared counters with recovery rejected | Owner |
+| AU-Q5 | New-device notice to owner and backup address (SL-Q2) | Tripwire for a mailbox takeover | No | business | Closed 2026-10-31 (Q-24): yes | Owner |
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
@@ -102,3 +104,4 @@ Staff cannot edit orders, delete orders or see payment data (BR-1): no such endp
 | 1.5 | 2026-10-29 | Slice 3 resync: per-phone limit built (any status, check-then-insert, `Retry-After` 3600, Q-O3 pending); per-IP limit counts replays. |
 | 2.0 | 2026-10-31 | Rewritten for admin-orders: e-mail code sign-in (SMS text removed), access and rotating refresh tokens, recovery, roles and permission matrix, review account; abuse, secrets and threats moved to auth/abuse-secrets-threats.md; per-phone limit ignores cancelled orders except `fake_spam`. Removed in v2.0: the staff phone and SMS placeholder and the `/v1/staff` reservation. |
 | 2.1 | 2026-10-31 | Owner decisions of 2026-10-31: ADR-0022 and ADR-0027 accepted; ordinary owner sign-in always one code (SL-Q1, AU-Q3 closed); plain statement of what two-code recovery protects and does not; AU-Q2 closed. |
+| 2.2 | 2026-10-31 | Aligned with PRD v1.4: no address lock (Q-20), recovery counters separate, new-device notice decided (Q-24, FR-47); AU-Q4 and AU-Q5 closed. |

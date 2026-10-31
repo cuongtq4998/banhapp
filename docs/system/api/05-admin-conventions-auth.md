@@ -1,6 +1,6 @@
 # API Specification: Admin conventions, endpoint index, sign-in endpoints
 
-Part of [api.md](../api.md) (index, version, change log), sections 9 and 10.1 to 10.5. New in v1.13 [v1.13 | 2026-10-31]. Decisions: ADR-0022, ADR-0023, ADR-0028 to ADR-0031. The reserved prefix `/v1/staff` is released; it is not used.
+Part of [api.md](../api.md) (index, version, change log), sections 9 and 10.1 to 10.5. New in v1.13 [v1.13 | 2026-10-31]; sign-in rules aligned with PRD v1.4 in v1.15 [v1.15 | 2026-10-31]. Decisions: ADR-0022, ADR-0023, ADR-0028 to ADR-0031. The reserved prefix `/v1/staff` is released; it is not used.
 
 ## 9. Admin conventions
 
@@ -32,8 +32,8 @@ Part of [api.md](../api.md) (index, version, change log), sections 9 and 10.1 to
 | GET | /v1/admin/devices | owner (all), staff (own) | Device list | FR-37 |
 | DELETE | /v1/admin/devices/{device_id} | owner (any), staff (own) | Revoke a device | FR-37, FR-35, BR-8 |
 | PUT, DELETE | /v1/admin/push-token | owner, staff | Register or remove this device's push token | FR-31, FR-35 |
-| GET | /v1/admin/orders | owner, staff | List, filter, search | FR-8 to FR-13, FR-41, BR-13, BR-20 |
-| GET | /v1/admin/orders/{order_code} | owner, staff | Detail with history | FR-14, FR-20, FR-33, FR-41 |
+| GET | /v1/admin/orders | owner, staff | List, filter, search, Unfinished view (`view=unfinished`) and its count | FR-8 to FR-13, FR-41, FR-48 to FR-51, BR-13, BR-20, BR-27 |
+| GET | /v1/admin/orders/{order_code} | owner, staff | Detail with history | FR-14, FR-20, FR-33, FR-41, FR-48 |
 | POST | /v1/admin/orders/{order_code}/status | owner, staff | Confirm, complete, cancel | FR-16 to FR-19, BR-2 to BR-4, BR-16 |
 | GET | /v1/owner/settings | owner | All settings, cakes, districts, slots | FR-21 to FR-26, FR-38 to FR-40 |
 | PUT | /v1/owner/settings/shop | owner | Shop name, greeting, contacts | FR-26, FR-28 |
@@ -49,7 +49,7 @@ Part of [api.md](../api.md) (index, version, change log), sections 9 and 10.1 to
 
 ### 10.1 POST /v1/auth/code-requests
 
-Request `{ "email": string }` (required, valid format after trim and lower case, at most 254 characters; otherwise 422 `VALIDATION_FAILED` with field `email`). Response 202, always the same body, whether or not the address is registered: `{ "resend_after_seconds": 30, "expires_in_seconds": 600 }`. Side effects: a row in `auth_code` (also for unknown addresses), a mail only to an active account, sent after the response. Errors: 429 `CODE_RESEND_WAIT` (`details.retry_after_seconds`), 429 `CODE_REQUEST_LIMIT` (3 an hour per address, daily cap, per client address; `retry_after_seconds`), 429 `CODE_LOCKED` (address locked), 503 `SERVICE_UNAVAILABLE`. A new request consumes the older codes. Idempotency: each request is a new code. Example: `{ "email": "nhanvien.a@example.com" }` returns `{ "resend_after_seconds": 30, "expires_in_seconds": 600 }`.
+Request `{ "email": string }` (required, valid format after trim and lower case, at most 254 characters; otherwise 422 `VALIDATION_FAILED` with field `email`). Response 202, always the same body, whether or not the address is registered: `{ "resend_after_seconds": 30, "expires_in_seconds": 600 }`. Side effects: a row in `auth_code` (also for unknown addresses), a mail only to an active account, sent after the response. Errors: 429 `CODE_RESEND_WAIT` (`details.retry_after_seconds`), 429 `CODE_REQUEST_LIMIT` (3 an hour per address and purpose, daily cap, per client address; `retry_after_seconds`), 503 `SERVICE_UNAVAILABLE`. A new request consumes the older codes. Idempotency: each request is a new code. Example: `{ "email": "nhanvien.a@example.com" }` returns `{ "resend_after_seconds": 30, "expires_in_seconds": 600 }`.
 
 ### 10.2 POST /v1/auth/sessions
 
@@ -63,7 +63,7 @@ Request: `email`, `code` (6 digits), `installation_id` (uuid), `device_name` (1 
 | account | object | `name`, `role` (`owner` or `staff`), `has_backup_email` (owner only) |
 | server_date | date | |
 
-Checks in order: lock (429 `CODE_LOCKED`); latest unconsumed code for the address and purpose (none, wrong: 422 `CODE_INVALID`; past `expires_at`: 422 `CODE_EXPIRED`); success marks it consumed, resets the wrong counter, revokes an older session of the same `installation_id` (`replaced`), creates the session, writes `security_event`. The fifth wrong code locks the address for 15 minutes (the fifth answer is `CODE_INVALID`, the next `CODE_LOCKED`). Unknown and inactive addresses behave exactly as wrong codes. Example response: `{ "access_token": "at_<DEVICE_ID>_<SECRET>", "refresh_token": "rt_<DEVICE_ID>_<SECRET>", "access_expires_in": 300, "device_id": "5b0c2f6a-0000-4a00-8000-000000000001", "account": { "name": "Nhan Vien A", "role": "staff" }, "server_date": "2026-11-02" }`.
+Checks in order: the latest unconsumed code for the address and purpose `sign_in` (none, or wrong: 422 `CODE_INVALID` and `wrong_count` + 1; past `expires_at`, or void after 5 wrong entries: 422 `CODE_EXPIRED`, meaning "request a new code"). The 5th wrong entry already answers `CODE_EXPIRED` and voids the code; there is no lock on the address (Q-20, BR-5). Success marks the code consumed, decides `is_new_device` (owner only: no unrevoked, unexpired session of the account with this `installation_id`), revokes an older session of the same `installation_id` (`replaced`), creates the session and writes `security_event`; if `is_new_device`, the notice of FR-47 is sent after the response and its failure never changes the answer. Unknown and inactive addresses behave exactly as wrong codes [v1.15 | 2026-10-31]. Example response: `{ "access_token": "at_<DEVICE_ID>_<SECRET>", "refresh_token": "rt_<DEVICE_ID>_<SECRET>", "access_expires_in": 300, "device_id": "5b0c2f6a-0000-4a00-8000-000000000001", "account": { "name": "Nhan Vien A", "role": "staff" }, "server_date": "2026-11-02" }`.
 
 ### 10.3 POST /v1/auth/refresh
 
@@ -71,8 +71,8 @@ Request `{ "refresh_token": string }`. 200 response: `access_token`, `refresh_to
 
 ### 10.4 POST /v1/auth/recovery-requests
 
-Request `{ "email": string }` (the owner's address). Response 202, same body as 10.1. If the address is the active owner's and a confirmed backup address exists, two codes are created with one `challenge_id` and sent, one to each mailbox; otherwise a phantom challenge and no mail. Limits and errors as 10.1 (the counters are shared with sign-in codes for the same address).
+Request `{ "email": string }` (the owner's address). Response 202, same body as 10.1. If the address is the active owner's and a confirmed backup address exists, two codes are created with one `challenge_id` and sent, one to each mailbox; otherwise a phantom challenge and no mail. Limits and errors as 10.1, counted separately from sign-in codes (purpose `recovery_owner`; BR-17) [v1.15 | 2026-10-31].
 
 ### 10.5 POST /v1/auth/recovery-sessions
 
-Request: `email`, `owner_code`, `backup_code`, `installation_id`, `device_name`. Both codes must be correct, unexpired and unused, of the same challenge. Any failure counts one wrong attempt for the address and answers `CODE_INVALID` or `CODE_EXPIRED` without saying which code failed (AC-59). Success: both consumed, session created (`sign_in_method = recovery`), notices sent to both addresses, response as 10.2 plus `offer_device_list: true`. Errors as 10.2.
+Request: `email`, `owner_code`, `backup_code`, `installation_id`, `device_name`. Both codes must be correct, unexpired and unused, of the same challenge. Any failure adds 1 to `wrong_count` of both codes of the challenge and answers `CODE_INVALID` or `CODE_EXPIRED` without saying which code failed (AC-59); the 5th voids the attempt (`CODE_EXPIRED`) and leaves ordinary sign-in untouched. Success: both consumed, session created (`sign_in_method = recovery`), one notice sent to both addresses (no new-device notice), response as 10.2 plus `offer_device_list: true`. Errors as 10.2.

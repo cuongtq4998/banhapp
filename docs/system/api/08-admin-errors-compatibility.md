@@ -1,6 +1,6 @@
 # API Specification: Admin error catalogue, compatibility, traceability
 
-Part of [api.md](../api.md) (index, version, change log), sections 11 to 13. New in v1.13 [v1.13 | 2026-10-31]. The envelope, `message_key` rules and unknown-code behaviour of section 5 apply. Message keys belong to the admin UI document (canvas-ui); keys below are proposed names until that document lists them.
+Part of [api.md](../api.md) (index, version, change log), sections 11 to 13. New in v1.13 [v1.13 | 2026-10-31]; `CODE_LOCKED` removed in v1.15 [v1.15 | 2026-10-31] (no address lock, Q-20). The envelope, `message_key` rules and unknown-code behaviour of section 5 apply. Message keys belong to the admin UI document (canvas-ui); keys below are proposed names until that document lists them.
 
 ## 11. Admin error catalogue
 
@@ -12,10 +12,9 @@ Part of [api.md](../api.md) (index, version, change log), sections 11 to 13. New
 | SESSION_EXPIRED | 401 | `ERR_ADMIN_SESSION_ENDED` | No use for 7 days | Same |
 | FORBIDDEN | 403 | `ERR_ADMIN_FORBIDDEN` | Role too low (staff on `/v1/owner/*`) | Hide the area; show the message if reached |
 | CODE_INVALID | 422 | `ERR_CODE_INVALID` | Wrong, unknown or used code (also for unregistered addresses) | Message on the code field |
-| CODE_EXPIRED | 422 | `ERR_CODE_EXPIRED` | Code older than 10 minutes | Offer resend (AC-4) |
+| CODE_EXPIRED | 422 | `ERR_CODE_EXPIRED` | Code older than 10 minutes, or void after 5 wrong entries: "no longer valid, request a new code" | Offer resend (AC-4, AC-8) |
 | CODE_RESEND_WAIT | 429 | `ERR_CODE_RESEND_WAIT` | Less than 30 s since the last code | Disable resend, count down `retry_after_seconds` |
 | CODE_REQUEST_LIMIT | 429 | `ERR_CODE_REQUEST_LIMIT` | Hourly, daily or per-address limit | Show the wait (AC-9) |
-| CODE_LOCKED | 429 | `ERR_CODE_LOCKED` | Address locked 15 minutes after 5 wrong codes | Show the wait (AC-8) |
 | ORDER_NOT_FOUND | 404 | `ERR_ORDER_NOT_FOUND` | Unknown, outside 90 days, or not visible | Back to the list |
 | ORDER_STATE_CHANGED | 409 | `ERR_ORDER_STATE_CHANGED` | Stale view; `details.order` is current | Show current status and message (AC-30) |
 | STATUS_TRANSITION_INVALID | 422 | `ERR_ORDER_STATUS_INVALID` | Pair not allowed | Refresh the detail |
@@ -31,7 +30,7 @@ Part of [api.md](../api.md) (index, version, change log), sections 11 to 13. New
 
 Field-level codes in `fields[]` (`NAME_TAKEN`, `IMAGE_REQUIRED`, `IMAGE_TYPE_UNSUPPORTED`, `IMAGE_DIMENSIONS_INVALID`, `EMAIL_INVALID`, `*_REQUIRED`, `*_OUT_OF_RANGE`) follow the rule of section 5: the client reads `fields[].message_key`. Existing codes reused: `VALIDATION_FAILED`, `RATE_LIMITED` (signed-in routes), `PAYLOAD_TOO_LARGE`, `HEADER_INVALID`, `NOT_FOUND`, `SERVICE_UNAVAILABLE`, `INTERNAL_ERROR`.
 
-Rules: 401 and 403 bodies never say whether an account exists. `CODE_*` errors are the same for registered and unknown addresses. Lockout and limit messages carry `Retry-After` and `details.retry_after_seconds`.
+Rules: 401 and 403 bodies never say whether an account exists. `CODE_*` errors are the same for registered and unknown addresses. Limit messages carry `Retry-After` and `details.retry_after_seconds`.
 
 ## 12. Compatibility
 
@@ -39,4 +38,4 @@ Additive within `v1` as in section 6. Admin and customer apps share `v1`; the ad
 
 ## 13. Traceability
 
-Every endpoint of the admin index carries FR and BR in api/05. Fields trace to data-model/04 and 05: `account`, `device_session`, `auth_code`, `push_token`, `customer_order`, `order_event`, `product`, `product_image`, `shop_setting`, `district`, `delivery_slot`, `settings_change`. Acceptance criteria AC-1 to AC-72 map to these endpoints through their FRs; FR-44 maps to `POST /v1/orders` only.
+Every endpoint of the admin index carries FR and BR in api/05. Fields trace to data-model/04 and 05: `account`, `device_session`, `auth_code`, `customer_order`, `order_event`, `product`, `product_image`, `shop_setting`, `district`, `delivery_slot`, `settings_change`. Acceptance criteria AC-1 to AC-103 map to these endpoints through their FRs; FR-44 maps to `POST /v1/orders` only.
