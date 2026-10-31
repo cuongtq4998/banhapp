@@ -31,6 +31,8 @@ All limits apply to registered and unregistered addresses alike. None relies on 
 | Codes per address | 3 per rolling hour, sign-in, recovery and backup codes together (`CODE_REQUEST_LIMIT`) |
 | Wrong codes | 5 per address, then locked 15 minutes; a locked address refuses even the right code (`CODE_LOCKED`); a success resets the counter |
 | Code and recovery requests per client address | 20 per hour (in memory, resets on restart; extra only) |
+| Other `/v1/auth` routes per client address | 60 per hour for sessions, recovery-sessions and refresh together (`RATE_LIMIT_AUTH_PER_HOUR_IP`); unauthenticated requests to `/v1/admin` and `/v1/owner` that answer 401 count 60 per minute per client address (stops token guessing). In memory, extra only (R-6) [v2.1 \| 2026-10-31] |
+| Recovery and ordinary codes | Same counters, same 30 s wait, same 3 an hour, same lock; a recovery request counts once although it sends two mails (both count against the daily cap). A locked owner address therefore also blocks recovery until the lock ends (R-7) [v2.1 \| 2026-10-31] |
 | Global mail cap | `MAIL_MAX_PER_DAY` default 80 per UTC day; above it requests answer as `CODE_REQUEST_LIMIT` and no mail is sent (protects the provider quota; it can be used to block sign-in for a day, risk R-AO-2) |
 | Refresh | Shared admin limit; reuse detection of auth.md section 2 |
 | Signed-in routes | 240 requests per minute per device session |
@@ -81,7 +83,7 @@ Access and refresh tokens are not configured secrets: they are random per sessio
 | Locking an account out by wrong codes | Accepted by BR-5; existing sessions keep working; lock ends in 15 minutes |
 | Stolen refresh token | Rotation; reuse revokes the session; owner can revoke devices; sign-in restarts on use with no absolute cap (owner decision Q-15; R-AO-4) |
 | Lost phone | Owner revokes the device; staff data cleared at sign-out; Keychain or Keystore storage; device passcode |
-| Owner mailbox compromised | Backup address and two-code recovery (BR-17); see open question SL-Q1 |
+| Owner mailbox compromised | Not prevented by two-code recovery (ordinary owner sign-in needs one code, owner decision 2026-10-31). Mitigation: device list and revoke, notices on backup-address change and on recovery, proposed notice on owner sign-in (SL-Q2) [v2.1 \| 2026-10-31] |
 | Privilege escalation | `RequireRole` per group, service re-check; tests with staff tokens on every owner route |
 | Customer data in push | Payload holds code, cakes, date only |
 | Malicious image upload | Signature and dimension checks, size cap, owner-only, served with fixed content type and `nosniff` (ADR-0025) |

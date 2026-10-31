@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0029 |
-| Version  | 1.0 |
+| Version  | 1.1 [v1.1 | 2026-10-31] |
 | Status   | Accepted (no money; the window follows the owner decision Q-13; retention remains an owner question) |
 | Date     | 2026-10-31 |
 | Decider  | atlas-architect |
@@ -32,6 +32,10 @@ At most about 100 orders a day, so about 9,000 orders fall in 90 days. Rows must
 ## Decision
 
 Keyset paging, 50 rows a page (fixed). Sort key: `delivery_date`, `slot_start_time`, `created_at`, `id` ascending (BR-13). The cursor is the base64url of those four values of the last row; the next page uses a row-value comparison `(delivery_date, slot_start_time, created_at, id) > (...)`. Filters: status set (default New and Confirmed; `all`), delivery date presets `today`, `tomorrow` (shop date on the server) or `date_from`/`date_to` (range, one date is a range of one day). Search `q`: 2 to 50 characters after trim; matches the order code (case-insensitive substring), the customer name (`unaccent(lower(name)) LIKE unaccent(lower('%' || escaped q || '%'))`, with `LIKE` wildcards in `q` escaped) and the phone (digits of `q` against the stored E.164 number, with a leading `0` read as `+84`). Extension `unaccent` is created by the migration (trusted since PostgreSQL 13; availability on the managed host is to be verified in CI and staging); if it is unavailable the fallback is plain `lower()` matching and a note to the UI that diacritics must match. `new_count` is a separate count query of status New inside the window (served by the index `(shop_id, status, created_at)`).
+
+Consistency while paging (R-14) [v1.1 | 2026-10-31]: the four sort-key columns of an order never change after creation, so a row cannot move between pages and none repeats. An order placed after page 1 sorts into place and shows on a refresh from the first page (the new-order count and the push tell the user); a status change on a row not yet fetched can make it leave the filter, so it is simply not shown; a change on a row already shown is corrected by the next refresh. Nothing is guaranteed to be a snapshot; the list is read again on pull to refresh.
+
+Partial search (TQ-D7) [v1.1 | 2026-10-31]: the server accepts `q` from 2 characters and matches by substring on order code, name and phone digits, so a part of a name or of a phone number works; the apps may require 3 characters before calling, that is a UI choice. At about 9,000 rows in the window a scan takes a few milliseconds; the `pg_trgm` trigger above stays. Case and diacritics are ignored through `unaccent(lower())`; both sides are normalised to NFC first.
 
 Window: one repository predicate `created_at >= now() - interval '90 days'` (rolling to the second, so AC-68 holds), built in a single function (`OrderWindow`) and used by the list, the count, search, detail by code and status change. An order outside the window answers 404 `ORDER_NOT_FOUND`, the same as a code that does not exist. The push tap uses the detail path, so it is covered. The window is a display rule, not retention: rows stay (data-model section 6); the retention period and purge job wait for the owner (Place Order Q-O4, DM-Q1).
 

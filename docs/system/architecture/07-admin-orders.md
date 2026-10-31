@@ -96,15 +96,15 @@ Every arrow in section 17 appears in sections 18 or 20.
 
 ## 22. Decisions, risks, open questions
 
-Decision index: ADR-0021 to ADR-0031 (architecture/05). Risks:
+Decision index: ADR-0021 to ADR-0031 (architecture/05); technical answers to the UI and QA questions: architecture/08. Risks:
 
 | ID | Risk | Mitigation |
 | -- | ---- | ---------- |
-| R-AO-1 | Free host sleeps: slow first sign-in mail and in-memory limits reset | Paid always-on before real use (ADR-0003 v1.4); phone-independent DB-based limits |
+| R-AO-1 | Free host sleeps: slow first sign-in mail and in-memory limits reset | Free tier only for now (owner, 2026-10-31): fine for development, real use with staff is blocked until paid always-on hosting is approved (ADR-0003 v1.5) [v1.11 | 2026-10-31] |
 | R-AO-2 | Code-request flooding blocks sign-in for a day (global mail cap) or locks one address | Per-address and per-client limits first; alert on cap use; operator can raise the cap |
 | R-AO-3 | Push lost when the process dies after commit | List is truth; counter to decide on an outbox (ADR-0024) |
 | R-AO-4 | No absolute session cap: a stolen device used weekly stays signed in until revoked | Owner decision Q-15; device list and revoke; consider a 90-day cap later |
-| R-AO-5 | Store review needs access to a code-only app | ADR-0027 (owner decides) |
+| R-AO-5 | Store review needs access to a code-only app | ADR-0027 accepted, option B [v1.11 | 2026-10-31] |
 | R-AO-6 | Compose compiler plugin in library modules unverified; two Xcode projects drift | Spike first (ADR-0021); shared packages are the only shared code |
 | R-AO-7 | `availability.cakes` upper bound grows with 12 products (99 times 12 = 1188) | Bound is computed from active products; no contract change |
 | R-AO-8 | Customer apps designed for four cakes and fixed rules text | Place Order UI update (query to canvas-ui and forge-dev) |
@@ -118,7 +118,7 @@ Contract first; backend and both apps start together from `contracts/fixtures/ad
 | A0 | Package extraction, admin project skeletons, CI, migration `0002`, `bootstrap-owner`, mail and push protocols with recording fakes | data-model/04, api/05 | Enabler | Customer apps unchanged and green; empty admin apps build |
 | A1 | Sign-in, refresh, sign-out, devices, roles | api/05, api/06 10.6, 10.7 | FR-1 to FR-7, FR-36, FR-37 | AC-1 to AC-14, AC-53 to AC-56 pass |
 | A2 | Order list, detail, status change, cancel reasons, per-phone rule | api/06 10.9 to 10.11, migration `0003` | FR-8 to FR-20, FR-41, FR-44 | AC-15 to AC-31, AC-67 to AC-72 |
-| A3 | Push registration and dispatch | api/06 10.8, 10.12 | FR-31 to FR-35 | AC-48 to AC-52 on two real devices |
+| A3 | Push registration and dispatch | api/06 10.8, 10.12 | FR-31 to FR-35 | AC-48 to AC-52 with recording senders; the real-device part waits for the Apple Developer Program and an FCM project (DP-Q4) [v1.11 | 2026-10-31] |
 | A4 | Owner settings, districts, slots, ordering rules, staff, backup e-mail and recovery | api/07 | FR-21 to FR-30, FR-40, FR-42, FR-43 | AC-32 to AC-47, AC-57 to AC-59, AC-64 to AC-66 |
 | A5 | Cakes add, hide, remove with images; customer app for up to 12 cakes | api/07 10.17, ADR-0025 | FR-22, FR-38, FR-39 | AC-33, AC-34, AC-60 to AC-63 |
-| A6 | Launch: store records, review account, privacy page staff section, paid hosting, domain and mail DNS | ADR-0023, ADR-0026, ADR-0027, deployment/04 | NFR | Checklist in deployment/04 complete |
+| A6 | Launch: store records, review account, privacy page staff section, paid hosting, domain and mail DNS. BLOCKED until the owner approves the money items (DP-Q4); slices A0 to A5 do not wait for it [v1.11 | 2026-10-31] | ADR-0023, ADR-0026, ADR-0027, deployment/04 | NFR | Checklist in deployment/04 complete |

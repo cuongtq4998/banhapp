@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.6 [v1.6 | 2026-10-31] |
+| Version      | 1.7 [v1.7 | 2026-10-31] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -33,7 +33,7 @@ This file is the index of the data model. The body lives in the folder `data-mod
 
 | ID | Question | Why it matters | Blocking | Class | Status | Answer |
 | -- | -------- | -------------- | -------- | ----- | ------ | ------ |
-| DM-Q1 | Retention period of customer contact data (BR-12) | Purge job and privacy text | No | business | Open (owner, already in PRD 12.1) | |
+| DM-Q1 | Retention period of customer contact data (BR-12) | Purge job and privacy text | No | business | Open: the owner decides later (2026-10-31); until then the 90-day rule of ADR-0029 is a display rule only and nothing is purged [v1.7 | 2026-10-31] | |
 | DM-Q2 | Database choice (ADR-0002) | Schema is written for PostgreSQL | No | technical | Closed: owner accepted PostgreSQL (2026-10-25) | Owner |
 
 | Version | Date | Change |
@@ -45,3 +45,4 @@ This file is the index of the data model. The body lives in the folder `data-mod
 | 1.4 | 2026-10-27 | Split into the folder `data-model/` (file size rule, 200 lines); this file became the index with a section map. No schema change. |
 | 1.5 | 2026-10-29 | Slice 3 resync (02 orders): the `created` event and the counter are written by the transaction inside `OrderRepository.insertOrder`; per-phone count reads `customer_order` of any status in the last 24 hours. No schema change. |
 | 1.6 | 2026-10-31 | admin-orders: new files 04 and 05. Tables `account`, `device_session`, `auth_code`, `auth_email_state`, `push_token`, `security_event`, `settings_change`, `product_image`; columns `cancel_reason`, `is_demo`, `order_event.reason/actor_name`, `product.removed_at/image_source`; CHECKs and triggers; per-phone count excludes cancelled orders except `fake_spam`; `day_load.capacity_limit` is a copy, not an authority; migrations 0002 and 0003; purge jobs. Answers TQ-5, TQ-7 to TQ-9. |
+| 1.7 | 2026-10-31 | DM-Q1 (retention) recorded as still open, owner decides later; 90-day window stays display only. Stale "later slice" wording in file 02 removed. |

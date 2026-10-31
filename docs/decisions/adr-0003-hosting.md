@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0003 |
-| Version  | 1.3 |
+| Version  | 1.5 [v1.5 | 2026-10-31] |
 | Status   | Accepted for the trial phase, free plans only (owner direction: no spend during the new-project phase). Becomes Proposed again if any step asks for a payment card or a recurring cost [v1.1 | 2026-10-25] |
 | Date     | 2026-10-25 (v1.1 2026-10-25) |
 | Decider  | Product owner (direction); atlas-architect (choice within it) |
@@ -101,3 +101,4 @@ Related: ADR-0001, ADR-0002, ADR-0004.
 | 1.2 | 2026-10-26 | Source added for deploy hook usage (`imgURL`); decision unchanged. |
 | 1.3 | 2026-10-26 | Image visibility and pull credentials decided (D-12): public package by owner action, CI logs in meanwhile, Render credential only if private; image content checked for secrets. |
 | 1.4 | 2026-10-31 | Amendment for admin-orders: the free plan stays a trial only. Real shop use of the admin apps needs the paid always-on path before go-live (money, owner approval). Reasons: a sign-in code request on a sleeping host waits about 1 minute (target 60 s for the mail); the notification task and the in-memory limiters need a live process; outbound SMTP is blocked on free services (the mail provider is called over HTTPS, ADR-0023); uploaded cake images live in the database (ADR-0025) because the disk is ephemeral. Revocation does not depend on the host plan (checked on every request). Status unchanged until the owner decides. |
+| 1.5 | 2026-10-31 | Owner decision: free tier ONLY for now (DP-Q4). The admin apps are built, tested with fakes and run for development on the free plans; paid always-on hosting, the sender domain and store fees are not approved, so real go-live with staff is blocked until the owner approves them (ADR-0023, deployment/04 section 18). |

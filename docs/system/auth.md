@@ -2,9 +2,9 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 2.0 [v2.0 | 2026-10-31] |
+| Version      | 2.1 [v2.1 | 2026-10-31] |
 | Last updated | 2026-10-31 |
-| Status       | Draft |
+| Status       | Draft (ADR-0022 and ADR-0027 accepted by the owner 2026-10-31) |
 | Owner        | atlas-architect |
 | Based on     | product/place-order.md v1.2 (BR-7); product/admin-orders.md v1.2 [v2.0 | 2026-10-31] |
 | Related      | ADR-0014, ADR-0019, ADR-0022, ADR-0023, ADR-0027; session-lifecycle.md; api/05; data-model/04; auth/abuse-secrets-threats.md |
@@ -45,7 +45,17 @@ sequenceDiagram
     API-->>App: new pair
 ```
 
-Owner recovery (FR-42, FR-43, BR-17): `recovery-requests` sends one code to the owner address and a different one to the confirmed backup address; `recovery-sessions` needs both. Details and the open question SL-Q1: session-lifecycle.md.
+Owner sign-in (owner decision 2026-10-31, closes SL-Q1) [v2.1 | 2026-10-31]: the owner signs in on any device with ONE code sent to the owner address, exactly like staff, always; a backup address is not needed for it.
+
+Owner recovery (FR-42, FR-43, BR-17) is a separate flow: `recovery-requests` sends one code to the owner address and a different one to the confirmed backup address; `recovery-sessions` needs both. What it is and is not, plainly [v2.1 | 2026-10-31]:
+
+| It does | It does not |
+| ------- | ----------- |
+| Proves control of two mailboxes before it creates a session, and records the session as `recovery` | Protect against a stolen or hacked owner mailbox: whoever reads that mailbox gets in with the ordinary one-code sign-in |
+| Sends a notice to both mailboxes when it is used and when the backup address changes, so a second person can see that something happened | Restore access if the owner mailbox is lost: it needs a code from that mailbox too |
+| Gives the owner a way to prove the backup address works (it is confirmed by a code before it is saved) | Stop an attacker who already has a signed-in device; only revoking the device does |
+
+So the second code adds a tripwire and a check of the backup address, not protection. The one real defence against a mailbox takeover is the device list with revoke and the notices; a notice to the backup address on every owner sign-in is proposed and not decided (session-lifecycle.md SL-Q2). Details: session-lifecycle.md.
 
 | Item | Value |
 | ---- | ----- |
@@ -79,8 +89,8 @@ Staff cannot edit orders, delete orders or see payment data (BR-1): no such endp
 | ID | Question | Why it matters | Blocking | Class | Status | Answer |
 | -- | -------- | -------------- | -------- | ----- | ------ | ------ |
 | AU-Q1 | Is the per-phone limit of 5 orders per 24 hours acceptable to the shop? | Visible limit on repeat customers | No | business | Default applied; owner may change | |
-| AU-Q2 | Confirm ADR-0022 (security design) and ADR-0027 (store review account) | Security and customer data | No for design start; yes before store submission | technical (owner confirms) | Open | Recommendation in the ADRs |
-| AU-Q3 | One code or two for the owner's ordinary sign-in (SL-Q1) | Business behaviour | No | business | Open | Recommendation in session-lifecycle.md |
+| AU-Q2 | Confirm ADR-0022 (security design) and ADR-0027 (store review account) | Security and customer data | No | technical (owner confirms) | Closed 2026-10-31: both Accepted; ADR-0027 option B (fixed code, fake demo orders only) | Owner |
+| AU-Q3 | One code or two for the owner's ordinary sign-in (SL-Q1) | Business behaviour | No | business | Closed 2026-10-31: always ONE code; two-code recovery stays a separate flow | Owner |
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
@@ -91,3 +101,4 @@ Staff cannot edit orders, delete orders or see payment data (BR-1): no such endp
 | 1.4 | 2026-10-27 | ADR-0014 amendment and ADR-0019: per-phone limit not built, limiter caveats, client address trust. |
 | 1.5 | 2026-10-29 | Slice 3 resync: per-phone limit built (any status, check-then-insert, `Retry-After` 3600, Q-O3 pending); per-IP limit counts replays. |
 | 2.0 | 2026-10-31 | Rewritten for admin-orders: e-mail code sign-in (SMS text removed), access and rotating refresh tokens, recovery, roles and permission matrix, review account; abuse, secrets and threats moved to auth/abuse-secrets-threats.md; per-phone limit ignores cancelled orders except `fake_spam`. Removed in v2.0: the staff phone and SMS placeholder and the `/v1/staff` reservation. |
+| 2.1 | 2026-10-31 | Owner decisions of 2026-10-31: ADR-0022 and ADR-0027 accepted; ordinary owner sign-in always one code (SL-Q1, AU-Q3 closed); plain statement of what two-code recovery protects and does not; AU-Q2 closed. |

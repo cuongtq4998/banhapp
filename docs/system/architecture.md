@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.10 [v1.10 | 2026-10-31] |
+| Version      | 1.11 [v1.11 | 2026-10-31] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -24,6 +24,7 @@ This file is the index of the architecture document. The body lives in the folde
 | 14, 14.1 | Backend code structure, `DomainError` | [architecture/06-code-structure.md](architecture/06-code-structure.md) |
 | 15 | Client code structure (iOS MVVM-C, Android MVI) | [architecture/06-code-structure.md](architecture/06-code-structure.md) |
 | 16 to 22 | Admin apps: scope, context, components, flows, integrations, quality, risks [v1.10 \| 2026-10-31] | [architecture/07-admin-orders.md](architecture/07-admin-orders.md) |
+| 24 | Admin technical answers (UI questions TQ-D1 to TQ-D7, QA review items, measurable targets) [v1.11 | 2026-10-31] | [architecture/08-admin-technical-answers.md](architecture/08-admin-technical-answers.md) |
 
 ## Change log
 
@@ -40,3 +41,4 @@ This file is the index of the architecture document. The body lives in the folde
 | 1.8 | 2026-10-27 | Split into the folder `architecture/` (file size rule, 200 lines); this file became the index with a section map. Owner decisions of 2026-10-27 applied (ADR-0007 v1.5, ADR-0018 v2.0): iOS MVVM-C and Android MVI recorded in new section 15; section 11 note and section 14.1 changed from a calendar of extractions to trigger-only splits, `DomainError` and the layering test confirmed; section 12 index updated. |
 | 1.10 | 2026-10-31 | admin-orders: new file 07 (sections 16 to 22): separate admin apps `ios/BanhAdmin*` and `android/admin` with shared packages and modules (ADR-0021, ADR-0018 trigger fired), backend admin feature folders without a new top-level folder, mail, APNs and FCM integrations with failure behaviour, quality targets, risks R-AO-1 to R-AO-8. Decision index extended (ADR-0021 to ADR-0031). Sections 1, 9, 10 statements that staff features are out of scope are superseded by section 16. |
 | 1.9 | 2026-10-29 | Slice 3 resync (06 code structure): transaction opened in `OrderRepository.insertOrder`; responses use sorted JSON keys so a replay is byte-identical; ADR-0014 status line. |
+| 1.11 | 2026-10-31 | Owner decisions of 2026-10-31 applied (ADR-0022, 0026, 0027 accepted; free tier only, go-live blocked on money; retention still open). New file 08 with the answers to TQ-D1 to TQ-D7 and review items. Slice A6 marked blocked. |

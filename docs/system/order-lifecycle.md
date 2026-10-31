@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.5 [v1.5 | 2026-10-31] |
+| Version      | 1.6 [v1.6 | 2026-10-31] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -11,14 +11,14 @@
 
 ## 1. Purpose & Scope
 
-How an order is created from the customer's confirmation, and the states an order moves through during its life. In this slice only creation is implemented (the order enters `New`). The other transitions are specified now so the data model and the database guard are right from the start; their endpoints belong to the later staff and owner slices. The staff and owner endpoints now exist: see admin-order-handling.md and api/06 [v1.5 | 2026-10-31].
+How an order is created from the customer's confirmation, and the states an order moves through during its life. Creation (the order enters `New`) was built first; the other transitions were specified with it so the data model and the database guard were right from the start. The staff and owner endpoints for them are part of the admin-orders feature [v1.6 | 2026-10-31]: see admin-order-handling.md and api/06 [v1.5 | 2026-10-31].
 
 ## 2. Actors
 
 | Actor | Role |
 | ----- | ---- |
 | Customer | Anonymous; starts creation from the app (FR-11) |
-| Staff / owner | Later slice: confirm, complete, cancel |
+| Staff / owner | Confirm, complete, cancel through the admin apps (admin-order-handling.md) [v1.6 | 2026-10-31] |
 | System | Backend and database: checks rules, counts capacity, assigns the code, writes the audit trail |
 
 ## 3. Main Flow: place an order
@@ -100,10 +100,10 @@ Idempotency key [v1.3 | 2026-10-28]: replaced on every change of the request bod
 ```mermaid
 stateDiagram-v2
     [*] --> New: customer confirms (this slice)
-    New --> Confirmed: staff confirms (later)
-    New --> Cancelled: staff cancels (later)
-    Confirmed --> Completed: staff completes (later)
-    Confirmed --> Cancelled: staff cancels (later)
+    New --> Confirmed: staff confirms
+    New --> Cancelled: staff cancels
+    Confirmed --> Completed: staff completes
+    Confirmed --> Cancelled: staff cancels
     Completed --> [*]
     Cancelled --> [*]
 ```
@@ -113,12 +113,12 @@ Final states: `Completed`, `Cancelled`. Every non-final state (`New`, `Confirmed
 | From | To | Trigger | Actor | Guard | Side effects |
 | ---- | -- | ------- | ----- | ----- | ------------ |
 | (none) | New | `POST /v1/orders` accepted | Customer (via system) | All rules in api.md 4.3 pass; capacity taken | Row inserted with snapshots; `day_load` increased; `order_event` `created`. Implemented in this slice |
-| New | Confirmed | Staff confirms | Staff, owner | Authenticated staff (later slice) | `order_event` `status_changed`; customer is contacted outside the app. Capacity unchanged |
-| New | Cancelled | Staff cancels | Staff, owner | Authenticated (later) | `day_load.cakes_accepted` reduced by `total_cakes`; event written |
-| Confirmed | Completed | Delivery done | Staff, owner | Authenticated (later) | Event written; capacity unchanged (the cakes were made) |
-| Confirmed | Cancelled | Staff cancels | Staff, owner | Authenticated (later) | Capacity released as above; event written |
+| New | Confirmed | Staff confirms | Staff, owner | Active owner or staff session [v1.6 | 2026-10-31] | `order_event` `status_changed`; customer is contacted outside the app. Capacity unchanged |
+| New | Cancelled | Staff cancels | Staff, owner | Active owner or staff session | `day_load.cakes_accepted` reduced by `total_cakes`; event written |
+| Confirmed | Completed | Delivery done | Staff, owner | Active owner or staff session | Event written; capacity unchanged (the cakes were made) |
+| Confirmed | Cancelled | Staff cancels | Staff, owner | Active owner or staff session | Capacity released as above; event written |
 
-Admin-orders additions [v1.5 | 2026-10-31]: "Authenticated (later)" is now an active owner or staff session calling `POST /v1/admin/orders/{order_code}/status` with `expected_status` (stale view: 409, ADR-0028); a cancellation also requires a `cancel_reason` stored on the order and copied into the event (ADR-0030), and after it the order no longer counts toward the per-phone limit unless the reason is `fake_spam` (FR-44). Completed is allowed at any time after Confirmed (BR-2).
+Admin-orders additions [v1.5 | 2026-10-31]: the guard column means an active owner or staff session calling `POST /v1/admin/orders/{order_code}/status` with `expected_status` (stale view: 409, ADR-0028); a cancellation also requires a `cancel_reason` stored on the order and copied into the event (ADR-0030), and after it the order no longer counts toward the per-phone limit unless the reason is `fake_spam` (FR-44). Completed is allowed at any time after Confirmed (BR-2).
 
 Any other pair is rejected by the database trigger `customer_order_status_guard` even for direct SQL, for example `Completed -> New`, `Cancelled -> Confirmed`, `New -> Completed`, and any change out of a final state. Each allowed change also writes its `order_event` through the trigger (rows above say "event written"; Confirmed and Completed do too) [v1.2 | 2026-10-26]. The status guard and the capacity release trigger are created in this slice (data-model.md section 5) so AC-28 can be tested at database level now.
 
@@ -154,5 +154,6 @@ Each flow step above traces to FR-9, FR-10, FR-11, FR-13, FR-16, FR-17, FR-18 an
 | 1.1 | 2026-10-25 | ADR-0010 accepted; no flow change. |
 | 1.2 | 2026-10-26 | Audit trigger wording aligned with the built migration (event on every status change). |
 | 1.3 | 2026-10-28 | Slice 2 review: split of local and server checks on S-8; key rule pointer to ADR-0008 v1.1. No flow change. |
+| 1.6 | 2026-10-31 | Stale wording removed: staff transitions and endpoints are no longer described as a later slice. No behaviour change. |
 | 1.5 | 2026-10-31 | admin-orders: staff transitions are live (pointer to admin-order-handling.md); `expected_status`, cancel reason, per-phone count rule. No change to the state machine. |
 | 1.4 | 2026-10-29 | Slice 3 resync: transaction opened inside `OrderRepository.insertOrder`; collision retry is a new transaction, not a savepoint; replay body byte-identical (sorted keys). No flow change. |
