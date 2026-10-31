@@ -55,7 +55,7 @@ fun PrivacyNoticeCard(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = Sizes.touchTarget)
-                    .clickable(onClickLabel = stringResource(R.string.privacy_link_a11y_hint), role = Role.Link, onClick = openPrivacy)
+                    .clickable(onClickLabel = stringResource(R.string.privacy_link_a11y_hint), role = Role.Button, onClick = openPrivacy)
                     .testTag(TestTags.ORDER_PRIVACY_LINK),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -79,7 +79,7 @@ fun ReviewPrivacyNotice(sending: Boolean, modifier: Modifier = Modifier) {
         Row(
             modifier = Modifier
                 .heightIn(min = Sizes.touchTarget)
-                .clickable(enabled = !sending, onClickLabel = stringResource(R.string.privacy_link_a11y_hint), role = Role.Link, onClick = openPrivacy)
+                .clickable(enabled = !sending, onClickLabel = stringResource(R.string.privacy_link_a11y_hint), role = Role.Button, onClick = openPrivacy)
                 .testTag(TestTags.REVIEW_PRIVACY_LINK),
             verticalAlignment = Alignment.CenterVertically,
         ) {
