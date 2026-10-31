@@ -1,74 +1,70 @@
 # Admin Orders: Open Questions and Change Log (sections 12 and 13)
 
-Part of [Admin Orders](../admin-orders.md) (PRD v1.4). Holds: Q-1 to Q-24 (business), TQ-1 to TQ-13 (technical, for the architect), design answers Q-D1 to Q-D4, the change log. Changed or new lines end with [v1.1 | 2026-10-31], [v1.2 | 2026-10-31] or [v1.3 | 2026-10-31].
+Part of [Admin Orders](../admin-orders.md) (PRD v1.5). Holds: Q-1 to Q-28 (business), TQ-1 to TQ-13 (technical), design answers, the change log. Condensed in v1.5; every line is new or changed in v1.5 [v1.5 | 2026-10-31].
 
 ## 12. Open Questions
 
-Q-1 to Q-14 were answered by the owner on 2026-10-31 and are closed. Q-15 to Q-17 were decided by the owner on 2026-10-31 and are closed. Q-18, Q-19 and Q-21 are new owner decisions (v1.3). Q-20, Q-22 and Q-24 were decided by the owner (v1.4). Q-23 (daily reminder push) is open with the default "no push" applied and does not block. Place Order Q-O4 stays open by owner decision. [v1.4 | 2026-10-31]
+### 12.1 Business questions: new batch for the owner (simplification, v1.5)
 
-### 12.1 Business questions (for the product owner)
+Each question removes or changes something the owner decided before. Recommended option first. Until answered, the v1.5 text is a proposal and the approved v1.4 behaviour applies. None blocks the other work. [v1.5 | 2026-10-31]
 
-| ID | Question | Why it matters | Blocking | Class | Status | Answer |
-| -- | -------- | -------------- | -------- | ----- | ------ | ------ |
-| Q-1 | Separate admin app or inside the customer app? | Shape of everything. | No | business | Decided v1.1 | Separate admin app, same repository and backend (D-1). [v1.1 | 2026-10-31] |
-| Q-2 | One platform first or both? | Build effort. | No | business | Decided v1.1 | iOS and Android at the same time (D-2). [v1.1 | 2026-10-31] |
-| Q-3 | Pay for text messages that carry sign-in codes? | Money. | No | business | Decided v1.1 | No SMS. Sign-in is by e-mail plus a one-time code (FR-1 to FR-3, BR-5). Closed without a money decision; e-mail cost is low (S-5). [v1.1 | 2026-10-31] |
-| Q-4 | How long does a phone stay signed in? | Security against convenience. | No | business | Decided v1.1 | 7 days with a short-lived access credential and a 7-day renewal credential, rotated on use; reuse of an old one signs that device out. The owner can revoke a device or deactivate staff: data access ends within minutes, renewal at once (BR-6, BR-8, FR-36, FR-37). Whether the 7 days restart on each use is asked in Q-15. [v1.1 | 2026-10-31] |
-| Q-5 | How many owners and staff? | Rights, recovery risk. | No | business | Decided v1.1 | One owner and up to 30 staff (BR-8). [v1.1 | 2026-10-31] |
-| Q-6 | May the owner add or delete cakes? | Customer catalog, history. | No | business | Decided v1.1 | Yes: add (name, description, price, image) and remove; removed means hidden from the customer app and kept in order history; at least one active cake must remain (FR-38, FR-39, BR-11, BR-18, BR-19). Maximum number of cakes is asked in Q-17. [v1.1 | 2026-10-31] |
-| Q-7 | Which ordering rules may the owner change? | Misconfiguration risk. | No | business | Decided v1.1 | Daily limit, lead days and minimum cakes per order; booking horizon stays fixed. A change applies to new orders only (FR-24, FR-40, BR-21). [v1.1 | 2026-10-31] |
-| Q-8 | When may staff mark Completed? | Mistaken taps against flexibility. | No | business | Decided v1.1 | Any time after Confirmed (FR-17, BR-2). [v1.1 | 2026-10-31] |
-| Q-9 | Should cancelling ask for a reason? | Records. | No | business | Decided v1.1 | Yes, chosen from a fixed list of five (FR-18, BR-16). [v1.1 | 2026-10-31] |
-| Q-10 | Do staff need to edit orders? | Larger feature. | No | business | Decided v1.1 | No editing; cancel and the customer orders again (non-goal). [v1.1 | 2026-10-31] |
-| Q-11 | Who gets new-order notifications; reminders? | Who is woken up. | No | business | Decided v1.1 | Everyone signed in gets each one; no reminders (FR-31). [v1.1 | 2026-10-31] |
-| Q-12 | Do cancelled orders count toward the 5 orders per phone per 24 hours? (Place Order Q-O3) | A customer cancelled by the shop could be blocked. | No | business | Decided v1.1 | Not counted, except cancellations with the reason "fake or spam order" (FR-44, BR-16). Changes the place-order backend rule (section 9). [v1.1 | 2026-10-31] |
-| Q-13 | Which past orders may staff see? | Privacy against usefulness. | No | business | Decided v1.1 | Last 90 days; older orders are not shown. Same for the owner (BR-20, FR-41). [v1.1 | 2026-10-31] |
-| Q-14 | Recovery if the owner loses the phone? | Security of the one powerful account. | No | business | Decided v1.1 | The owner registers a backup e-mail; on a new device sign-in needs codes sent to the owner e-mail and the backup e-mail; then the old device can be revoked (FR-42, FR-43, BR-17). Form of the codes asked in Q-16. [v1.1 | 2026-10-31] |
-| Q-15 | Does the 7-day sign-in restart each time the app is used (a device used at least weekly never asks for a code), or end 7 days after the code was entered no matter what? | Convenience against security. | No | business | Decided v1.2 | Owner accepted the recommendation (2026-10-31): the 7-day sign-in restarts on each use; a device used at least weekly never asks for a code (BR-6). [v1.2 | 2026-10-31] |
-| Q-16 | For owner recovery, are two different codes (one to each e-mail, both entered) acceptable, or should one code be sent to both addresses? | Security of recovery; one shared code gives no more protection than one mailbox. | No | business | Decided v1.2 | Owner accepted the recommendation (2026-10-31): two different codes, one per mailbox, both required (BR-17, FR-43). [v1.2 | 2026-10-31] |
-| Q-17 | What is the largest number of cakes the shop should hold (active and hidden)? | The customer catalog was designed for four cakes. | No | business | Decided v1.2 | Owner accepted the recommendation (2026-10-31): at most 12 cakes, active plus hidden (FR-38, BR-18, AC-61). [v1.2 | 2026-10-31] |
-| Q-18 | Does ordinary owner sign-in need one code or two? (architect's SL-Q1, AU-Q3) | Security of the powerful account against daily convenience. | No | business | Decided v1.3 | Owner decision 2026-10-31: one code, like staff. The two-code recovery (Q-16) stays as a separate, slower flow with its own counters (FR-2, FR-43, BR-17). Risk accepted: the owner mailbox alone opens the account (section 8). [v1.3 | 2026-10-31] |
-| Q-19 | How do store reviewers sign in to an app that sends codes by e-mail? (ADR-0027) | Store approval; no real customer data may be exposed. | No | business | Decided v1.3 | Owner decision 2026-10-31: a fixed-code staff account that sees only fake demo orders, switched on for review and off afterwards (FR-46, BR-22). [v1.3 | 2026-10-31] |
-| Q-20 | Lockout rule: 5 wrong entries void the current code; no time lock on the address; recovery has separate counters; existing sessions are never affected (BR-5, BR-17). | A stranger must not be able to lock the owner out for good. | No | business | Decided v1.4 | Owner decision 2026-10-31: option (a) as written in BR-5; no 15-minute address lock. [v1.4 | 2026-10-31] |
-| Q-21 | Is going live on paid hosting approved? | Money. | No | business | Decided v1.3 | Owner decision 2026-10-31: not approved yet; free tier first (section 8, cost). To be asked again before real customers rely on the app. [v1.3 | 2026-10-31] |
-| Q-22 | Orders still New or Confirmed after their date or after 90 days. | Orders left open and forgotten. | No | business | Decided v1.4 (changed by owner) | Owner decision 2026-10-31: no hiding. A dedicated Unfinished view (New or Confirmed, delivery date today or earlier, any age) with a red round count badge; orders older than 90 days are reachable only there, to be closed (FR-48 to FR-52, BR-20, BR-27, BR-28). [v1.4 | 2026-10-31] |
-| Q-23 | Should the app also send one reminder push a day about unfinished orders? Options: (a) no push, badge, chip and opening banner only (recommended: Q-11 says no reminders, a daily push is ignored in time, and staff already get a push per new order); (b) one push a day at a fixed shop time, only when the count is above 0, without customer data; (c) (b) plus a number on the app icon. | Whether staff are woken or nagged. | No | business | Open (default (a) applied) | Open. [v1.4 | 2026-10-31] |
-| Q-24 | When the owner signs in on a new device, is a short notice (no code) sent to the owner and backup e-mail? (architect's SL-Q2) | Owner learns at once if a stranger got in. | No | business | Decided v1.4 | Owner decision 2026-10-31: yes (FR-47, BR-26, AC-94, AC-95). [v1.4 | 2026-10-31] |
+| ID | Question | Why it matters | Blocking | Class | Status |
+| -- | -------- | -------------- | -------- | ----- | ------ |
+| Q-25 | (P-1, changes Q-14, Q-16, Q-24) Drop the backup e-mail and the two-code recovery from this version? (a) Yes, recommended: a lost phone is solved by one code on the new phone plus "Sign out all other phones"; if the owner mailbox itself is lost, the operator helps outside the app. The new-device notice then goes to the owner e-mail only. (b) No, keep the backup e-mail and two-code recovery as in v1.4. | Two screens, a second mailbox, extra limits for a rare case; but with (a) a lost mailbox needs the operator. | No | business | Open |
+| Q-26 | (P-2, changes Q-4, Q-D4) Replace the list of signed-in phones and per-phone revoke by one button "Sign out all other phones" for everyone? (a) Yes, recommended. (b) No, keep the device list. | A list needs a screen and phone names; the button does the job after a lost phone. | No | business | Open |
+| Q-27 | (P-3, changes Q-22) Keep only the red badge plus red "overdue" marks inside the one order list (it already shows every New and Confirmed order, oldest date first), and drop the separate Unfinished view, the Unfinished chip and the opening banner? (a) Yes, recommended. (b) No, keep all of them as in v1.4. | Four ways to reach the same orders are four things to learn. | No | business | Open |
+| Q-28 | (P-4, changes Q-9) Cancel reasons: four (customer asked, cannot deliver, cannot reach customer, fake or spam) instead of five (day full merged into cannot deliver)? (a) Yes, recommended. (b) No, keep five. | Shorter list, faster cancel; the spam rule is unchanged. | No | business | Open |
 
-### 12.2 Technical questions (for the architect, not for the owner)
+### 12.2 Business questions already decided
 
-| ID | Question | Why it matters | Blocking | Class | Status | Answer |
-| -- | -------- | -------------- | -------- | ----- | ------ | ------ |
-| TQ-1 | Which e-mail delivery service and sender-domain set-up, and how are codes delivered in test? Changed in v1.1 from text messages. | Deliverability (spam folders) decides whether sign-in works. [v1.1 | 2026-10-31] | No | technical | Open | |
-| TQ-2 | How is the admin app delivered to a small audience on both platforms (unlisted release, test tracks, managed distribution)? | Q-1, Q-2 decided; S-2, S-3. [v1.1 | 2026-10-31] | No | technical | Open | |
-| TQ-3 | Which push service and what delivery guarantees; token handling when a device signs out, is revoked or an account is deactivated? | FR-31, FR-35, G-1. | No | technical | Open | |
-| TQ-4 | Session design: access and renewal credential lifetimes (access loss within 5 minutes, BR-8), rotation and reuse handling, revocation per device, creation of the first owner account (A-2). | FR-4, FR-7, FR-36, FR-37, AC-14, AC-53 to AC-55. [v1.1 | 2026-10-31] | No | technical | Closed v1.3 | ADR-0022 accepted by the owner, including the 20-second grace window for a repeated renewal (FR-36, AC-76). [v1.3 | 2026-10-31] |
-| TQ-5 | How are stale-view conflicts detected for status changes, and what indexing serves list, filter and search at the expected volume (A-5)? | FR-19, FR-8 to FR-11. | No | technical | Open | |
-| TQ-6 | Image upload for new cakes: accepted formats and size checks, storage, resizing, how the customer app loads them. | FR-38, BR-18, AC-60, AC-61. [v1.1 | 2026-10-31] | No | technical | Open | |
-| TQ-7 | How is the 90-day window enforced (list, search, detail, notification tap) and how does it relate to the retention period (Place Order Q-O4)? | FR-41, BR-20. [v1.1 | 2026-10-31] | No | technical | Open | |
-| TQ-8 | How is the place-order limit rule changed to ignore cancelled orders except reason "fake or spam order", and how is the cancel reason stored? | FR-44, BR-16; cross-feature with Place Order. [v1.1 | 2026-10-31] | No | technical | Open | |
-| TQ-9 | How is a device identified and named for the device list, and how are removed cakes kept for history while hidden from the catalog? | FR-37, FR-39, BR-19. [v1.1 | 2026-10-31] | No | technical | Open | |
-| TQ-10 | How are the two recovery codes, the backup e-mail confirmation and the recovery notice built and rate-limited? | FR-42, FR-43, BR-17. [v1.1 | 2026-10-31] | No | technical | Open | |
-| TQ-11 | ADR-0022 shares the wrong-code counter and a 15-minute address lock between ordinary and recovery codes. BR-5 and BR-17 now ask for: no time lock, the 5th wrong entry voids the code, separate counters and hourly limits for recovery, a limit per client address, one notice per recovery. Align the ADR and the data design; say whether the repeated-request and boundary rules of BR-23 hold as written. | Closing R-3, R-4, R-6, R-7. | No | technical | Open | |
-| TQ-12 | Unfinished view and count: how the server serves the list and the count cheaply (delivery date at or before the shop day, status New or Confirmed, any age), the exception to the 90-day check for detail and status change of such orders only, and the banner rule (opening from closed, more than 1 hour in the background). | FR-48 to FR-51, BR-20, BR-27, AC-98. | No | technical | Open | |
-| TQ-13 | How is "device not in the device list" decided for the new-device notice, and how is the notice sent without blocking sign-in? | FR-47, BR-26, TQ-9. | No | technical | Open | |
+| ID | Topic | Decision |
+| -- | ----- | -------- |
+| Q-1, Q-2 | App shape | Separate app, iOS and Android together (D-1, D-2). |
+| Q-3 | Sign-in channel | E-mail plus code, no SMS (BR-4). |
+| Q-4, Q-15 | Sessions | 7 days, renewed on each use (BR-5); device revoke changed by P-2/Q-26. |
+| Q-5 | Accounts | One owner, up to 30 staff (BR-6). |
+| Q-6, Q-17 | Cakes | Add, hide, remove; at most 12 (BR-12). |
+| Q-7 | Ordering rules | Daily limit, lead days, minimum cakes (FR-22). |
+| Q-8 | Complete | Any time after Confirmed (FR-17). |
+| Q-9 | Cancel reason | Required, fixed list (BR-8); length changed by P-4/Q-28. |
+| Q-10 | Editing orders | None (non-goal). |
+| Q-11 | Notifications | Everyone signed in gets each order; no reminders (FR-25). |
+| Q-12 | Phone limit | Cancelled orders not counted except spam (FR-27). |
+| Q-13 | Order window | 90 days for finished orders (BR-9). |
+| Q-14, Q-16 | Recovery | Backup e-mail, two codes: proposed deferral P-1/Q-25. |
+| Q-18 | Owner sign-in | One code (FR-1). |
+| Q-19 | Store review | Fixed-code demo account (BR-14). |
+| Q-20 | Lockout | No time lock; 5th wrong entry voids the code (BR-4). |
+| Q-21 | Paid hosting | Not approved; free tier first. |
+| Q-22 | Unfinished orders | Badge and no hiding kept; view, chip, banner proposed for removal (Q-27). |
+| Q-23 | Daily reminder push | Withdrawn, default none (D-8). |
+| Q-24 | New-device notice | Yes, to owner e-mail (FR-7); backup address part follows Q-25. |
 
+### 12.3 Technical questions (for the architect)
 
-### 12.3 Design questions answered (docs/design/admin-orders/11)
+| ID | Question | Status |
+| -- | -------- | ------ |
+| TQ-1 | E-mail delivery service and code delivery in test. | Open |
+| TQ-2 | Delivery of the admin app to a small audience on both platforms (S-2). | Open |
+| TQ-3 | Push service, guarantees, token handling at sign-out, switch-off and sign-out of other phones. | Open |
+| TQ-4 | Sessions: ADR-0022 accepted, including the 20-second grace (BR-5). | Closed |
+| TQ-5 | Stale-view conflicts for status changes; indexing for list, filter, search. | Open |
+| TQ-6 | Image upload for new cakes: formats, size, storage, resizing. | Open |
+| TQ-7 | 90-day rule for finished orders only, open orders exempt (BR-9, simpler than v1.4). | Open |
+| TQ-8 | Place-order limit ignoring cancelled orders except spam; storing the reason. | Open |
+| TQ-9 | Identify a phone only to know "not used before" (FR-7) and to sign out other phones (FR-4); no device names needed. | Open |
+| TQ-10 | Recovery codes and backup e-mail: not needed in v1.5 if Q-25 accepted. | Deferred |
+| TQ-11 | Align ADR-0022 counters with BR-4 (no time lock, 5th wrong entry voids the code, limit per client address). | Open |
+| TQ-12 | Unfinished count: how the server serves the badge cheaply (New or Confirmed, date at or before shop day, any age); open orders exempt from the 90-day rule. | Open |
+| TQ-13 | New-device notice without blocking sign-in. | Open |
 
-| ID | Answer |
-| -- | ------ |
-| Q-D1 | Accepted: the recovery way-in is always shown, the flow looks the same for every address, a failure never says why (FR-43, AC-59). [v1.3 | 2026-10-31] |
-| Q-D2 | Accepted: completing an order asks one confirmation; confirming does not (FR-17, G-2, AC-74). [v1.3 | 2026-10-31] |
-| Q-D3 | Not answered here: native Vietnamese review of the copy stays with the design owner and the product owner. |
-| Q-D4 | Accepted: staff get an account button on the order list (own devices, sign out) (FR-21, FR-37, AC-93). [v1.3 | 2026-10-31] |
+### 12.4 Design answers
+
+Q-D1 (recovery way-in always shown) is void if Q-25 is accepted. Q-D2 accepted (Complete asks one confirmation, FR-17). Q-D3 stays with the design owner. Q-D4 (staff account button) stays, with sign-out only plus "Sign out all other phones" (FR-4). [v1.5 | 2026-10-31]
 
 ## 13. Change log
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
-| 1.0 | 2026-10-31 | First version (Draft). Covers the staff and owner scope left out of Place Order v1.5. |
-| 1.1 | 2026-10-31 | Owner answers Q-1 to Q-14 recorded. D-1 and D-2 became decisions. Phone-number and text-message sign-in replaced by e-mail plus one-time code everywhere (FR-1 to FR-3, FR-27, BR-5 to BR-8, AC-1 to AC-12, AC-42, AC-43, NFR, dependencies, A-7, A-8, TQ-1); SMS sources S-1 reduced (removed in v1.1), S-5 and S-6 added. New FR-36 to FR-44 (renewal credential rotation, device revoke, 90-day window, backup e-mail, recovery, add and remove cake, ordering rules, effect on Place Order); changed FR-7, FR-14, FR-17, FR-18, FR-20, FR-22, FR-31, FR-35. New BR-16 to BR-21; changed BR-1, BR-2, BR-4 to BR-9, BR-11, BR-12, BR-15. New AC-53 to AC-72; changed AC-1 to AC-4, AC-7 to AC-10, AC-12, AC-14, AC-27 to AC-29, AC-31, AC-34, AC-42, AC-43, AC-52. New questions Q-15 to Q-17 and TQ-6 to TQ-10. Removed in v1.1: text-message sign-in, the money question Q-3, the non-goals "adding or deleting cakes" and "changing lead days and minimum quantity". Place Order Q-O3 answered (cross-feature impact in section 9). |
-| 1.2 | 2026-10-31 | Owner approved the requirements (2026-10-31). Status Approved. Q-15 (7-day sign-in restarts on each use), Q-16 (two recovery codes, one per mailbox, both required) and Q-17 (at most 12 cakes, active plus hidden) decided and closed. "Proposed" marks removed from BR-6, BR-17, BR-18. FR-38 now states the 12-cake limit; BR-18 refers to FR-38 and AC-61 (AC-61 already tests the 13th cake). No other change. |
-| 1.3 | 2026-10-31 | Owner decisions recorded: one code for ordinary owner sign-in with recovery as a separate flow (Q-18), fixed-code store-review account on demo data (Q-19, FR-46, BR-22), retention period stays open (PO Q-O4, BR-15), paid hosting not approved (Q-21), ADR-0022 sessions with 20-second grace (TQ-4). Closed review findings R-2 to R-34 owned by requirements: lockout and recovery counters (BR-5, BR-17, AC-8, AC-77, AC-78, Q-20), AC-59 wording and always-visible recovery, exact boundaries (BR-23, AC-4, AC-9, AC-10, AC-68, AC-80, AC-81), idempotent repeat of status change and renewal (FR-19, FR-36, AC-75, AC-76), image unit and HEIC (BR-18, AC-82), unfinished orders older than 90 days (BR-20, AC-83, Q-22), reactivation at 30 (BR-8, AC-84), limit against minimum (BR-9, AC-85), e-mail and phone formats (BR-25, AC-86, AC-87), search (BR-24, AC-88), analytics and app switcher (BR-15, AC-89), goals G-1 and G-2 measured (AC-73, AC-74), FR-20 against AC-26 (new FR-45, AC-26, AC-31), FR-30 scope, performance and "normal conditions" defined, A-10 rule, stale version labels. New FR-45, FR-46, BR-22 to BR-25, AC-73 to AC-93, Q-18 to Q-22, TQ-11. Design answers Q-D1, Q-D2, Q-D4 (12.3). |
-| 1.4 | 2026-10-31 | Owner decisions: Q-20 decided (option a, no time lock); Q-24 yes, new-device notice to owner and backup e-mail (FR-47, BR-26, AC-94, AC-95); Q-22 changed: instead of hiding open old orders, an Unfinished view (New or Confirmed, delivery date today or earlier, any age) with red count badge on the Orders tab, pinned chip and opening banner (FR-48 to FR-52, BR-27, BR-28, AC-96 to AC-103); BR-20, FR-41 and AC-83 changed so orders older than 90 days stay reachable only from that view for closing. New Q-23 (daily reminder push, default none), TQ-12, TQ-13. Counts: 52 FRs, 28 BRs, 103 ACs. |
+| 1.0 to 1.4 | 2026-10-31 | First version, owner answers Q-1 to Q-14, approval of v1.2, review findings, Unfinished view and new-device notice. Full text of those versions is in git history. |
+| 1.5 | 2026-10-31 | Simplification review after the owner directive that all apps be easy for every kind of user. New "How a day works" (01 section 0). Rewritten: 52 FRs to 27, 28 BRs to 14, 103 ACs to 48; old ids in 08 section 15. Deferred list in 08 section 14. Proposals changing owner decisions: P-1 recovery (Q-25), P-2 device list (Q-26), P-3 Unfinished view, chip, banner (Q-27), P-4 four cancel reasons (Q-28). Invisible-by-design: code and session limits, record, 90-day rule, review account. Q-23 withdrawn. New questions Q-25 to Q-28; TQ-10 to TQ-13 revised. |
