@@ -10,9 +10,17 @@ struct AppServices: Sendable {
     var clock: any WallClock
     var orderCodes: any OrderCodeGenerator
     var repositories: RepositoryFactories
+    /// Admin sign-in; nil while it is not configured (routes answer 503).
+    var adminAuth: AdminAuthConfig?
+    var email: any EmailSender = UnavailableEmailSender()
+    var mailRetryDelay: Duration = MailDispatcher.defaultRetryDelay
+    /// Mail and other work that runs after the response; tests `drain()` it.
+    var background = BackgroundWork()
 
     /// Derived from `clock`, so replacing the clock also moves the calendar.
     var calendar: ShopCalendar { ShopCalendar(clock: clock) }
+
+    var mail: MailDispatcher { MailDispatcher(sender: email, work: background, retryDelay: mailRetryDelay) }
 }
 
 extension Application {

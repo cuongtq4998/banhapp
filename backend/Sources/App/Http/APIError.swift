@@ -49,9 +49,17 @@ struct APIError: Error, Sendable {
         return APIError(.rateLimited, details: [retryAfterDetailKey: .int(seconds)])
     }
 
-    /// Seconds for the `Retry-After` header; nil unless the code is `RATE_LIMITED`.
+    /// A sign-in limit (`CODE_RESEND_WAIT`, `CODE_REQUEST_LIMIT`) with its wait.
+    static func waiting(_ code: APIErrorCode, seconds: Int) -> APIError {
+        let clamped = max(1, min(seconds, maxRetryAfterSeconds))
+        return APIError(code, details: [retryAfterDetailKey: .int(clamped)])
+    }
+
+    private static let retryAfterCodes: Set<APIErrorCode> = [.rateLimited, .codeResendWait, .codeRequestLimit]
+
+    /// Seconds for the `Retry-After` header; nil unless the code is a limit.
     var retryAfterSeconds: Int? {
-        guard code == .rateLimited, case .int(let seconds)? = details[Self.retryAfterDetailKey] else { return nil }
+        guard Self.retryAfterCodes.contains(code), case .int(let seconds)? = details[Self.retryAfterDetailKey] else { return nil }
         return seconds
     }
 

@@ -1,0 +1,13 @@
+{
+  "description": "POST /v1/auth/code-requests: 202, the same for registered and unregistered addresses.",
+  "request": {
+    "body": {
+      "email": "nhanvien.a@example.com"
+    }
+  },
+  "status": 202,
+  "body": {
+    "resend_after_seconds": 30,
+    "expires_in_seconds": 600
+  }
+}

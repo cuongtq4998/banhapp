@@ -31,6 +31,8 @@ Orders: `OrderRoutes` parses, `OrderPlacementService` decides, `PostgresOrderRep
 
 Database tests: set `DATABASE_MIGRATION_URL` to a throwaway database (they apply the migrations, then run every test in a rolled-back transaction). Without it they are skipped.
 
+Admin sign-in (slice B1, `docs/system/api/05`): `AuthRoutes` (`/v1/auth/code-requests`, `/sessions`, `/refresh`) and `AdminRoutes` (`/v1/admin/me`, `DELETE /v1/admin/session`, `DELETE /v1/admin/sessions/others`) sit in `Routes/Admin/`; services in `Services/Admin/Auth/` (`CodeRequestService`, `SignInVerifyService`, `SessionService`, the pure time rules in `AuthRules`) and `Services/Admin/Mail/` (`EmailSender`, `MailDispatcher`); SQL in `Repositories/Admin/AuthStore*`. Every route under `/v1/admin` or `/v1/owner` must be opened with `adminGroup()` or `ownerGroup()` (`Routes/Admin/AdminRouteGroups.swift`): they add `AdminAuthMiddleware` (opaque 300 s access token, checked against the session row on every request) and `RequireRole`; `RoleCoverageTests` fails for a route that lacks the role check. Limits are counted in the database (30 s resend, 3 codes an hour per address, 5 wrong entries void a code, no address lock) plus an in-memory limit per client address. Mail leaves after the response through `MailDispatcher` (one retry, failure logged without the address). Sign-in is off (`/v1/auth` answers 503) unless `AUTH_CODE_PEPPER` and `EMAIL_PROVIDER` are both set. Operator command: `APP_ENV=local DATABASE_URL=<url> SHOP_ID=<uuid> swift run App create-owner --email <address> [--name <name>]` (creates the one owner; the output never repeats the address). The admin database tests (`Tests/AppTests/Admin/*`, the ones that extend `AdminDatabaseTestCase`) commit rows into a fresh shop per test, so use a throwaway database.
+
 ## Commands (run in `backend/`)
 
 ```
@@ -39,12 +41,13 @@ swift test
 APP_ENV=local PORT=8080 swift run App serve        # GET http://localhost:8080/healthz
 docker compose up -d db                             # local PostgreSQL
 APP_ENV=local DATABASE_MIGRATION_URL=<url> swift run App migrate --yes   # needs only APP_ENV and DATABASE_MIGRATION_URL
+APP_ENV=local DATABASE_URL=<url> SHOP_ID=<uuid> swift run App create-owner --email <address>   # first owner (after migrate and seed)
 psql "<url>" -f db/seed/sample.sql                  # sample data, local and staging only
 docker build --platform linux/amd64 -f backend/Dockerfile .   # from the repository root
 ```
 
 Database URLs use the standard PostgreSQL URI form with the scheme `postgres`, then user, password, host, port and database name; take the local values from `docker-compose.yml`. Never commit real URLs.
 
-Configuration per command: `serve` needs `APP_ENV`, `PORT` and (outside local) `DATABASE_URL` and `SHOP_ID`; `migrate` needs only `APP_ENV` and `DATABASE_MIGRATION_URL`. The command is the first argument that does not start with `-`, as in Vapor, so `App --yes migrate` and `App --env staging migrate` select `migrate`. Values are trimmed of whitespace and newlines.
+Configuration per command: `serve` needs `APP_ENV`, `PORT` and (outside local) `DATABASE_URL` and `SHOP_ID`; `migrate` needs only `APP_ENV` and `DATABASE_MIGRATION_URL`; `create-owner` needs `APP_ENV`, `DATABASE_URL` and `SHOP_ID`. The command is the first argument that does not start with `-`, as in Vapor, so `App --yes migrate` and `App --env staging migrate` select `migrate`. Values are trimmed of whitespace and newlines.
 
 Migration files: the SQL splitter understands standard and `E'...'` strings, quoted identifiers, dollar quoting (opened only where PostgreSQL lexes it, not inside an identifier such as `a$b$c`) and nested comments. Anything else that holds a `;` inside a single statement is not supported.

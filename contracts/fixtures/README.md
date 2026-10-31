@@ -24,3 +24,16 @@ Fake data only. This repository is public.
 | `order-created.json` | `POST /v1/orders` | 201 exchange: `status`, `response_headers`, `body` with `order_code` and `created_at` only |
 | `order-replay.json` | `POST /v1/orders` | 200 replay of the same key and body: same `body`, header `Idempotent-Replay: true` |
 | `order-error-*.json` | `POST /v1/orders` | One error envelope per code of api.md 4.3 (`validation-failed` with two `fields[]`, `price-changed`, `min-qty`, `date-lead`, `date-horizon`, `date-capacity`, `product-unavailable`, `slot-unavailable`, `district-unserved`, `idempotency-key-required`, `header-invalid`, `idempotency-key-reused`, `rate-limited`, `payload-too-large`, `ordering-paused`, `service-unavailable`, `internal-error`) with the `details` the document states. The backend tests compare real answers with these files, ignoring `request_id` |
+
+## admin/
+
+Admin sign-in and session exchanges (docs/system/api/05, api/06, api/08; admin-orders slice B1). Exchange files hold `request` (optional `headers`, `body`), `status` and `body`; token values are placeholders, so tests compare key sets and value types. `error-*.json` are error envelopes compared with the real answers, ignoring `request_id`.
+
+| File | Endpoint | Meaning |
+| ---- | -------- | ------- |
+| `code-request.json` | `POST /v1/auth/code-requests` | 202, same body for every address |
+| `session-created.json` | `POST /v1/auth/sessions` | 201 with tokens, `device_id`, `account`, `server_date` |
+| `refresh-ok.json` | `POST /v1/auth/refresh` | 200 with a new pair |
+| `me.json` | `GET /v1/admin/me` | 200 |
+| `error-unauthenticated`, `-access-token-expired`, `-session-revoked`, `-session-expired`, `-forbidden` | admin routes | 401 and 403 envelopes |
+| `error-code-invalid`, `-code-expired`, `-code-resend-wait`, `-code-request-limit`, `-validation-email` | `/v1/auth` | 422 and 429 envelopes; limits carry `retry_after_seconds` |

@@ -1,0 +1,10 @@
+{
+  "error": {
+    "code": "CODE_REQUEST_LIMIT",
+    "message_key": "ERR_CODE_REQUEST_LIMIT",
+    "details": {
+      "retry_after_seconds": 1800
+    }
+  },
+  "request_id": "7f1c1a52-0c1e-4d6c-9a54-2d7f3d6a0020"
+}

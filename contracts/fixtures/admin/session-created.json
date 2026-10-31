@@ -1,0 +1,27 @@
+{
+  "description": "POST /v1/auth/sessions: 201. Tokens are placeholders; real ones are at_/rt_ + device_id + 64 hex characters.",
+  "request": {
+    "headers": {
+      "X-Platform": "ios",
+      "X-App-Version": "1.0.0"
+    },
+    "body": {
+      "email": "nhanvien.a@example.com",
+      "code": "123456",
+      "installation_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "device_name": "iPhone (iOS 17.5)"
+    }
+  },
+  "status": 201,
+  "body": {
+    "access_token": "at_5b0c2f6a-0000-4a00-8000-000000000001_<64 hex>",
+    "refresh_token": "rt_5b0c2f6a-0000-4a00-8000-000000000001_<64 hex>",
+    "access_expires_in": 300,
+    "device_id": "5b0c2f6a-0000-4a00-8000-000000000001",
+    "account": {
+      "name": "Nhan Vien A",
+      "role": "staff"
+    },
+    "server_date": "2026-11-02"
+  }
+}

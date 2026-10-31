@@ -39,7 +39,8 @@ extension AppConfig {
             rateLimitReadPerMinute: readLimit,
             publicAssetBaseURL: value(Key.publicAssetBaseURL).map(Self.trimmingTrailingSlashes)
                 ?? Default.publicAssetBaseURL,
-            orders: try OrderPolicy(environment: environment)
+            orders: try OrderPolicy(environment: environment),
+            admin: try AdminAuthConfig(environment: environment, stage: stage)
         )
     }
 

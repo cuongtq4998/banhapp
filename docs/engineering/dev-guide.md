@@ -2,8 +2,8 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.9 |
-| Last updated | 2026-10-29 |
+| Version      | 1.10 |
+| Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | forge-dev (orchestrator wrote the first version) |
 | Based on     | architecture.md v1.1; ADR-0001, 0004, 0005, 0007; slice 0 code |
@@ -72,6 +72,8 @@ Availability (slice 2, backend) [v1.4 | 2026-10-27]: `GET /v1/availability?cakes
 
 Orders (slice 3, backend) [v1.6 | 2026-10-29]: `POST /v1/orders` runs the checks of api.md 4.3 in order. `OrderRateLimitMiddleware` (global, per address, `RATE_LIMIT_ORDER_PER_HOUR`, a replay counts, a 429 does not) runs before the body is read; `OrderRoutes` checks headers (`OrderHeaders`), `ORDERING_ENABLED` (`OrderPolicy`), parses the body (`OrderRequestParser` on `JSONValue`, unknown keys rejected, `PhoneNumber`, `OrderText`) and calls `OrderPlacementService`, which reads through `OrderRepository` and prices with `OrderQuote`. Date rules are the ones of `AvailabilityRules` (shared with the date list). The idempotency lookup happens before product, date, price and capacity checks; the hash is `OrderRequestHash` (normalised request, includes `expected_total_vnd`). `PostgresOrderRepository.insertOrder` is the one transaction of ADR-0008 (`day_load` guarded update, order, items, `created` event); a lost race is resolved by reading the winner. The per-phone limit (`ORDER_MAX_PER_PHONE_PER_DAY`) counts stored orders of the last 24 hours before the insert; it is check-then-insert, so a burst on one phone can pass by a few orders (the daily capacity is exact). No migration. Fixtures: `contracts/fixtures/order-*.json`; `ValidationFixtureTests` reads the canonical keys of `validation.json` (set `VALIDATION_FIXTURE` to use another copy; skipped when the file is absent). Order DB tests (`Tests/AppTests/Database/Order*`) commit to the database named by `DATABASE_MIGRATION_URL` (own fake shop per test, rows stay: use a throwaway database); they include the parallel no-oversell tests (AC-22) and parallel same-key retries (AC-19). Verified here against PostgreSQL 16 on 127.0.0.1.
 
+Admin sign-in (admin-orders slice B1, backend) [v1.10 | 2026-10-31]: e-mail one-time-code sign-in under `/v1/auth` (`code-requests`, `sessions`, `refresh`), `GET /v1/admin/me`, `DELETE /v1/admin/session`, `DELETE /v1/admin/sessions/others`, migration `0002_admin_auth.sql` (`account`, `device_session`, `auth_code`, `security_event`). Set `AUTH_CODE_PEPPER` (32 or more characters, fake value locally) and `EMAIL_PROVIDER=console` (prints the mail text, codes included, never the address; refused when `APP_ENV=production`) to turn it on; without them `/v1/auth` answers 503. Create the first owner after `migrate` and the seed: `APP_ENV=local DATABASE_URL=<url> SHOP_ID=<uuid> swift run App create-owner --email <address> --name <name>`. Every route under `/v1/admin` or `/v1/owner` is opened with `adminGroup()` or `ownerGroup()` (authentication plus `RequireRole`); `RoleCoverageTests` sweeps the router and fails for a route without the role check. Tests: `app.services.clock = MutableClock(...)` moves time; `RecordingEmailSender` (the `EMAIL_PROVIDER=recording` sink, `failNext()` makes sends fail, `lastCode(to:)` reads the code) and `await app.services.background.drain()` wait for mail sent after the response; `app.services.mailRetryDelay = .zero` removes the 5 s retry pause. Database tests of the slice extend `AdminDatabaseTestCase` (skipped without `DATABASE_MIGRATION_URL`; they commit rows into a fresh shop per test, so use a throwaway database). Local run of them: start any PostgreSQL 14 or newer, create an empty database, then `DATABASE_MIGRATION_URL=postgres://<user>@127.0.0.1:<port>/<db> swift test`. Not built in this slice: `MAIL_API_KEY` provider, the 240 per minute limit per session, the 60 per minute limit on 401 answers, `last_used_at` writes, review account, push token route, maintenance purge.
+
 ## 4. Coding Conventions
 
 Principles every change must meet (the owner asked for code that stays easy to maintain and grow through the next slices):
@@ -98,7 +100,7 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 | Database behaviour | CI job `backend / test` against a `postgres:16` service | First real run of `0001_init.sql` happens in CI |
 | iOS | `xcodebuild ... -destination "platform=iOS Simulator,id=<id>" -parallel-testing-enabled NO test` in `ios/` | Without the flag the run fails with "No matching device ... XCTestDevices" |
 | Android | `./gradlew :app:testDebugUnitTest` (JVM: reducers, rules, fixtures, view models, import directions) and `./gradlew :app:connectedDebugAndroidTest` (Compose UI tests on an emulator) | Unverified [v1.6 \| 2026-10-29] |
-| Contract fixtures | `contracts/fixtures/*.json` decoded by every suite | Add a fixture with every contract change |
+| Contract fixtures | `contracts/fixtures/*.json` and `contracts/fixtures/admin/*.json` decoded by every suite | Add a fixture with every contract change |
 
 ## 6. Branching & Commits
 
@@ -141,3 +143,4 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 | 1.7 | 2026-10-29 | Fix round, iOS: accessibility ids renamed to the canonical set (UI part 9, 9b), `order.date.loading` added, `DETAIL_BTN_ORDER` "Đặt bánh", `DATE_A11Y_AVAILABLE` and `DATE_SPOKEN` (spoken date on the calendar cells), `validation.json` in canonical shape version 2 (ADR-0009 v1.2; the iOS agent owns the file, Android reads the same keys), idempotency key replaced on every change of a body field and kept for a pure retry (ADR-0008 v1.1; `OrderFlow.update`, hooks `applyPriceChange` and `replaceIdempotencyKey`; network use is slice 3). Android does the same alignment; its notes are not in this row. |
 | 1.8 | 2026-10-31 | iOS S-7 privacy notice (FR-20, AC-30): `Features/Order/Components/PrivacyNoticeCard`, shared `Core/Privacy/PrivacyLink` (opens `<API base URL>/privacy` in `SFSafariViewController`, `ERR_OPEN_PRIVACY` toast on failure) used by S-7 and the S-8 link `review.privacy.link`; `AppEnvironment.apiBaseURL`; debug stub mode `privacyFails` and a stub browser for UI tests. UI tests: the card pushes the lower S-7 fields under the keyboard, so `BanhUITestCase.reveal` scrolls before tapping address, district and note, and the note is typed last (`fillRecipient(note:)`). |
 | 1.9 | 2026-10-31 | Slice 3 iOS: order client, error mapping, sending state, S-9, stub order scenarios, `X-App-Version` normalised to `N.N.N`. |
+| 1.10 | 2026-10-31 | Admin slice B1 backend: e-mail code sign-in, sessions with rotation and reuse detection, role middleware, `create-owner` command, mail seam, `fixtures/admin/`. |

@@ -18,13 +18,18 @@ enum Entrypoint {
         // the event loop count depends on it: `migrate` must not need the
         // variables only `serve` uses.
         let variables = ProcessInfo.processInfo.environment
-        let isMigrating = requestedCommand(in: env.arguments) == migrateCommandName
+        let command = requestedCommand(in: env.arguments)
+        let isMigrating = command == migrateCommandName
         let loops: Int
         let setUp: (Application) async throws -> Void
         if isMigrating {
             let config = try MigrationConfig(variables: variables)
             loops = migrationLoopCount
             setUp = { try configureMigrator($0, config: config) }
+        } else if command == createOwnerCommandName {
+            let config = try OwnerCommandConfig(variables: variables)
+            loops = migrationLoopCount
+            setUp = { try configureOwnerCommand($0, config: config) }
         } else {
             let config = try AppConfig(variables: variables)
             loops = DatabasePoolSizing.eventLoopCount(poolMax: config.databasePoolMax, coreCount: System.coreCount)
