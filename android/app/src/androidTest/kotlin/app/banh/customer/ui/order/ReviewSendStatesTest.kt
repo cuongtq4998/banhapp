@@ -1,6 +1,12 @@
 package app.banh.customer.ui.order
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
@@ -49,8 +55,13 @@ class ReviewSendStatesTest {
         idempotencyKey = "key",
     )
 
+    private var current by mutableStateOf<OrderFlowState?>(null)
+    private var contentSet = false
+
     private fun show(submit: SubmitState, priceUpdate: PriceUpdate? = null) {
-        val state = OrderFlowState(draft = draft, draftLoaded = true, catalog = Load.Ready(catalog), submit = submit, priceUpdate = priceUpdate)
+        current = OrderFlowState(draft = draft, draftLoaded = true, catalog = Load.Ready(catalog), submit = submit, priceUpdate = priceUpdate)
+        if (contentSet) return
+        contentSet = true
         val actions = ReviewActions(
             onBack = { taps += "back" },
             onEditCakes = { taps += "cakes" },
@@ -58,7 +69,7 @@ class ReviewSendStatesTest {
             onEditRecipient = { taps += "recipient" },
             onConfirm = { taps += "confirm" },
         )
-        rule.setBanhContent { ReviewScreen(state, actions) }
+        rule.setBanhContent { current?.let { ReviewScreen(it, actions) } }
     }
 
     private fun failed(problem: SubmitProblem) = SubmitState.Failed(problem)
@@ -102,7 +113,7 @@ class ReviewSendStatesTest {
     fun capacityMessageNamesTheDate() {
         show(failed(SubmitProblem.Rule(SubmitRule.DATE_CAPACITY, date = "2026-11-05")))
 
-        rule.onNodeWithTag(TestTags.REVIEW_ISSUE).assertTextContains("05/11/2026", substring = true)
+        rule.onNode(hasText("05/11/2026", substring = true) and hasAnyAncestor(hasTestTag(TestTags.REVIEW_ISSUE))).assertIsDisplayed()
     }
 
     // TC-124, TC-138: not-sent errors keep confirm on and the retry sends again.

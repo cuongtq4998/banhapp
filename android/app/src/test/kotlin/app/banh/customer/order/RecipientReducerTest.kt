@@ -102,6 +102,14 @@ class RecipientReducerTest {
         assertFalse(over.then(OrderIntent.EditNote("x".repeat(150))).noteLimitHit)
     }
 
+    // The text field corrects itself back to the old text after a refused character; that must not hide the message.
+    @Test
+    fun theCorrectionBackToTheOldNoteKeepsTheLimitMessage() {
+        val over = start.then(OrderIntent.EditNote("x".repeat(200))).then(OrderIntent.EditNote("x".repeat(201)))
+
+        assertTrue(over.then(OrderIntent.EditNote("x".repeat(200))).noteLimitHit)
+    }
+
     @Test
     fun theNoteLimitFollowsTheCatalogSetting() {
         val longer = catalog.copy(settings = catalog.settings.copy(noteMaxLength = 300))

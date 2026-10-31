@@ -12,7 +12,9 @@ internal fun reduceRecipient(state: OrderFlowState, intent: OrderIntent): OrderF
         val cleaned = FieldRules.cleanInput(TextInput.ADDRESS, intent.text)
         edited(state, RecipientField.ADDRESS, state.draft.copy(address = cleaned.text))
     }
-    is OrderIntent.EditNote -> {
+    // The text field answers a refused 201st character with a correction back to the old text; that is no edit, so the
+    // "note too long" message that the refusal raised stays (AC-26).
+    is OrderIntent.EditNote -> if (intent.text == state.draft.note) state else {
         val cleaned = FieldRules.cleanInput(TextInput.NOTE, intent.text, state.noteMaxLength)
         state.copy(draft = state.draft.copy(note = cleaned.text), noteLimitHit = cleaned.exceededLimit)
     }

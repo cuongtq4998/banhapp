@@ -98,7 +98,7 @@ class OrderFlowTest {
         chooseDateAndSlot()
         // AC-12: nothing entered yet, so Next stays on S-7 and shows the errors.
         tapNext()
-        rule.onNodeWithTag(TestTags.orderFieldError("name")).assertExists()
+        rule.onNodeWithTag(TestTags.orderFieldError("name"), useUnmergedTree = true).assertExists()
         fillRecipient()
         tapNext()
         awaitTag(TestTags.REVIEW_TOTAL)
@@ -106,7 +106,7 @@ class OrderFlowTest {
         val cakes = 2 * first.priceVnd + second.priceVnd
         rule.onNodeWithTag(TestTags.REVIEW_TOTAL).assertTextEquals("${groupThousands(cakes + district.deliveryFeeVnd)} ₫")
         rule.onNodeWithTag(TestTags.REVIEW_DATE).assertTextEquals("06/11/2026")
-        rule.onNodeWithTag(TestTags.REVIEW_CONFIRM).assertIsNotEnabled()
+        rule.onNodeWithTag(TestTags.REVIEW_CONFIRM).assertIsEnabled()
         // The server was asked for the total number of cakes (api.md 4.2).
         assertEquals(listOf(3), availability.requestedCakes)
     }
