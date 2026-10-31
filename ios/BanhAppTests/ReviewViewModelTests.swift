@@ -57,15 +57,14 @@ final class ReviewViewModelTests: XCTestCase {
         XCTAssertNil(model.blocker)
     }
 
-    func testConfirmStaysDisabledUntilTheOrderCreationSliceWiresIt() async throws {
-        let (model, _) = try await complete()
-        XCTAssertFalse(model.canConfirm)
-        model.confirm()
-        var sent = 0
-        let wired = ReviewViewModel(flow: try await complete().1, confirmAction: { sent += 1 })
+    func testConfirmNeedsASubmitterAndAnOrderWithoutBlockers() async throws {
+        let (model, flow) = try await complete()
+        XCTAssertFalse(model.canConfirm, "no submitter: nothing to send with")
+        let api = ScriptedOrderAPI([.success(PlacedOrder(code: "BT-AAAAAA", isReplay: false))])
+        let wired = ReviewViewModel(flow: flow, submitter: OrderSubmitter(flow: flow, api: api, onPlaced: { _ in }))
         XCTAssertTrue(wired.canConfirm)
-        wired.confirm()
-        XCTAssertEqual(sent, 1)
+        await wired.confirm()
+        XCTAssertEqual(api.calls.count, 1)
     }
 
     func testOneCakeIsBlockedWithTheMinimumMessage() async throws {
@@ -73,8 +72,12 @@ final class ReviewViewModelTests: XCTestCase {
         let blocker = try XCTUnwrap(model.blocker)
         XCTAssertEqual(blocker.step, .cakes)
         XCTAssertEqual(blocker.message, "Đơn hàng cần ít nhất 2 bánh. Vui lòng thêm bánh.")
-        let wired = ReviewViewModel(flow: try await complete(quantities: [1, 0, 0, 0]).1, confirmAction: {})
+        let flow = try await complete(quantities: [1, 0, 0, 0]).1
+        let api = ScriptedOrderAPI([])
+        let wired = ReviewViewModel(flow: flow, submitter: OrderSubmitter(flow: flow, api: api, onPlaced: { _ in }))
         XCTAssertFalse(wired.canConfirm)
+        await wired.confirm()
+        XCTAssertTrue(api.calls.isEmpty)
     }
 
     func testTwoCakesRaiseNoQuantityError() async throws {

@@ -951,6 +951,146 @@
         }
       }
     },
+    "BTN_SENDING" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang gửi đơn"
+          }
+        }
+      }
+    },
+    "ERR_DATE_CAPACITY" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngày %@ không còn đủ chỗ cho đơn của bạn. Vui lòng chọn ngày khác."
+          }
+        }
+      }
+    },
+    "ERR_DATE_LEAD" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngày nhận phải sau ngày đặt ít nhất %lld ngày. Vui lòng chọn ngày khác."
+          }
+        }
+      }
+    },
+    "ERR_DATE_HORIZON" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chỉ nhận đặt trước tối đa %lld ngày. Vui lòng chọn ngày sớm hơn."
+          }
+        }
+      }
+    },
+    "ERR_RATE_LIMITED" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đơn hàng chưa được gửi vì có quá nhiều yêu cầu. Thông tin của bạn vẫn được giữ lại. Vui lòng đợi một lát rồi thử lại."
+          }
+        }
+      }
+    },
+    "ERR_OFFLINE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đơn hàng chưa được gửi vì không có kết nối mạng. Thông tin của bạn vẫn được giữ lại."
+          }
+        }
+      }
+    },
+    "ERR_SERVER" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đơn hàng chưa được gửi do có lỗi. Thông tin của bạn vẫn được giữ lại. Vui lòng thử lại."
+          }
+        }
+      }
+    },
+    "ERR_TIMEOUT" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đơn hàng chưa được gửi vì mất quá nhiều thời gian. Thông tin của bạn vẫn được giữ lại. Vui lòng thử lại."
+          }
+        }
+      }
+    },
+    "MSG_PRICE_CHANGED" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giá đã thay đổi nên đơn hàng chưa được gửi. Vui lòng xem lại giá và tổng cộng mới, rồi bấm xác nhận lại."
+          }
+        }
+      }
+    },
+    "CONF_TITLE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã nhận đơn hàng"
+          }
+        }
+      }
+    },
+    "CONF_CODE_LABEL" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mã đơn hàng"
+          }
+        }
+      }
+    },
+    "CONF_CODE_A11Y" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mã đơn hàng %@"
+          }
+        }
+      }
+    },
+    "CONF_MESSAGE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cửa hàng đã nhận được đơn của bạn và sẽ liên hệ với bạn. Khi cần, bạn có thể nhắn Zalo hoặc gọi điện cho cửa hàng và cho biết mã đơn hàng."
+          }
+        }
+      }
+    },
+    "CONF_BTN_HOME" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Về trang chủ"
+          }
+        }
+      }
+    },
     "ERR_SLOT_UNAVAILABLE" : {
       "localizations" : {
         "vi" : {

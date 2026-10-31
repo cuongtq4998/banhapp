@@ -7,7 +7,7 @@ final class LocalizationTests: XCTestCase {
     private static let forbiddenWords = ["mẫu", "sample", "test", "demo", "fake"]
 
     private let catalogURL = Fixtures.repositoryRoot.appendingPathComponent("ios/BanhApp/Localizable.xcstrings")
-    private let stringsSourceURLs = ["Strings.swift", "OrderStrings.swift"].map {
+    private let stringsSourceURLs = ["Strings.swift", "OrderStrings.swift", "SendStrings.swift"].map {
         Fixtures.repositoryRoot.appendingPathComponent("ios/BanhApp/Core/Localization/\($0)")
     }
 

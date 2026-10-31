@@ -4,6 +4,7 @@ import Foundation
 struct AppEnvironment {
     let catalogRepository: CatalogRepository
     let availabilityAPI: any AvailabilityAPI
+    let orderAPI: any OrderAPI
     let draftStore: any DraftStore
     let urlOpener: any URLOpener
     /// Pictures and other assets are resolved against this address (ADR-0017).
@@ -42,6 +43,7 @@ struct AppEnvironment {
         return AppEnvironment(
             catalogRepository: CatalogRepository(api: HTTPCatalogAPI(client: client), cache: cache),
             availabilityAPI: HTTPAvailabilityAPI(client: client),
+            orderAPI: HTTPOrderAPI(client: client),
             draftStore: draftStore,
             urlOpener: SystemURLOpener(),
             assetBaseURL: baseURL

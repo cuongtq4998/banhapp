@@ -6,13 +6,29 @@ struct ReviewStepView: View {
     let onEdit: (OrderStep) -> Void
 
     var body: some View {
-        OrderStepScaffold(step: .review, title: OrderStrings.step4) {
+        OrderStepScaffold(step: .review, title: OrderStrings.step4, backEnabled: !model.isSending,
+                          scrollToTop: model.noticeCount) {
             content
+                // The whole review is inert while the order is being sent (AC-19).
+                .disabled(model.isSending)
         } bar: {
-            ActionButton(title: OrderStrings.confirm, action: model.confirm)
+            ActionButton(
+                title: model.isSending ? SendStrings.sending : OrderStrings.confirm,
+                showsProgress: model.isSending
+            ) { Task { await model.confirm() } }
                 .disabled(!model.canConfirm)
                 .accessibilityIdentifier(AccessibilityID.reviewConfirm)
         }
+        .onChange(of: model.fieldsRejected) { _, rejected in
+            guard rejected else { return }
+            model.fieldRejectionHandled()
+            onEdit(.recipient)
+        }
+    }
+
+    private func edit(_ step: OrderStep) {
+        model.edit()
+        onEdit(step)
     }
 
     @ViewBuilder
@@ -32,19 +48,35 @@ struct ReviewStepView: View {
 
     private func ready(_ summary: ReviewViewModel.Summary) -> some View {
         VStack(alignment: .leading, spacing: Spacing.cardGap) {
-            if let blocker = model.blocker {
-                InlineMessage(
-                    kind: .error, text: blocker.message, actionTitle: blocker.actionTitle,
-                    action: { onEdit(blocker.step) }, actionIdentifier: AccessibilityID.reviewMessageAction
-                )
-                .accessibilityIdentifier(AccessibilityID.reviewMessage)
-            }
+            banner
+            
             cakesCard(summary)
             deliveryCard(summary)
             Text(OrderStrings.reviewPrivacy)
                 .textStyle(Typography.caption)
                 .foregroundStyle(Palette.textSecondary)
                 .accessibilityIdentifier(AccessibilityID.reviewPrivacy)
+        }
+    }
+
+    @ViewBuilder
+    private var banner: some View {
+        if let notice = model.notice {
+            InlineMessage(
+                kind: notice.kind == .priceChanged ? .info : .error, text: notice.message,
+                actionTitle: notice.actionTitle,
+                action: {
+                    if let step = notice.fixStep { edit(step) } else { Task { await model.confirm() } }
+                },
+                actionIdentifier: AccessibilityID.reviewMessageAction
+            )
+            .accessibilityIdentifier(AccessibilityID.reviewMessage)
+        } else if let blocker = model.blocker {
+            InlineMessage(
+                kind: .error, text: blocker.message, actionTitle: blocker.actionTitle,
+                action: { edit(blocker.step) }, actionIdentifier: AccessibilityID.reviewMessageAction
+            )
+            .accessibilityIdentifier(AccessibilityID.reviewMessage)
         }
     }
 
@@ -60,14 +92,16 @@ struct ReviewStepView: View {
                         SummaryRow(
                             label: OrderStrings.format(OrderStrings.reviewItem, line.name, line.quantity),
                             value: MoneyFormatter.format(line.lineTotalVND),
+                            highlighted: model.highlight.productIDs.contains(line.productID),
                             identifier: AccessibilityID.reviewItem(line.productID.identifierText)
                         )
                     }
                 }
                 Divider()
-                SummaryRow(label: OrderStrings.reviewFee, value: summary.feeText, identifier: AccessibilityID.reviewFee)
+                SummaryRow(label: OrderStrings.reviewFee, value: summary.feeText, highlighted: model.highlight.fee,
+                           identifier: AccessibilityID.reviewFee)
                 SummaryRow(label: OrderStrings.reviewTotal, value: summary.totalText, emphasized: true,
-                           identifier: AccessibilityID.reviewTotal)
+                           highlighted: model.highlight.total, identifier: AccessibilityID.reviewTotal)
             }
         }
     }
@@ -98,7 +132,7 @@ struct ReviewStepView: View {
     ) -> some View {
         HStack(alignment: .top, spacing: Spacing.sm) {
             VStack(alignment: .leading, spacing: Spacing.md) { rows() }
-            Button { onEdit(step) } label: {
+            Button { edit(step) } label: {
                 Text(OrderStrings.commonEdit)
                     .textStyle(Typography.contactButton)
                     .foregroundStyle(Palette.primaryDeep)

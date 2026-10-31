@@ -9,6 +9,9 @@ final class OrderCoordinator {
     private let environment: AppEnvironment
     private let now: () -> Date
     private var flow: OrderFlow?
+    private var submitter: OrderSubmitter?
+    /// Set by the screen that owns the path, so a send that finishes can replace the stack.
+    private var showConfirmation: ((String) -> Void)?
 
     init(environment: AppEnvironment, now: @escaping () -> Date = { Date() }) {
         self.environment = environment
@@ -19,6 +22,7 @@ final class OrderCoordinator {
     /// new draft starts with that cake at 1; otherwise the saved draft is restored, with no prompt
     /// (ADR-0011, FR-4, AC-5).
     func start(startingWith cake: ResourceID? = nil) -> Route {
+        showConfirmation = nil
         let store = environment.draftStore
         let draft: OrderDraft
         if let cake {
@@ -27,7 +31,12 @@ final class OrderCoordinator {
         } else {
             draft = store.load(now: now()) ?? OrderDraft(savedAt: now())
         }
-        flow = OrderFlow(draft: draft, repository: environment.catalogRepository, store: store, now: now)
+        let flow = OrderFlow(draft: draft, repository: environment.catalogRepository, store: store, now: now)
+        self.flow = flow
+        // The path is the root view's, so the submitter reaches it through `showConfirmation`.
+        submitter = OrderSubmitter(flow: flow, api: environment.orderAPI) { [weak self] placed in
+            self?.showConfirmation?(placed.code)
+        }
         return .orderStep(.cakes)
     }
 
@@ -78,10 +87,22 @@ final class OrderCoordinator {
             )
         case .review:
             ReviewStepView(
-                model: ReviewViewModel(flow: flow),
+                model: ReviewViewModel(flow: flow, submitter: submitter),
                 onEdit: { self.edit($0, path: &path.wrappedValue) }
             )
+            .onAppear { self.showConfirmation = { path.wrappedValue = [.orderConfirmed(code: $0)] } }
         }
+    }
+
+    /// S-9. Back and the home button both end at S-2; the draft was already cleared when the order was received.
+    func confirmation(code: String, path: Binding<[Route]>) -> some View {
+        ConfirmationView(
+            model: ConfirmationViewModel(
+                code: code, repository: environment.catalogRepository,
+                contact: ContactActions(opener: environment.urlOpener)
+            ),
+            onHome: { path.wrappedValue = [] }
+        )
     }
 
     /// The flow of the running order; a screen asked for without `start` (a restored stack) restores the draft.

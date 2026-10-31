@@ -104,6 +104,31 @@ final class RecipientViewModel {
 
     func focusHandled() { focusRequest = nil }
 
+    // MARK: Server answer
+
+    /// The S-7 field and message a `VALIDATION_FAILED` entry stands for; nil for entries S-7 has no
+    /// place for (those show `ERR_SERVER` on S-8, api.md section 5).
+    static func problem(forServerField entry: APIErrorResponse.FieldError) -> (Field, Problem)? {
+        switch (entry.field, entry.messageKey) {
+        case ("customer.name", "ERR_NAME_REQUIRED"): (.name, .nameRequired)
+        case ("customer.phone", "ERR_PHONE_REQUIRED"): (.phone, .phoneRequired)
+        case ("customer.phone", "ERR_PHONE_INVALID"): (.phone, .phoneInvalid)
+        case ("customer.address", "ERR_ADDRESS_REQUIRED"): (.address, .addressRequired)
+        case ("customer.district_id", "ERR_DISTRICT_REQUIRED"): (.district, .districtRequired)
+        case ("note", "ERR_NOTE_MAX"): (.note, .noteTooLong)
+        default: nil
+        }
+    }
+
+    /// Shows the field errors the server sent with `VALIDATION_FAILED` once, next to their fields, and
+    /// asks for focus on the first one (FR-13). Called when S-7 appears again.
+    func adoptServerErrors() {
+        let found = flow.takeServerFieldErrors().compactMap(Self.problem(forServerField:))
+        guard !found.isEmpty else { return }
+        for (field, problem) in found { problems[field] = problem }
+        focusRequest = Field.allCases.first { problems[$0] != nil }
+    }
+
     private func revalidate(_ field: Field) {
         guard problems[field] != nil else { return }
         problems[field] = problem(for: field)

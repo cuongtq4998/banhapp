@@ -11,6 +11,11 @@ final class OrderFlow {
     private(set) var draft: OrderDraft
     /// Cakes that the shop hid since they were chosen; S-5 tells the customer once (BR-13, AC-34).
     private(set) var removedCakeNames: [String] = []
+    /// The prices of the last `PRICE_CHANGED` answer, shown instead of the catalog's until the customer
+    /// changes the order itself (ADR-0010).
+    private(set) var priceOverride: PriceChangedDetails?
+    /// Field errors of a `VALIDATION_FAILED` answer, waiting for S-7 to show them once.
+    private(set) var serverFieldErrors: [APIErrorResponse.FieldError] = []
 
     let repository: CatalogRepository
     @ObservationIgnored private let store: any DraftStore
@@ -33,7 +38,12 @@ final class OrderFlow {
 
     /// Prices of the review and of S-5; nil until the catalog is known.
     var pricing: OrderPricing? {
-        if case .ready(let catalog) = catalog { OrderPricing(draft: draft, catalog: catalog) } else { nil }
+        if case .ready(let catalog) = catalog { pricing(in: catalog) } else { nil }
+    }
+
+    func pricing(in catalog: CatalogResponse) -> OrderPricing {
+        let prices = OrderPricing(draft: draft, catalog: catalog)
+        return priceOverride.map(prices.applying) ?? prices
     }
 
     /// Loads the catalog again (prices are refreshed on entry to S-5, ADR-0011) and drops from the
@@ -74,20 +84,46 @@ final class OrderFlow {
     func setDistrict(_ districtID: ResourceID?) { update { $0.districtID = districtID } }
     func setNote(_ value: String) { update { $0.note = value } }
 
-    // MARK: Idempotency key (ADR-0008 v1.1)
+    // MARK: Sending (ADR-0008 v1.1, ADR-0010)
 
-    /// `PRICE_CHANGED` (slice 3): the app takes the server's total as the new expected total. The body
-    /// changed, so `update` replaces the key.
+    /// Records the total the customer is about to confirm. Unchanged, the key stays (a retry); changed,
+    /// `update` replaces it.
+    func acknowledgeTotal(_ totalVND: Int) { update { $0.expectedTotalVND = totalVND } }
+
+    /// `PRICE_CHANGED`: the server's prices replace the review's and its total becomes the expected
+    /// total. The body changed, so `update` replaces the key.
+    func applyPriceChange(_ details: PriceChangedDetails) {
+        applyPriceChange(expectedTotalVND: details.totalVND)
+        priceOverride = details
+    }
+
     func applyPriceChange(expectedTotalVND: Int) { update { $0.expectedTotalVND = expectedTotalVND } }
 
-    /// `IDEMPOTENCY_KEY_REUSED` (slice 3): the server saw this key with another body. Replace the key
-    /// and retry once.
+    /// `IDEMPOTENCY_KEY_REUSED`: the server saw this key with another body. Replace the key and retry once.
     func replaceIdempotencyKey() { update { $0.idempotencyKey = UUID() } }
 
-    /// Forgets the draft once the order is confirmed (slice 4 calls this).
+    /// `PRODUCT_UNAVAILABLE`: only the named cakes leave the draft; S-5 names them once (BR-13, AC-34).
+    func dropProducts(_ ids: [ResourceID]) {
+        let gone = draft.items.filter { ids.contains($0.productID) && $0.quantity > 0 }
+        guard !gone.isEmpty else { return }
+        update { $0.items.removeAll { ids.contains($0.productID) } }
+        removedCakeNames = gone.map(\.name)
+    }
+
+    /// `VALIDATION_FAILED`: keeps the entries for S-7.
+    func rejectFields(_ errors: [APIErrorResponse.FieldError]) { serverFieldErrors = errors }
+
+    func takeServerFieldErrors() -> [APIErrorResponse.FieldError] {
+        defer { serverFieldErrors = [] }
+        return serverFieldErrors
+    }
+
+    /// Forgets the draft once the order is confirmed.
     func discardDraft() {
         store.clear()
         draft = OrderDraft(savedAt: now())
+        priceOverride = nil
+        serverFieldErrors = []
     }
 
     private func update(_ change: (inout OrderDraft) -> Void) {
@@ -95,6 +131,7 @@ final class OrderFlow {
         change(&draft)
         // A changed body field means a new request; a pure retry keeps the key (ADR-0008 v1.1).
         if draft.requestBody != before.requestBody { draft.idempotencyKey = UUID() }
+        if draft.choices != before.choices { priceOverride = nil }
         draft.savedAt = now()
         store.save(draft)
     }
