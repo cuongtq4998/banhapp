@@ -1,6 +1,6 @@
 # Admin Orders: Functional Requirements (section 5)
 
-Part of [Admin Orders](../admin-orders.md) (PRD v1.3). Holds: FR-1 to FR-46. Priority: Must / Should / Could. Rules and values are in [03-business-rules.md](03-business-rules.md); checks are in the acceptance criteria parts. Changed or new lines end with [v1.1 | 2026-10-31] or [v1.3 | 2026-10-31].
+Part of [Admin Orders](../admin-orders.md) (PRD v1.4). Holds: FR-1 to FR-52. Priority: Must / Should / Could. Rules and values are in [03-business-rules.md](03-business-rules.md); checks are in the acceptance criteria parts. Changed or new lines end with [v1.1 | 2026-10-31], [v1.3 | 2026-10-31] or [v1.4 | 2026-10-31].
 
 ## 5. Functional Requirements
 
@@ -30,7 +30,7 @@ Part of [Admin Orders](../admin-orders.md) (PRD v1.3). Holds: FR-1 to FR-46. Pri
 | FR-11 | The system shall let the person search by order code, part of the customer name, or part of the phone number, with the matching rules of BR-24. [v1.3 | 2026-10-31] | Should |
 | FR-12 | The system shall show the number of orders in New, update the list when the screen opens and on pull-to-refresh, and show when the list was last updated. | Must |
 | FR-13 | The system shall show an empty state (no orders match), a loading state, an offline state and an error state with retry, all in Vietnamese. | Must |
-| FR-41 | The system shall show and search only orders placed within the last 90 days (BR-20), for owner and staff alike, and shall refuse a request for an older order. [v1.1 | 2026-10-31] | Must |
+| FR-41 | The system shall show and search only orders placed within the last 90 days (BR-20), for owner and staff alike, and shall refuse a request for an older order, except an order that is still New or Confirmed: that one stays listed in the Unfinished view and can be opened and closed there (FR-48, BR-20). [v1.4 | 2026-10-31] | Must |
 
 ### 5.3 Order detail and status changes
 
@@ -84,3 +84,14 @@ Part of [Admin Orders](../admin-orders.md) (PRD v1.3). Holds: FR-1 to FR-46. Pri
 | -- | ----------- | -------- |
 | FR-45 | The system shall store, for the creation of every order and for every status change, the old and new status, the account that made it (or "customer"), the time and, for a cancellation, the reason; the record cannot be edited or deleted (BR-4). This is the Must part of the history; FR-20 only shows it. [v1.3 | 2026-10-31] | Must |
 | FR-46 | The system shall provide a store-review account (BR-22): a staff account with a fixed address and a fixed code that sees only fake demo orders, never a real order, receives no notification and can change no real data. It exists only while the operator has switched it on. [v1.3 | 2026-10-31] | Must |
+
+### 5.8 New-device notice and unfinished orders (new in v1.4)
+
+| ID | Requirement | Priority |
+| -- | ----------- | -------- |
+| FR-47 | When the owner signs in with a code on a device that is not in the owner's device list (FR-37), the system shall send a short notice, without any code, to the owner e-mail and, if registered, to the backup e-mail (BR-26; Q-24, decided). A failed notice never blocks the sign-in. [v1.4 | 2026-10-31] | Must |
+| FR-48 | The system shall provide an Unfinished view for owner and staff: every order that is New or Confirmed and whose delivery (receive) date is today or earlier (BR-27), of any age, including orders placed more than 90 days ago. Rows show the same fields as the list (FR-8), plus a label "due today" or "overdue N days"; they are ordered as in BR-13. Opening a row shows the detail of FR-14, from which the order can be confirmed, completed or cancelled with a reason as usual. [v1.4 | 2026-10-31] | Must |
+| FR-49 | The system shall show the number of unfinished orders (BR-27) in a red round badge on the Orders tab, hidden when the number is 0 and shown as "99+" above 99, and shall refresh it with the list (FR-12) and after every status change. [v1.4 | 2026-10-31] | Must |
+| FR-50 | The system shall pin an "Unfinished" filter chip, with the same count, as the first chip of the order list; tapping it opens the Unfinished view. The default list stays New and Confirmed (FR-8). [v1.4 | 2026-10-31] | Must |
+| FR-51 | When the app is opened from closed, or returns after more than 1 hour in the background, and the count is above 0, the system shall show one dismissible in-app banner "N unfinished orders" that opens the Unfinished view. It is not shown again until the next such opening, has no sound and never blocks the screen (BR-28). [v1.4 | 2026-10-31] | Should |
+| FR-52 | The system shall not send any reminder notification about unfinished orders unless the owner decides so (Q-23; default: none). Q-11 (no reminders) stays in force. [v1.4 | 2026-10-31] | Must |

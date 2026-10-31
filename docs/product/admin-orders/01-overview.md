@@ -31,7 +31,7 @@ Customers can place orders today, but nobody on the shop side can see them. Plac
 - Special dates, closed days, per-slot capacity (Place Order BR-10, BR-11 still hold).
 - Changing the booking horizon (30 days) (Q-7, decided). [v1.1 | 2026-10-31]
 - Reminder notifications for orders left in New (Q-11, decided). [v1.1 | 2026-10-31]
-- Showing orders older than 90 days (Q-13, decided). [v1.1 | 2026-10-31]
+- Showing orders older than 90 days (Q-13, decided), except unfinished ones in the Unfinished view (Q-22). [v1.4 | 2026-10-31]
 
 ## 4. Users & Scenarios
 
