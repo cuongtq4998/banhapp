@@ -2,11 +2,11 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.15 [v1.15 | 2026-10-31] |
+| Version      | 1.16 [v1.16 | 2026-10-31] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
-| Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; data-model.md v1.0; product/admin-orders.md v1.2 [v1.13 | 2026-10-31] |
+| Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; data-model.md v1.0; product/admin-orders.md v1.6 (27 FR, 14 BR) [v1.16 | 2026-10-31] |
 | Related      | order-lifecycle.md; admin-order-handling.md; session-lifecycle.md; auth.md; ADR-0008, ADR-0009, ADR-0010, ADR-0011, ADR-0014, ADR-0017, ADR-0019, ADR-0022 to ADR-0031 |
 
 Decided: ADR-0010 is Accepted by the owner: option A, reject with `PRICE_CHANGED` and let the customer re-review (`expected_total_vnd` stays). [v1.1 | 2026-10-25] Backend framework is Vapor (ADR-0001); the conventions below are implemented as Vapor middleware. [v1.1 | 2026-10-25]
@@ -25,9 +25,9 @@ This file is the index of the API specification. The body lives in the folder `a
 | 4.4, 4.5, 4.6 | `GET /healthz`, `GET /privacy`, `GET /assets/*` | [api/04-ops-endpoints-errors-compatibility.md](api/04-ops-endpoints-errors-compatibility.md) |
 | 5 | Error catalogue | [api/04-ops-endpoints-errors-compatibility.md](api/04-ops-endpoints-errors-compatibility.md) |
 | 6, 7 | Compatibility policy, traceability check | [api/04-ops-endpoints-errors-compatibility.md](api/04-ops-endpoints-errors-compatibility.md) |
-| 9, endpoint index (admin), 10.1 to 10.5 | Admin conventions, sign-in, refresh, recovery [v1.13 \| 2026-10-31] | [api/05-admin-conventions-auth.md](api/05-admin-conventions-auth.md) |
-| 10.6 to 10.12 | Session, devices, push token, order list, detail, status change, push payload [v1.13 \| 2026-10-31] | [api/06-admin-orders-devices.md](api/06-admin-orders-devices.md) |
-| 10.13 to 10.19 | Owner settings, ordering rules, districts, slots, cakes, staff, backup e-mail [v1.13 \| 2026-10-31] | [api/07-owner-settings-cakes-staff.md](api/07-owner-settings-cakes-staff.md) |
+| 9, endpoint index (admin), 10.1 to 10.5 | Admin conventions, sign-in, refresh [v1.16 \| 2026-10-31] | [api/05-admin-conventions-auth.md](api/05-admin-conventions-auth.md) |
+| 10.6 to 10.12 | Session, sign out other phones, push token, order list, detail, status change, push payload [v1.16 \| 2026-10-31] | [api/06-admin-orders-devices.md](api/06-admin-orders-devices.md) |
+| 10.13 to 10.19 | Owner settings, ordering rules, districts, slots, cakes, staff [v1.16 \| 2026-10-31] | [api/07-owner-settings-cakes-staff.md](api/07-owner-settings-cakes-staff.md) |
 | 11 to 13 | Admin error catalogue, compatibility, traceability [v1.13 \| 2026-10-31] | [api/08-admin-errors-compatibility.md](api/08-admin-errors-compatibility.md) |
 | 8 | Open questions and change log | this file |
 
@@ -56,3 +56,4 @@ This file is the index of the API specification. The body lives in the folder `a
 | 1.12 | 2026-10-29 | Resync with built slice 3: field-level `VALIDATION_FAILED` codes, paths and order (api/04 section 5); per-address limit counts replays; per-phone limit built (any status, 24 h, check-then-insert, `Retry-After` 3600); `X-App-Version` `N.N.N`; rule "items at most active products" removed; sorted JSON keys; transaction inside the repository. |
 | 1.14 | 2026-10-31 | Owner decisions and technical answers: one image route with its own exact body limit (5,308,416 bytes), per-client-address limits on all `/v1/auth` routes, device name format, ordering save returns `over_limit`, last write wins for settings, list paging consistency, offline sign-out, push delivery settings pointer. No new endpoint. |
 | 1.15 | 2026-10-31 | PRD v1.4: `CODE_LOCKED` removed (no address lock, a void code answers `CODE_EXPIRED`), recovery counted separately, new-device notice after sign-in; order list gains `view=unfinished` and `unfinished_count`; old unfinished orders reachable for detail and status change. No new endpoint. |
+| 1.16 | 2026-10-31 | PRD v1.6 simplification (27 FR, 14 BR). Removed: recovery endpoints, backup e-mail endpoints, device list and revoke, `DELETE /v1/admin/push-token`, `view=unfinished`, `date_from`, `date_to`, repeated `status`, response fields `new_count`, `server_time`, `has_backup_email`, `offer_device_list`, `order_window_days`, detail `history`, error `DEVICE_NOT_FOUND`, cancel reason `day_full`. Added: `DELETE /v1/admin/sessions/others`, list parameter `delivery_date`, status value `todo`, detail field `last_change`. One window rule: open orders of any age, finished orders 90 days (ADR-0029 v1.3). FR and BR ids of the admin files follow PRD v1.6. |

@@ -2,11 +2,11 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 2.2 [v2.2 | 2026-10-31] |
+| Version      | 2.3 [v2.3 | 2026-10-31] |
 | Last updated | 2026-10-31 |
 | Status       | Draft (ADR-0022 and ADR-0027 accepted by the owner 2026-10-31) |
 | Owner        | atlas-architect |
-| Based on     | product/place-order.md v1.2 (BR-7); product/admin-orders.md v1.4 [v2.2 | 2026-10-31] |
+| Based on     | product/place-order.md v1.2 (BR-7); product/admin-orders.md v1.6 [v2.3 | 2026-10-31] |
 | Related      | ADR-0014, ADR-0019, ADR-0022, ADR-0023, ADR-0027; session-lifecycle.md; api/05; data-model/04; auth/abuse-secrets-threats.md |
 
 Scope [v2.0 | 2026-10-31]: the anonymous customer slice and the admin apps (owner and staff). Sign-in is by e-mail address and a one-time code sent by e-mail. The earlier text about staff sign-in by phone number and SMS is removed (PRD Q-3: no SMS, no message cost). Sections 5 to 7 are in [auth/abuse-secrets-threats.md](auth/abuse-secrets-threats.md).
@@ -16,8 +16,8 @@ Scope [v2.0 | 2026-10-31]: the anonymous customer slice and the admin apps (owne
 | Actor | Identity | Notes |
 | ----- | -------- | ----- |
 | Anonymous customer | None; an order holds name, phone, address (PO BR-7) | Unchanged |
-| Staff | E-mail address added by the owner, up to 30 active (BR-8) | Orders only (BR-1) |
-| Owner | One account, created by the operator command `bootstrap-owner` (A-2) | Staff rights plus settings, staff, backup address, all devices |
+| Staff | E-mail address added by the owner, up to 30 active (BR-6) | Orders only (BR-1) |
+| Owner | One account, created by the operator command `bootstrap-owner` (A-2) | Staff rights plus settings and staff accounts |
 | Review account | Staff-role account of kind `review` while ADR-0027 is enabled | Sees demo orders only |
 | System | Backup job, migration runner, maintenance task, push and mail senders | Uses database credentials or provider keys; not an API caller |
 
@@ -25,7 +25,7 @@ Scope [v2.0 | 2026-10-31]: the anonymous customer slice and the admin apps (owne
 
 Customer: none; no token, no API key in the app. Protection is rate limits and server validation (section 4 of the abuse file).
 
-Admin sign-in (FR-1 to FR-4, FR-36; ADR-0022): e-mail address plus a 6-digit code valid 10 minutes, used once. Credentials after sign-in: an access token (300 s) and a refresh token (7 days, restarted on each refresh). Both are random 256-bit secrets prefixed with the device session id; only SHA-256 hashes are stored. Codes are stored as HMAC-SHA256 with the secret `AUTH_CODE_PEPPER`.
+Admin sign-in (FR-1, FR-2, FR-4, FR-6; ADR-0022): e-mail address plus a 6-digit code valid 10 minutes, used once. Credentials after sign-in: an access token (300 s) and a refresh token (7 days, restarted on each refresh). Both are random 256-bit secrets prefixed with the device session id; only SHA-256 hashes are stored. Codes are stored as HMAC-SHA256 with the secret `AUTH_CODE_PEPPER`.
 
 ```mermaid
 sequenceDiagram
@@ -45,17 +45,9 @@ sequenceDiagram
     API-->>App: new pair
 ```
 
-Owner sign-in (owner decision 2026-10-31, closes SL-Q1) [v2.1 | 2026-10-31]: the owner signs in on any device with ONE code sent to the owner address, exactly like staff, always; a backup address is not needed for it.
+Owner sign-in (Q-18): the owner signs in on any device with ONE code sent to the owner address, exactly like staff. Owner recovery with a backup address and two codes was removed in v2.3 (P-1 deferred) [v2.3 | 2026-10-31]. A lost owner phone: sign in on a new phone and use "Sign out all other phones". A lost owner mailbox: the operator recovers the account outside the app (PRD A-7).
 
-Owner recovery (FR-42, FR-43, BR-17) is a separate flow with its own counters (30 s, 3 an hour, 5 wrong void the attempt; nothing is shared with ordinary sign-in, so neither blocks the other) [v2.2 | 2026-10-31]: `recovery-requests` sends one code to the owner address and a different one to the confirmed backup address; `recovery-sessions` needs both. What it is and is not, plainly [v2.1 | 2026-10-31]:
-
-| It does | It does not |
-| ------- | ----------- |
-| Proves control of two mailboxes before it creates a session, and records the session as `recovery` | Protect against a stolen or hacked owner mailbox: whoever reads that mailbox gets in with the ordinary one-code sign-in |
-| Sends a notice to both mailboxes when it is used and when the backup address changes, so a second person can see that something happened | Restore access if the owner mailbox is lost: it needs a code from that mailbox too |
-| Gives the owner a way to prove the backup address works (it is confirmed by a code before it is saved) | Stop an attacker who already has a signed-in device; only revoking the device does |
-
-So the second code adds a tripwire and a check of the backup address, not protection. The real defence against a mailbox takeover is the device list with revoke plus the notices. Decided (Q-24, FR-47, BR-26) [v2.2 | 2026-10-31]: when the owner signs in with a code on a device not in the device list, one notice (device name, time, no code, no link) goes to the owner address and the backup address; a failed notice never blocks sign-in (ADR-0022, session-lifecycle.md section 3). Details: session-lifecycle.md.
+Defence against a mailbox takeover (Q-24, FR-7, BR-13): when the owner signs in with a code on a phone not used by the owner before, one notice (phone model, time, advice to use "Sign out all other phones", no code, no link) goes to the owner address only; a failed notice never blocks sign-in (ADR-0022, session-lifecycle.md section 3). It is a tripwire, not protection: whoever reads the owner mailbox can sign in. Details: session-lifecycle.md.
 
 | Item | Value |
 | ---- | ----- |
@@ -63,24 +55,23 @@ So the second code adds a tripwire and a check of the backup address, not protec
 | Access token | 300 s, opaque, checked against the session row on every request (revocation is immediate; the PRD bound of 5 minutes holds even without that check) |
 | Refresh token | 7 days sliding, rotated on each use; previous token tolerated 20 s (lost response); later reuse revokes the session |
 | Sign-out | Revokes this session and clears its push token |
-| Revocation | Owner revokes a device; deactivating an account revokes all its sessions in one transaction; renewal fails at once, data access ends on the next request |
+| Revocation | "Sign out all other phones" (own account, ends every other phone); deactivating an account revokes all its sessions in one transaction; renewal fails at once, data access ends on the next request |
 | Device identity | Session id; app-generated `installation_id` and model name only (no hardware id) |
-| Storage on device | iOS Keychain (after first unlock, this device only); Android Keystore-wrapped key over app-private storage; cleared at sign-out (BR-15) |
+| Storage on device | iOS Keychain (after first unlock, this device only); Android Keystore-wrapped key over app-private storage; cleared at sign-out (BR-7) |
 | Existence | Responses, timing and state do not show whether an address is registered (phantom `auth_code` rows, mail after the response) |
 
 ## 3. Authorization
 
-Enforced on the server: `AdminAuthMiddleware` loads session and account, then `RequireRole` per route group (`/v1/admin` owner or staff, `/v1/owner` owner), and services re-check the account where a rule depends on it (own devices only for staff).
+Enforced on the server: `AdminAuthMiddleware` loads session and account, then `RequireRole` per route group (`/v1/admin` owner or staff, `/v1/owner` owner), and services re-check the account where a rule depends on it (own account only for sign out other phones).
 
 | Endpoint group | Anonymous | Staff | Owner | Review |
 | -------------- | --------- | ----- | ----- | ------ |
 | `GET /v1/catalog`, `/v1/availability`, `POST /v1/orders`, `/healthz`, `/privacy`, `/assets/*` | Allowed (orders rate limited) | Allowed | Allowed | Allowed |
 | `/v1/auth/*` | Allowed (rate limited) | Allowed | Allowed | Allowed |
-| `GET /v1/admin/me`, `DELETE /v1/admin/session` | 401 | Allowed | Allowed | Allowed |
+| `GET /v1/admin/me`, `DELETE /v1/admin/session`, `DELETE /v1/admin/sessions/others` | 401 | Allowed | Allowed | Allowed |
 | `/v1/admin/orders*` | 401 | Allowed | Allowed | Demo rows only |
-| `/v1/admin/devices*` | 401 | Own devices | All devices | Own |
-| `PUT, DELETE /v1/admin/push-token` | 401 | Allowed | Allowed | Accepted, never used |
-| `/v1/owner/*` (settings, cakes, districts, slots, staff, backup e-mail) | 401 | 403 | Allowed | 403 |
+| `PUT /v1/admin/push-token` | 401 | Allowed | Allowed | Accepted, never used |
+| `/v1/owner/*` (settings, cakes, districts, slots, staff) | 401 | 403 | Allowed | 403 |
 
 Staff cannot edit orders, delete orders or see payment data (BR-1): no such endpoint exists. The database role of the backend has no schema rights and no DELETE on `account`, `order_event`, `security_event`, `settings_change`; migrations use a separate role.
 
@@ -90,9 +81,9 @@ Staff cannot edit orders, delete orders or see payment data (BR-1): no such endp
 | -- | -------- | -------------- | -------- | ----- | ------ | ------ |
 | AU-Q1 | Is the per-phone limit of 5 orders per 24 hours acceptable to the shop? | Visible limit on repeat customers | No | business | Default applied; owner may change | |
 | AU-Q2 | Confirm ADR-0022 (security design) and ADR-0027 (store review account) | Security and customer data | No | technical (owner confirms) | Closed 2026-10-31: both Accepted; ADR-0027 option B (fixed code, fake demo orders only) | Owner |
-| AU-Q3 | One code or two for the owner's ordinary sign-in (SL-Q1) | Business behaviour | No | business | Closed 2026-10-31: always ONE code; two-code recovery stays a separate flow | Owner |
-| AU-Q4 | Lock the address for 15 minutes after 5 wrong codes? | Denial of sign-in by a stranger | No | business | Closed 2026-10-31 (Q-20): no lock; the 5th wrong entry voids the code; shared counters with recovery rejected | Owner |
-| AU-Q5 | New-device notice to owner and backup address (SL-Q2) | Tripwire for a mailbox takeover | No | business | Closed 2026-10-31 (Q-24): yes | Owner |
+| AU-Q3 | One code or two for the owner's ordinary sign-in (SL-Q1) | Business behaviour | No | business | Closed 2026-10-31: always ONE code (the two-code recovery was removed later, v2.3) | Owner |
+| AU-Q4 | Lock the address for 15 minutes after 5 wrong codes? | Denial of sign-in by a stranger | No | business | Closed 2026-10-31 (Q-20): no lock; the 5th wrong entry voids the code | Owner |
+| AU-Q5 | New-device notice (SL-Q2) | Tripwire for a mailbox takeover | No | business | Closed 2026-10-31 (Q-24): yes, to the owner address only since v2.3 | Owner |
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
@@ -105,3 +96,4 @@ Staff cannot edit orders, delete orders or see payment data (BR-1): no such endp
 | 2.0 | 2026-10-31 | Rewritten for admin-orders: e-mail code sign-in (SMS text removed), access and rotating refresh tokens, recovery, roles and permission matrix, review account; abuse, secrets and threats moved to auth/abuse-secrets-threats.md; per-phone limit ignores cancelled orders except `fake_spam`. Removed in v2.0: the staff phone and SMS placeholder and the `/v1/staff` reservation. |
 | 2.1 | 2026-10-31 | Owner decisions of 2026-10-31: ADR-0022 and ADR-0027 accepted; ordinary owner sign-in always one code (SL-Q1, AU-Q3 closed); plain statement of what two-code recovery protects and does not; AU-Q2 closed. |
 | 2.2 | 2026-10-31 | Aligned with PRD v1.4: no address lock (Q-20), recovery counters separate, new-device notice decided (Q-24, FR-47); AU-Q4 and AU-Q5 closed. |
+| 2.3 | 2026-10-31 | PRD v1.6: owner recovery and backup address removed, device list replaced by "Sign out all other phones", notice to the owner address only, push-token delete removed; ids renumbered. |

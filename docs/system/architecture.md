@@ -2,11 +2,11 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.12 [v1.12 | 2026-10-31] |
+| Version      | 1.13 [v1.13 | 2026-10-31] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
-| Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; design/design-system.md v1.0; product/admin-orders.md v1.2 [v1.10 | 2026-10-31] |
+| Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; design/design-system.md v1.0; product/admin-orders.md v1.6 (27 FR, 14 BR) [v1.13 | 2026-10-31] |
 | Related      | data-model.md; api.md; order-lifecycle.md; admin-order-handling.md; session-lifecycle.md; auth.md; deployment.md; docs/decisions/; ADR-0017; ADR-0018 to ADR-0020; ADR-0021 to ADR-0031 |
 
 This file is the index of the architecture document. The body lives in the folder `architecture/`, split by topic so that no file passes 200 lines (CLAUDE.md "Project rule: file size"). Section numbers are unchanged: "architecture.md section 11" still means the same text, found through the map below. [v1.8 | 2026-10-27]
@@ -25,7 +25,7 @@ This file is the index of the architecture document. The body lives in the folde
 | 15 | Client code structure (iOS MVVM-C, Android MVI) | [architecture/06-code-structure.md](architecture/06-code-structure.md) |
 | 16 to 22 | Admin apps: scope, context, components, flows, integrations, quality, risks [v1.10 \| 2026-10-31] | [architecture/07-admin-orders.md](architecture/07-admin-orders.md) |
 | 24 | Admin technical answers (UI questions TQ-D1 to TQ-D7, QA review items, measurable targets) [v1.11 | 2026-10-31] | [architecture/08-admin-technical-answers.md](architecture/08-admin-technical-answers.md) |
-| 25 | Admin simplification, answers to TQ-11 to TQ-13 (Unfinished view, new-device notice), how deferred features drop out [v1.12 \| 2026-10-31] | [architecture/09-admin-simplification.md](architecture/09-admin-simplification.md) |
+| 25 | Admin simplification, answers to TQ-11 to TQ-13, list of what the PRD v1.6 simplification deleted [v1.13 \| 2026-10-31] | [architecture/09-admin-simplification.md](architecture/09-admin-simplification.md) |
 
 ## Change log
 
@@ -44,3 +44,4 @@ This file is the index of the architecture document. The body lives in the folde
 | 1.9 | 2026-10-29 | Slice 3 resync (06 code structure): transaction opened in `OrderRepository.insertOrder`; responses use sorted JSON keys so a replay is byte-identical; ADR-0014 status line. |
 | 1.11 | 2026-10-31 | Owner decisions of 2026-10-31 applied (ADR-0022, 0026, 0027 accepted; free tier only, go-live blocked on money; retention still open). New file 08 with the answers to TQ-D1 to TQ-D7 and review items. Slice A6 marked blocked. |
 | 1.12 | 2026-10-31 | Aligned with PRD v1.4 and the owner directive to keep things simple: new file 09 (section 25); lock removed, tables 7 to 5, R-7 superseded. |
+| 1.13 | 2026-10-31 | PRD v1.6 simplification applied (27 FR, 14 BR): recovery, backup address, device list, Unfinished view, status history screen, push settings and reminder removed from the system documents; "Sign out all other phones" added; one window rule (open orders always listed); four cancel reasons. Section 25.3 is now the record of what was deleted (see 25.5). |

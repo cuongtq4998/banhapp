@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.6 [v1.6 | 2026-10-31] |
+| Version      | 1.7 [v1.7 | 2026-10-31] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -118,7 +118,7 @@ Final states: `Completed`, `Cancelled`. Every non-final state (`New`, `Confirmed
 | Confirmed | Completed | Delivery done | Staff, owner | Active owner or staff session | Event written; capacity unchanged (the cakes were made) |
 | Confirmed | Cancelled | Staff cancels | Staff, owner | Active owner or staff session | Capacity released as above; event written |
 
-Admin-orders additions [v1.5 | 2026-10-31]: the guard column means an active owner or staff session calling `POST /v1/admin/orders/{order_code}/status` with `expected_status` (stale view: 409, ADR-0028); a cancellation also requires a `cancel_reason` stored on the order and copied into the event (ADR-0030), and after it the order no longer counts toward the per-phone limit unless the reason is `fake_spam` (FR-44). Completed is allowed at any time after Confirmed (BR-2).
+Admin-orders additions [v1.5 | 2026-10-31]: the guard column means an active owner or staff session calling `POST /v1/admin/orders/{order_code}/status` with `expected_status` (stale view: 409, ADR-0028); a cancellation also requires a `cancel_reason` stored on the order and copied into the event (ADR-0030), and after it the order no longer counts toward the per-phone limit unless the reason is `fake_spam` (FR-27); the reason is one of four (BR-8). Completed is allowed at any time after Confirmed (BR-2). Ids follow PRD admin-orders v1.6 [v1.7 | 2026-10-31].
 
 Any other pair is rejected by the database trigger `customer_order_status_guard` even for direct SQL, for example `Completed -> New`, `Cancelled -> Confirmed`, `New -> Completed`, and any change out of a final state. Each allowed change also writes its `order_event` through the trigger (rows above say "event written"; Confirmed and Completed do too) [v1.2 | 2026-10-26]. The status guard and the capacity release trigger are created in this slice (data-model.md section 5) so AC-28 can be tested at database level now.
 
@@ -157,3 +157,4 @@ Each flow step above traces to FR-9, FR-10, FR-11, FR-13, FR-16, FR-17, FR-18 an
 | 1.6 | 2026-10-31 | Stale wording removed: staff transitions and endpoints are no longer described as a later slice. No behaviour change. |
 | 1.5 | 2026-10-31 | admin-orders: staff transitions are live (pointer to admin-order-handling.md); `expected_status`, cancel reason, per-phone count rule. No change to the state machine. |
 | 1.4 | 2026-10-29 | Slice 3 resync: transaction opened inside `OrderRepository.insertOrder`; collision retry is a new transaction, not a savepoint; replay body byte-identical (sorted keys). No flow change. |
+| 1.7 | 2026-10-31 | PRD v1.6: four cancel reasons; admin ids renumbered. No change to the state machine. |
