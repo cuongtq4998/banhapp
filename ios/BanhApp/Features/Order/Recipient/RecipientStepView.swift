@@ -22,6 +22,7 @@ struct RecipientStepView: View {
             focus = request
             model.focusHandled()
         }
+        .onAppear { model.adoptServerErrors() }
     }
 
     private func next() {

@@ -9,6 +9,7 @@ final class OrderCoordinatorTests: XCTestCase {
         let environment = AppEnvironment(
             catalogRepository: await OrderTestSupport.repository(try CatalogTestData.okCatalog()),
             availabilityAPI: try StubAvailability.fixture(),
+            orderAPI: ScriptedOrderAPI([]),
             draftStore: store,
             urlOpener: StubOpener(),
             assetBaseURL: URL(string: "http://localhost:9")!

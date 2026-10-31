@@ -41,6 +41,8 @@ enum Palette {
     static let textDisabled = Color(hex: 0x7B857D)
     static let error = Color(hex: 0xB3261E)
     static let errorContainer = Color(hex: 0xFBE4E1)
+    /// Behind an amount that changed (`color.warningContainer`, UI document 5.8).
+    static let warningContainer = Color(hex: 0xFFF1CC)
     /// Disabled button fill: the primary text colour at 12%.
     static let disabledFill = textPrimary.opacity(0.12)
 }

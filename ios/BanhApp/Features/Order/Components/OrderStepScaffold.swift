@@ -5,17 +5,25 @@ import SwiftUI
 struct OrderStepScaffold<Content: View, Bar: View>: View {
     let step: OrderStep
     let title: LocalizedStringResource
+    /// False while the order is being sent: back must not leave the screen then.
+    var backEnabled = true
+    /// Changes when the screen wants its top shown again (a new message at the top).
+    var scrollToTop = 0
     @ViewBuilder let content: Content
     @ViewBuilder let bar: Bar
 
+    private static var topID: String { "top" }
+
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.md) {
                 HStack(spacing: Spacing.md) {
-                    BackButton()
+                    BackButton().disabled(!backEnabled)
                     StepIndicator(current: step.number, count: OrderStep.count)
                 }
                 .padding(.top, Spacing.backButtonTop)
+                .id(Self.topID)
                 Text(title)
                     .textStyle(Typography.screenTitle)
                     .foregroundStyle(Palette.textPrimary)
@@ -25,6 +33,8 @@ struct OrderStepScaffold<Content: View, Bar: View>: View {
             }
             .padding(.horizontal, Spacing.screenMargin)
             .padding(.bottom, Spacing.lg)
+        }
+        .onChange(of: scrollToTop) { _, _ in withAnimation { proxy.scrollTo(Self.topID, anchor: .top) } }
         }
         .scrollDismissesKeyboard(.interactively)
         .bottomActionBar { bar }

@@ -58,8 +58,7 @@ final class OrderFlowUITests: BanhUITestCase {
         XCTAssertTrue(element(app, AccessibilityID.reviewAddress).label.contains("12 Duong So 3, Quận 5"))
         XCTAssertFalse(element(app, AccessibilityID.reviewNote).exists)
         XCTAssertFalse(element(app, AccessibilityID.reviewMessage).exists)
-        // Confirming is the next slice.
-        XCTAssertFalse(element(app, AccessibilityID.reviewConfirm).isEnabled)
+        XCTAssertTrue(element(app, AccessibilityID.reviewConfirm).isEnabled)
     }
 
     @MainActor

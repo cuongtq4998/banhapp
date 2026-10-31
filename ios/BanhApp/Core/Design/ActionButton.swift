@@ -9,6 +9,8 @@ struct ActionButton: View {
     let title: LocalizedStringResource
     var systemImage: String?
     var emphasis: Emphasis = .primary
+    /// A spinner before the title while the action runs (`BTN_SENDING`).
+    var showsProgress = false
     let action: () -> Void
 
     @State private var pressCount = 0
@@ -34,6 +36,7 @@ struct ActionButton: View {
 
     private var label: some View {
         HStack(spacing: Spacing.sm) {
+            if showsProgress { ProgressView().accessibilityHidden(true) }
             if let systemImage { Image(systemName: systemImage).accessibilityHidden(true) }
             Text(title).textStyle(textStyle)
         }

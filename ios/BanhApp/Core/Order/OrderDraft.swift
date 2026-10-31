@@ -50,7 +50,15 @@ nonisolated struct OrderDraft: Codable, Equatable, Sendable {
         let address: String
         let districtID: ResourceID?
         let note: String
-        let expectedTotalVND: Int?
+        var expectedTotalVND: Int?
+    }
+
+    /// The same fields without the acknowledged total: what the customer chose, apart from the price
+    /// they saw. A change here makes a price override from `PRICE_CHANGED` stale.
+    var choices: RequestBody {
+        var copy = requestBody
+        copy.expectedTotalVND = nil
+        return copy
     }
 
     var requestBody: RequestBody {

@@ -13,17 +13,22 @@ enum UITestStub {
     static func environment(for mode: String?) -> AppEnvironment? {
         let catalog: Result<CatalogResponse, APIError>
         var availability: any AvailabilityAPI = StubAvailabilityAPI(result: nil)
+        var orders = StubOrderAPI(.success)
         switch mode {
         case LaunchArgument.stubModeCatalog: catalog = .success(UITestStubData.catalog)
         case LaunchArgument.stubModeUnavailable: catalog = .failure(.networkUnavailable)
         case LaunchArgument.stubModeAvailabilityFails:
             catalog = .success(UITestStubData.catalog)
             availability = StubAvailabilityAPI(result: .failure(.networkUnavailable))
+        case let mode? where mode.hasPrefix(LaunchArgument.stubOrderPrefix):
+            catalog = .success(UITestStubData.catalog)
+            orders = StubOrderAPI(.init(String(mode.dropFirst(LaunchArgument.stubOrderPrefix.count))))
         default: return nil
         }
         return AppEnvironment(
             catalogRepository: CatalogRepository(api: StubCatalogAPI(result: catalog), cache: InMemoryCatalogCache()),
             availabilityAPI: availability,
+            orderAPI: orders,
             draftStore: InMemoryDraftStore(),
             urlOpener: AcceptingURLOpener(),
             assetBaseURL: unreachableAssetBase

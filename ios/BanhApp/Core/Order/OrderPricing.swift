@@ -20,6 +20,22 @@ nonisolated struct OrderPricing: Equatable {
     var subtotalVND: Int { lines.reduce(0) { $0 + $1.lineTotalVND } }
     var totalVND: Int { subtotalVND + deliveryFeeVND }
 
+    private init(lines: [Line], deliveryFeeVND: Int) {
+        self.lines = lines
+        self.deliveryFeeVND = deliveryFeeVND
+    }
+
+    /// The server's prices of a `PRICE_CHANGED` answer in place of the catalog's (ADR-0010). A cake the
+    /// answer does not list keeps its price.
+    func applying(_ details: PriceChangedDetails) -> OrderPricing {
+        let current = Dictionary(details.items.map { ($0.productID, $0.priceVND) }, uniquingKeysWith: { _, last in last })
+        return OrderPricing(
+            lines: lines.map { Line(productID: $0.productID, name: $0.name, quantity: $0.quantity,
+                                    unitPriceVND: current[$0.productID] ?? $0.unitPriceVND) },
+            deliveryFeeVND: details.deliveryFeeVND
+        )
+    }
+
     /// Prices are the catalog's current ones; a cake that is no longer in the catalog has no price
     /// and is left out (the flow drops it from the draft, BR-13).
     init(draft: OrderDraft, catalog: CatalogResponse) {

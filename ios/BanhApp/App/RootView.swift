@@ -70,6 +70,8 @@ struct RootView: View {
             )
         case .orderStep(let step):
             order.screen(for: step, path: $path)
+        case .orderConfirmed(let code):
+            order.confirmation(code: code, path: $path)
         }
     }
 
