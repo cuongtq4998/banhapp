@@ -16,7 +16,7 @@ Part of [api.md](../api.md) (index, version, change log), sections 1 to 3. Moved
 | Idempotency | `POST /v1/orders` only (section 4.3). `GET` is safe |
 | Pagination | Not used (all lists are short and fixed) |
 | Rate limits | Table below; excess answers 429 `RATE_LIMITED` with `Retry-After` (seconds) |
-| Body limit | 8 KB: exactly 8,192 bytes pass, 8,193 or more answer 413 `PAYLOAD_TOO_LARGE`. Vapor rejects a body of `maxSize` bytes or more, so the configured `maxSize` is 8 KB + 1 [v1.4 \| 2026-10-26] |
+| Body limit | 8 KB: exactly 8,192 bytes pass, 8,193 or more answer 413 `PAYLOAD_TOO_LARGE`. Vapor rejects a body of `maxSize` bytes or more, so the configured `maxSize` is 8 KB + 1 [v1.4 \| 2026-10-26]. One route differs: `POST /v1/owner/cakes` (5,308,416 bytes, api/05 section 9) [v1.14 \| 2026-10-31] |
 | Client timeouts | Order submission 10 s; reads 15 s (ADR-0007). On the free trial host the first request after idle can take about 1 minute: the apps retry reads once and retry orders with the same key (ADR-0003) [v1.1 | 2026-10-25] |
 | Unknown fields | Ignored in responses by clients; rejected with `VALIDATION_FAILED` in requests (typos must not pass silently); Swift `Codable` ignores unknown keys, so the backend checks the key set before decoding [v1.1 | 2026-10-25] |
 
@@ -25,7 +25,7 @@ Rate limits (per client IP, in-memory limiter; numbers are configuration, defaul
 | Group | Limit |
 | ----- | ----- |
 | `GET /v1/*`, `/healthz`, `/privacy`, `/assets/*` (one shared budget) | 120 requests per minute |
-| `POST /v1/orders` | 10 requests per client address per hour (replays count, a 429 does not; fixed window, runs before the body is read), and, separately, 5 stored orders (any status) per normalised phone number per 24 hours, counted in the database [v1.12 \| 2026-10-29] |
+| `POST /v1/orders` | 10 requests per client address per hour (replays count, a 429 does not; fixed window, runs before the body is read), and, separately, 5 stored orders per normalised phone number per 24 hours, counted in the database; cancelled orders do not count unless cancelled as `fake_spam` (ADR-0030) [v1.14 \| 2026-10-31] |
 
 Error format (all non-2xx JSON responses):
 

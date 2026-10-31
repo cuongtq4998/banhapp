@@ -4,7 +4,7 @@ Part of [api.md](../api.md) (index, version, change log), sections 10.6 to 10.12
 
 ### 10.6 GET /v1/admin/me and DELETE /v1/admin/session
 
-`GET /v1/admin/me` returns `{ "account": { "name", "role", "has_backup_email" }, "device_id", "server_date", "order_window_days": 90 }` (`has_backup_email` only for the owner). `DELETE /v1/admin/session` revokes the calling device (`signed_out`), deletes its push token, answers 204; repeating it answers 401. FR-4, FR-35.
+`GET /v1/admin/me` returns `{ "account": { "name", "role", "has_backup_email" }, "device_id", "server_date", "order_window_days": 90 }` (`has_backup_email` only for the owner). `DELETE /v1/admin/session` revokes the calling device (`signed_out`), deletes its push token, answers 204; repeating it answers 401. A sign-out made offline is repeated by the app later (refresh, then this call) until 204 or 401; until then the server session lives and its push token may still receive pushes (ADR-0022, TQ-D6, R-30) [v1.14 | 2026-10-31]. FR-4, FR-35.
 
 ### 10.7 Devices
 
@@ -24,7 +24,7 @@ Part of [api.md](../api.md) (index, version, change log), sections 10.6 to 10.12
 | q | string | 2 to 50 characters; order code, part of the name, part of the phone (ADR-0029) |
 | cursor | string | Opaque, from `next_cursor` |
 
-Unknown parameters are rejected as `VALIDATION_FAILED`. Only orders placed in the last 90 days are returned, whatever the filters (FR-41). Sort: `delivery_date`, slot start, `created_at`, id, ascending (BR-13). 200 response:
+Unknown parameters are rejected as `VALIDATION_FAILED`. Only orders placed in the last 90 days are returned, whatever the filters (FR-41). Sort: `delivery_date`, slot start, `created_at`, id, ascending (BR-13); these keys never change, so pages do not repeat rows; new and status-changed orders appear on the next refresh from page 1 (ADR-0029, R-14) [v1.14 | 2026-10-31]. 200 response:
 
 | Field | Type | Notes |
 | ----- | ---- | ----- |
@@ -57,4 +57,4 @@ Side effects (one transaction): status and `cancel_reason` set; `order_event` wi
 
 ### 10.12 Push notification payload (for the clients)
 
-Not an endpoint. APNs alert `title-loc-key` `PUSH_NEW_ORDER_TITLE`, `loc-key` `PUSH_NEW_ORDER_BODY`, `loc-args` `[order_code, cakes, "dd/MM/yyyy"]`; custom field `order_code`; FCM `notification.title_loc_key`, `body_loc_key`, `body_loc_args` and `data.order_code`; Android channel id `new_orders`. No name, phone, address, note (FR-32, AC-49). Tap opens `GET /v1/admin/orders/{order_code}` after sign-in if needed (FR-33).
+Not an endpoint. APNs alert `title-loc-key` `PUSH_NEW_ORDER_TITLE`, `loc-key` `PUSH_NEW_ORDER_BODY`, `loc-args` `[order_code, cakes, "dd/MM/yyyy"]`; custom field `order_code`; FCM `notification.title_loc_key`, `body_loc_key`, `body_loc_args` and `data.order_code`; Android channel id `new_orders`. No name, phone, address, note (FR-32, AC-49). Delivery settings (importance, priority, expiry one hour, interruption level): ADR-0024 v1.1 [v1.14 | 2026-10-31]. Tap opens `GET /v1/admin/orders/{order_code}` after sign-in if needed (FR-33).

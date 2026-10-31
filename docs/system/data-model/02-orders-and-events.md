@@ -59,11 +59,11 @@ Purpose: append-only audit trail of an order's life.
 | ------ | ---- | ---- | ------- | ----------- | ----- |
 | id | bigint | no | identity | PK | |
 | order_id | uuid | no | | FK customer_order | |
-| event_type | text | no | | CHECK in `created`, `status_changed` | More types come with later slices |
+| event_type | text | no | | CHECK in `created`, `status_changed` | More types may be added by later features [v1.6 | 2026-10-31] |
 | from_status | text | yes | null | | Null for `created` |
 | to_status | text | no | | | |
 | actor_type | text | no | | CHECK in `customer`, `staff`, `owner`, `system` | `customer` for the `created` event (written by the application). Status-change events are written by trigger with `system` unless the transaction sets `app.actor_type` [v1.2 \| 2026-10-26] |
-| actor_id | uuid | yes | null | | Null for `customer` and `system`; staff id in the later slice, taken from `app.actor_id` [v1.2 \| 2026-10-26] |
+| actor_id | uuid | yes | null | | Null for `customer` and `system`; staff id by the admin status endpoint, taken from `app.actor_id` [v1.6 | 2026-10-31] [v1.2 \| 2026-10-26] |
 | created_at | timestamptz | no | now() | | |
 
 The table rejects UPDATE and DELETE by trigger (append-only).
@@ -75,9 +75,9 @@ Who writes it [v1.2 | 2026-10-26]: the `created` row is inserted by the order tr
 | Set | Value | Meaning |
 | --- | ----- | ------- |
 | customer_order.status | `New` | Received from the customer; the shop has not acted. Initial state |
-| | `Confirmed` | The shop accepted the order (later slice) |
-| | `Completed` | Delivered (later slice). Final |
-| | `Cancelled` | Cancelled by the shop (later slice). Final. Releases the date's capacity (BR-9) |
+| | `Confirmed` | The shop accepted the order (admin-orders) [v1.6 | 2026-10-31] |
+| | `Completed` | Delivered (admin-orders) [v1.6 | 2026-10-31]. Final |
+| | `Cancelled` | Cancelled by the shop (admin-orders) [v1.6 | 2026-10-31]. Final. Releases the date's capacity (BR-9) |
 | customer_order.payment_status | `unpaid` | Initial and only value used now |
 | | `paid` | Reserved for the payment feature |
 | order_event.actor_type | `customer`, `staff`, `owner`, `system` | Who caused the event |

@@ -3,10 +3,10 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0026 |
-| Version  | 1.0 |
-| Status   | Proposed (hard to reverse: the identifiers; money: store fees; owner approves) |
+| Version  | 1.1 [v1.1 | 2026-10-31] |
+| Status   | Accepted (product owner, 2026-10-31): identifiers `app.banh.admin`, iOS unlisted distribution, Android closed testing. The store fees themselves are NOT yet approved (DP-Q4); nothing is uploaded until they are, so the identifiers are not frozen yet [v1.1 | 2026-10-31] |
 | Date     | 2026-10-31 |
-| Decider  | atlas-architect proposes; product owner approves |
+| Decider  | atlas-architect proposes; product owner accepted on 2026-10-31 [v1.1 | 2026-10-31] |
 | Based on | PRD D-1, D-2, S-2, S-3; TQ-2; ADR-0005, ADR-0016 |
 
 ## Context
@@ -32,13 +32,13 @@ Up to 31 people use the admin apps. They must not appear in search. Both stores 
 
 ## Decision
 
-Recommendation: iOS A (unlisted) and Android B (closed testing), with the 12-tester production-access requirement of Google handled by using the admin testers themselves where needed (unverified for a closed-only app). If Android B proves too restrictive, Android A with the unlisted nature given up (the app shows only a sign-in). Identifiers: iOS bundle id `app.banh.admin` (tests `app.banh.admin.tests`, `app.banh.admin.uitests`), Android `namespace` and `applicationId` `app.banh.admin`, same neutral style as ADR-0016. They freeze at the first upload to TestFlight or Play internal testing. Store text states the use of customer data (name, phone, address) by staff only and links the privacy page `/privacy` (the page gains a staff section).
+Accepted: iOS A (unlisted) and Android B (closed testing), with the 12-tester production-access requirement of Google handled by using the admin testers themselves where needed (unverified for a closed-only app). If Android B proves too restrictive, Android A with the unlisted nature given up (the app shows only a sign-in). Identifiers: iOS bundle id `app.banh.admin` (tests `app.banh.admin.tests`, `app.banh.admin.uitests`), Android `namespace` and `applicationId` `app.banh.admin`, same neutral style as ADR-0016. They freeze at the first upload to TestFlight or Play internal testing. Store text states the use of customer data (name, phone, address) by staff only and links the privacy page `/privacy` (the page gains a staff section).
 
 ## Consequences
 
 - Positive: no new fees beyond the two registrations; staff install from a link or invitation.
 - Negative: each update passes App Review; Android testers need Google accounts; a review account is required (ADR-0027).
-- Follow-up: owner decides ids, creates the app records, submits the unlisted request after the first successful review; forge-dev sets ids; CI signs with secrets outside the repository.
+- Follow-up: when the owner approves the store fees, the owner creates the app records, submits the unlisted request after the first successful review; forge-dev sets ids; CI signs with secrets outside the repository.
 
 ## Sources
 

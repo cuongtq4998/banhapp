@@ -11,9 +11,9 @@ Part of [api.md](../api.md) (index, version, change log), sections 9 and 10.1 to
 | Headers | `X-Platform` (`ios`, `android`) and `X-App-Version` (`N.N.N`) required on every admin route (400 `HEADER_INVALID`). `Idempotency-Key` is not used; conflicts are handled by `expected_status` (ADR-0028) |
 | Format | JSON UTF-8, `snake_case`, as section 1. Exceptions: `POST /v1/owner/cakes` is `multipart/form-data` (ADR-0025) |
 | Cache | Every admin response: `Cache-Control: no-store`, `Vary: Authorization` |
-| Body limit | 8 KB as section 1; `POST /v1/owner/cakes` allows 5 MB + 64 KB (413 `PAYLOAD_TOO_LARGE`) |
+| Body limit | 8 KB as section 1. Only `POST /v1/owner/cakes` differs: 5,308,416 bytes (`IMAGE_MAX_BYTES` 5,242,880 + 65,536); a larger `Content-Length` is refused with 413 before the body is read; role is checked first (ADR-0025) [v1.14 | 2026-10-31] |
 | Pagination | Order list only: keyset cursor, 50 rows (ADR-0029) |
-| Rate limits | `/v1/auth/*`: per address and global limits of auth.md section 4.2 (429 `CODE_*`); per client address 20 requests an hour on code and recovery requests. Signed-in routes: 240 requests a minute per device session (`RATE_LIMIT_ADMIN_PER_MINUTE`), then 429 `RATE_LIMITED` |
+| Rate limits | `/v1/auth/*`: per address and global limits of auth.md section 4.2 (429 `CODE_*`); per client address 20 requests an hour on code and recovery requests and 60 an hour on the other `/v1/auth` routes; 401 answers on `/v1/admin` and `/v1/owner` count 60 a minute per client address (auth/abuse-secrets-threats.md 4.2) [v1.14 | 2026-10-31]. Signed-in routes: 240 requests a minute per device session (`RATE_LIMIT_ADMIN_PER_MINUTE`), then 429 `RATE_LIMITED` |
 | Logging | No e-mail address, token, code or customer data in logs or error bodies (BR-15). Log fields: request id, route, status, duration, role, platform |
 | Errors | Envelope of section 1; new codes in api/08 |
 | Dates | `YYYY-MM-DD` shop dates; `created_at` instants UTC |
@@ -53,7 +53,7 @@ Request `{ "email": string }` (required, valid format after trim and lower case,
 
 ### 10.2 POST /v1/auth/sessions
 
-Request: `email`, `code` (6 digits), `installation_id` (uuid), `device_name` (1 to 60). Headers `X-Platform`, `X-App-Version` required. 201 response:
+Request: `email`, `code` (6 digits), `installation_id` (uuid), `device_name` (1 to 60 characters, no control characters). The app builds it from the device model and system version, never from a user-assigned name: iOS `iPhone (iOS 17.5)`, Android `<Manufacturer> <Model> (Android 14)` (R-29) [v1.14 | 2026-10-31]. Headers `X-Platform`, `X-App-Version` required. 201 response:
 
 | Field | Type | Notes |
 | ----- | ---- | ----- |

@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.0 |
+| Version      | 1.1 [v1.1 | 2026-10-31] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -52,6 +52,7 @@ Steps: (1) request, limits first, then the row; (2) the mail is sent after the r
 | Old refresh token replayed later | Whole session revoked (`reuse_detected`), 401 `SESSION_REVOKED` | FR-36, AC-54 |
 | Owner revokes a device or deactivates an account | Session rows revoked at once; the next request is refused; renewal impossible | FR-7, FR-37, AC-14, AC-55 |
 | Owner without a backup address starts recovery | 202, nothing sent; no information given | FR-43, AC-59 |
+| Sign-out while offline [v1.1 | 2026-10-31] | App clears data and shows sign-in at once; keeps a pending sign-out (refresh token only), unregisters the push token locally, repeats refresh then `DELETE /v1/admin/session` when online, for 7 days at most | FR-35, AC-11 |
 
 ## 5. State Machine (device session)
 
@@ -79,6 +80,8 @@ Final states: Revoked, Expired. A request is served only for Active sessions of 
 
 ## 6. Recovery flow
 
+Ordinary owner sign-in is not this flow: it is the flow of section 3 with one code to the owner address, with or without a backup address (owner decision 2026-10-31) [v1.1 | 2026-10-31]. Recovery is optional and separate; auth.md section 2 states what it protects and what it does not.
+
 Owner enters the owner address on the recovery screen; the server creates two codes in one challenge when a confirmed backup address exists, sends one to each mailbox, and the owner types both. Success creates a session, notifies both addresses and offers the device list. Failure of either code is one wrong attempt for the address. Backup address registration and change use the same code table with purpose `backup_confirm` (FR-42).
 
 ## 7. Business Rules Applied
@@ -97,8 +100,10 @@ Two refreshes at once with the same token: the row update is conditional on the 
 
 | ID | Question | Why it matters | Blocking | Class | Status | Answer |
 | -- | -------- | -------------- | -------- | ----- | ------ | ------ |
-| SL-Q1 | May the owner sign in on any device with one code (as staff do), or only with two codes? PRD wording makes recovery optional, which gives it no protective use | Business behaviour of the powerful account | No (design supports both) | business | Open (owner via scribe) | Recommendation: with a confirmed backup address, owner sign-in always uses the two-code form |
+| SL-Q1 | May the owner sign in on any device with one code (as staff do), or only with two codes? | Business behaviour of the powerful account | No | business | Closed 2026-10-31: ALWAYS one code; two-code recovery stays a separate flow | Owner |
+| SL-Q2 | Send a notice to the backup address (and the owner address) on every owner sign-in on a new device? Recommended: yes, one short mail, no code in it. Cost: one mail per owner sign-in, a small share of the daily cap | A real tripwire for a mailbox takeover, which the second recovery code does not give | No | business and security | Open, optional | Recommendation: yes |
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-31 | First version. |
+| 1.1 | 2026-10-31 | SL-Q1 closed by the owner (one code), SL-Q2 opened, offline sign-out row, recovery separated from ordinary sign-in. |

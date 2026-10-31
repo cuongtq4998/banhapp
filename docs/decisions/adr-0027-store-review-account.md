@@ -3,10 +3,10 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0027 |
-| Version  | 1.0 |
-| Status   | Proposed (security and customer data: owner decides) |
+| Version  | 1.1 [v1.1 | 2026-10-31] |
+| Status   | Accepted, option B (product owner, 2026-10-31): fixed-code staff account of kind `review` that sees fake demo orders only [v1.1 | 2026-10-31] |
 | Date     | 2026-10-31 |
-| Decider  | atlas-architect proposes; product owner decides |
+| Decider  | atlas-architect proposes; product owner decided on 2026-10-31 [v1.1 | 2026-10-31] |
 | Based on | PRD S-3 (unverified), NFR Security and Privacy; ADR-0022, ADR-0026 |
 
 ## Context
@@ -30,13 +30,13 @@ Store reviewers must be able to use every feature, which usually means a demo ac
 
 ## Decision
 
-Recommendation: option B. `account.kind` is `normal` or `review`. When `REVIEW_ACCOUNT_EMAIL` and `REVIEW_ACCOUNT_CODE` are set, that address signs in with the fixed code (the only exception to ADR-0022, never with `AUTH_FIXED_CODE`), the account has role `staff`, every order query for a `review` account adds `AND is_demo`, and the account receives no push. Demo orders are inserted by the operator (three fake rows with `is_demo = true`, which are excluded from every normal query and from `day_load`). The variables are set before submission and removed after approval; the account is created and removed by the operator command `review-account on|off`. Use of the account is logged as a security event. The owner can instead choose D.
+Option B (owner decision 2026-10-31). `account.kind` is `normal` or `review`. When `REVIEW_ACCOUNT_EMAIL` and `REVIEW_ACCOUNT_CODE` are set, that address signs in with the fixed code (the only exception to ADR-0022, never with `AUTH_FIXED_CODE`), the account has role `staff`, every order query for a `review` account adds `AND is_demo`, and the account receives no push. Demo orders are inserted by the operator (three fake rows with `is_demo = true`, which are excluded from every normal query and from `day_load`). The variables are set before submission and removed after approval; the account is created and removed by the operator command `review-account on|off`. Use of the account is logged as a security event. Option D is not chosen.
 
 ## Consequences
 
 - Positive: no real data reachable; short lifetime.
 - Negative: queries carry one more predicate (covered by a test that a normal account never sees `is_demo` rows and a review account never sees others); a fixed code exists while enabled.
-- Follow-up: owner approves; forge-dev adds `is_demo` to `customer_order` (data-model/05) and the command.
+- Follow-up: the account is only built and tested with fakes now; real submission waits for the store accounts (DP-Q4, not yet approved) [v1.1 | 2026-10-31]. forge-dev adds `is_demo` to `customer_order` (data-model/05) and the command.
 
 ## Sources
 
