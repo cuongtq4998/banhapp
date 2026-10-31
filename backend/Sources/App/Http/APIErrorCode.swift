@@ -23,9 +23,25 @@ enum APIErrorCode: String, CaseIterable, Sendable {
     // Routing errors (api.md section 5, v1.3).
     case notFound = "NOT_FOUND"
     case methodNotAllowed = "METHOD_NOT_ALLOWED"
+    // Admin sign-in and sessions (api/08 section 11).
+    case unauthenticated = "UNAUTHENTICATED"
+    case accessTokenExpired = "ACCESS_TOKEN_EXPIRED"
+    case sessionRevoked = "SESSION_REVOKED"
+    case sessionExpired = "SESSION_EXPIRED"
+    case forbidden = "FORBIDDEN"
+    case codeInvalid = "CODE_INVALID"
+    case codeExpired = "CODE_EXPIRED"
+    case codeResendWait = "CODE_RESEND_WAIT"
+    case codeRequestLimit = "CODE_REQUEST_LIMIT"
 
     var status: HTTPResponseStatus {
         switch self {
+        case .codeInvalid, .codeExpired:
+            return .unprocessableEntity
+        case .unauthenticated, .accessTokenExpired, .sessionRevoked, .sessionExpired:
+            return .unauthorized
+        case .forbidden: return .forbidden
+        case .codeResendWait, .codeRequestLimit: return .tooManyRequests
         case .validationFailed, .minQty, .dateLead, .dateHorizon, .districtUnserved, .idempotencyKeyReused:
             return .unprocessableEntity
         case .dateCapacity, .priceChanged, .productUnavailable, .slotUnavailable:
@@ -50,6 +66,13 @@ enum APIErrorCode: String, CaseIterable, Sendable {
             return "ERR_" + rawValue
         case .priceChanged:
             return "MSG_PRICE_CHANGED"
+        case .unauthenticated, .accessTokenExpired: return "ERR_ADMIN_SIGN_IN_REQUIRED"
+        case .sessionRevoked, .sessionExpired: return "ERR_ADMIN_SESSION_ENDED"
+        case .forbidden: return "ERR_ADMIN_FORBIDDEN"
+        case .codeInvalid: return "ERR_CODE_INVALID"
+        case .codeExpired: return "ERR_CODE_EXPIRED"
+        case .codeResendWait: return "ERR_CODE_RESEND_WAIT"
+        case .codeRequestLimit: return "ERR_CODE_REQUEST_LIMIT"
         default:
             return Self.genericMessageKey
         }

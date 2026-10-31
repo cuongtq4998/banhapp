@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "UNAUTHENTICATED",
+    "message_key": "ERR_ADMIN_SIGN_IN_REQUIRED",
+    "details": {}
+  },
+  "request_id": "7f1c1a52-0c1e-4d6c-9a54-2d7f3d6a0020"
+}

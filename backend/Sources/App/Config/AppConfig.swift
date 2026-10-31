@@ -31,6 +31,8 @@ struct AppConfig: Equatable, Sendable {
     let rateLimitWindowSeconds: TimeInterval
     /// Switch and limits of `POST /v1/orders` (ADR-0014).
     let orders: OrderPolicy
+    /// Admin sign-in; nil leaves `/v1/auth` answering `SERVICE_UNAVAILABLE`.
+    let admin: AdminAuthConfig?
 
     init(
         stage: Stage,
@@ -42,7 +44,8 @@ struct AppConfig: Equatable, Sendable {
         rateLimitReadPerMinute: Int = Default.rateLimitReadPerMinute,
         publicAssetBaseURL: String = Default.publicAssetBaseURL,
         rateLimitWindowSeconds: TimeInterval = Default.rateLimitWindowSeconds,
-        orders: OrderPolicy = OrderPolicy()
+        orders: OrderPolicy = OrderPolicy(),
+        admin: AdminAuthConfig? = nil
     ) {
         self.stage = stage
         self.port = port
@@ -54,5 +57,6 @@ struct AppConfig: Equatable, Sendable {
         self.publicAssetBaseURL = publicAssetBaseURL
         self.rateLimitWindowSeconds = rateLimitWindowSeconds
         self.orders = orders
+        self.admin = admin
     }
 }

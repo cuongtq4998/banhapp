@@ -1,0 +1,14 @@
+{
+  "description": "POST /v1/auth/refresh: 200 with a new pair.",
+  "request": {
+    "body": {
+      "refresh_token": "rt_5b0c2f6a-0000-4a00-8000-000000000001_<64 hex>"
+    }
+  },
+  "status": 200,
+  "body": {
+    "access_token": "at_5b0c2f6a-0000-4a00-8000-000000000001_<64 hex>",
+    "refresh_token": "rt_5b0c2f6a-0000-4a00-8000-000000000001_<64 hex>",
+    "access_expires_in": 300
+  }
+}

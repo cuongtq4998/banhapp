@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "CODE_EXPIRED",
+    "message_key": "ERR_CODE_EXPIRED",
+    "details": {}
+  },
+  "request_id": "7f1c1a52-0c1e-4d6c-9a54-2d7f3d6a0020"
+}
