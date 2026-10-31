@@ -1,6 +1,6 @@
 # Place Order: Acceptance Criteria (section 7)
 
-Part of [Place Order](../place-order.md) (PRD v1.4.1). Holds: AC-1 to AC-34 (listed in the order AC-1 to AC-29, AC-32 to AC-34, AC-30, AC-31, as in v1.4). [v1.4.1 | 2026-10-27]
+Part of [Place Order](../place-order.md) (PRD v1.6). Holds: AC-1 to AC-34 (listed in the order AC-1 to AC-29, AC-32 to AC-34, AC-30, AC-31, as in v1.4). [v1.4.1 | 2026-10-27]
 
 ## 7. Acceptance Criteria
 
@@ -13,7 +13,7 @@ Verdict rules (v1.3): a Pass verdict needs all Must ACs to pass. Failures of ACs
 | AC-1 | FR-1 | Given the app is installed, when it is opened, then a screen with only the logo appears, then the home screen. |
 | AC-2 | FR-2 | Given the home screen, then shop name, greeting, Zalo button, phone button, "View products" and "Place order" are visible. |
 | AC-3 | FR-2 | Given the home screen, when the Zalo or phone button is tapped, then the device opens Zalo or the phone dialer with the shop's number. |
-| AC-4 | FR-3, BR-13 | Given four cakes are active (launch data), when "View products" is tapped, then exactly those four cakes are listed, each with picture, name, description and price. [v1.4 | 2026-10-26] |
+| AC-4 | FR-3, BR-13 | Given four cakes are active (launch data), when "View products" is tapped, then exactly those four cakes are listed, each with picture, name, description and price. Given 12 cakes are active (owner-added cakes with their own pictures, Admin Orders BR-18), then exactly those 12 are listed and the list can be scrolled to the last one. [v1.6 | 2026-10-31] |
 | AC-5 | FR-4 | Given a cake detail, when its order button is tapped, then the order flow opens with that cake at quantity 1. [v1.1 | 2026-10-25] |
 | AC-6 | FR-5 | Given the cake step, when quantities 2, 0, 3, 0 are entered, then the review lists only the two cakes with quantity above 0. |
 | AC-7 | FR-6, BR-2 | Given the server date in the shop time zone is D (set by a controllable clock; the device date and time zone are irrelevant), when the date picker opens, then no date earlier than D+2 can be selected, whatever the time of day (same result at 00:00:00 and 23:59:59 shop time). [v1.3 | 2026-10-25] |
@@ -42,5 +42,8 @@ Verdict rules (v1.3): a Pass verdict needs all Must ACs to pass. Failures of ACs
 | AC-32 | FR-3, FR-5, BR-13 | Given 1, 2 or 3 cakes are active (the others hidden), when "View products" is tapped, then exactly the active cakes are listed with no Error state and no placeholder for the hidden ones; and the order flow offers a quantity only for those active cakes and can be completed. [v1.4 | 2026-10-26] |
 | AC-33 | FR-3, BR-13 | Given zero cakes are active, when "View products" is tapped, then an Error state in Vietnamese is shown instead of a list, and "Place order" does not start an order flow. Given one cake is then made active again, then the list shows it and ordering works without reinstalling the app. [v1.4 | 2026-10-26] |
 | AC-34 | FR-5, FR-10, BR-13 | Given one cake is hidden and three are active, when an order with active cakes only (total at least 2) is confirmed, then it is accepted and the review and stored order contain no hidden cake; given the customer chose a cake that is hidden before confirmation, then the order is not confirmed, the message says that cake is no longer available, entered data is kept, and the order is not stored. A hidden cake keeps the price on orders already confirmed (AC-23). [v1.4 | 2026-10-26] |
+| AC-35 | BR-14, Admin Orders FR-44 | Given phone +84 900 000 010 placed 5 orders in 24 hours and one is cancelled with a reason other than "fake or spam order", when the same phone orders again, then that order is accepted (it makes 5 counting orders) and the next one in the same 24 hours is refused. [v1.6 | 2026-10-31] |
+| AC-36 | BR-14, Admin Orders FR-44 | Given 5 orders from one phone in 24 hours and one is cancelled with "fake or spam order", when the phone orders again within those 24 hours, then the order is refused with a Vietnamese message and nothing is stored. [v1.6 | 2026-10-31] |
+| AC-37 | BR-14 | Given an order placed 23 hours 59 minutes ago, it counts; given placed exactly 24 hours ago, it no longer counts. The result does not depend on the device clock. [v1.6 | 2026-10-31] |
 | AC-30 | FR-20 | Given the customer reaches S-7 (the recipient screen, where personal data is first entered), then the full privacy notice is shown as a card visible before the first field is edited and names the name, phone, address, optional note and the draft kept on the device; and S-8 shows a one-sentence reminder with a link to the full notice. Confirmed by the owner 2026-10-29. [v1.5 | 2026-10-29] |
 | AC-31 | FR-21 | Given a date 2026-11-04 and an amount of 120000 dong, then the app shows 04/11/2026 and 120.000 with the dong unit, on the review and confirmation screens. Confirmed by the owner 2026-10-29. [v1.5 | 2026-10-29] |
