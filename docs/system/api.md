@@ -2,12 +2,12 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.12 |
-| Last updated | 2026-10-29 |
+| Version      | 1.13 [v1.13 | 2026-10-31] |
+| Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
-| Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; data-model.md v1.0 |
-| Related      | order-lifecycle.md; auth.md; ADR-0008, ADR-0009, ADR-0010, ADR-0011, ADR-0014, ADR-0017, ADR-0019 |
+| Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; data-model.md v1.0; product/admin-orders.md v1.2 [v1.13 | 2026-10-31] |
+| Related      | order-lifecycle.md; admin-order-handling.md; session-lifecycle.md; auth.md; ADR-0008, ADR-0009, ADR-0010, ADR-0011, ADR-0014, ADR-0017, ADR-0019, ADR-0022 to ADR-0031 |
 
 Decided: ADR-0010 is Accepted by the owner: option A, reject with `PRICE_CHANGED` and let the customer re-review (`expected_total_vnd` stays). [v1.1 | 2026-10-25] Backend framework is Vapor (ADR-0001); the conventions below are implemented as Vapor middleware. [v1.1 | 2026-10-25]
 
@@ -25,6 +25,10 @@ This file is the index of the API specification. The body lives in the folder `a
 | 4.4, 4.5, 4.6 | `GET /healthz`, `GET /privacy`, `GET /assets/*` | [api/04-ops-endpoints-errors-compatibility.md](api/04-ops-endpoints-errors-compatibility.md) |
 | 5 | Error catalogue | [api/04-ops-endpoints-errors-compatibility.md](api/04-ops-endpoints-errors-compatibility.md) |
 | 6, 7 | Compatibility policy, traceability check | [api/04-ops-endpoints-errors-compatibility.md](api/04-ops-endpoints-errors-compatibility.md) |
+| 9, endpoint index (admin), 10.1 to 10.5 | Admin conventions, sign-in, refresh, recovery [v1.13 \| 2026-10-31] | [api/05-admin-conventions-auth.md](api/05-admin-conventions-auth.md) |
+| 10.6 to 10.12 | Session, devices, push token, order list, detail, status change, push payload [v1.13 \| 2026-10-31] | [api/06-admin-orders-devices.md](api/06-admin-orders-devices.md) |
+| 10.13 to 10.19 | Owner settings, ordering rules, districts, slots, cakes, staff, backup e-mail [v1.13 \| 2026-10-31] | [api/07-owner-settings-cakes-staff.md](api/07-owner-settings-cakes-staff.md) |
+| 11 to 13 | Admin error catalogue, compatibility, traceability [v1.13 \| 2026-10-31] | [api/08-admin-errors-compatibility.md](api/08-admin-errors-compatibility.md) |
 | 8 | Open questions and change log | this file |
 
 ## 8. Open Questions / Change log
@@ -48,4 +52,5 @@ This file is the index of the API specification. The body lives in the folder `a
 | 1.9 | 2026-10-27 | Slice 2 gaps: `cakes` field error confirmed (`CAKES_INVALID`, `ERR_SERVER`), zero active products makes every `cakes` a 422, error responses carry no cache header except 404 (RFC 9110 15.1), field-level codes and the repository error name noted. Client address rule points to ADR-0019. (Version 1.8 above was UI TQ-9 and TQ-10.) |
 | 1.10 | 2026-10-27 | Split into the folder `api/` (file size rule, 200 lines); this file became the index with a section map. No contract change. The naming note in section 5 now points to the `DomainError` rule of ADR-0018. |
 | 1.11 | 2026-10-28 | Clarification only (ADR-0008 v1.1): key lifecycle and replay order in `POST /v1/orders`. No contract change. |
+| 1.13 | 2026-10-31 | admin-orders: new files 05 to 08 (sign-in by e-mail code, refresh, recovery, devices, push token, orders list/detail/status, owner settings, cakes with image upload, staff, backup e-mail; error codes). Prefixes `/v1/auth`, `/v1/admin`, `/v1/owner`; `/v1/staff` released. Place Order: per-phone limit ignores cancelled orders except `fake_spam` (api/03 step 7); catalog may list up to 12 cakes (api/02); uploaded images at `/assets/cakes/{id}`. |
 | 1.12 | 2026-10-29 | Resync with built slice 3: field-level `VALIDATION_FAILED` codes, paths and order (api/04 section 5); per-address limit counts replays; per-phone limit built (any status, 24 h, check-then-insert, `Retry-After` 3600); `X-App-Version` `N.N.N`; rule "items at most active products" removed; sorted JSON keys; transaction inside the repository. |

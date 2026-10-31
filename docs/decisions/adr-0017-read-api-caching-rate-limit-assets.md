@@ -59,3 +59,4 @@ Related: ADR-0011, ADR-0013, ADR-0014; api.md sections 1, 4.1, 4.6; deployment.m
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-26 | First version (Accepted). |
 | 1.1 | 2026-10-26 | D-18: per-address window and 10,000-address bound written exactly; `HEAD` counts (DOC-11); ETag is the first 32 hex characters only (D-20). |
+| 1.2 | 2026-10-31 | Amendment (ADR-0025): the catalog may list up to 12 cakes (was one to four); owner-uploaded images are served from `/assets/cakes/<product_id>?v=<8 hex>` with the same immutable cache rule, read from the database. |

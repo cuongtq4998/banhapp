@@ -66,3 +66,4 @@ Related: ADR-0008, ADR-0017 (read limit), ADR-0019 (client address). Detail: doc
 | 1.0 | 2026-10-25 | First version (Accepted). |
 | 1.1 | 2026-10-27 | Amendment: real limits, per-phone limit not built, in-memory reset, window burst, pointers to ADR-0017 and ADR-0019. |
 | 1.2 | 2026-10-29 | Slice 3 built: per-address order limit (replays count), per-phone limit (any status, check-then-insert, 3600 s hint); Q-O3 pending. |
+| 1.3 | 2026-10-31 | Amendment (ADR-0030, owner Q-12): the per-phone count ignores cancelled orders except those cancelled with reason `fake_spam`; Q-O3 answered. Sign-in limits for the admin app are in ADR-0022 and do not rely on the client address. |

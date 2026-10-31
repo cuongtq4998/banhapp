@@ -10,7 +10,7 @@ Part of [api.md](../api.md) (index, version, change log), sections 1 to 3. Moved
 | Format | JSON, UTF-8, `Content-Type: application/json`. Field names `snake_case` as in data-model.md |
 | Money | Integer VND (whole dong), field suffix `_vnd` |
 | Dates and times | Dates `YYYY-MM-DD` in shop time (Asia/Ho_Chi_Minh). Slot times `HH:MM`. Instants ISO 8601 UTC with `Z` |
-| Authentication | None for the customer endpoints (anonymous customer, auth.md). Staff endpoints are a later slice and use a separate path prefix `/v1/staff` (reserved) |
+| Authentication | None for the customer endpoints (anonymous customer, auth.md). Admin endpoints (owner and staff) use `/v1/auth`, `/v1/admin` and `/v1/owner` with a Bearer access token; see api/05 section 9 [v1.13 | 2026-10-31] |
 | Request headers | `X-Platform: ios` or `android` (required on `POST /orders`), `X-App-Version: N.N.N` (digits only; required on `POST /orders`), `Idempotency-Key: <uuid>` (required on `POST /orders`) |
 | Response headers | `X-Request-Id` (uuid, echoed in logs), `Cache-Control` as stated per endpoint |
 | Idempotency | `POST /v1/orders` only (section 4.3). `GET` is safe |
@@ -47,13 +47,13 @@ Error format (all non-2xx JSON responses):
 
 | Method | Path | Auth / role | Purpose | FR / BR traced |
 | ------ | ---- | ----------- | ------- | -------------- |
-| GET | /v1/catalog | None (anonymous) | Shop information, the active products (normally one to four), districts with fees, slots and ordering parameters | FR-2, FR-3, FR-4, FR-5, FR-7, FR-8, BR-3, BR-5, BR-10, BR-11 |
+| GET | /v1/catalog | None (anonymous) | Shop information, the active products (one to twelve, ADR-0025) [v1.13 | 2026-10-31], districts with fees, slots and ordering parameters | FR-2, FR-3, FR-4, FR-5, FR-7, FR-8, BR-3, BR-5, BR-10, BR-11 |
 | GET | /v1/availability | None | Per date: can the date hold an order of N cakes | FR-6, FR-10, BR-1, BR-2, BR-8, AC-7, AC-8, AC-24 |
 | POST | /v1/orders | None | Create an order and return its code | FR-8, FR-9, FR-10, FR-11, FR-13, FR-16, FR-17, FR-18, BR-1 to BR-8, BR-11 |
 | GET | /healthz | None | Liveness and database check for monitoring | Operations (deployment.md) |
 | GET | /privacy | None | Privacy statement page for store listings | PRD section 8 Privacy, Q-T4 |
 | GET | /assets/* | None | Product images and shop logo (static) | FR-3 |
-| (reserved) | /v1/staff/* | staff, owner | Later slice | Out of scope (auth.md) |
+| (admin) | /v1/auth/*, /v1/admin/*, /v1/owner/* | public sign-in, owner, staff | See the admin endpoint index in api/05 | admin-orders FRs [v1.13 \| 2026-10-31] |
 
 FR-1 (launch screen), FR-12, FR-14, FR-15, FR-19 need no endpoint (client behaviour; the API exposes no payment data, FR-19).
 

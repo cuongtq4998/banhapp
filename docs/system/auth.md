@@ -2,96 +2,85 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.5 |
-| Last updated | 2026-10-29 |
+| Version      | 2.0 [v2.0 | 2026-10-31] |
+| Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
-| Based on     | product/place-order.md v1.2 (BR-7); api.md v1.0 |
-| Related      | ADR-0014; architecture.md; data-model.md |
+| Based on     | product/place-order.md v1.2 (BR-7); product/admin-orders.md v1.2 [v2.0 | 2026-10-31] |
+| Related      | ADR-0014, ADR-0019, ADR-0022, ADR-0023, ADR-0027; session-lifecycle.md; api/05; data-model/04; auth/abuse-secrets-threats.md |
 
-Scope: only what the customer ordering slice needs. Staff and owner login by phone number with a one-time code is a later slice and is a placeholder here (sections 2 to 4).
+Scope [v2.0 | 2026-10-31]: the anonymous customer slice and the admin apps (owner and staff). Sign-in is by e-mail address and a one-time code sent by e-mail. The earlier text about staff sign-in by phone number and SMS is removed (PRD Q-3: no SMS, no message cost). Sections 5 to 7 are in [auth/abuse-secrets-threats.md](auth/abuse-secrets-threats.md).
 
 ## 1. Actors & Roles
 
-| Actor | Identity | In this slice |
-| ----- | -------- | ------------- |
-| Anonymous customer | None; an order holds name, phone, address (BR-7) | Yes |
-| Staff | Phone number and one-time code (later) | Placeholder, no endpoint |
-| Owner | Same as staff with configuration rights (later) | Placeholder, no endpoint |
-| System | Backup job, migration runner, purge job (later) | Uses database credentials; not an API caller |
+| Actor | Identity | Notes |
+| ----- | -------- | ----- |
+| Anonymous customer | None; an order holds name, phone, address (PO BR-7) | Unchanged |
+| Staff | E-mail address added by the owner, up to 30 active (BR-8) | Orders only (BR-1) |
+| Owner | One account, created by the operator command `bootstrap-owner` (A-2) | Staff rights plus settings, staff, backup address, all devices |
+| Review account | Staff-role account of kind `review` while ADR-0027 is enabled | Sees demo orders only |
+| System | Backup job, migration runner, maintenance task, push and mail senders | Uses database credentials or provider keys; not an API caller |
 
 ## 2. Authentication
 
-Customer: none. There is no login, token or session (BR-7, Apple guidance cited in PRD S-2). The apps carry no secret and no API key, because a secret inside a public mobile app can be extracted; protection is by rate limits (section 4) and server-side validation.
+Customer: none; no token, no API key in the app. Protection is rate limits and server validation (section 4 of the abuse file).
 
-Staff (placeholder, not designed here): login by phone and one-time code; short-lived access token and revocable refresh token; only hashes of codes and refresh tokens are stored (standard 07 rule 2); responses must not reveal whether a number belongs to staff (rule 3); SMS costs money and needs owner approval (rule 4). Paths are reserved under `/v1/staff`.
+Admin sign-in (FR-1 to FR-4, FR-36; ADR-0022): e-mail address plus a 6-digit code valid 10 minutes, used once. Credentials after sign-in: an access token (300 s) and a refresh token (7 days, restarted on each refresh). Both are random 256-bit secrets prefixed with the device session id; only SHA-256 hashes are stored. Codes are stored as HMAC-SHA256 with the secret `AUTH_CODE_PEPPER`.
+
+```mermaid
+sequenceDiagram
+    participant App
+    participant API
+    participant DB
+    App->>API: POST /v1/auth/code-requests {email}
+    API->>DB: auth_code (real or phantom)
+    API-->>App: 202 (same for every address)
+    App->>API: POST /v1/auth/sessions {email, code, installation_id, device_name}
+    API->>DB: lock and code check, new device_session
+    API-->>App: 201 access + refresh tokens
+    App->>API: GET /v1/admin/... (Bearer access token)
+    API->>DB: session and account check on every request
+    App->>API: POST /v1/auth/refresh {refresh_token}
+    API->>DB: rotate, previous hash kept 20 s
+    API-->>App: new pair
+```
+
+Owner recovery (FR-42, FR-43, BR-17): `recovery-requests` sends one code to the owner address and a different one to the confirmed backup address; `recovery-sessions` needs both. Details and the open question SL-Q1: session-lifecycle.md.
+
+| Item | Value |
+| ---- | ----- |
+| Code | 6 digits, 10 minutes, one use, newer code voids older |
+| Access token | 300 s, opaque, checked against the session row on every request (revocation is immediate; the PRD bound of 5 minutes holds even without that check) |
+| Refresh token | 7 days sliding, rotated on each use; previous token tolerated 20 s (lost response); later reuse revokes the session |
+| Sign-out | Revokes this session and deletes its push token |
+| Revocation | Owner revokes a device; deactivating an account revokes all its sessions in one transaction; renewal fails at once, data access ends on the next request |
+| Device identity | Session id; app-generated `installation_id` and model name only (no hardware id) |
+| Storage on device | iOS Keychain (after first unlock, this device only); Android Keystore-wrapped key over app-private storage; cleared at sign-out (BR-15) |
+| Existence | Responses, timing and state do not show whether an address is registered (phantom `auth_code` rows, mail after the response) |
 
 ## 3. Authorization
 
-| Endpoint group | Anonymous | Staff | Owner |
-| -------------- | --------- | ----- | ----- |
-| `GET /v1/catalog`, `GET /v1/availability` | Allowed | Allowed | Allowed |
-| `POST /v1/orders` | Allowed (rate limited) | Allowed | Allowed |
-| `GET /healthz`, `/privacy`, `/assets/*` | Allowed | Allowed | Allowed |
-| `/v1/staff/*` (later) | Denied (401) | By role (later) | By role (later) |
+Enforced on the server: `AdminAuthMiddleware` loads session and account, then `RequireRole` per route group (`/v1/admin` owner or staff, `/v1/owner` owner), and services re-check the account where a rule depends on it (own devices only for staff).
 
-Authorization is enforced by the server. In this slice there is no endpoint that reads an order back, so no customer data can be read through the API. The database role used by the backend has only the rights the slice needs (no schema changes at run time; migrations use a separate role).
+| Endpoint group | Anonymous | Staff | Owner | Review |
+| -------------- | --------- | ----- | ----- | ------ |
+| `GET /v1/catalog`, `/v1/availability`, `POST /v1/orders`, `/healthz`, `/privacy`, `/assets/*` | Allowed (orders rate limited) | Allowed | Allowed | Allowed |
+| `/v1/auth/*` | Allowed (rate limited) | Allowed | Allowed | Allowed |
+| `GET /v1/admin/me`, `DELETE /v1/admin/session` | 401 | Allowed | Allowed | Allowed |
+| `/v1/admin/orders*` | 401 | Allowed | Allowed | Demo rows only |
+| `/v1/admin/devices*` | 401 | Own devices | All devices | Own |
+| `PUT, DELETE /v1/admin/push-token` | 401 | Allowed | Allowed | Accepted, never used |
+| `/v1/owner/*` (settings, cakes, districts, slots, staff, backup e-mail) | 401 | 403 | Allowed | 403 |
 
-## 4. Abuse Protection (ADR-0014)
+Staff cannot edit orders, delete orders or see payment data (BR-1): no such endpoint exists. The database role of the backend has no schema rights and no DELETE on `account`, `order_event`, `security_event`, `settings_change`; migrations use a separate role.
 
-| Control | Value (configuration default) |
-| ------- | ----------------------------- |
-| Read requests per IP | 120 per minute in one shared budget (all read routes and static files; 304 and 404 count, a 429 does not), then 429 with `Retry-After` [v1.3 \| 2026-10-26] |
-| `POST /v1/orders` per IP | 10 per hour, then 429 with `Retry-After`; a global middleware that runs before the body is read and before the idempotency lookup, so a replay counts and a 429 does not [v1.5 \| 2026-10-29] |
-| Stored orders per normalised phone number | 5 per 24 hours (`ORDER_MAX_PER_PHONE_PER_DAY`), then 429 `RATE_LIMITED` with `Retry-After` 3600 (the cap, not the true wait). **Built in slice 3** [v1.5 \| 2026-10-29]: counts orders of any status created in the last 24 hours (cancelled ones count; Q-O3, whether they should, is still pending with the owner); check, then insert, so a burst on one phone can slip a few orders past the limit (the daily cake capacity stays exact, ADR-0008); it survives restarts. The in-memory address limits reset on restart and on wake from sleep, and a fixed window allows up to twice the limit across a boundary (ADR-0014 amendment) [v1.4 \| 2026-10-27] |
-| Request body size | 8 KB, then 413 |
-| Ordering switch | `ORDERING_ENABLED=false` returns 503 `ORDERING_PAUSED` |
-| Repeat requests | `Idempotency-Key` (api.md 4.3); a replay is not counted by the per-phone limit (no order is stored) but is counted by the per-IP limit [v1.5 \| 2026-10-29] |
-| Client IP | From the trusted proxy header set by the host (`TRUST_PROXY=true`, one proxy assumed); never from client-supplied values when the proxy is absent. The one-proxy assumption is contradicted by the host's own articles and ADR-0019 (Proposed) replaces the boolean by a verified hop count [v1.4 \| 2026-10-27] |
-| Lockouts | None for customers (no login attempts exist) |
-| Timing and responses | Error bodies never contain stack traces, SQL or personal data |
-
-No SMS or other paid verification is used. If abuse appears the upgrade path is SMS verification (needs owner approval, costs money) or app attestation (ADR-0014).
-
-## 5. Secrets & Key Handling
-
-Names only; values live in the host's secret store and local `.env` files (not committed).
-
-| Secret | Purpose | Where |
-| ------ | ------- | ----- |
-| `DATABASE_URL` | Application database connection (limited role) | Host secret store |
-| `DATABASE_MIGRATION_URL` | Migration role connection | CI and operator machine only |
-| `BACKUP_DATABASE_URL` | Read-only role for dumps | CI secret store |
-| `BACKUP_AGE_PUBLIC_KEY` | Encrypts dumps (public key, not secret, but environment-specific) | CI variable |
-| `BACKUP_REPO_DEPLOY_KEY` | Push encrypted dumps to the private backup repository (write access to that repository only) [v1.1 | 2026-10-25] | CI secret store |
-| Backup decryption private key | Restore | Owner's offline password manager, never in the host or the repository |
-| Container image on GHCR | Target: public package, once made public by the owner; private until then (CI pulls with `GITHUB_TOKEN`); contains no secrets or data (ADR-0003 v1.3) [v1.2 | 2026-10-26] | Registry |
-| `RENDER_DEPLOY_HOOK_STAGING`, `RENDER_DEPLOY_HOOK_PRODUCTION` | Anyone with the URL can trigger a deploy [v1.1 | 2026-10-25] | CI secret store |
-| Later: SMS provider key, token signing key | Staff login | Host secret store |
-
-Rotation: database passwords on staff change or suspected leak; at least once a year (recommendation).
-
-## 6. Threat Notes
-
-| Threat | Mitigation |
-| ------ | ---------- |
-| Fake orders fill a date's capacity | Rate limits per IP and phone; the shop contacts every customer (A-4); ordering switch; alert on bursts |
-| Capacity oversell by races | Database-enforced counter (ADR-0008) |
-| Duplicate orders from retries | Idempotency key |
-| Tampered prices or totals | Server computes everything; client total is only an acknowledgement |
-| SQL injection | Parameterised queries only; schema validation of all input |
-| Personal data in logs | Log policy: no name, phone, address or note; request ids only |
-| Leak of personal data from backups | Dumps encrypted with a public key; private key offline; storage private |
-| Enumeration of orders | No read endpoint; codes are random (ADR-0009) |
-| Data in transit | HTTPS only; the apps allow no cleartext traffic (iOS App Transport Security default, Android `usesCleartextTraffic=false`) |
-| Draft left on a lost phone | App-private storage, device encryption, 24 hour expiry, excluded from backups (ADR-0011) |
-| Cross-origin web abuse | No browser clients; CORS disabled |
-
-## 7. Open Questions / Change log
+## 8. Open Questions / Change log
 
 | ID | Question | Why it matters | Blocking | Class | Status | Answer |
 | -- | -------- | -------------- | -------- | ----- | ------ | ------ |
 | AU-Q1 | Is the per-phone limit of 5 orders per 24 hours acceptable to the shop? | Visible limit on repeat customers | No | business | Default applied; owner may change | |
+| AU-Q2 | Confirm ADR-0022 (security design) and ADR-0027 (store review account) | Security and customer data | No for design start; yes before store submission | technical (owner confirms) | Open | Recommendation in the ADRs |
+| AU-Q3 | One code or two for the owner's ordinary sign-in (SL-Q1) | Business behaviour | No | business | Open | Recommendation in session-lifecycle.md |
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
@@ -101,3 +90,4 @@ Rotation: database passwords on staff change or suspected leak; at least once a 
 | 1.3 | 2026-10-26 | Read limit wording: one shared budget per address (api.md section 1, ADR-0017). |
 | 1.4 | 2026-10-27 | ADR-0014 amendment and ADR-0019: per-phone limit not built, limiter caveats, client address trust. |
 | 1.5 | 2026-10-29 | Slice 3 resync: per-phone limit built (any status, check-then-insert, `Retry-After` 3600, Q-O3 pending); per-IP limit counts replays. |
+| 2.0 | 2026-10-31 | Rewritten for admin-orders: e-mail code sign-in (SMS text removed), access and rotating refresh tokens, recovery, roles and permission matrix, review account; abuse, secrets and threats moved to auth/abuse-secrets-threats.md; per-phone limit ignores cancelled orders except `fake_spam`. Removed in v2.0: the staff phone and SMS placeholder and the `/v1/staff` reservation. |

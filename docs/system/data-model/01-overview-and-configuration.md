@@ -125,4 +125,4 @@ Purpose: the number of cakes accepted per receiving date; the single point where
 | capacity_limit | integer | no | | `> 0` | Daily limit applied when the row was last raised; CHECK `cakes_accepted <= capacity_limit` |
 | updated_at | timestamptz | no | now() | | |
 
-Rows are created on demand. Remaining amount shown to availability logic = `shop_setting.daily_limit - cakes_accepted` (0 or less means full; the current setting is used, not `capacity_limit`).
+Rows are created on demand. Remaining amount shown to availability logic = `shop_setting.daily_limit - cakes_accepted` (0 or less means full; the current setting is used, not `capacity_limit`). When the owner changes the limit no row is rewritten; see data-model/05 "day_load and the daily limit" [v1.6 | 2026-10-31].

@@ -34,7 +34,7 @@ Order of checks (first failure is returned; the capacity step is last and is the
 4. Unknown or inactive product (409 `PRODUCT_UNAVAILABLE`, every offending `product_id` in `details`, nothing stored) [v1.8 | 2026-10-26], unknown or inactive slot (409 `SLOT_UNAVAILABLE`), district not served (422 `DISTRICT_UNSERVED`).
 5. Total cakes below `min_qty` (422 `MIN_QTY`), date earlier than order date plus `lead_days` (422 `DATE_LEAD`), later than order date plus `max_days_ahead` (422 `DATE_HORIZON`). The order date is the current date in shop time (A-8).
 6. Price acknowledgement: computed total differs from `expected_total_vnd` (409 `PRICE_CHANGED`).
-7. Per-phone limit (429 `RATE_LIMITED`, `Retry-After` 3600): stored orders of any status for the normalised phone in the last 24 hours, at least 5 [v1.12 | 2026-10-29]. Check, then insert: a burst of simultaneous orders on one phone can slip a few past the limit; capacity stays exact (step 8).
+7. Per-phone limit (429 `RATE_LIMITED`, `Retry-After` 3600): counted orders for the normalised phone in the last 24 hours, at least 5; an order counts unless it is `Cancelled`, but one cancelled with reason `fake_spam` keeps counting (FR-44, ADR-0030) [v1.13 | 2026-10-31]. Check, then insert: a burst of simultaneous orders on one phone can slip a few past the limit; capacity stays exact (step 8).
 8. Capacity, then insert, in one transaction (409 `DATE_CAPACITY`).
 
 201 response (created):

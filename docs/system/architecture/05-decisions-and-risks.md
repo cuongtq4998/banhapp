@@ -26,6 +26,19 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 | [ADR-0018](../../decisions/adr-0018-modular-package-architecture.md) | Package architecture: layering enforced by tests, feature folders inside the layers, module and package splits only on triggers (rewritten 2026-10-27, v2.0) | Accepted (owner decision 2026-10-27) |
 | [ADR-0019](../../decisions/adr-0019-client-address-trust-model.md) | Client address trust model: proxy hop count replaces `TRUST_PROXY` | Proposed (owner to confirm) |
 | [ADR-0020](../../decisions/adr-0020-test-infrastructure.md) | Test infrastructure: iOS stub backend, Android fakes, shared throwaway CI database | Accepted |
+| [ADR-0021](../../decisions/adr-0021-admin-apps-layout-and-shared-code.md) | Admin apps: second Xcode project, local packages, Android modules with build-logic [v1.10 \| 2026-10-31] | Accepted |
+| [ADR-0022](../../decisions/adr-0022-admin-sign-in-sessions-recovery.md) | E-mail code sign-in, opaque access and rotating refresh tokens, reuse detection, owner recovery | Proposed (security) |
+| [ADR-0023](../../decisions/adr-0023-email-delivery.md) | E-mail delivery by HTTPS API provider, sender domain | Proposed (money, domain) |
+| [ADR-0024](../../decisions/adr-0024-push-notifications.md) | APNs direct and FCM v1 behind `PushSender` | Accepted |
+| [ADR-0025](../../decisions/adr-0025-cake-image-storage.md) | Cake images as bytes in PostgreSQL | Accepted |
+| [ADR-0026](../../decisions/adr-0026-admin-app-distribution-and-identifiers.md) | Unlisted iOS, closed-track Android, ids `app.banh.admin` | Proposed (hard to reverse, money) |
+| [ADR-0027](../../decisions/adr-0027-store-review-account.md) | Store review account with demo orders only | Proposed (security) |
+| [ADR-0028](../../decisions/adr-0028-status-change-conflict-detection.md) | Stale-view detection by `expected_status` | Accepted |
+| [ADR-0029](../../decisions/adr-0029-order-list-search-and-90-day-window.md) | Keyset list, `unaccent` search, rolling 90-day window | Accepted |
+| [ADR-0030](../../decisions/adr-0030-cancel-reason-and-per-phone-limit.md) | Cancel reason column and per-phone count rule | Accepted |
+| [ADR-0031](../../decisions/adr-0031-cake-add-and-remove-model.md) | Soft removal of cakes | Accepted |
+
+Amended on 2026-10-31 [v1.10 | 2026-10-31]: ADR-0003 v1.4 (paid path before real use), ADR-0014 v1.3, ADR-0017 v1.2, ADR-0018 v2.2. Mapping of admin-orders technical questions: TQ-1 to ADR-0023; TQ-2 to ADR-0026; TQ-3 to ADR-0024; TQ-4 to ADR-0022; TQ-5 to ADR-0028 and ADR-0029; TQ-6 to ADR-0025; TQ-7 to ADR-0029; TQ-8 to ADR-0030; TQ-9 to ADR-0022 and ADR-0031; TQ-10 to ADR-0022.
 
 Amended on 2026-10-27 [v1.6]: ADR-0001 (toolchain floor 6.2), ADR-0004 (no `tools/`, ddagent external, per-component CI), ADR-0007 (toolchain table moved to the dev guide), ADR-0013 (warning deferred), ADR-0014 (see above).
 
