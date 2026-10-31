@@ -67,7 +67,7 @@ class PrivacyNoticeTest {
         val card = rule.onNodeWithTag(TestTags.ORDER_PRIVACY_CARD).getUnclippedBoundsInRoot()
         val name = rule.onNodeWithTag(TestTags.ORDER_FIELD_NAME).getUnclippedBoundsInRoot()
         assertTrue("card ${card.bottom} must end above the name field ${name.top}", card.bottom <= name.top)
-        assertTrue("link is at least 48 dp high", rule.onNodeWithTag(TestTags.ORDER_PRIVACY_LINK).getUnclippedBoundsInRoot().height >= 48.dp)
+        assertTrue("link is at least 48 dp high", rule.onNodeWithTag(TestTags.ORDER_PRIVACY_LINK).getUnclippedBoundsInRoot().let { it.bottom - it.top } >= 48.dp)
     }
 
     @Test

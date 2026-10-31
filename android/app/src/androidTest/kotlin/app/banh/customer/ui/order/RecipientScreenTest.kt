@@ -56,9 +56,9 @@ class RecipientScreenTest {
         tapNext()
 
         listOf("name", "phone", "address", "district").forEach {
-            rule.onNodeWithTag(TestTags.orderFieldError(it)).performScrollTo().assertIsDisplayed()
+            rule.onNodeWithTag(TestTags.orderFieldError(it), useUnmergedTree = true).performScrollTo().assertIsDisplayed()
         }
-        rule.onNodeWithTag(TestTags.ORDER_NOTE_ERROR).assertDoesNotExist()
+        rule.onNodeWithTag(TestTags.ORDER_NOTE_ERROR, useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -68,8 +68,8 @@ class RecipientScreenTest {
 
         type(TestTags.ORDER_FIELD_NAME, "An")
 
-        rule.onNodeWithTag(TestTags.orderFieldError("name")).assertDoesNotExist()
-        rule.onNodeWithTag(TestTags.orderFieldError("phone")).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag(TestTags.orderFieldError("name"), useUnmergedTree = true).assertDoesNotExist()
+        rule.onNodeWithTag(TestTags.orderFieldError("phone"), useUnmergedTree = true).performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -79,7 +79,7 @@ class RecipientScreenTest {
 
         tapNext()
 
-        rule.onNodeWithTag(TestTags.orderFieldError("phone")).assertTextEquals("Vui lòng nhập số điện thoại di động Việt Nam (10 số, ví dụ 09xx xxx xxx).")
+        rule.onNodeWithTag(TestTags.orderFieldError("phone"), useUnmergedTree = true).assertTextEquals("Vui lòng nhập số điện thoại di động Việt Nam (10 số, ví dụ 09xx xxx xxx).")
     }
 
     @Test
@@ -89,7 +89,7 @@ class RecipientScreenTest {
 
         tapNext()
 
-        rule.onNodeWithTag(TestTags.orderFieldError("phone")).assertDoesNotExist()
+        rule.onNodeWithTag(TestTags.orderFieldError("phone"), useUnmergedTree = true).assertDoesNotExist()
     }
 
     // AC-11: only listed districts, each with its flat fee; the fee shows once one is chosen.
@@ -103,7 +103,7 @@ class RecipientScreenTest {
         rule.onNodeWithTag(TestTags.orderDistrictRow(district.id)).performClick()
 
         rule.onNodeWithTag(TestTags.ORDER_DISTRICT_FEE).assertTextEquals("Phí giao hàng: ${groupThousands(district.deliveryFeeVnd)} ₫")
-        rule.onNodeWithTag(TestTags.orderFieldError("district")).assertDoesNotExist()
+        rule.onNodeWithTag(TestTags.orderFieldError("district"), useUnmergedTree = true).assertDoesNotExist()
     }
 
     // AC-26: 200 characters accepted, the 201st not inserted and the message beside the field.
@@ -111,13 +111,13 @@ class RecipientScreenTest {
     fun noteTakesTwoHundredCharactersAndRefusesTheNext() {
         show()
         type(TestTags.ORDER_FIELD_NOTE, "x".repeat(200))
-        rule.onNodeWithTag(TestTags.ORDER_NOTE_COUNTER).assertTextEquals("200/200")
-        rule.onNodeWithTag(TestTags.ORDER_NOTE_ERROR).assertDoesNotExist()
+        rule.onNodeWithTag(TestTags.ORDER_NOTE_COUNTER, useUnmergedTree = true).assertTextEquals("200/200")
+        rule.onNodeWithTag(TestTags.ORDER_NOTE_ERROR, useUnmergedTree = true).assertDoesNotExist()
 
         type(TestTags.ORDER_FIELD_NOTE, "y")
 
-        rule.onNodeWithTag(TestTags.ORDER_NOTE_COUNTER).assertTextEquals("200/200")
-        rule.onNodeWithTag(TestTags.ORDER_NOTE_ERROR).assertTextEquals("Ghi chú tối đa 200 ký tự.")
+        rule.onNodeWithTag(TestTags.ORDER_NOTE_COUNTER, useUnmergedTree = true).assertTextEquals("200/200")
+        rule.onNodeWithTag(TestTags.ORDER_NOTE_ERROR, useUnmergedTree = true).assertTextEquals("Ghi chú tối đa 200 ký tự.")
     }
 
     @Test
@@ -126,8 +126,8 @@ class RecipientScreenTest {
 
         type(TestTags.ORDER_FIELD_NOTE, "z".repeat(260))
 
-        rule.onNodeWithTag(TestTags.ORDER_NOTE_COUNTER).assertTextEquals("200/200")
-        rule.onNodeWithTag(TestTags.ORDER_NOTE_ERROR).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag(TestTags.ORDER_NOTE_COUNTER, useUnmergedTree = true).assertTextEquals("200/200")
+        rule.onNodeWithTag(TestTags.ORDER_NOTE_ERROR, useUnmergedTree = true).performScrollTo().assertIsDisplayed()
     }
 
     @Test
