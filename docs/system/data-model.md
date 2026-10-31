@@ -2,11 +2,11 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.8 [v1.8 | 2026-10-31] |
+| Version      | 1.9 [v1.9 | 2026-10-31] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
-| Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; product/admin-orders.md v1.2 [v1.6 | 2026-10-31] |
+| Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; product/admin-orders.md v1.6 (27 FR, 14 BR) [v1.9 | 2026-10-31] |
 | Related      | architecture.md; api.md; order-lifecycle.md; ADR-0002, ADR-0008, ADR-0009, ADR-0013, ADR-0017, ADR-0022, ADR-0025, ADR-0029 to ADR-0031 |
 
 This file is the index of the data model. The body lives in the folder `data-model/`, split by topic so that no file passes 200 lines (CLAUDE.md "Project rule: file size"). Section numbers are unchanged: "data-model.md section 5" still means the same text, found through the map below. [v1.4 | 2026-10-27]
@@ -25,7 +25,7 @@ This file is the index of the data model. The body lives in the folder `data-mod
 | 7 | Sensitive data | [data-model/03-constraints-rules-migrations.md](data-model/03-constraints-rules-migrations.md) |
 | 8 | Migrations | [data-model/03-constraints-rules-migrations.md](data-model/03-constraints-rules-migrations.md) |
 | 9 | Traceability | [data-model/03-constraints-rules-migrations.md](data-model/03-constraints-rules-migrations.md) |
-| 3.10 to 3.16 | `account`, `device_session` (with the push token), `auth_code` (with the attempt count), `security_event`, `settings_change`; sensitive data added [v1.8 \| 2026-10-31] | [data-model/04-admin-accounts-sessions.md](data-model/04-admin-accounts-sessions.md) |
+| 3.10 to 3.17 | `account`, `device_session` (with the push token), `auth_code` (with the attempt count), `security_event`, `settings_change`; sensitive data added; section 3.17 lists what v1.9 removed [v1.9 \| 2026-10-31] | [data-model/04-admin-accounts-sessions.md](data-model/04-admin-accounts-sessions.md) |
 | 11 to 16 | Changes to `customer_order`, `order_event`, `product`, `product_image`, settings CHECKs, `day_load` and the daily limit, purge jobs, migrations `0002` and `0003`, traceability [v1.6 \| 2026-10-31] | [data-model/05-admin-orders-cakes-settings.md](data-model/05-admin-orders-cakes-settings.md) |
 | 10 | Open questions and change log | this file |
 
@@ -47,3 +47,4 @@ This file is the index of the data model. The body lives in the folder `data-mod
 | 1.6 | 2026-10-31 | admin-orders: new files 04 and 05. Tables `account`, `device_session`, `auth_code`, `auth_email_state`, `push_token`, `security_event`, `settings_change`, `product_image`; columns `cancel_reason`, `is_demo`, `order_event.reason/actor_name`, `product.removed_at/image_source`; CHECKs and triggers; per-phone count excludes cancelled orders except `fake_spam`; `day_load.capacity_limit` is a copy, not an authority; migrations 0002 and 0003; purge jobs. Answers TQ-5, TQ-7 to TQ-9. |
 | 1.8 | 2026-10-31 | Simplified for the owner directive and PRD v1.4 (BR-5, Q-20): table `auth_email_state` removed (attempts counted on `auth_code.wrong_count`, no address lock); table `push_token` merged into `device_session`; `device_session.app_version` and unused security event types removed; partial index for the Unfinished view. Sections 3.13 and 3.14 kept as stubs. Admin tables: 5 (was 7). |
 | 1.7 | 2026-10-31 | DM-Q1 (retention) recorded as still open, owner decides later; 90-day window stays display only. Stale "later slice" wording in file 02 removed. |
+| 1.9 | 2026-10-31 | Simplified for PRD v1.6 (27 FR, 14 BR): removed `account.backup_email*`, trigger `account_email_guard`, `auth_code.purpose` and `challenge_id`, `device_session.sign_in_method = recovery`, `revoked_by_owner` (now `signed_out_others`), three `security_event` types and `actor_account_id`, cancel reason `day_full`; Unfinished view support reduced to the open-orders partial index. FR and BR ids of the admin sections follow PRD v1.6. Admin tables still 5. |

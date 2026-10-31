@@ -3,15 +3,15 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0024 |
-| Version  | 1.2 [v1.2 | 2026-10-31] |
+| Version  | 1.3 [v1.3 | 2026-10-31] (no hint, no settings, no reminder; PRD v1.6) |
 | Status   | Accepted (free services; the Apple Developer Program fee is already needed for the customer app; no customer data in the payload) |
 | Date     | 2026-10-31 |
 | Decider  | atlas-architect |
-| Based on | PRD FR-31 to FR-35, BR-14, G-1, TQ-3; ADR-0007 |
+| Based on | PRD admin-orders v1.6 FR-25, FR-26, BR-9, G-1, TQ-3; ADR-0007 (ids as in product/admin-orders/08, section 15) [v1.3 | 2026-10-31] |
 
 ## Context
 
-Every signed-in device of an active account gets a notification when an order is stored, within 60 seconds. The text may hold the order code, number of cakes and delivery date only. Tokens must stop receiving after sign-out, revoke or deactivation. The list is the source of truth (BR-14), so a lost push is tolerable.
+Every signed-in device of an active account gets a notification when an order is stored, within 60 seconds. The text may hold the order code, number of cakes and delivery date only. Tokens must stop receiving after sign-out, sign-out of other phones or deactivation. The list is the source of truth (BR-9), so a lost push is tolerable.
 
 ## Decision Drivers
 
@@ -30,13 +30,13 @@ Every signed-in device of an active account gets a notification when an order is
 
 ## Decision
 
-Option A. APNs: provider token authentication (ES256 JWT from a `.p8` key; key id, team id, topic `app.banh.admin` as configuration), HTTP/2, per-token `production` or `sandbox` environment sent by the app. FCM: HTTP v1 with a service-account OAuth2 access token (RS256-signed assertion, cached until shortly before expiry). Payload: alert with localisation keys (`PUSH_NEW_ORDER_TITLE`, `PUSH_NEW_ORDER_BODY` with arguments order code, number of cakes, `dd/MM/yyyy`) so the Vietnamese text lives in the apps' resource files; custom data field `order_code` opens the detail (FR-33). Android shows the same keys through `body_loc_key`. No name, phone, address or note (FR-32).
+Option A. APNs: provider token authentication (ES256 JWT from a `.p8` key; key id, team id, topic `app.banh.admin` as configuration), HTTP/2, per-token `production` or `sandbox` environment sent by the app. FCM: HTTP v1 with a service-account OAuth2 access token (RS256-signed assertion, cached until shortly before expiry). Payload: alert with localisation keys (`PUSH_NEW_ORDER_TITLE`, `PUSH_NEW_ORDER_BODY` with arguments order code, number of cakes, `dd/MM/yyyy`) so the Vietnamese text lives in the apps' resource files; custom data field `order_code` opens the detail (FR-26). Android shows the same keys through `body_loc_key`. No name, phone, address or note (FR-26).
 
-Dispatch: after the order transaction commits, an in-process task reads the push tokens of active, unrevoked sessions and sends in parallel with a 10 s timeout and retries after 1 s, 5 s and 20 s on 5xx or timeout. APNs 410 or `BadDeviceToken` and FCM `UNREGISTERED` delete the token. An outbox table is not built: a crash between commit and send loses one notification, which BR-14 allows; build one if monitoring shows loss (trigger: more than 1 percent of orders without a send record in 30 days). A send failure never fails the order.
+Dispatch: after the order transaction commits, an in-process task reads the push tokens of active, unrevoked sessions and sends in parallel with a 10 s timeout and retries after 1 s, 5 s and 20 s on 5xx or timeout. APNs 410 or `BadDeviceToken` and FCM `UNREGISTERED` delete the token. An outbox table is not built: a crash between commit and send loses one notification, which BR-9 allows; build one if monitoring shows loss (trigger: more than 1 percent of orders without a send record in 30 days). A send failure never fails the order.
 
-Delivery settings (TQ-D3) [v1.1 | 2026-10-31]: Android channel `new_orders`, importance HIGH (sound and heads-up, default system sound, vibration on), created at first launch; the channel id is also set in each FCM message (`android.notification.channel_id`), priority high, `ttl` 3600 s. iOS: `apns-push-type: alert`, `apns-priority: 10`, `apns-expiration` now plus 3600 s, interruption level `active` (default sound), not `time-sensitive` (it needs an extra capability and pierces Focus; a missed night order is acceptable because the list is the truth), `thread-id` `new_orders` so orders group. A notification older than one hour is not delivered. Android permission and iOS authorisation are asked after sign-in, with the explanation screen of the UI spec (FR-34). The channel can be changed by the user in system settings; an app update cannot raise it later, so the value is fixed now.
+Delivery settings (TQ-D3) [v1.1 | 2026-10-31]: Android channel `new_orders`, importance HIGH (sound and heads-up, default system sound, vibration on), created at first launch; the channel id is also set in each FCM message (`android.notification.channel_id`), priority high, `ttl` 3600 s. iOS: `apns-push-type: alert`, `apns-priority: 10`, `apns-expiration` now plus 3600 s, interruption level `active` (default sound), not `time-sensitive` (it needs an extra capability and pierces Focus; a missed night order is acceptable because the list is the truth), `thread-id` `new_orders` so orders group. A notification older than one hour is not delivered. Android permission and iOS authorisation are asked after sign-in, with the phone's own prompt; no settings, no hint and no reminder push exist in the app (D-7, D-8) [v1.3 | 2026-10-31]. The channel can be changed by the user in system settings; an app update cannot raise it later, so the value is fixed now.
 
-Tokens: two columns of the device session row (merged from a separate table in v1.2, the relation was 1 to 1) [v1.2 | 2026-10-31]; sign-out, revoke, deactivation and token refresh by the app delete or replace it (data-model/04). Permission denied: the app registers no token and shows the hint (FR-34).
+Tokens: two columns of the device session row (merged from a separate table in v1.2, the relation was 1 to 1) [v1.2 | 2026-10-31]; sign-out, sign-out of other phones, deactivation and token refresh by the app delete or replace it (data-model/04). Permission denied: the app registers no token and shows nothing more; the app works fully without notifications (FR-25). The endpoint `DELETE /v1/admin/push-token` is removed; sign-out and revocation clear the token on the server, and the app just stops calling `PUT` [v1.3 | 2026-10-31].
 
 ## Consequences
 

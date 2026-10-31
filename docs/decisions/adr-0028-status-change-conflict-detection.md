@@ -3,11 +3,11 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0028 |
-| Version  | 1.1 [v1.1 | 2026-10-31] |
+| Version  | 1.2 [v1.2 | 2026-10-31] (window rule of ADR-0029 v1.3) |
 | Status   | Accepted (no money, no new customer data) |
 | Date     | 2026-10-31 |
 | Decider  | atlas-architect |
-| Based on | PRD FR-16 to FR-19, BR-2, AC-26 to AC-30; TQ-5; order-lifecycle.md |
+| Based on | PRD admin-orders v1.6 FR-16 to FR-19, BR-2, AC-25 to AC-29 (ids as in product/admin-orders/08, section 15); TQ-5; order-lifecycle.md |
 
 ## Context
 
@@ -31,7 +31,7 @@ Two staff may open the same order. The second action from an out-of-date view mu
 
 Option A. Body `{ "expected_status", "to_status", "cancel_reason" }`. Order of checks: session and role; order found inside the 90-day window (else 404 `ORDER_NOT_FOUND`); fields valid (`CANCEL_REASON_REQUIRED` for `Cancelled` without a reason, a reason with any other target is `VALIDATION_FAILED`); `(expected_status, to_status)` is an allowed pair (else 422 `STATUS_TRANSITION_INVALID`, no write); then one transaction sets `app.actor_type`, `app.actor_id`, `app.actor_name` with `set_config(..., true)` and runs `UPDATE customer_order SET status, cancel_reason, updated_at WHERE id AND status = expected_status`. Zero rows updated means someone else moved the order: 409 `ORDER_STATE_CHANGED` with the current order detail in `details.order`, nothing changed. The triggers write the event and release capacity in the same transaction.
 
-Window note [v1.2 | 2026-10-31]: the order lookup uses the window function of ADR-0029 v1.2; an old unfinished order can be closed, and after it is closed a repeat answers 404 (it is outside the window), not a replay. Retry rule: if zero rows are updated, the current status equals `to_status`, and the latest `status_changed` event came from the same account with `from_status = expected_status`, the call returns 200 with `Idempotent-Replay: true` and the current detail (a repeated tap or a lost response). Any other combination stays 409, including a different person reaching the same target (AC-30 keeps the refusal for a different action; the same target by another person is also 409 so that history is never misattributed).
+Window note [v1.2 | 2026-10-31]: the order lookup uses the window function of ADR-0029 v1.3: an open order of any age can be changed; a repeat after the change is a replay while the order is inside the window (finished orders stay 90 days after they were placed). An order placed more than 90 days ago and closed today leaves the window: its first reply is built inside the transaction, a later repeat answers 404, not a replay. Retry rule: if zero rows are updated, the current status equals `to_status`, and the latest `status_changed` event came from the same account with `from_status = expected_status`, the call returns 200 with `Idempotent-Replay: true` and the current detail (a repeated tap or a lost response). Any other combination stays 409, including a different person reaching the same target (AC-29 keeps the refusal for a different action; the same target by another person is also 409 so that history is never misattributed).
 
 ## Consequences
 

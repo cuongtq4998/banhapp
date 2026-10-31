@@ -3,11 +3,11 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0031 |
-| Version  | 1.0 |
+| Version  | 1.1 [v1.1 | 2026-10-31] (traceability ids only) |
 | Status   | Accepted (implements Q-6 and Q-17; no money) |
 | Date     | 2026-10-31 |
 | Decider  | atlas-architect |
-| Based on | PRD FR-22, FR-38, FR-39, BR-11, BR-18, BR-19, AC-33, AC-34, AC-60 to AC-63; TQ-9; data-model 3.3, 3.8 |
+| Based on | PRD admin-orders v1.6 FR-21, BR-11, BR-12, AC-32, AC-33 (ids as in product/admin-orders/08, section 15); TQ-9; data-model 3.3, 3.8 |
 
 ## Context
 

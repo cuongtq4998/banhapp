@@ -7,7 +7,7 @@
 | Status   | Accepted (no cost; no customer data; reversible by a migration to object storage) |
 | Date     | 2026-10-31 |
 | Decider  | atlas-architect |
-| Based on | PRD FR-38, BR-18, AC-60, AC-61; TQ-6; ADR-0003, ADR-0017; api/04 section 4.6 |
+| Based on | PRD admin-orders v1.6 FR-21, BR-12, AC-33 (ids as in product/admin-orders/08, section 15); TQ-6; ADR-0003, ADR-0017; api/04 section 4.6 |
 
 ## Context
 

@@ -20,7 +20,7 @@ Part of [deployment.md](../deployment.md) (index, version, change log), sections
 | `FCM_PROJECT_ID`, `FCM_SERVICE_ACCOUNT_JSON` | FCM v1 | With `live` | Host secret store |
 | `RATE_LIMIT_ADMIN_PER_MINUTE` | Default 240 per device session | No | Host |
 | `RATE_LIMIT_CODE_REQUEST_PER_HOUR_IP` | Default 20 | No | Host |
-| `RATE_LIMIT_AUTH_PER_HOUR_IP` | Default 60 (sessions, refresh, recovery per client address) [v1.11 | 2026-10-31] | No | Host |
+| `RATE_LIMIT_AUTH_PER_HOUR_IP` | Default 60 (sessions and refresh per client address) [v1.11 | 2026-10-31] | No | Host |
 | `IMAGE_MAX_BYTES` | Default 5242880; the cake upload route body limit is this plus 65536 [v1.11 | 2026-10-31] | No | Host |
 | `REVIEW_ACCOUNT_EMAIL`, `REVIEW_ACCOUNT_CODE` | Only while ADR-0027 is enabled | No | Host secret store, removed after review |
 
@@ -71,9 +71,9 @@ Log fields stay as section 7; the admin routes add role but never e-mail address
 | Alert | Threshold | Action |
 | ----- | --------- | ------ |
 | Mail send failures | 3 consecutive provider errors or any 4xx for the sender domain | Check key, domain status, provider status; staff can wait or use an already signed-in device |
-| Mail daily cap use | Above 60 of 80 | Look for abuse in `CODE_REQUEST_LIMIT` counts (a stranger can use up the cap, which also delays recovery; the operator recovers, A-7); raise the cap or block |
+| Mail daily cap use | Above 60 of 80 | Look for abuse in `CODE_REQUEST_LIMIT` counts (a stranger can use up the cap, which also delays sign-in codes; the operator can raise the cap); raise the cap or block |
 | Push failures | More than 20 percent of sends fail in an hour | Check APNs key and FCM account; list still works |
-| `refresh_reuse_detected` | 3 in a day | Ask the owner to review the device list |
+| `refresh_reuse_detected` | 3 in a day | Ask the person to use "Sign out all other phones" |
 | Voided codes | More than 10 log lines `code_voided` (5th wrong entry; no address in the line) in an hour | Possible guessing or a prank; there is no lock, so nothing is blocked; look at request ids |
 | Orders without a push record | More than 1 percent over 30 days | Decide on an outbox (ADR-0024) |
 | Database size | Above 80 percent of 1 GB (images and history count) | Plan upgrade (owner approval) |

@@ -27,7 +27,7 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 | [ADR-0019](../../decisions/adr-0019-client-address-trust-model.md) | Client address trust model: proxy hop count replaces `TRUST_PROXY` | Proposed (owner to confirm) |
 | [ADR-0020](../../decisions/adr-0020-test-infrastructure.md) | Test infrastructure: iOS stub backend, Android fakes, shared throwaway CI database | Accepted |
 | [ADR-0021](../../decisions/adr-0021-admin-apps-layout-and-shared-code.md) | Admin apps: second Xcode project, local packages, Android modules with build-logic [v1.10 \| 2026-10-31] | Accepted |
-| [ADR-0022](../../decisions/adr-0022-admin-sign-in-sessions-recovery.md) | E-mail code sign-in, opaque access and rotating refresh tokens, reuse detection, owner recovery | Accepted (owner, 2026-10-31) [v1.11 | 2026-10-31] |
+| [ADR-0022](../../decisions/adr-0022-admin-sign-in-sessions-recovery.md) | E-mail code sign-in, opaque access and rotating refresh tokens, reuse detection, sign out all other phones (recovery and device list removed in v1.3) | Accepted (owner, 2026-10-31); parts superseded by v1.3 [v1.13 | 2026-10-31] |
 | [ADR-0023](../../decisions/adr-0023-email-delivery.md) | E-mail delivery by HTTPS API provider, sender domain | Proposed (money flag kept; code independent of the provider behind `EmailSender`; go-live blocked) [v1.11 | 2026-10-31] |
 | [ADR-0024](../../decisions/adr-0024-push-notifications.md) | APNs direct and FCM v1 behind `PushSender` | Accepted |
 | [ADR-0025](../../decisions/adr-0025-cake-image-storage.md) | Cake images as bytes in PostgreSQL | Accepted |
