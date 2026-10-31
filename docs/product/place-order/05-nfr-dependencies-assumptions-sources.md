@@ -1,6 +1,6 @@
 # Place Order: Non-functional, Dependencies, Assumptions, Sources (sections 8 to 11)
 
-Part of [Place Order](../place-order.md) (PRD v1.4.1). Holds: Non-functional, Impact & Dependencies, Assumptions A-1 to A-9, Research & Sources S-1 to S-3. [v1.4.1 | 2026-10-27]
+Part of [Place Order](../place-order.md) (PRD v1.6). Holds: Non-functional, Impact & Dependencies, Assumptions A-1 to A-9, Research & Sources S-1 to S-3. [v1.6 | 2026-10-31]
 
 ## 8. Non-functional
 
@@ -13,7 +13,7 @@ Part of [Place Order](../place-order.md) (PRD v1.4.1). Holds: Non-functional, Im
 
 ## 9. Impact & Dependencies
 
-- Staff and owner features (later): will read the orders created here and supply the values for products, prices, districts, fees, daily limit and slots. Until they exist, those values must come from another source (Q-T2).
+- Staff and owner features (Admin Orders, PRD v1.3; was "later"): [v1.6 | 2026-10-31] will read the orders created here and supply the values for products, prices, districts, fees, daily limit and slots. Until they exist, those values must come from another source (Q-T2).
 - Daily limit counting depends on cancellations returning cakes (BR-9); cancellation is a later feature. [v1.1 | 2026-10-25]
 - Payment feature (later, undecided): this slice shows no payment text and must not collect payment details. [v1.1 | 2026-10-25]
 - Design canvas mockups: reference only; this document is authoritative.

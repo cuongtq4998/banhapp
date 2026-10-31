@@ -1,10 +1,10 @@
 # Place Order: Overview and Scope (sections 1 to 4)
 
-Part of [Place Order](../place-order.md) (PRD v1.4.1). Holds: Summary, Background & Problem, Goals G-1 to G-3, Non-goals, Users & Scenarios. [v1.4.1 | 2026-10-27]
+Part of [Place Order](../place-order.md) (PRD v1.6). Holds: Summary, Background & Problem, Goals G-1 to G-3, Non-goals, Users & Scenarios. [v1.6 | 2026-10-31]
 
 ## 1. Summary
 
-A customer of a small banh tet pre-order shop uses a mobile app (iOS and Android) to browse the shop's active cakes (four at launch, at most four) and place an order for delivery on a chosen date and time. No account [v1.4 | 2026-10-26] is needed. The app ends with a confirmation screen showing an order code; all later contact happens by Zalo or phone.
+A customer of a small banh tet pre-order shop uses a mobile app (iOS and Android) to browse the shop's active cakes (four at launch, at most 12 once the shop adds cakes, Admin Orders BR-18) [v1.6 | 2026-10-31] and place an order for delivery on a chosen date and time. No account [v1.4 | 2026-10-26] is needed. The app ends with a confirmation screen showing an order code; all later contact happens by Zalo or phone.
 
 ## 2. Background & Problem
 
@@ -25,7 +25,7 @@ The shop sells traditional Vietnamese sticky-rice cakes (banh tet) on pre-order 
 - Customer accounts, login, order history.
 - Staff and owner features: login by phone with one-time code, order list and statuses (New, Confirmed, Completed, Cancelled), owner configuration of products, prices, districts and fees, daily limit, time slots, shop information, staff; push notifications.
 - Pickup at the shop (only delivery to the door is requested).
-- More than four products, or product variations. [v1.4 | 2026-10-26]
+- More than 12 products, or product variations (changed from "more than four" by Admin Orders Q-17). [v1.6 | 2026-10-31]
 - Special dates (e.g. Tet) with different limits, lead times or closed days: rules apply uniformly in this slice (Q-11). [v1.1 | 2026-10-25]
 - Free delivery or delivery fee discounts. [v1.1 | 2026-10-25]
 

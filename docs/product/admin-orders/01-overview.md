@@ -1,6 +1,6 @@
 # Admin Orders: Overview and Scope (sections 1 to 4)
 
-Part of [Admin Orders](../admin-orders.md) (PRD v1.1). Holds: Summary, Background & Problem, Goals G-1 to G-4, Non-goals, Users & Scenarios, decisions D-1 and D-2. Lines changed in v1.1 end with the label [v1.1 | 2026-10-31].
+Part of [Admin Orders](../admin-orders.md) (PRD v1.3). Holds: Summary, Background & Problem, Goals G-1 to G-4, Non-goals, Users & Scenarios, decisions D-1 and D-2. Lines changed in v1.1 end with the label [v1.1 | 2026-10-31]; in v1.3 with [v1.3 | 2026-10-31].
 
 ## 1. Summary
 
@@ -14,8 +14,8 @@ Customers can place orders today, but nobody on the shop side can see them. Plac
 
 ### Goals
 
-- G-1: A staff member sees a newly placed order within 60 seconds of it being stored (push or refresh) and can open it in at most 2 taps from the notification.
-- G-2: An order moves New to Confirmed to Completed, or to Cancelled, with 1 action and at most 1 confirmation step (the confirmation step for a cancellation includes choosing a reason); no other status change is possible. [v1.1 | 2026-10-31]
+- G-1: A staff member sees a newly placed order within 60 seconds of it being stored (push or refresh) and can open it in at most 2 taps from the notification. "Within 60 seconds" is measured on the server, from the order being stored to the notification being handed to the Apple or Google push service; delivery by those services is outside our control. A tap on the notification counts as 1 tap, so the order opens in 1 tap; from the app icon the order opens in 2 taps (icon, then row) when it is among the first rows of the list (AC-73). [v1.3 | 2026-10-31]
+- G-2: An order moves New to Confirmed to Completed, or to Cancelled, with 1 action and at most 1 confirmation step; no other status change is possible. One confirmation step means one extra screen or dialog: Confirm has none, Complete has one, Cancel has one in which the reason is chosen and the cancellation confirmed (AC-74, Q-D2 accepted). [v1.3 | 2026-10-31]
 - G-3: The owner can change every shop value listed in FR-22 to FR-26 and FR-38 to FR-40 without a developer, and a change never alters an order already placed (0 existing orders change). [v1.1 | 2026-10-31]
 - G-4: A person whose e-mail address the owner has not added gets no access. When the owner removes a staff member or revokes a device, that device loses access to data within 5 minutes and cannot renew its sign-in at once. [v1.1 | 2026-10-31]
 
@@ -37,7 +37,8 @@ Customers can place orders today, but nobody on the shop side can see them. Plac
 
 | Role | Description |
 | ---- | ----------- |
-| Owner | One person who runs the shop. Everything staff can do, plus settings, staff management and device management. |
+| Owner | One person who runs the shop. Everything staff can do, plus settings, staff management and device management. Signs in like staff, with one code (Q-18). [v1.3 | 2026-10-31] |
+| Store reviewer | A person at Apple or Google who checks the admin app before release. Uses a fixed-code demo account that shows only fake orders (FR-46). Not a real user. [v1.3 | 2026-10-31] |
 | Staff | A person added by the owner (up to 30). Sees and handles orders only; no settings, no staff list. [v1.1 | 2026-10-31] |
 | Customer | Not a user of this feature. Is affected: sees changed prices, cakes, districts and ordering rules, is contacted by the shop. |
 
@@ -48,7 +49,7 @@ Scenarios:
 3. Cancel. The customer asks by Zalo to cancel. Staff open the order, choose the reason "customer asked" and cancel it. The cakes become available again on that date. [v1.1 | 2026-10-31]
 4. Change of shop data. The owner adds a new seasonal cake, removes an old one, raises one price and lowers the daily limit for the Tet season. Existing orders keep their price and cake name; new orders use the new values. [v1.1 | 2026-10-31]
 5. New helper. The owner adds an e-mail address as staff. That person signs in with a code sent to that address. Later the owner removes the account and the person is signed out. [v1.1 | 2026-10-31]
-6. Lost phone. The owner loses the phone, signs in on a new one with codes sent to the owner e-mail and the backup e-mail, then revokes the old device. [v1.1 | 2026-10-31]
+6. Lost phone. The owner loses the phone, signs in on a new one with one code sent to the owner e-mail (like any sign-in), then revokes the old device. If ordinary sign-in is blocked (for example someone keeps voiding the codes), the owner uses the separate, slower recovery flow: two codes, one per mailbox, and a notice to both mailboxes afterwards. [v1.3 | 2026-10-31]
 
 ## Decisions of the owner
 

@@ -1,6 +1,6 @@
 # Place Order: Open Questions and Launch Data (section 12)
 
-Part of [Place Order](../place-order.md) (PRD v1.4.1). Holds: Q-1 to Q-15, Q-T1 to Q-T6, section 12.2 (Q-O1 to Q-O5, N-1, N-2), section 12.1 launch data. [v1.4.1 | 2026-10-27]
+Part of [Place Order](../place-order.md) (PRD v1.6). Holds: Q-1 to Q-15, Q-T1 to Q-T6, section 12.2 (Q-O1 to Q-O5, N-1, N-2), section 12.1 launch data. [v1.6 | 2026-10-31]
 
 ## 12. Open Questions
 
@@ -38,8 +38,8 @@ Nothing in this section takes effect until the owner confirms it. Current behavi
 | -- | ---------------------- | --------------------------- | -------- | ----- | ------ |
 | Q-O1 | May customers with a landline number order? AC-12 says "valid number". | ADR-0009 accepts Vietnamese mobile numbers only; landlines are rejected. | No | business | Pending owner |
 | Q-O2 | The customer cannot see the order code again once the confirmation screen is closed (no lookup, no history). Should the app keep the last order code on the device (G-3)? | Not kept; the code is shown once. | No | business | Pending owner |
-| Q-O3 | The limit of 5 accepted orders per phone per 24 hours (ADR-0014): do cancelled orders count toward it? | Not decided; ADR-0014 default only. | No | business | Pending owner |
-| Q-O4 | How long is customer contact data kept (BR-12)? | No period; no test expected in this slice. | No | business | Pending owner |
+| Q-O3 | The limit of 5 accepted orders per phone per 24 hours (ADR-0014): do cancelled orders count toward it? | Answered by the owner in Admin Orders Q-12: cancelled orders do not count, except one cancelled with the reason "fake or spam order" (BR-14, AC-35 to AC-37). | No | business | Answered [v1.6 | 2026-10-31] |
+| Q-O4 | How long is customer contact data kept (BR-12)? | No period; no test expected in this slice. Owner decision 2026-10-31: stays open, decide later; the 90-day window of Admin Orders BR-20 is a display rule only, not a retention period. [v1.6 | 2026-10-31] | No | business | Pending owner (decide later) |
 | Q-O5 | If sample data is visible, which wording is allowed? Sample values use the Vietnamese word "mau" in some names (for example shop and district names). | AC-29 (v1.4): no marker word is customer-visible, and "mẫu" / "mau" in the sense of "sample" counts as a marker word, so displayed seed values must not contain it; technical documents may use it. Owner may overrule. | No | business | Pending owner (default applied in v1.4) |
 | N-1 | FR-20 / AC-30: privacy notice before data entry covering name, phone, address, note and the draft on the device. | Today the notice appears on the review step and names name, phone, address only. | No | business | Answered [v1.5 | 2026-10-29]: owner confirmed FR-20 as written, with the full privacy notice shown on S-7 (recipient screen) and a one-sentence reminder with link on S-8 (2026-10-29) |
 | N-2 | FR-21 / AC-31: dates dd/MM/yyyy and money in whole dong with dot thousands separators. | Display format not specified before. | No | business | Answered [v1.5 | 2026-10-29]: owner confirmed FR-21 as written (2026-10-29) |

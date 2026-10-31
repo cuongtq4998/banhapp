@@ -1,6 +1,6 @@
 # Place Order: Change Log (section 13)
 
-Part of [Place Order](../place-order.md) (PRD v1.4.1). [v1.4.1 | 2026-10-27]
+Part of [Place Order](../place-order.md) (PRD v1.6). [v1.6 | 2026-10-31]
 
 ## 13. Change log
 
@@ -13,3 +13,4 @@ Part of [Place Order](../place-order.md) (PRD v1.4.1). [v1.4.1 | 2026-10-27]
 | 1.4 | 2026-10-26 | Owner decision on fewer than four active cakes (Q-15, answers QA DOC-8): 1 to 4 active cakes are normal, Error state only at zero. Changed summary, non-goal, FR-3, FR-5, BR-1, AC-4, 12.1; added BR-13, AC-32 to AC-34, Q-15. Clarified AC-29 scope (customer-visible text only; "mẫu" counts as a marker word in displayed values; technical documents may use it) and Q-O5 default (answers QA DOC-6). |
 | 1.4.1 | 2026-10-27 | Split into files of at most 200 lines; no requirement changed. The document is now an index (docs/product/place-order.md) plus seven parts in docs/product/place-order/. Section numbers and all ids (G, FR, BR, AC, A, S, Q, N) are unchanged; Status unchanged. |
 | 1.5 | 2026-10-29 | Owner decision: privacy notice shown on S-7 (recipient screen); FR-20 and FR-21 confirmed as written. FR-20 and AC-30 reworded (full notice as a card on S-7 visible before the first field is edited; S-8 keeps a one-sentence reminder with link); FR-21 and AC-31 no longer pending; N-1 and N-2 Answered; privacy text in part 05 updated. |
+| 1.6 | 2026-10-31 | Follows Admin Orders PRD v1.3. Q-O3 answered (cancelled orders do not count toward 5 orders per phone per 24 hours, except reason "fake or spam order"): new BR-14, AC-35 to AC-37. Up to 12 cakes: FR-3, BR-13, AC-4, overview and non-goal updated (R-25). Q-O4 stays pending by owner decision (decide later). Status Approved; no other owner-decided rule changed. |
