@@ -1,10 +1,10 @@
 # Admin Orders: Open Questions and Change Log (sections 12 and 13)
 
-Part of [Admin Orders](../admin-orders.md) (PRD v1.1). Holds: Q-1 to Q-17 (business), TQ-1 to TQ-10 (technical, for the architect), the change log. Changed or new lines end with [v1.1 | 2026-10-31].
+Part of [Admin Orders](../admin-orders.md) (PRD v1.2). Holds: Q-1 to Q-17 (business), TQ-1 to TQ-10 (technical, for the architect), the change log. Changed or new lines end with [v1.1 | 2026-10-31] or [v1.2 | 2026-10-31].
 
 ## 12. Open Questions
 
-Q-1 to Q-14 were answered by the owner on 2026-10-31 and are closed. Three new, non-blocking questions (Q-15 to Q-17) each have a recommended option that applies if the owner does not object. [v1.1 | 2026-10-31]
+Q-1 to Q-14 were answered by the owner on 2026-10-31 and are closed. Q-15 to Q-17 were decided by the owner on 2026-10-31 (recommended options accepted) and are closed. No question is open for the owner. [v1.2 | 2026-10-31]
 
 ### 12.1 Business questions (for the product owner)
 
@@ -24,9 +24,9 @@ Q-1 to Q-14 were answered by the owner on 2026-10-31 and are closed. Three new, 
 | Q-12 | Do cancelled orders count toward the 5 orders per phone per 24 hours? (Place Order Q-O3) | A customer cancelled by the shop could be blocked. | No | business | Decided v1.1 | Not counted, except cancellations with the reason "fake or spam order" (FR-44, BR-16). Changes the place-order backend rule (section 9). [v1.1 | 2026-10-31] |
 | Q-13 | Which past orders may staff see? | Privacy against usefulness. | No | business | Decided v1.1 | Last 90 days; older orders are not shown. Same for the owner (BR-20, FR-41). [v1.1 | 2026-10-31] |
 | Q-14 | Recovery if the owner loses the phone? | Security of the one powerful account. | No | business | Decided v1.1 | The owner registers a backup e-mail; on a new device sign-in needs codes sent to the owner e-mail and the backup e-mail; then the old device can be revoked (FR-42, FR-43, BR-17). Form of the codes asked in Q-16. [v1.1 | 2026-10-31] |
-| Q-15 | Does the 7-day sign-in restart each time the app is used (a device used at least weekly never asks for a code), or end 7 days after the code was entered no matter what? | Convenience against security. | No | business | Open | Recommended: restart on each use (BR-6), because rotating the renewal credential on use already implies it. If the owner prefers a hard 7 days, staff enter a code every week. [v1.1 | 2026-10-31] |
-| Q-16 | For owner recovery, are two different codes (one to each e-mail, both entered) acceptable, or should one code be sent to both addresses? | Security of recovery; one shared code gives no more protection than one mailbox. | No | business | Open | Recommended: two different codes, both entered (BR-17). [v1.1 | 2026-10-31] |
-| Q-17 | What is the largest number of cakes the shop should hold (active and hidden)? | The customer catalog was designed for four cakes. | No | business | Open | Recommended: 12 (BR-18). [v1.1 | 2026-10-31] |
+| Q-15 | Does the 7-day sign-in restart each time the app is used (a device used at least weekly never asks for a code), or end 7 days after the code was entered no matter what? | Convenience against security. | No | business | Decided v1.2 | Owner accepted the recommendation (2026-10-31): the 7-day sign-in restarts on each use; a device used at least weekly never asks for a code (BR-6). [v1.2 | 2026-10-31] |
+| Q-16 | For owner recovery, are two different codes (one to each e-mail, both entered) acceptable, or should one code be sent to both addresses? | Security of recovery; one shared code gives no more protection than one mailbox. | No | business | Decided v1.2 | Owner accepted the recommendation (2026-10-31): two different codes, one per mailbox, both required (BR-17, FR-43). [v1.2 | 2026-10-31] |
+| Q-17 | What is the largest number of cakes the shop should hold (active and hidden)? | The customer catalog was designed for four cakes. | No | business | Decided v1.2 | Owner accepted the recommendation (2026-10-31): at most 12 cakes, active plus hidden (FR-38, BR-18, AC-61). [v1.2 | 2026-10-31] |
 
 ### 12.2 Technical questions (for the architect, not for the owner)
 
@@ -49,3 +49,4 @@ Q-1 to Q-14 were answered by the owner on 2026-10-31 and are closed. Three new, 
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-31 | First version (Draft). Covers the staff and owner scope left out of Place Order v1.5. |
 | 1.1 | 2026-10-31 | Owner answers Q-1 to Q-14 recorded. D-1 and D-2 became decisions. Phone-number and text-message sign-in replaced by e-mail plus one-time code everywhere (FR-1 to FR-3, FR-27, BR-5 to BR-8, AC-1 to AC-12, AC-42, AC-43, NFR, dependencies, A-7, A-8, TQ-1); SMS sources S-1 reduced (removed in v1.1), S-5 and S-6 added. New FR-36 to FR-44 (renewal credential rotation, device revoke, 90-day window, backup e-mail, recovery, add and remove cake, ordering rules, effect on Place Order); changed FR-7, FR-14, FR-17, FR-18, FR-20, FR-22, FR-31, FR-35. New BR-16 to BR-21; changed BR-1, BR-2, BR-4 to BR-9, BR-11, BR-12, BR-15. New AC-53 to AC-72; changed AC-1 to AC-4, AC-7 to AC-10, AC-12, AC-14, AC-27 to AC-29, AC-31, AC-34, AC-42, AC-43, AC-52. New questions Q-15 to Q-17 and TQ-6 to TQ-10. Removed in v1.1: text-message sign-in, the money question Q-3, the non-goals "adding or deleting cakes" and "changing lead days and minimum quantity". Place Order Q-O3 answered (cross-feature impact in section 9). |
+| 1.2 | 2026-10-31 | Owner approved the requirements (2026-10-31). Status Approved. Q-15 (7-day sign-in restarts on each use), Q-16 (two recovery codes, one per mailbox, both required) and Q-17 (at most 12 cakes, active plus hidden) decided and closed. "Proposed" marks removed from BR-6, BR-17, BR-18. FR-38 now states the 12-cake limit; BR-18 refers to FR-38 and AC-61 (AC-61 already tests the 13th cake). No other change. |
