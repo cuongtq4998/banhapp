@@ -83,6 +83,16 @@ object TestTags {
     const val REVIEW_ISSUE = "review.message"
     const val REVIEW_MESSAGE_ACTION = "review.messageAction"
 
+    // S-8 send states and S-9; the S-9 identifiers are proposed by forge-dev (09-accessibility-test-ids.md has none yet).
+    const val REVIEW_PRICE_CHANGED = "review.priceChanged"
+    const val REVIEW_SENDING = "review.sending"
+    const val CONF_TITLE = "conf.title"
+    const val CONF_CODE = "conf.code"
+    const val CONF_MESSAGE = "conf.message"
+    const val CONF_ZALO = "conf.zalo"
+    const val CONF_PHONE = "conf.phone"
+    const val CONF_HOME = "conf.home"
+
     /** Load failure of any screen, the zero-cake state, and the retry button both of them share. */
     const val ERROR_STATE = "state.error"
     const val EMPTY_STATE = "state.empty"
@@ -103,4 +113,5 @@ object TestTags {
     fun orderDistrictRow(districtId: String) = "order.district.row.$districtId"
 
     fun reviewItem(productId: String) = "review.item.$productId"
+    fun reviewItemPrice(productId: String) = "review.item.$productId.price"
 }

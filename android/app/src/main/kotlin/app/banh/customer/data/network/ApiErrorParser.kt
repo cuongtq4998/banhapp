@@ -18,8 +18,18 @@ data class ErrorEnvelope(
 data class ErrorBody(
     val code: String,
     @SerialName("message_key") val messageKey: String,
-    /** Specific to the code; only `retry_after_seconds` is read so far. */
+    /** Specific to the code (api.md 4.3). */
     val details: JsonObject? = null,
+    /** Only `VALIDATION_FAILED` carries it. */
+    val fields: List<FieldIssue>? = null,
+)
+
+/** One entry of `fields[]`: the JSON path, the field-level code and the UI key (api.md section 5). */
+@Serializable
+data class FieldIssue(
+    val field: String,
+    val code: String,
+    @SerialName("message_key") val messageKey: String = "ERR_SERVER",
 )
 
 private const val DEFAULT_RETRY_AFTER_SECONDS = 60
@@ -41,7 +51,14 @@ internal fun parseApiError(status: Int, body: String, retryAfterHeader: String?,
         val seconds = detail ?: retryAfterHeader?.trim()?.toIntOrNull() ?: DEFAULT_RETRY_AFTER_SECONDS
         return ApiException.RateLimited(seconds, requestId)
     }
-    return ApiException.Service(code, envelope?.error?.messageKey ?: FALLBACK_MESSAGE_KEY, status, requestId)
+    return ApiException.Service(
+        code = code,
+        messageKey = envelope?.error?.messageKey ?: FALLBACK_MESSAGE_KEY,
+        httpStatus = status,
+        requestId = requestId,
+        details = envelope?.error?.details,
+        fields = envelope?.error?.fields.orEmpty(),
+    )
 }
 
 private fun codeForStatus(status: Int): ApiErrorCode = when (status) {

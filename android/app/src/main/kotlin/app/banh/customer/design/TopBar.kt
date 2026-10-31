@@ -12,19 +12,19 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
-import app.banh.customer.R
-import app.banh.customer.TestTags
+
+/** Back control resources, handed in by the caller (ADR-0018: design imports neither `R` nor the test tags). */
+class BackControl(val icon: Painter, val label: String, val testTag: String)
 
 @Composable
-private fun BackButton(onBack: () -> Unit) {
-    IconButton(onClick = onBack, modifier = Modifier.testTag(TestTags.NAV_BACK)) {
-        Icon(painter = painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.common_back))
+private fun BackButton(back: BackControl, onBack: () -> Unit) {
+    IconButton(onClick = onBack, modifier = Modifier.testTag(back.testTag)) {
+        Icon(painter = back.icon, contentDescription = back.label)
     }
 }
 
@@ -39,10 +39,10 @@ private fun TitleText(title: String, maxLines: Int) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InlineTopBar(title: String, onBack: () -> Unit) {
+fun BanhInlineTopBar(title: String, back: BackControl, onBack: () -> Unit) {
     TopAppBar(
         title = { TitleText(title, maxLines = 1) },
-        navigationIcon = { BackButton(onBack) },
+        navigationIcon = { BackButton(back, onBack) },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
             scrolledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = AlphaTokens.SOLID_FALLBACK),
@@ -57,10 +57,10 @@ fun InlineTopBar(title: String, onBack: () -> Unit) {
  */
 @ExperimentalMaterial3Api
 @Composable
-fun LargeTitleTopBar(title: String, onBack: () -> Unit, scrollBehavior: TopAppBarScrollBehavior? = null) {
+fun BanhLargeTitleTopBar(title: String, back: BackControl, onBack: () -> Unit, scrollBehavior: TopAppBarScrollBehavior? = null) {
     LargeTopAppBar(
         title = { TitleText(title, maxLines = 2) },
-        navigationIcon = { BackButton(onBack) },
+        navigationIcon = { BackButton(back, onBack) },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
             scrolledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = AlphaTokens.SOLID_FALLBACK),

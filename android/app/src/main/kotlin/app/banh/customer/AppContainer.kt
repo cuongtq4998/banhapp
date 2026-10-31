@@ -7,6 +7,7 @@ import app.banh.customer.data.catalog.DefaultCatalogRepository
 import app.banh.customer.data.catalog.FileCatalogCache
 import app.banh.customer.data.catalog.HttpCatalogApi
 import app.banh.customer.data.network.HttpClients
+import app.banh.customer.data.orders.HttpOrderApi
 import app.banh.customer.order.FileDraftStore
 import app.banh.customer.order.OrderDependencies
 import app.banh.customer.ui.common.ImageLoader
@@ -47,6 +48,7 @@ class AppContainer(context: Context) {
         availability = HttpAvailabilityApi(apiClient, apiBaseUrl),
         drafts = FileDraftStore(File(context.noBackupFilesDir, ORDER_DRAFT_FILE)),
         clock = Clock.systemUTC(),
+        orders = HttpOrderApi(HttpClients.createOrderClient(apiClient), apiBaseUrl),
     )
 
     /** Starts the work that must not wait for a screen: loading the catalog also wakes a sleeping host (ADR-0003). */

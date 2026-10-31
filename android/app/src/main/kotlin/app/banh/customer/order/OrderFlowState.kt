@@ -27,11 +27,23 @@ data class OrderFlowState(
     val recipientErrors: Map<RecipientField, RecipientError> = emptyMap(),
     /** The customer tried to type or paste beyond the note limit (AC-26). */
     val noteLimitHit: Boolean = false,
+    /** The send of the order (S-8, S-9). */
+    val submit: SubmitState = SubmitState.Idle,
+    /** Prices from the last `PRICE_CHANGED`, shown instead of the catalog's until a new draft starts. */
+    val priceUpdate: PriceUpdate? = null,
 ) {
     private val readyCatalog: Catalog? get() = (catalog as? Load.Ready)?.value
 
     /** Null while the catalog is not known. */
-    val summary: OrderSummary? get() = readyCatalog?.let { OrderSummary.of(draft, it) }
+    val summary: OrderSummary? get() = readyCatalog?.let { OrderSummary.of(draft, priceUpdate?.applyTo(it, draft.districtId) ?: it) }
+
+    /** Confirm is on when the order is complete, nothing is in flight and no server rule is waiting to be fixed (FR-10, AC-19). */
+    val canConfirm: Boolean
+        get() {
+            val blocked = submit is SubmitState.Sending || submit is SubmitState.Confirmed ||
+                (submit as? SubmitState.Failed)?.problem is SubmitProblem.Rule
+            return !blocked && (summary?.totalQuantity ?: 0) >= minQty && toOrderRequest() != null
+        }
 
     val minQty: Int get() = readyCatalog?.settings?.minQty ?: DEFAULT_MIN_QTY
     val maxQtyPerCake: Int get() = readyCatalog?.settings?.maxQtyPerCake ?: DEFAULT_MAX_QTY_PER_CAKE
@@ -70,10 +82,27 @@ sealed interface OrderIntent {
     data class CatalogChanged(val catalog: Load<Catalog>, val replacementKey: String) : OrderIntent
     data class DraftRestored(val draft: OrderDraft?, val replacementKey: String) : OrderIntent
     data class AvailabilityLoaded(val cakes: Int, val result: Load<Availability>) : OrderIntent
+
+    /** Tap on confirm (S-8). Ignored while a send is in flight or the order is not complete. */
+    data object Confirm : OrderIntent
+
+    /** Results of the send, fed back by the store. [replacementKey] is used only where the answer changes the order. */
+    data class Submitted(val orderCode: String) : OrderIntent
+    data class SubmitFailed(val failure: SubmitFailure, val replacementKey: String) : OrderIntent
+    data class ReplaceKey(val key: String) : OrderIntent
+
+    /** The customer leaves S-8 for an Edit control or back: a shown send problem is dismissed. */
+    data object LeaveReview : OrderIntent
+
+    /** Home on S-9: clears the order data and the key (UI document 5.9). */
+    data class FinishOrder(val freshKey: String) : OrderIntent
 }
 
 /** One-shot results for the host (ADR-0007): they are consumed once, not kept in the state. */
 sealed interface OrderEffect {
     data class FocusField(val field: RecipientField) : OrderEffect
     data object GoToReview : OrderEffect
+
+    /** The server named fields of S-7 as invalid; their errors are in the state. */
+    data object GoToRecipient : OrderEffect
 }

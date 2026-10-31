@@ -18,6 +18,7 @@ import app.banh.customer.order.OrderDependencies
 import app.banh.customer.testing.ContractAssets
 import app.banh.customer.testing.FakeAvailabilityApi
 import app.banh.customer.testing.FakeCatalogRepository
+import app.banh.customer.testing.FakeOrderApi
 import app.banh.customer.testing.InMemoryDraftStore
 import app.banh.customer.testing.setBanhContent
 import app.banh.customer.ui.common.groupThousands
@@ -42,7 +43,7 @@ class OrderFlowTest {
     private val availability = FakeAvailabilityApi()
 
     private fun open() {
-        val dependencies = OrderDependencies(FakeCatalogRepository(Load.Ready(catalog)), availability, drafts, Clock.systemUTC())
+        val dependencies = OrderDependencies(FakeCatalogRepository(Load.Ready(catalog)), availability, drafts, Clock.systemUTC(), FakeOrderApi())
         rule.setBanhContent {
             val navController = rememberNavController()
             NavHost(navController, startDestination = OrderRoutes.GRAPH) { orderGraph(navController, dependencies) }

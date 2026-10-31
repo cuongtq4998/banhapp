@@ -15,7 +15,7 @@ import app.banh.customer.TestTags
 import app.banh.customer.data.Load
 import app.banh.customer.design.AppBackground
 import app.banh.customer.design.LocalReduceMotion
-import app.banh.customer.design.LogoMark
+import app.banh.customer.ui.common.LogoMark
 import app.banh.customer.design.Motion
 import app.banh.customer.design.Sizes
 import kotlinx.coroutines.flow.Flow

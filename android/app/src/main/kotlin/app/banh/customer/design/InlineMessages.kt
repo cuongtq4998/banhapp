@@ -14,20 +14,20 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import app.banh.customer.R
 
 /**
  * `InlineMessage` (Error): a problem next to the content it concerns, announced to the screen reader when it appears
  * (UI document 9). With [actionLabel] it offers the way to fix it, for example a retry or the step to open.
  */
 @Composable
-fun ErrorMessage(
+fun ErrorMessageView(
     text: String,
+    icon: Painter,
     modifier: Modifier = Modifier,
     actionLabel: String? = null,
     actionTestTag: String? = null,
@@ -42,7 +42,7 @@ fun ErrorMessage(
         horizontalArrangement = Arrangement.spacedBy(Spacing.md),
         verticalAlignment = Alignment.Top,
     ) {
-        Icon(painter = painterResource(R.drawable.ic_error), contentDescription = null, tint = MaterialTheme.colorScheme.error)
+        Icon(painter = icon, contentDescription = null, tint = MaterialTheme.colorScheme.error)
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
             Text(text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
             if (actionLabel != null) {

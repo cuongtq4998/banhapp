@@ -4,6 +4,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import app.banh.customer.data.availability.Availability
 import app.banh.customer.data.catalog.Catalog
 import app.banh.customer.data.network.ApiJson
+import app.banh.customer.data.orders.OrderReceipt
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.decodeFromString
 
 /**
@@ -26,6 +28,12 @@ object ContractAssets {
 
     /** `GET /v1/availability?cakes=3` for server date 2026-11-02 (api.md 4.2): 2026-11-05 and 2026-11-20 are full. */
     fun availability(): Availability = ApiJson.decodeFromString(read(AVAILABILITY_OK))
+
+    /** The `body` of `order-created.json`: the code of the first acceptance. */
+    fun receipt(): OrderReceipt = ApiJson.decodeFromString(
+        OrderReceipt.serializer(),
+        ApiJson.parseToJsonElement(read("order-created.json")).jsonObject.getValue("body").toString(),
+    )
 
     private fun decode(name: String): Catalog = ApiJson.decodeFromString(read(name))
 

@@ -9,11 +9,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
-import app.banh.customer.R
 
 private const val BLOB_LARGE_CORNER_PERCENT = 50
 private const val BLOB_SMALL_CORNER_PERCENT = 36
@@ -32,8 +30,7 @@ private val BlobShape = RoundedCornerShape(
  * mark; the real artwork replaces the body of this function only.
  */
 @Composable
-fun LogoMark(size: Dp, modifier: Modifier = Modifier) {
-    val label = stringResource(R.string.logo_label)
+fun LogoBlob(size: Dp, label: String, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .size(size)

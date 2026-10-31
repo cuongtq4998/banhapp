@@ -8,6 +8,9 @@ import androidx.compose.runtime.setValue
 import app.banh.customer.data.availability.Availability
 import app.banh.customer.data.availability.AvailabilityApi
 import app.banh.customer.data.network.ApiException
+import app.banh.customer.data.orders.OrderApi
+import app.banh.customer.data.orders.OrderReceipt
+import app.banh.customer.data.orders.OrderRequest
 import app.banh.customer.order.DraftStore
 import app.banh.customer.order.OrderDraft
 import app.banh.customer.order.OrderFlowState
@@ -55,5 +58,19 @@ fun ReducerHost(
     content(state) { intent ->
         onIntent(intent)
         state = reduce(state, intent)
+    }
+}
+
+/** Answers every order with the scripted outcome (an [OrderReceipt] or an [ApiException]) and remembers what it was sent. */
+class FakeOrderApi(private val outcome: Any = ContractAssets.receipt()) : OrderApi {
+    val calls = mutableListOf<Pair<OrderRequest, String>>()
+
+    override suspend fun submit(request: OrderRequest, idempotencyKey: String): OrderReceipt {
+        calls += request to idempotencyKey
+        return when (outcome) {
+            is OrderReceipt -> outcome
+            is ApiException -> throw outcome
+            else -> error("Unsupported scripted outcome $outcome")
+        }
     }
 }
