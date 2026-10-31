@@ -17,8 +17,8 @@ Part of [Admin Orders](../admin-orders.md) (PRD v1.5). Holds: Non-functional, Im
 
 - Place Order: reads the same orders; settings change its catalog, availability, lead days and minimum; the catalog may hold up to 12 cakes with owner images; cancelled orders stop counting toward the phone limit except "fake or spam" (FR-27). Place Order v1.6 already records this and cites only Q-12 and Q-17, so it needs no change from v1.5. [v1.5 | 2026-10-31]
 - Retention of stored customer data stays open (PO Q-O4); the 90 days are a display rule only. [v1.5 | 2026-10-31]
-- Backend: endpoints for sign-in, orders, settings, "sign out other phones"; cancel reason, removed-cake state and the change record need stored data. docs/system/auth.md v2.0, ADR-0022 and ADR-0027 stand; recovery parts of auth.md and the device list become deferred if the owner accepts Q-25 and Q-26 (TQ-10 to TQ-13 revised in 07). [v1.5 | 2026-10-31]
-- Design: docs/design/admin-orders/ (20 screens) must follow the v1.5 id mapping (08). Screens for the device list, recovery, backup e-mail, Unfinished view, chip and banner are not needed if Q-25 to Q-27 are accepted. [v1.5 | 2026-10-31]
+- Backend: endpoints for sign-in, orders, settings, "sign out other phones"; cancel reason, removed-cake state and the change record need stored data. docs/system/auth.md v2.0, ADR-0022 and ADR-0027 stand; recovery parts of auth.md and the device list are deferred (owner accepted Q-25 and Q-26 on 2026-10-31; TQ-10 to TQ-13 in 07). [v1.6 | 2026-10-31]
+- Design: docs/design/admin-orders/ (20 screens) must follow the v1.5 id mapping (08). Screens for the device list, recovery, backup e-mail, Unfinished view, chip and banner are not needed (Q-25 to Q-27 accepted by the owner on 2026-10-31). [v1.6 | 2026-10-31]
 - External: e-mail delivery service, Apple and Google push, Zalo and the phone dialer. [v1.5 | 2026-10-31]
 
 ## 10. Assumptions
@@ -29,7 +29,7 @@ Part of [Admin Orders](../admin-orders.md) (PRD v1.5). Holds: Non-functional, Im
 - A-4: Each person uses one to three personal phones with mobile data and e-mail.
 - A-5: At most about 100 orders a day.
 - A-6: Customers are contacted by phone or Zalo outside the app.
-- A-7: If the owner cannot open the owner mailbox, the operator recovers the account outside the app (this is the only recovery in v1.5, P-1). [v1.5 | 2026-10-31]
+- A-7: If the owner cannot open the owner mailbox, the operator recovers the account outside the app (this is the only recovery in v1.6, P-1 accepted). [v1.6 | 2026-10-31]
 - A-8: The sender and wording of the code mail are chosen by the architect.
 - A-9: Sample and test data are fake.
 - A-10: Values marked "proposed" are author defaults; a changed value is written into this document first (new version and change log).

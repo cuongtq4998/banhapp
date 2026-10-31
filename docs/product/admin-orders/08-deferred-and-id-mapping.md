@@ -1,10 +1,10 @@
 # Admin Orders: Deferred items and id mapping (new in v1.5)
 
-Part of [Admin Orders](../admin-orders.md) (PRD v1.5). Holds: the Deferred list (section 14) and the mapping from v1.4 ids to v1.5 ids (section 15), so designs, system documents and tests can follow. Counts: FR 52 to 27, BR 28 to 14, AC 103 to 48. Every line is new in v1.5 [v1.5 | 2026-10-31].
+Part of [Admin Orders](../admin-orders.md) (PRD v1.6). Holds: the Deferred list (section 14) and the mapping from v1.4 ids to v1.5 ids (section 15), so designs, system documents and tests can follow. Counts: FR 52 to 27, BR 28 to 14, AC 103 to 48. Every line is new in v1.5 [v1.5 | 2026-10-31].
 
 ## 14. Deferred (not in the app scope of this slice)
 
-Rule: a rule stays only if a shop owner or staff member would notice without it, or it is invisible security. Items P-1 to P-4 change explicit owner decisions and need the owner's answer (07, Q-25 to Q-28); until then the v1.5 text is a proposal and the v1.4 text (git history) remains the approved one. The other items were not owner decisions. [v1.5 | 2026-10-31]
+Rule: a rule stays only if a shop owner or staff member would notice without it, or it is invisible security. Items P-1 to P-4 changed explicit owner decisions; the owner accepted them on 2026-10-31 (07, Q-25 to Q-28), so this Deferred list is confirmed. The other items were not owner decisions. [v1.6 | 2026-10-31]
 
 | No | Deferred item (old ids) | Reason | Interim |
 | -- | ----------------------- | ------ | ------- |

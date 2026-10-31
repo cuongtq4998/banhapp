@@ -2,14 +2,14 @@
 
 | Field        | Value                                                                 |
 | ------------ | --------------------------------------------------------------------- |
-| Version      | 1.5 [v1.5 | 2026-10-31]                                               |
+| Version      | 1.6 [v1.6 | 2026-10-31]                                               |
 | Last updated | 2026-10-31                                                            |
-| Status       | v1.2 approved by the owner (2026-10-31); v1.3 and v1.4 recorded owner decisions. v1.5 is a simplification PROPOSAL (owner directive 2026-10-31): the parts that change explicit owner decisions (P-1 to P-4, Q-25 to Q-28) wait for the owner; everything else in v1.5 only removes rules users would not notice or makes them invisible. Nothing blocks. [v1.5 | 2026-10-31] |
+| Status       | Approved v1.6. The owner accepted the simplification proposals P-1 to P-4 (Q-25 to Q-28) on 2026-10-31. Earlier: v1.2 approved by the owner; v1.3 and v1.4 recorded owner decisions; v1.5 simplified the rules. No open business question. [v1.6 | 2026-10-31] |
 | Owner        | scribe-requirements                                                   |
 | Based on     | docs/pipeline/admin-orders/00-request.md (2026-10-31); docs/product/place-order.md v1.6 |
 | Related      | docs/system/order-lifecycle.md; docs/system/auth.md; docs/system/data-model.md; docs/design/reference/screens/ (A1 to A4, reference only) |
 
-This document is split into parts of at most 200 lines each. Cite ids (FR-n, BR-n, AC-n, Q-n) as written in v1.5. Ids of v1.0 to v1.4 are mapped to v1.5 in [08-deferred-and-id-mapping.md](admin-orders/08-deferred-and-id-mapping.md) section 15, so designs, system documents and tests written against v1.4 can follow. Lines changed in v1.5 end with [v1.5 | 2026-10-31]. [v1.5 | 2026-10-31]
+This document is split into parts of at most 200 lines each. Cite ids (FR-n, BR-n, AC-n, Q-n) as written in v1.6 (same as v1.5). Ids of v1.0 to v1.4 are mapped to v1.5 in [08-deferred-and-id-mapping.md](admin-orders/08-deferred-and-id-mapping.md) section 15, so designs, system documents and tests written against v1.4 can follow. Lines changed in v1.5 end with [v1.5 | 2026-10-31]. [v1.5 | 2026-10-31]
 
 ## Parts
 
@@ -28,4 +28,4 @@ This document is split into parts of at most 200 lines each. Cite ids (FR-n, BR-
 
 The owner asked that the admin app and the other apps be easy to understand for every kind of user and not complicated for real daily work. Every rule was checked against the day of a staff member (sign in, see new orders, call, confirm, complete or cancel, look at unfinished orders) and of the owner (change a cake, the daily limit). Rules users would not notice were made invisible or merged; a few features were deferred. Counts: FRs 52 to 27, BRs 28 to 14, ACs 103 to 48. [v1.5 | 2026-10-31]
 
-Four proposals change explicit owner decisions and are asked in 07 (Q-25 to Q-28): drop backup e-mail and two-code recovery (operator helps instead), replace the device list by "Sign out all other phones", keep only the badge and red marks in the one list instead of a separate Unfinished view, chip and banner, and four cancel reasons instead of five. All other owner decisions (Q-1 to Q-24) are kept. [v1.5 | 2026-10-31]
+Four proposals changed explicit owner decisions and were accepted by the owner on 2026-10-31 (07, Q-25 to Q-28): drop backup e-mail and two-code recovery (operator helps instead), replace the device list by "Sign out all other phones", keep only the badge and red marks in the one list instead of a separate Unfinished view, chip and banner, and four cancel reasons instead of five. All other owner decisions (Q-1 to Q-24) are kept. [v1.6 | 2026-10-31]
