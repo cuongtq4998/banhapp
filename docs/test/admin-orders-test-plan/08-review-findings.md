@@ -1,47 +1,45 @@
 # Admin Orders Test Plan: Document review, contradictions and untestable items (part 08)
 
-Part of [admin-orders-test-plan.md](../admin-orders-test-plan.md) (v1.0). Holds: section 9.1 review of PRD v1.2 and the related system documents. Owner = who must answer. `requirements` = scribe-requirements, `architect` = atlas-architect, `design` = canvas-ui. [v1.0 | 2026-10-31]
+Part of [admin-orders-test-plan.md](../admin-orders-test-plan.md) (v1.1). Holds: section 9.1 review of PRD v1.5 against the UI spec and the system documents. Owner = who must fix or answer. `requirements` = scribe-requirements, `architect` = atlas-architect, `design` = canvas-ui. Findings of PRD v1.2 that the simplification removed (backup e-mail, recovery, device list, history, lock, FR-34 hint) are deleted. [v1.1 | 2026-10-31]
 
-Reviewed: `docs/product/admin-orders.md` and parts 01 to 07; `docs/system/auth.md` v1.5, `order-lifecycle.md`, `api/01-conventions-and-index.md`. No admin design document or admin API exists yet. [v1.0 | 2026-10-31]
+Reviewed: `docs/product/admin-orders.md` and parts 01 to 08 (v1.5); `docs/design/admin-orders-ui.md` and parts 01 to 11 (v1.0, based on PRD v1.2); `docs/system/api/05` to `08`, `architecture/07` to `09`, `data-model/04`, `05`, `auth.md` v2.2, `session-lifecycle.md`, `order-lifecycle.md`. [v1.1 | 2026-10-31]
 
-## 9.1 Contradictions and gaps
+## 9.1 Contradictions between PRD, UI spec and system documents
 
 | ID | Finding | Documents | Owner | Cases |
 | -- | ------- | --------- | ----- | ----- |
-| R-3 | Anyone can lock the owner out: 5 wrong codes (BR-5) block the owner address for 15 min, and 3 code requests an hour can be used up by an attacker; repeated every 15 min the owner can never sign in. It is unclear whether recovery (BR-17) is also blocked. Severity high if confirmed | BR-5, BR-17, FR-6 | requirements (rule), architect (TQ-10) | TC-B14, B52 |
-| R-10 | `auth.md` section 4 says cancelled orders count toward 5 orders per phone per 24 h; BR-16/FR-44 say they do not (except spam). `auth.md` also still describes phone and SMS sign-in and "later slice" staff roles | auth.md vs PRD | architect | TC-B98 |
-| R-16 | Body limit 8 KB for every route (`api.md` conventions) contradicts cake upload of up to 5 MB (BR-18). Also iPhone photos are HEIC, but BR-18 allows only JPEG and PNG, and "5 MB" is not defined as 5 000 000 or 5 242 880 bytes | api.md, BR-18, TQ-6 | architect (limit and conversion), requirements (unit) | TC-B128, B129, C28 |
-| R-20 | AC-59 says recovery "is not offered" without a backup e-mail, but FR-1 says the response must not reveal whether an address is registered. How does the app know to offer recovery without revealing which address is the owner | FR-1, FR-43, AC-59 | requirements, design | TC-B46, B48 |
-| R-21 | FR-20 (history) is Should, but AC-26 (Must) requires the history to show the change, and BR-4 (recording, immutable) is a rule with no priority. Priority of FR-20 and AC-31 is inconsistent | FR-16, FR-20, AC-26, AC-31 | requirements | TC-B65, B76 |
-| R-25 | Place Order PRD, design and customer apps assume four cakes with fixed photos; the admin PRD says up to 12 cakes with owner images and changed rules text. Place Order documents and ACs need updating (also for FR-44 per section 9) | admin 9, place-order | requirements (place-order), design | TC-C43, F07 |
-| R-32 | Reference screens A1 to A4 show phone sign-in and "remembered N days"; PRD says e-mail and 7 days. Design must be redone before UI cases get exact texts | section 9 | design | TC-C01 |
-| R-2 | A Confirmed order older than 90 days cannot be opened, so it stays Confirmed forever and nobody can complete it; the shop has no way to close it. Business consequence not discussed | BR-20, BR-2 | requirements | TC-B83 |
-| R-8 | FR-19 does not say what happens when the same status change arrives twice (double tap, retry after lost response). "Refused" would show an error after a success | FR-19, AC-30 | requirements (behaviour), architect (TQ-5) | TC-B72, C31, C35 |
-| R-11 | BR-9 forbids minimum cakes above the daily limit in one form, but not lowering the daily limit alone below the current minimum (or raising min above limit via a separate save) | BR-9, BR-10, AC-66 | requirements | TC-B109 |
-| R-18 | Reactivating a staff account when 30 are already active is not defined (AC-43 only covers adding) | FR-27, BR-8 | requirements | TC-B118 |
-| R-5 | Boundaries not defined: code valid "10 minutes" (is minute 10:00 valid), session "7 days", lock "15 minutes", 90 days (inclusive? by timestamp or calendar day in shop time) | BR-5, BR-6, BR-20, AC-4, AC-67 | requirements | TC-B06, B10, B24, B82 |
-| R-4 | After a 15-minute lock, is the old code still valid (it expires after 10 min), does a new request reset the wrong-code counter, can codes be requested while locked, and do unregistered addresses lock the same way | BR-5, AC-8 | requirements | TC-B10, B13 |
-| R-6 | No limit per client address for code requests or for admin routes; only per e-mail. Mail flooding of many third-party addresses is only stopped for unregistered ones (no mail sent) | BR-5, NFR security | architect | TC-B22 |
-| R-7 | Recovery codes: counters and hourly limits shared with normal sign-in codes or separate; notice mail rate | BR-17, TQ-10 | architect | TC-B50 |
-| R-12 | A harmless retry of the renewal request (lost response) would look like credential reuse and sign out the legitimate device (FR-36). Grace window or not | FR-36, AC-54 | architect (TQ-4) | TC-B28 |
-| R-15 | "Valid phone number" and "Zalo: as the customer app uses it" have no written format | BR-9, FR-26, AC-41 | requirements / architect | TC-B115 |
-| R-13 | Search rules unclear: diacritics, case, minimum length, normalisation (NFC/NFD) of names | FR-11, BR-9 | requirements | TC-B59, B139 |
-| R-14 | List consistency while paging with changes (new order, status change) is not specified; AC-23 says only "no duplicate" | BR-13, AC-23 | architect | TC-B62 |
-| R-17 | Two owner devices editing the same setting: lost update allowed or not | FR-28, FR-30 | architect | TC-B141 |
-| R-19 | BR-15 "removed from the device" does not mention app-switcher snapshots, backups or screenshots | BR-15 | requirements, design | TC-C42 |
-| R-23 | BR-10 "the owner is told before saving": is this a server preview (testable) or client-only calculation; AC-38 gives no race rule | BR-10, AC-38 | architect | TC-B108, B110 |
-| R-29 | "Device name" in the device list (FR-37) has no source (user typed, model name, OS) | FR-37, TQ-9 | architect, design | TC-B36 |
-| R-30 | FR-35 push stop when sign-out happens offline (server never told): push continues until token is dropped | FR-35 | architect (TQ-3) | TC-B88, C41 |
-| R-28 | "Valid e-mail format" is undefined (AC-43) | AC-43, BR-7 | requirements | TC-B19, B117 |
-| R-34 | BR-15 says no customer data in "analytics", but no analytics exist or are specified; only logs are testable | BR-15 | requirements | TC-B92 |
+| R-1 | FR-19 says repeating a change is not an error (retry after a lost reply). api/06 answers 404 for a retry once the order left the window, and AC-22 makes every Completed/Cancelled order of an old open order leave the list at once. A lost reply on closing an old order shows an error although the change worked | FR-19, AC-22, api/06 10.x, ADR-0028 | architect (replay beyond the window), requirements (accept 404 or not) | TC-B68, C23, C38 |
+| R-2 | Search for an old open order (placed over 90 days ago, New/Confirmed): PRD BR-9 lists it by default but BR-10 and AC-19 say nothing; architecture/09 TQ-12 says search keeps the strict 90 days, so the list finds it and search does not | BR-9, BR-10, architecture/09 25.1 | requirements | TC-B62, B68 |
+| R-3 | Residual lock-out: with no address lock, an outsider can still use the 3 requests an hour for the owner address (and 5 wrong entries void a code) so the owner may be refused a code for the whole hour. Severity medium if confirmed | BR-4, AC-4 | requirements | TC-B09, B11 |
+| R-4 | api/08 and architecture/09 are partly updated (no `CODE_LOCKED`) but api/05 still has recovery sign-in with `owner_code`/`backup_code`, challenge ids and device endpoints; data-model/04 still has backup columns | api/05 to 07, data-model/04, architecture/07, session-lifecycle | architect | all auth cases |
+| R-5 | PRD BR-8 has four reasons; api/06 10.x, api/08 and data-model/03 list five (`customer_asked`, `day_full`, `cannot_deliver`, `cannot_reach_customer`, `fake_spam`). The UI spec also says "exactly five reasons" | BR-8, AC-28, api/06, data-model, design 03/08/10 | architect, design | TC-B78, B79, C22 |
+| R-6 | No limit per client address in the PRD; api/05 and architecture/08 add 20 code requests an hour per client. Not a contradiction but an unrequested rule that tests must read as configuration | BR-4, architecture/08 | architect | TC-B19 |
+| R-7 | PRD FR-9 and AC-22 put open orders of any age in the default list; api/06 returns only orders of the last 90 days without `view=unfinished`, and `view=unfinished` still exists although the Unfinished view is deferred (FR-13 keeps only the badge) | FR-9, FR-13, BR-9, api/05 and 06, architecture/09 | architect | TC-B57, B66, B72 |
+| R-8 | api/06 names the count `unfinished_count` and architecture/09 sections 25.2 to 25.3 describe the banner and chip as live; PRD v1.5 makes the badge the only part kept (Q-22) | FR-13, api/06, architecture/09 | architect | TC-B54, C14 |
+| R-9 | PRD FR-4 and AC-7 are still marked "PROPOSAL P-2", FR-13 mentions P-3 and BR-8 P-4, but the task states the PRD is approved. If the labels stay, the verdict cannot tell whether these Must ACs are in force | FR-4, FR-13, BR-8, AC-7 | requirements (remove the labels once approved) | TC-B23 to B25, B78 |
+| R-10 | `auth.md` and place-order documents must say that cancelled orders do not count toward 5 orders per phone per 24 h except "fake or spam" (FR-27); `auth.md` v2.2 is based on PRD v1.4 | FR-27, auth.md, place-order | architect | TC-B104 |
+| R-11 | Lowering the daily limit alone below the stored minimum: AC-36 gives the pair rule for saves but not the state "limit 3 saved while minimum 5 exists"; a stuck state is possible | BR-11, AC-36 | requirements | TC-B125, B129 |
+| R-12 | BR-13 "phone the owner has not used before" vs architecture/09 TQ-13 "no live session with the same installation id": sign out then sign in on the same phone sends a notice under the second rule, not under the first | BR-13, AC-12, architecture/09 | requirements | TC-B44 |
+| R-13 | No rule for NFC/NFD names and for case-insensitive duplicate cake or district names beyond "unique" | BR-12, BR-10 | requirements | TC-B61, B141 |
+| R-14 | Paging consistency when orders change between pages is not specified; AC-23 only says no duplicate | AC-23 | architect | TC-B70 |
+| R-15 | FR-9 does not say whether the red mark appears on Completed/Cancelled rows with an old date in the All view; AC-16 shows none. Same for "last changed by" of a customer-created order (name or "customer") | FR-9, AC-16, FR-14, AC-24 | requirements | TC-B52, B73 |
+| R-16 | The 5 MB image is 5 242 880 bytes (BR-12, api/07) but api conventions cap every body at 8 KB; HEIC is converted on the phone, so the server must refuse HEIC bytes | BR-12, api conventions | architect | TC-B115, B116 |
+| R-17 | AC-22 says a final old order is "gone for everyone" yet Q-8 allows Complete at any time; an old Confirmed order can be completed once, not corrected after (no undo, no history). Business impact only if the owner expected a correction path | AC-22, BR-2 | requirements | TC-B66 |
 
-## 9.2 Untestable or only partly testable items
+## 9.2 UI spec still on PRD v1.2 (all owned by design)
+
+| ID | Finding | Documents | Owner | Cases |
+| -- | ------- | --------- | ----- | ----- |
+| R-30 | The UI spec index says "Based on product/admin-orders.md v1.2"; it must be reissued for v1.5 | design/admin-orders-ui.md | design | all TC-C |
+| R-31 | Removed features are still specified: devices screen, backup e-mail and recovery screens, history panel, multi-select status chips with "Tất cả", Unfinished view/chip/banner, push hint and reminder, lock message with minutes | design 02, 03, 04, 06, 08, 09, 10 | design | TC-C03, C14, C20, C48 |
+| R-32 | Missing screens and strings: "Sign out all other phones" control and its texts, a single "To do" list, red "due today"/"overdue N days" marks, four reasons, void-code message without a wait, new-device notice is mail only (no screen) | design 02, 03, 06, 08 | design | TC-C03, C06, C12, C22 |
+| R-33 | Settings: the UI spec has more than five entries (devices, backup e-mail, security); AC-48 allows exactly five | design 04, 06 | design | TC-C30 |
+| R-34 | Reference screens A1 to A4 still show phone sign-in and "remembered N days" | design/reference | design | TC-C01 |
+
+## 9.3 Untestable or only partly testable items
 
 | ID | Item | Why | Owner |
 | -- | ---- | --- | ----- |
-| R-9 | G-1 "open in at most 2 taps" and G-2 "1 action and at most 1 confirmation step": goals with no AC. Cancel needs reason choice plus confirmation, so "1 confirmation step" must be defined as one screen | no AC | requirements |
-| R-22 | "Within 60 seconds in normal network conditions" (AC-48), "within 5 minutes" (AC-14, AC-55, proposed bound), e-mail "within 60 seconds": needs real services; "normal conditions" is not measurable | AC-48, BR-8, NFR | requirements (define), architect |
-| R-31 | Performance figures are "proposed" and say "normal mobile connection": only server time can be measured here | NFR | requirements |
-| R-33 | FR-30 "every settings change" is Should and does not say whether staff, device and backup e-mail changes are included | FR-30 | requirements |
-| R-26 | A-10 says "proposed" values may change; tests read configuration, but the PRD gives no way for the owner to see a changed value, so documents can drift | A-10 | requirements |
-| R-24 | Stale labels: parts 01 to 06 say "PRD v1.1" while the index is v1.2; `order-lifecycle.md` calls staff features "later slice" | doc hygiene | requirements, architect |
+| R-40 | AC-42 "within 60 seconds", AC-7/AC-10 "within 5 minutes": measured on the server and the fake provider only | Needs real services; "normal conditions" is not measurable | requirements (define), architect |
+| R-41 | AC-30 and AC-31 are goal checks (tap counts) with no timing; counted by hand in TC-C24, C25 | Manual step counting | requirements |
+| R-42 | Performance figures in the NFR are indicative on the test host | Single host | requirements |
