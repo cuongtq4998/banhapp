@@ -2,14 +2,14 @@
 
 | Field        | Value                                                                 |
 | ------------ | --------------------------------------------------------------------- |
-| Version      | 1.1                                                                   |
+| Version      | 1.2                                                                   |
 | Last updated | 2026-10-31                                                            |
-| Status       | Draft                                                                 |
+| Status       | Approved (owner approval 2026-10-31) [v1.2 | 2026-10-31]               |
 | Owner        | scribe-requirements                                                   |
 | Based on     | docs/pipeline/admin-orders/00-request.md (2026-10-31); docs/product/place-order.md v1.5 |
 | Related      | docs/system/order-lifecycle.md; docs/system/auth.md; docs/system/data-model.md; docs/design/reference/screens/ (A1 to A4, ios and android, reference only) |
 
-This document is split into parts of at most 200 lines each (project file size rule). Cite ids (FR-n, BR-n, AC-n, Q-n) as written. Lines changed in v1.1 end with [v1.1 | 2026-10-31].
+This document is split into parts of at most 200 lines each (project file size rule). Cite ids (FR-n, BR-n, AC-n, Q-n) as written. Lines changed in v1.1 end with [v1.1 | 2026-10-31]; lines changed in v1.2 end with [v1.2 | 2026-10-31].
 
 ## Parts
 
@@ -44,4 +44,4 @@ The owner decided Q-1 to Q-14 (all closed). The admin app is separate, built for
 
 ## Status note
 
-Draft. No blocking question is open. Q-15 (session restart), Q-16 (recovery code form) and Q-17 (largest number of cakes) are new, non-blocking, with recommended defaults that apply if the owner does not object. [v1.1 | 2026-10-31]
+Approved by the product owner on 2026-10-31. No business question is open. Q-15 (the 7-day sign-in restarts on each use), Q-16 (two different recovery codes, one per mailbox, both required) and Q-17 (at most 12 cakes, active plus hidden) were decided with the recommended options. Technical questions TQ-1 to TQ-10 remain for the architect. [v1.2 | 2026-10-31]

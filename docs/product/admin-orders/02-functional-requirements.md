@@ -58,7 +58,7 @@ Part of [Admin Orders](../admin-orders.md) (PRD v1.1). Holds: FR-1 to FR-44. Pri
 | FR-28 | The system shall validate every setting against BR-9, refuse an invalid value with a Vietnamese message that names the field, and save nothing from a refused form. | Must |
 | FR-29 | The system shall apply a settings change only to orders placed after it is saved; existing orders keep their prices, fees, cake names, district name and slot (Place Order BR-6). | Must |
 | FR-30 | The system shall record for every settings change who made it, when, and the old and new value. | Should |
-| FR-38 | The system shall let the owner add a cake with name, description, price and one image (BR-18). An added cake is active at once. [v1.1 | 2026-10-31] | Must |
+| FR-38 | The system shall let the owner add a cake with name, description, price and one image (BR-18), and shall refuse an added cake when 12 cakes not removed (active or hidden) already exist. An added cake is active at once. [v1.2 | 2026-10-31] | Must |
 | FR-39 | The system shall let the owner remove a cake (BR-19). A removed cake disappears from the customer app and from the settings list, cannot be ordered, and stays in the history of earlier orders with its stored name and price. [v1.1 | 2026-10-31] | Must |
 | FR-40 | The system shall let the owner change the lead days and the minimum cakes per order (BR-9, BR-21). A change applies to new orders only, and the customer app shall show the current values wherever it states these rules. [v1.1 | 2026-10-31] | Must |
 
