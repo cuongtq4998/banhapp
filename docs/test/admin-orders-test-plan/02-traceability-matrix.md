@@ -1,88 +1,65 @@
 # Admin Orders Test Plan: Traceability Matrix (part 02)
 
-Part of [admin-orders-test-plan.md](../admin-orders-test-plan.md) (v1.0). Holds: section 2 Traceability Matrix, AC-1 to AC-72 to test cases, and the FR/BR coverage notes. B = backend ([03](03-cases-backend-auth.md), [04](04-cases-backend-orders.md), [05](05-cases-backend-settings.md)), C = iOS and Android ([06](06-cases-clients-contracts.md)), F = contract fixtures. [v1.0 | 2026-10-31]
+Part of [admin-orders-test-plan.md](../admin-orders-test-plan.md) (v1.1). Holds: section 2 Traceability Matrix, AC-1 to AC-48 (PRD v1.5) to test cases, and the FR/BR coverage notes. B = backend ([03](03-cases-backend-auth.md), [04](04-cases-backend-orders.md), [05](05-cases-backend-settings.md)), C = iOS and Android ([06](06-cases-clients-contracts.md)), F = contract fixtures. Old AC-1 to AC-72 no longer exist; the id mapping is in the PRD file `admin-orders/08-deferred-and-id-mapping.md`. [v1.1 | 2026-10-31]
 
 ## 2. Traceability Matrix
 
-| AC | FR | Priority | Test cases |
-| -- | -- | -------- | ---------- |
-| AC-1 | FR-1 | Must | TC-B01, B19, C01 |
-| AC-2 | FR-1 | Must | TC-B02, B03, B13, C01 |
-| AC-3 | FR-2 | Must | TC-B04, C01 |
-| AC-4 | FR-2 | Must | TC-B05, B06, C03 |
-| AC-5 | FR-2 | Must | TC-B07, C03 |
-| AC-6 | FR-3 | Must | TC-B08, B12, C02 |
-| AC-7 | FR-3 | Must | TC-C01 |
-| AC-8 | FR-6 | Must | TC-B09, B10, B14, B15, C03 |
-| AC-9 | FR-6 | Must | TC-B11, B22, C03 |
-| AC-10 | FR-4 | Must | TC-B23, B24, C04 |
-| AC-11 | FR-4 | Must | TC-B25, C04 |
-| AC-12 | FR-5 | Must | TC-B39, B40 |
-| AC-13 | FR-5 | Must | TC-B37, B38 |
-| AC-14 | FR-7 | Must | TC-B30, C05 |
-| AC-15 | FR-8 | Must | TC-B53, C07 |
-| AC-16 | FR-8 | Must | TC-B54, C07 |
-| AC-17 | FR-9 | Must | TC-B55, C08 |
-| AC-18 | FR-10 | Must | TC-B56, B57, C08, C45 |
-| AC-19 | FR-11 | Should | TC-B58, B59, C09 |
-| AC-20 | FR-12 | Must | TC-B60, C10 |
-| AC-21 | FR-12 | Must | TC-C10 |
-| AC-22 | FR-13 | Must | TC-C11, F01 |
-| AC-23 | FR-8 (BR-13) | Must | TC-B61, B62, B63, C12 |
-| AC-24 | FR-14 | Must | TC-B64, C13 |
-| AC-25 | FR-15 | Should | TC-C13 (real device for dialer and Zalo) |
-| AC-26 | FR-16 | Must | TC-B65, C14 |
-| AC-27 | FR-17 | Must | TC-B66, C14 |
-| AC-28 | FR-18 | Must | TC-B67, B75 |
-| AC-29 | FR-18 | Must | TC-B68, B69, C15 |
-| AC-30 | FR-19 | Must | TC-B70, B71, B72, B73, C16 |
-| AC-31 | FR-20 | Should | TC-B76, B77, B78, C17 |
-| AC-32 | FR-21 | Must | TC-C18, B39 |
-| AC-33 | FR-22 | Must | TC-B101, B102, C19 |
-| AC-34 | FR-22 | Must | TC-B103, B104, C19 |
-| AC-35 | FR-23 | Must | TC-B105 |
-| AC-36 | FR-23 | Must | TC-B106, C20 |
-| AC-37 | FR-24 | Must | TC-B107 |
-| AC-38 | FR-24 | Must | TC-B108, B109, B110, C21 |
-| AC-39 | FR-25 | Must | TC-B111 |
-| AC-40 | FR-25 | Must | TC-B112, B113, C20 |
-| AC-41 | FR-26 | Must | TC-B114, B115, C20 |
-| AC-42 | FR-27 | Must | TC-B116, C22 |
-| AC-43 | FR-27 | Must | TC-B117, B118, C22 |
-| AC-44 | FR-27 | Must | TC-B119, B34 |
-| AC-45 | FR-28 | Must | TC-B120, B121, C20 |
-| AC-46 | FR-29 | Must | TC-B122 |
-| AC-47 | FR-30 | Should | TC-B123, B124 |
-| AC-48 | FR-31 | Must | TC-B85, C23 (real push Blocked) |
-| AC-49 | FR-32 | Must | TC-B86, C24, F06 |
-| AC-50 | FR-33 | Should | TC-B87, C23, C38 |
-| AC-51 | FR-34 | Should | TC-C24, C44 |
-| AC-52 | FR-35 | Must | TC-B88, B89, C25 |
-| AC-53 | FR-36 | Must | TC-B26 |
-| AC-54 | FR-36 | Must | TC-B27, B28, C06 |
-| AC-55 | FR-37 | Must | TC-B31, B35, C05 |
-| AC-56 | FR-37 | Must | TC-B32, B33, B36, C26 |
-| AC-57 | FR-42 | Must | TC-B42, B43, B51, C27 |
-| AC-58 | FR-43 | Must | TC-B44, B49, B50, C27 |
-| AC-59 | FR-43 | Must | TC-B45, B46, B47, B48, C27 |
-| AC-60 | FR-38 | Must | TC-B125, C28 |
-| AC-61 | FR-38 | Must | TC-B126, B127, B128, B129, C28 |
-| AC-62 | FR-39 | Must | TC-B131, B134, C28 |
-| AC-63 | FR-39 | Must | TC-B132, B133, C28 |
-| AC-64 | FR-40 | Must | TC-B135, C29 |
-| AC-65 | FR-40 | Must | TC-B136, C29 |
-| AC-66 | FR-40, FR-28 | Must | TC-B137, B138 |
-| AC-67 | FR-41 | Must | TC-B80, B84, C30 |
-| AC-68 | FR-41 | Must | TC-B81, C30 |
-| AC-69 | FR-18 | Must | TC-B69, C15 |
-| AC-70 | FR-44 | Must | TC-B93 |
-| AC-71 | FR-44 | Must | TC-B94 |
-| AC-72 | FR-44 | Must | TC-B95, B96, B97, B98 |
+| AC | FR / BR | Priority | Test cases |
+| -- | ------- | -------- | ---------- |
+| AC-1 | FR-1, BR-4 | Must | TC-B01, B02, B03, B14, B16, B18, C01, C46 |
+| AC-2 | FR-1, BR-4 | Must | TC-B04, B05, B13, B15, B17, C01, C03 |
+| AC-3 | FR-1, BR-4 | Must | TC-B06, C01, C02, C49 |
+| AC-4 | FR-1, FR-6, BR-4 | Must | TC-B07, B08, B09, B10, B11, B12, B19, C03 |
+| AC-5 | FR-2, BR-5 | Must | TC-B20, B21, C04 |
+| AC-6 | FR-2 | Must | TC-B22, C05 |
+| AC-7 | FR-4 | Must | TC-B23, B24, B25, C06 |
+| AC-8 | FR-3, FR-20, BR-1 | Must | TC-B31, B32, B33, B34, B35, B28, C07 |
+| AC-9 | FR-5, BR-6, BR-4 | Must | TC-B16, B36, B37, B39, B40, C08 |
+| AC-10 | FR-5, BR-6 | Must | TC-B29, B30, B38, C08, C47 |
+| AC-11 | FR-6, BR-5 | Must | TC-B26, B27, C09 |
+| AC-12 | FR-7, BR-13 | Must | TC-B41, B42, B43, B44 |
+| AC-13 | FR-8, BR-14 | Must | TC-B45, B46, B47, B48, C10 |
+| AC-14 | FR-9, BR-9 | Must | TC-B49, B50, C11 |
+| AC-15 | FR-9, BR-7 | Must | TC-B51, C11 |
+| AC-16 | FR-9, BR-9 | Must | TC-B52, B53, C12, C45, C50, F08 |
+| AC-17 | FR-13, BR-9 | Must | TC-B54, B55, C13, C51, F01, F08 |
+| AC-18 | FR-10 | Must | TC-B56, B57, B58, C14 |
+| AC-19 | FR-11, BR-10 | Should | TC-B59, B60, B61, B62, C15 |
+| AC-20 | FR-12 | Must | TC-B63, C16, C37 |
+| AC-21 | FR-9, BR-9 | Must | TC-B64, B65, C18 |
+| AC-22 | FR-9, BR-9 | Must | TC-B66, B67, B68, B72, C17 |
+| AC-23 | BR-9 | Must | TC-B69, B70, B71, B72, C19 |
+| AC-24 | FR-14 | Must | TC-B73, B74, C20 |
+| AC-25 | FR-15 | Must | TC-C20 (dialer and Zalo on a real device) |
+| AC-26 | FR-16, BR-3 | Must | TC-B75, C21 |
+| AC-27 | FR-17, BR-2 | Must | TC-B76, C21 |
+| AC-28 | FR-18, BR-2, BR-8 | Must | TC-B77, B78, B79, B84, C22 |
+| AC-29 | FR-19 | Must | TC-B80, B81, B82, B83, C23, C35, C38 |
+| AC-30 | G-2 | Must | TC-C24, B75 |
+| AC-31 | G-1, FR-26 | Must | TC-C25 |
+| AC-32 | FR-21 | Must | TC-B107, B108, B109, B110, C26, C34 |
+| AC-33 | FR-21, BR-12 | Must | TC-B111 to B118, C26 |
+| AC-34 | FR-21, BR-12 | Must | TC-B119, B120, B121, C26 |
+| AC-35 | FR-22, BR-11 | Must | TC-B122, B123, B124, C27 |
+| AC-36 | FR-22, BR-11 | Must | TC-B125 to B129, B131, C28, C34 |
+| AC-37 | FR-23, BR-11 | Must | TC-B132, B133, C29 |
+| AC-38 | FR-23, BR-11 | Must | TC-B134, B135, B136, C29 |
+| AC-39 | FR-24, BR-11 | Must | TC-B137, B138, C29, C34 |
+| AC-40 | BR-11 | Must | TC-B130, B139 to B143, C28 |
+| AC-41 | BR-11 | Must | TC-B144 |
+| AC-42 | FR-25, G-1 | Must | TC-B88, B93, B94, B95, C31 |
+| AC-43 | FR-26 | Must | TC-B89, B90, C31, C39, C40, F06 |
+| AC-44 | FR-25, BR-7 | Must | TC-B91, B92, C32, C43 |
+| AC-45 | BR-7 | Must | TC-B96, B97, C32 |
+| AC-46 | FR-27, BR-8 | Must | TC-B98 to B104, C33, F07 |
+| AC-47 | BR-3 | Must | TC-B85, B86, B87, B145 |
+| AC-48 | FR-20 | Must | TC-C07, C30 |
 
 ## Coverage notes
 
-- All 72 ACs and all 44 FRs have at least one case (checked FR by FR against the "FR" column of the PRD ACs). [v1.0 | 2026-10-31]
-- BR without a dedicated AC, covered by extra cases: BR-1 last sentence (no edit or delete of an order, no payment data) TC-B41; BR-4 immutability TC-B77; BR-7 normalisation TC-B19, TC-B51; BR-8 deactivate the owner TC-B117; BR-13 secondary sort for Completed and Cancelled TC-B53; BR-15 logs and sign-out data TC-B92, TC-C25; BR-18 12-cake limit TC-B127; BR-20 boundary TC-B82.
-- G-1 "open in at most 2 taps from the notification" and G-2 "1 action and at most 1 confirmation step" have no AC; they are covered by TC-C23 and TC-C15 as step counts (see finding R-9 in [08](08-review-findings.md)).
-- NFR items: performance TC-B99; accessibility TC-C32; privacy TC-B92, TC-C25, TC-C42; Vietnamese format TC-C39; Android and iOS parity is checked in every TC-C case.
-- Should ACs: 6 (AC-19, 25, 31, 47, 50, 51); the other 66 are Must. The verdict needs all Must ACs to Pass.
+- All 48 ACs and all 27 FRs have at least one case (checked FR by FR against the FR column of the PRD ACs). FR-6 is covered by AC-4 and AC-11; FR-12 by AC-20; FR-15 by AC-25 (Should in spirit, Must in PRD). [v1.1 | 2026-10-31]
+- BR without a dedicated AC, covered by extra cases: BR-1 last sentence (no edit or delete of an order, no payment data) TC-B35; BR-4 address format and length TC-B16; BR-5 grace boundary TC-B27; BR-7 logs and analytics TC-B96, B97; BR-8 first reason kept TC-B103; BR-9 boundaries TC-B53, B65, B72; BR-13 mail content TC-B43; BR-14 isolation TC-B47, B48.
+- New rules with strong negative cases: no address lock (TC-B07, B09, B11), four reasons only and removed value `day_full` refused (TC-B78), `fake_spam` is the only reason that counts toward 5 per phone (TC-B98 to B104), notice to the owner address only (TC-B41, B44).
+- Deferred features (backup e-mail, two-code recovery, device list and revoke, Unfinished view/chip/banner, status history, multi-filter, push settings, reminder push): no positive cases; negative checks that they are absent are TC-B57, B87, B95, C14, C48.
+- G-1 and G-2 now have ACs (AC-31, AC-30): TC-C25, C24. NFR items: performance TC-B105, B106; accessibility TC-C36; privacy TC-B96, TC-C32; Vietnamese format TC-C41; parity is checked in every TC-C case.
+- Should ACs: 1 (AC-19); the other 47 are Must. The verdict needs all Must ACs to Pass.
