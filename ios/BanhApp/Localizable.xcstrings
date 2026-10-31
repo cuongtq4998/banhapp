@@ -876,7 +876,77 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chúng tôi chỉ dùng họ tên, số điện thoại và địa chỉ của bạn để giao đơn hàng này và liên hệ với bạn."
+            "value" : "Chúng tôi chỉ dùng họ tên, số điện thoại, địa chỉ và ghi chú của bạn để giao đơn hàng này và liên hệ với bạn."
+          }
+        }
+      }
+    },
+    "PRIVACY_TITLE" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thông tin của bạn được dùng như thế nào"
+          }
+        }
+      }
+    },
+    "PRIVACY_BODY" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Để giao bánh, cửa hàng cần họ tên, số điện thoại, địa chỉ giao hàng và ghi chú (nếu bạn nhập). Cửa hàng chỉ dùng các thông tin này để giao đơn hàng và liên hệ với bạn."
+          }
+        }
+      }
+    },
+    "PRIVACY_DRAFT" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bản nháp đơn hàng chỉ được lưu trên điện thoại của bạn và tự xoá sau 24 giờ."
+          }
+        }
+      }
+    },
+    "PRIVACY_LINK" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xem chính sách quyền riêng tư đầy đủ"
+          }
+        }
+      }
+    },
+    "PRIVACY_LINK_A11Y_HINT" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở trang chính sách trong trình duyệt"
+          }
+        }
+      }
+    },
+    "ERR_OPEN_PRIVACY" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không mở được trang chính sách. Vui lòng thử lại sau."
+          }
+        }
+      }
+    },
+    "REVIEW_PRIVACY_LINK" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xem chính sách đầy đủ"
           }
         }
       }

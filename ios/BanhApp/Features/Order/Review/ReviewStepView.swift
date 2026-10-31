@@ -3,6 +3,7 @@ import SwiftUI
 /// S-8, step 4 of 4: the full order, with a way back to each part and the confirm button.
 struct ReviewStepView: View {
     let model: ReviewViewModel
+    let privacy: PrivacyLink
     let onEdit: (OrderStep) -> Void
 
     var body: some View {
@@ -19,6 +20,7 @@ struct ReviewStepView: View {
                 .disabled(!model.canConfirm)
                 .accessibilityIdentifier(AccessibilityID.reviewConfirm)
         }
+        .privacyPage(privacy)
         .onChange(of: model.fieldsRejected) { _, rejected in
             guard rejected else { return }
             model.fieldRejectionHandled()
@@ -56,6 +58,10 @@ struct ReviewStepView: View {
                 .textStyle(Typography.caption)
                 .foregroundStyle(Palette.textSecondary)
                 .accessibilityIdentifier(AccessibilityID.reviewPrivacy)
+            PrivacyTextLink(
+                title: OrderStrings.reviewPrivacyLink, identifier: AccessibilityID.reviewPrivacyLink, action: privacy.open
+            )
+            .disabled(model.isSending)
         }
     }
 

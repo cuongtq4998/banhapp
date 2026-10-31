@@ -12,10 +12,14 @@ final class OrderCoordinator {
     private var submitter: OrderSubmitter?
     /// Set by the screen that owns the path, so a send that finishes can replace the stack.
     private var showConfirmation: ((String) -> Void)?
+    private let privacy: PrivacyLink
 
     init(environment: AppEnvironment, now: @escaping () -> Date = { Date() }) {
         self.environment = environment
         self.now = now
+        privacy = PrivacyLink(
+            apiBaseURL: environment.apiBaseURL, usesStubBrowser: environment.usesStubPrivacyBrowser
+        )
     }
 
     /// Starts the flow and returns the route of its first screen. From a cake detail (`cake` given) a
@@ -82,12 +86,12 @@ final class OrderCoordinator {
             )
         case .recipient:
             RecipientStepView(
-                model: RecipientViewModel(flow: flow),
+                model: RecipientViewModel(flow: flow), privacy: privacy,
                 onNext: { self.advance(from: .recipient, path: &path.wrappedValue) }
             )
         case .review:
             ReviewStepView(
-                model: ReviewViewModel(flow: flow, submitter: submitter),
+                model: ReviewViewModel(flow: flow, submitter: submitter), privacy: privacy,
                 onEdit: { self.edit($0, path: &path.wrappedValue) }
             )
             .onAppear { self.showConfirmation = { path.wrappedValue = [.orderConfirmed(code: $0)] } }

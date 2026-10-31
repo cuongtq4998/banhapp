@@ -120,6 +120,7 @@ final class OrderFlowUITests: BanhUITestCase {
         chooseThreeCakes(app)
         chooseDateAndSlot(app)
 
+        reveal(app, AccessibilityID.fieldNote)
         tap(app, AccessibilityID.fieldNote)
         app.typeText(String(repeating: "a", count: 205))
 
@@ -133,9 +134,7 @@ final class OrderFlowUITests: BanhUITestCase {
         openOrderFlow(app)
         chooseThreeCakes(app)
         chooseDateAndSlot(app)
-        tap(app, AccessibilityID.fieldNote)
-        app.typeText("Giao som")
-        fillRecipient(app)
+        fillRecipient(app, note: "Giao som")
         XCTAssertTrue(waitFor(app, AccessibilityID.reviewNote).label.contains("Giao som"))
     }
 

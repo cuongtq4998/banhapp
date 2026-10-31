@@ -69,6 +69,14 @@ enum OrderStrings {
     static let errorDistrictRequired = LocalizedStringResource("ERR_DISTRICT_REQUIRED")
     static let errorNoteMax = LocalizedStringResource("ERR_NOTE_MAX")
 
+    // S-7 privacy notice (FR-20, AC-30)
+    static let privacyTitle = LocalizedStringResource("PRIVACY_TITLE")
+    static let privacyBody = LocalizedStringResource("PRIVACY_BODY")
+    static let privacyDraft = LocalizedStringResource("PRIVACY_DRAFT")
+    static let privacyLink = LocalizedStringResource("PRIVACY_LINK")
+    static let privacyLinkHint = LocalizedStringResource("PRIVACY_LINK_A11Y_HINT")
+    static let errorOpenPrivacy = LocalizedStringResource("ERR_OPEN_PRIVACY")
+
     // S-8
     static let reviewCakes = LocalizedStringResource("REVIEW_SEC_CAKES")
     static let reviewItem = LocalizedStringResource("REVIEW_ITEM")
@@ -81,6 +89,7 @@ enum OrderStrings {
     static let reviewAddress = LocalizedStringResource("REVIEW_ADDRESS")
     static let reviewNote = LocalizedStringResource("REVIEW_NOTE")
     static let reviewPrivacy = LocalizedStringResource("REVIEW_PRIVACY")
+    static let reviewPrivacyLink = LocalizedStringResource("REVIEW_PRIVACY_LINK")
     static let confirm = LocalizedStringResource("BTN_CONFIRM")
     static let errorMinQty = LocalizedStringResource("ERR_MIN_QTY")
     static let errorDistrictUnserved = LocalizedStringResource("ERR_DISTRICT_UNSERVED")

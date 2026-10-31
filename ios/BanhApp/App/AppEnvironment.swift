@@ -9,6 +9,10 @@ struct AppEnvironment {
     let urlOpener: any URLOpener
     /// Pictures and other assets are resolved against this address (ADR-0017).
     let assetBaseURL: URL
+    /// The privacy page lives under this address (`/privacy`, FR-20).
+    let apiBaseURL: URL
+    /// UI tests (debug builds) replace the in-app browser with a plain view.
+    var usesStubPrivacyBrowser = false
 
     /// Disk space for product pictures (ADR-0011: the platform HTTP cache). The default cache is too
     /// small to keep a picture of normal size.
@@ -46,7 +50,8 @@ struct AppEnvironment {
             orderAPI: HTTPOrderAPI(client: client),
             draftStore: draftStore,
             urlOpener: SystemURLOpener(),
-            assetBaseURL: baseURL
+            assetBaseURL: baseURL,
+            apiBaseURL: baseURL
         )
     }
 }
