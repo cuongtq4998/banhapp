@@ -1,0 +1,11 @@
+{
+  "error": {
+    "code": "VALIDATION_FAILED",
+    "message_key": "ERR_SERVER",
+    "fields": [
+      { "field": "customer.phone", "code": "PHONE_INVALID", "message_key": "ERR_PHONE_INVALID" }
+    ],
+    "details": {}
+  },
+  "request_id": "7f1c1a52-0c1e-4d6c-9a54-2d7f3d6a0002"
+}

@@ -1,0 +1,322 @@
+{
+  "version": 2,
+  "description": "Input rules of ADR-0009 shared by the backend, iOS and Android suites (canonical shape, version 2). Fake data only.",
+  "phone_pattern": "^0[35789][0-9]{8}$",
+  "phone": [
+    {
+      "input": "0912345678",
+      "valid": true,
+      "normalized": "0912345678",
+      "e164": "+84912345678"
+    },
+    {
+      "input": "091 234 5678",
+      "valid": true,
+      "normalized": "0912345678",
+      "e164": "+84912345678"
+    },
+    {
+      "input": "0912.345.678",
+      "valid": true,
+      "normalized": "0912345678",
+      "e164": "+84912345678"
+    },
+    {
+      "input": "(091) 234-5678",
+      "valid": true,
+      "normalized": "0912345678",
+      "e164": "+84912345678"
+    },
+    {
+      "input": "+84912345678",
+      "valid": true,
+      "normalized": "0912345678",
+      "e164": "+84912345678"
+    },
+    {
+      "input": "84912345678",
+      "valid": true,
+      "normalized": "0912345678",
+      "e164": "+84912345678"
+    },
+    {
+      "input": "+84 912 345 678",
+      "valid": true,
+      "normalized": "0912345678",
+      "e164": "+84912345678"
+    },
+    {
+      "input": "0312345678",
+      "valid": true,
+      "normalized": "0312345678",
+      "e164": "+84312345678"
+    },
+    {
+      "input": "0512345678",
+      "valid": true,
+      "normalized": "0512345678",
+      "e164": "+84512345678"
+    },
+    {
+      "input": "0712345678",
+      "valid": true,
+      "normalized": "0712345678",
+      "e164": "+84712345678"
+    },
+    {
+      "input": "0812345678",
+      "valid": true,
+      "normalized": "0812345678",
+      "e164": "+84812345678"
+    },
+    {
+      "input": "0212345678",
+      "valid": false
+    },
+    {
+      "input": "0412345678",
+      "valid": false
+    },
+    {
+      "input": "0612345678",
+      "valid": false
+    },
+    {
+      "input": "02812345678",
+      "valid": false
+    },
+    {
+      "input": "091234567",
+      "valid": false
+    },
+    {
+      "input": "09123456789",
+      "valid": false
+    },
+    {
+      "input": "912345678",
+      "valid": false
+    },
+    {
+      "input": "+1 202 555 0100",
+      "valid": false
+    },
+    {
+      "input": "8412345678",
+      "valid": false
+    },
+    {
+      "input": "09123abc78",
+      "valid": false
+    },
+    {
+      "input": "",
+      "valid": false
+    },
+    {
+      "input": "   ",
+      "valid": false
+    },
+    {
+      "input": "091-234-5678",
+      "valid": true,
+      "normalized": "0912345678",
+      "e164": "+84912345678"
+    },
+    {
+      "input": "(091) 234.5678",
+      "valid": true,
+      "normalized": "0912345678",
+      "e164": "+84912345678"
+    },
+    {
+      "input": "0112345678",
+      "valid": false,
+      "reason": "second digit 1 is not a mobile prefix"
+    }
+  ],
+  "text_limits": {
+    "name": 100,
+    "address": 250,
+    "note": 200
+  },
+  "text": [
+    {
+      "field": "name",
+      "value": "Nguyễn Văn An",
+      "valid": true
+    },
+    {
+      "field": "name",
+      "value": "  An  ",
+      "valid": true
+    },
+    {
+      "field": "name",
+      "value": "",
+      "valid": false
+    },
+    {
+      "field": "name",
+      "value": "   ",
+      "valid": false
+    },
+    {
+      "field": "name",
+      "repeat": "a",
+      "count": 100,
+      "valid": true
+    },
+    {
+      "field": "name",
+      "repeat": "a",
+      "count": 101,
+      "valid": false
+    },
+    {
+      "field": "name",
+      "repeat": "ệ",
+      "count": 100,
+      "valid": true
+    },
+    {
+      "field": "name",
+      "repeat": "ệ",
+      "count": 101,
+      "valid": false
+    },
+    {
+      "field": "name",
+      "value": "Tran\u0001An",
+      "valid": false
+    },
+    {
+      "field": "address",
+      "value": "12 Đường Số 3",
+      "valid": true
+    },
+    {
+      "field": "address",
+      "value": "12 Đường Số 3\nTầng 2",
+      "valid": true
+    },
+    {
+      "field": "address",
+      "value": "",
+      "valid": false
+    },
+    {
+      "field": "address",
+      "repeat": "a",
+      "count": 250,
+      "valid": true
+    },
+    {
+      "field": "address",
+      "repeat": "a",
+      "count": 251,
+      "valid": false
+    },
+    {
+      "field": "note",
+      "value": "",
+      "valid": true
+    },
+    {
+      "field": "note",
+      "value": "Giao trước 9 giờ.\nCảm ơn.",
+      "valid": true
+    },
+    {
+      "field": "note",
+      "repeat": "a",
+      "count": 200,
+      "valid": true
+    },
+    {
+      "field": "note",
+      "repeat": "a",
+      "count": 201,
+      "valid": false
+    },
+    {
+      "field": "note",
+      "repeat": "ệ",
+      "count": 200,
+      "valid": true
+    },
+    {
+      "field": "note",
+      "repeat": "ệ",
+      "count": 201,
+      "valid": false
+    },
+    {
+      "field": "note",
+      "value": "a\u0007b",
+      "valid": false
+    },
+    {
+      "field": "name",
+      "value": "Nguyen\nVan",
+      "valid": false,
+      "reason": "newline is not allowed in a name"
+    },
+    {
+      "field": "name",
+      "repeat": "ệ",
+      "count": 60,
+      "valid": true,
+      "reason": "60 letters written decomposed (180 code points) count 60 after NFC"
+    },
+    {
+      "field": "name",
+      "value": "Nguyen\u0000Van",
+      "valid": false,
+      "reason": "control character"
+    },
+    {
+      "field": "address",
+      "value": "12 Duong Hoa Sen\nPhuong 3",
+      "valid": true,
+      "reason": "newline is allowed in an address"
+    },
+    {
+      "field": "address",
+      "value": "12 Duong\u0000Mau Don",
+      "valid": false,
+      "reason": "control character"
+    },
+    {
+      "field": "note",
+      "value": "Giao\b sang",
+      "valid": false,
+      "reason": "control character"
+    }
+  ],
+  "decomposed": {
+    "description": "The composed and the decomposed form of the same Vietnamese text count the same (NFC, ADR-0009)",
+    "composed": "ệ",
+    "decomposed": "ệ",
+    "length_after_nfc": 1
+  },
+  "quantity": [
+    {
+      "per_cake": 0,
+      "valid": false
+    },
+    {
+      "per_cake": 1,
+      "valid": true
+    },
+    {
+      "per_cake": 99,
+      "valid": true
+    },
+    {
+      "per_cake": 100,
+      "valid": false
+    }
+  ],
+  "quantity_max_per_cake": 99
+}

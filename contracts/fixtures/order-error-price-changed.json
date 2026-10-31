@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "PRICE_CHANGED",
+    "message_key": "MSG_PRICE_CHANGED",
+    "details": {
+      "items": [ { "product_id": "0b8f1f0e-1111-4a00-8000-000000000001", "price_vnd": 55000 } ],
+      "delivery_fee_vnd": 20000,
+      "total_vnd": 130000
+    }
+  },
+  "request_id": "7f1c1a52-0c1e-4d6c-9a54-2d7f3d6a0010"
+}

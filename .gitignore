@@ -4,3 +4,4 @@ DerivedData/
 node_modules/
 CLAUDE.local.md
 .claude/settings.local.json
+.claude/worktrees/

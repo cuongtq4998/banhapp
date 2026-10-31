@@ -1,8 +1,13 @@
 ---
 paths:
-  - "BanhApp/**"
-  - "BanhAppTests/**"
-  - "BanhAppUITests/**"
+  - "ios/BanhApp/**"
+  - "ios/BanhAppTests/**"
+  - "ios/BanhAppUITests/**"
+  - "backend/Sources/**"
+  - "backend/Tests/**"
+  - "contracts/swift/**"
 ---
-- App SwiftUI đa nền tảng (iOS + macOS); tránh API chỉ có trên một nền tảng nếu không bọc `#if os(...)`.
-- Unit test dùng XCTest trong `BanhAppTests`, UI test trong `BanhAppUITests`.
+- The iOS app is iPhone only, minimum iOS 17 (ADR-0005); the layering follows ADR-0007 (SwiftUI views, `@Observable` view models, no UIKit unless a gap forces it).
+- Unit tests use XCTest in `ios/BanhAppTests`, UI tests in `ios/BanhAppUITests`; backend tests use XCTVapor in `backend/Tests/AppTests`.
+- Backend code is Swift 6 language mode with strict concurrency; do not add `@unchecked Sendable` or `nonisolated(unsafe)` without a comment that names the invariant.
+- Keep one responsibility per type and depend on protocols at the edges (database, clock, HTTP), so tests can substitute them.

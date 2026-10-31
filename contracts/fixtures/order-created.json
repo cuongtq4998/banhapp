@@ -1,0 +1,6 @@
+{
+  "description": "POST /v1/orders for order-request.json: 201, first acceptance.",
+  "status": 201,
+  "response_headers": {},
+  "body": { "order_code": "BT-7K3M9Q", "created_at": "2026-11-02T03:15:09Z" }
+}

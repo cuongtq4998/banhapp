@@ -1,0 +1,143 @@
+# Developer Guide
+
+| Field        | Value |
+| ------------ | ----- |
+| Version      | 1.9 |
+| Last updated | 2026-10-29 |
+| Status       | Draft |
+| Owner        | forge-dev (orchestrator wrote the first version) |
+| Based on     | architecture.md v1.1; ADR-0001, 0004, 0005, 0007; slice 0 code |
+| Related      | `backend/README.md`; `docs/system/deployment.md` |
+
+Every command below was run on the author's machine unless the line says "unverified". Slices 0 and 1 (backend): health check, empty app shells, first migration, read-only catalogue, assets, privacy page, read rate limit. [v1.1 | 2026-10-26] Slice 2 (backend): `GET /v1/availability`. [v1.4 | 2026-10-27]
+
+## 1. Prerequisites
+
+| Tool | Version | Needed for | Verified here |
+| ---- | ------- | ---------- | ------------- |
+| Swift | 6.2 | backend, contracts | yes |
+| Xcode | 26.x or 27 (project format 77; do not commit Xcode 27's upgrade to 110, hosted CI has 26.x) | iOS | yes (27.1 beta) |
+| Docker | current | local PostgreSQL, image build | no (not installed) |
+| PostgreSQL client (`psql`) | 16 | seed and migrations | no |
+| JDK | 17 | Android | no |
+| Android SDK | platform 37.0 (`platforms;android-37.0`), build-tools 36.0.0, cmdline-tools | Android | no |
+| Gradle | 9.6.0 (only to create the wrapper once) | Android | no |
+
+## 2. Repository Layout
+
+| Path | Responsibility |
+| ---- | -------------- |
+| `ios/` | SwiftUI app, iPhone only, iOS 17 |
+| `android/` | Kotlin and Compose app, minSdk 26, package `app.banh.customer` (ADR-0016) |
+| `backend/` | Vapor API; `Sources/App`, `Tests/AppTests`, `db/migrations`, `db/seed`, `Dockerfile` |
+| `contracts/` | Shared fixtures (`fixtures/`) and the `BanhContracts` Swift package (`swift/`) |
+| `docs/` | Product, design, system, decisions, engineering, test, pipeline |
+| `.github/workflows/` | CI: `backend.yml`, `ios.yml`, `android.yml` |
+| `.claude/` | Agents, skills, rules, hooks for the feature pipeline |
+
+## 3. Setup & Run
+
+Backend (`backend/`):
+
+```
+swift build
+swift test
+APP_ENV=local PORT=8080 swift run App serve     # then GET http://localhost:8080/healthz
+APP_ENV=local PORT=8080 SHOP_ID=00000000-0000-4000-8000-000000000001 DATABASE_URL=<local url> swift run App serve   # unverified against PostgreSQL: GET /v1/catalog, /privacy, /assets/images/banana.png [v1.1 | 2026-10-26]
+docker compose up -d db                          # unverified: local PostgreSQL
+APP_ENV=local PORT=8080 DATABASE_MIGRATION_URL=<local url> swift run App migrate --yes   # unverified
+psql "<local url>" -f db/seed/sample.sql         # unverified; fake data only
+```
+
+Configuration names are in `backend/.env.example`; the local URL values are in `backend/docker-compose.yml`.
+
+iOS (`ios/`; replace the Xcode path with one from `ls /Applications | grep Xcode`):
+
+```
+export DEVELOPER_DIR=/Applications/<Xcode 27>.app/Contents/Developer
+xcodebuild -project BanhApp.xcodeproj -scheme BanhApp -destination "generic/platform=iOS Simulator" CODE_SIGNING_ALLOWED=NO build
+```
+
+iOS configuration [v1.2 | 2026-10-26]: the API address is the build setting `API_BASE_URL` (default `http://localhost:8080` in `ios/Config/Project.xcconfig`; override it in the git-ignored `ios/Config/Local.xcconfig`, see the `.example` file; write `//` as `/$()/`). It reaches the app through `ios/Config/Info.plist` (`BanhAPIBaseURL`). UI tests run against an in-process stub chosen by the debug-only launch argument `-BanhStubBackend catalog|unavailable|availabilityFails`; accessibility identifiers live in `ios/Shared/AccessibilityID.swift`, compiled into the app and the UI test target.
+
+Order flow, iOS (slice 2) [v1.6 | 2026-10-29]: S-5 to S-8 are MVVM-C. `App/OrderCoordinator` owns the `OrderFlow` (`Features/Order/OrderFlow.swift`, the draft plus catalog access) and builds each step (`Features/Order/{Cakes,Date,Recipient,Review}`, one `@Observable` view model each); `Route.orderStep(OrderStep)` is the only route. Pure rules are in `Core/Order` (`OrderValidation` reads the shared `contracts/fixtures/validation.json`, `OrderPricing`, `ShopDate` for shop-time dates, `OrderDraft` with `FileDraftStore`: excluded from backup, complete file protection, discarded after 24 hours). `Core/Availability` calls `GET /v1/availability`. The debug stub serves `availability-ok.json` rules (2026-11-05 holds 98 cakes, 2026-11-20 holds 100) and the fixture districts and slots. S-8 confirm: see "Order sending, iOS (slice 3)" below [v1.9 | 2026-10-31]. Idempotency key [v1.7 | 2026-10-29]: `OrderFlow.update` compares `OrderDraft.requestBody` before and after each change and replaces the key when it differs; a pure retry or an app restart keeps it. Unit tests: `xcodebuild ... -destination "platform=iOS Simulator,id=<iPhone 16 on iOS 17.5+>" -parallel-testing-enabled NO -only-testing:BanhAppTests test` (160 tests, run on 2026-10-29); UI tests with `-only-testing:BanhAppUITests` (10 tests).
+
+Order sending, iOS (slice 3) [v1.9 | 2026-10-31]: `Core/Order/OrderAPI.swift` (`OrderAPI`, `HTTPOrderAPI`) posts through `APIClient.post` with `Idempotency-Key`, `X-Platform: ios` and `X-App-Version`; the call is cut after 10 s (`withTimeout`, `Core/Support/Timeout.swift`). `BuildConfiguration.headerVersion` pads the build's `1.0` to `1.0.0` because the server rejects anything but `N.N.N`. `OrderFailure.from` classifies every answer (fixture per code in `HTTPOrderAPITests`); `Features/Order/Review/OrderSubmitter` (one per flow, built by `OrderCoordinator`) owns sending, the key rules (pure retry keeps the key; a changed body field replaces it in `OrderFlow.update`; `IDEMPOTENCY_KEY_REUSED` replaces the key and retries once; `PRICE_CHANGED` stores the server prices in `OrderFlow.priceOverride` and the new `expected_total_vnd`) and the banner (`SendNotice`). A rule error blocks confirm until the order changes; "not sent" errors and the price notice leave confirm on. `VALIDATION_FAILED` entries S-7 can show go to `RecipientViewModel.adoptServerErrors`; others show `ERR_SERVER`. On success the draft is deleted at once and `Route.orderConfirmed(code:)` replaces the whole path (S-9 `Features/Order/Confirmation`; back and the home button both end on S-2). Stub: `-BanhStubBackend order:<scenario>` (`success`, `slow`, `offline`, `lostAnswer`, `priceChanged`, `error-<fixture name>`, constants in `ios/Shared/OrderSendAccessibilityID.swift`); `Debug/UITestStubOrders.swift` reads `contracts/fixtures/order-error-*.json` from the repository path of the source file, so UI tests run only on the machine that built them. New S-9 identifiers: `confirmation.{title,code,message,zaloButton,phoneButton,homeButton}`. Unit tests run on an iOS 26.4 simulator pass (195); on iOS 18.6 the existing `DraftStoreTests` crash in the isolated deinit of `InMemoryDraftStore` (OS runtime), unrelated to slice 3.
+
+Android (`android/`), unverified: create the wrapper once with `gradle wrapper --gradle-version 9.6.0`, commit it, then `./gradlew :app:assembleDebug`.
+
+Android order flow (slice 2, S-5 to S-8) [v1.6 | 2026-10-29], unverified (not built, see section 8): one MVI store, `app.banh.customer.order.OrderFlowViewModel`, is scoped to the order navigation graph (`ui/order/OrderNavigation.kt`, `navController.getBackStackEntry("order")`, ADR-0007). Intents go through the pure `reduce` (`OrderFlowReducer.kt`, `RecipientReducer.kt`, `CatalogReconciler.kt`); the store saves the draft after every change (`FileDraftStore`, file in `noBackupFilesDir`, 24 hour rule, ADR-0011), loads `GET /v1/availability?cakes=N` for S-6 (`HttpAvailabilityApi`), and answers the S-7 check with an effect (`FocusField` or `GoToReview`). Rules of ADR-0009 are in `PhoneNumber.kt` and `FieldRules.kt` and are tested against `contracts/fixtures/validation.json`; the date grid is built from the server answer only (`DateCalendar.kt`). S-8 shows a confirm button that stays off until slice 3 passes `confirmEnabled`. Test identifiers of the flow are in `TestTags.kt` (proposed, canvas-ui publishes them). Unit tests use fakes in `src/test/.../testing/OrderFakes.kt` and `OrderFlowHarness.kt`; Compose tests use `ReducerHost` (a stateless screen driven by the real reducer) and `OrderFlowTest` (the whole graph with the availability fixture, which the `copyContractFixtures` task puts into the test APK assets). `ImportDirectionTest` checks the package directions of ADR-0018.
+
+Availability (slice 2, backend) [v1.4 | 2026-10-27]: `GET /v1/availability?cakes=N` needs `SHOP_ID` like the catalogue (without it: 503) and shares the read rate-limit budget. `AvailabilityRoutes` parses `cakes`, `AvailabilityService` applies lead time, horizon and capacity (rules written once, with the Vietnam date from the injected `ShopCalendar`), `AvailabilityRepository` (protocol) and `PostgresAvailabilityRepository` hold the read-only SQL on `shop_setting`, `product` and `day_load`. No migration: the slice reads existing tables. Tests inject `FakeAvailabilityRepository` and `FixedWallClock`; `Tests/AppTests/Database/AvailabilityRepositoryTests.swift` runs the SQL and needs `DATABASE_MIGRATION_URL` (skipped otherwise). The shared fixture is `contracts/fixtures/availability-ok.json`. `cakes` errors use field code `CAKES_INVALID` with key `ERR_SERVER` (not yet named in api.md).
+
+Orders (slice 3, backend) [v1.6 | 2026-10-29]: `POST /v1/orders` runs the checks of api.md 4.3 in order. `OrderRateLimitMiddleware` (global, per address, `RATE_LIMIT_ORDER_PER_HOUR`, a replay counts, a 429 does not) runs before the body is read; `OrderRoutes` checks headers (`OrderHeaders`), `ORDERING_ENABLED` (`OrderPolicy`), parses the body (`OrderRequestParser` on `JSONValue`, unknown keys rejected, `PhoneNumber`, `OrderText`) and calls `OrderPlacementService`, which reads through `OrderRepository` and prices with `OrderQuote`. Date rules are the ones of `AvailabilityRules` (shared with the date list). The idempotency lookup happens before product, date, price and capacity checks; the hash is `OrderRequestHash` (normalised request, includes `expected_total_vnd`). `PostgresOrderRepository.insertOrder` is the one transaction of ADR-0008 (`day_load` guarded update, order, items, `created` event); a lost race is resolved by reading the winner. The per-phone limit (`ORDER_MAX_PER_PHONE_PER_DAY`) counts stored orders of the last 24 hours before the insert; it is check-then-insert, so a burst on one phone can pass by a few orders (the daily capacity is exact). No migration. Fixtures: `contracts/fixtures/order-*.json`; `ValidationFixtureTests` reads the canonical keys of `validation.json` (set `VALIDATION_FIXTURE` to use another copy; skipped when the file is absent). Order DB tests (`Tests/AppTests/Database/Order*`) commit to the database named by `DATABASE_MIGRATION_URL` (own fake shop per test, rows stay: use a throwaway database); they include the parallel no-oversell tests (AC-22) and parallel same-key retries (AC-19). Verified here against PostgreSQL 16 on 127.0.0.1.
+
+## 4. Coding Conventions
+
+Principles every change must meet (the owner asked for code that stays easy to maintain and grow through the next slices):
+
+| Principle | In this codebase |
+| --------- | ---------------- |
+| Single responsibility | One type, one reason to change. Routes parse and respond; rules live in services; SQL lives in repositories. |
+| Dependency inversion at the edges | Database, clock, HTTP and random sources are protocols passed in by the composition root, so tests replace them (see `DatabaseProbe`). |
+| Open for extension | A new rule or endpoint is a new type or file, not a branch added to a shared function. |
+| DRY and no magic values | Names, limits and texts come from constants, configuration or the contract; business rules are written once on the server and checked by shared fixtures on the clients. |
+| Make invalid states unrepresentable | Enums and typed ids instead of strings and flags; no boolean parameters that switch behaviour. |
+| Explicit errors | Typed errors mapped once to the API error catalogue; error text never carries secrets or customer data. |
+| Small public surface | `internal` by default, `public` only for the `BanhContracts` package. |
+| Testability | Every rule has a unit test; time and concurrency are injected, not read from globals. |
+| Small files | At most 200 lines per hand-written file (source, tests, documents); split by responsibility, never by trimming. Generated files are exempt. [v1.5 \| 2026-10-27] |
+
+Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments are English and explain why. Layering: iOS and Android follow ADR-0007; the backend follows `docs/system/architecture.md`. Rules for Swift files: `.claude/rules/swift.md`.
+
+## 5. Testing
+
+| Where | Command | Notes |
+| ----- | ------- | ----- |
+| Backend and contracts unit tests | `swift test` in `backend/` and in `contracts/swift/` | XCTVapor; no database needed (the database tests skip without `DATABASE_MIGRATION_URL`) [v1.1 \| 2026-10-26] |
+| Database behaviour | CI job `backend / test` against a `postgres:16` service | First real run of `0001_init.sql` happens in CI |
+| iOS | `xcodebuild ... -destination "platform=iOS Simulator,id=<id>" -parallel-testing-enabled NO test` in `ios/` | Without the flag the run fails with "No matching device ... XCTestDevices" |
+| Android | `./gradlew :app:testDebugUnitTest` (JVM: reducers, rules, fixtures, view models, import directions) and `./gradlew :app:connectedDebugAndroidTest` (Compose UI tests on an emulator) | Unverified [v1.6 \| 2026-10-29] |
+| Contract fixtures | `contracts/fixtures/*.json` decoded by every suite | Add a fixture with every contract change |
+
+## 6. Branching & Commits
+
+- Branch `feature/<slug>`; stage branches `stage/<slug>/<n>-<agent>` stay local.
+- Conventional Commits in English (`feat(backend): ...`); no secrets, real hostnames, personal data or work emails in commits (public repository). Commit author must be the noreply address.
+- Pull request: summary, links to the PRD and the test report, real test results, assumptions, open risks. The owner merges.
+
+## 7. Troubleshooting
+
+| Problem | Fix |
+| ------- | --- |
+| Xcode says the project cannot be opened (format 110) | `objectVersion` must stay 77; set it back by hand if Xcode 27 upgraded it |
+| iOS test run: "No matching device ... XCTestDevices" | Add `-parallel-testing-enabled NO` |
+| UI test cannot find Vietnamese text | The project development region must be `vi` |
+| Release build of the backend crashed on the deep health check | Fixed by the rewritten `withDeadline`; keep the live `?deep=1` check in CI and report any recurrence |
+| `App migrate` refuses to start | Set `DATABASE_MIGRATION_URL`; the error names the variable, never its value |
+| `iPhone 16` simulator missing | Pick any installed iPhone: `xcrun simctl list devices available` |
+
+## 8. Known Gaps (slice 0)
+
+- Catalogue SQL (`PostgresCatalogRepository`) has never run against PostgreSQL on the author's machine; only CI runs it. The CI database tests and the smoke test (which sets `SHOP_ID` and checks `/v1/catalog`) now run it on every push. [v1.3 | 2026-10-27]
+- Docker image, `0001_init.sql` on PostgreSQL, seed and the live deep health check have never run; the first CI run is the verification.
+- Android has never been built (no JDK, Gradle, SDK on the author's machine); Gradle wrapper missing. Slice 2 of the Android app (S-5 to S-8) was written on a machine with no usable JDK on the path, no Gradle cache and no Android platform 37, so neither the compile nor any test has run; CI is the first verification. [v1.6 | 2026-10-29]
+- Android structure (ADR-0018) is only partly done: the two design-to-app couplings (`R`, `TestTags` in `design/`) remain and are allow-listed in `ImportDirectionTest`; `ui/common` is not yet split and the `feature/*` and `core/*` packages are not laid out. [v1.6 | 2026-10-29]
+- Android S-7 has no autofill hints (the Compose API could not be checked against a build); the district picker is a dropdown menu, not a bottom sheet. [v1.6 | 2026-10-29]
+- Apple `DEVELOPMENT_TEAM` is no longer in the repository: copy `ios/Config/Local.xcconfig.example` to the git-ignored `ios/Config/Local.xcconfig` to sign for a device; unsigned builds need no file.
+- Startup warning for sample rows in production (ADR-0013) is left to slice 4.
+
+## 9. Change log
+
+| Version | Date | Change |
+| ------- | ---- | ------ |
+| 1.0 | 2026-10-26 | First version after slice 0 merged. |
+| 1.1 | 2026-10-26 | Slice 1 backend: `SHOP_ID` for `serve`, catalogue, assets, rate limit; catalogue SQL not yet run against PostgreSQL. |
+| 1.2 | 2026-10-26 | Slice 1 iOS: `API_BASE_URL`, stub backend launch argument, shared accessibility identifiers. |
+| 1.3 | 2026-10-27 | Known gaps: catalogue SQL and `SHOP_ID` smoke check are covered by CI. |
+| 1.4 | 2026-10-27 | Slice 2 backend: availability endpoint, `day_load` read SQL, fixture `availability-ok.json`. |
+| 1.5 | 2026-10-27 | Principle added: at most 200 lines per file. |
+| 1.6 | 2026-10-29 | Slice 2 iOS (order rules, availability client, draft store, S-5 to S-8, UI test stub) and Android: order flow store, availability client, draft file, validation fixture `validation.json`, test notes, known gaps.; slice 3 backend: order placement, order fixtures, order database and concurrency tests. |
+| 1.7 | 2026-10-29 | Fix round, iOS: accessibility ids renamed to the canonical set (UI part 9, 9b), `order.date.loading` added, `DETAIL_BTN_ORDER` "Đặt bánh", `DATE_A11Y_AVAILABLE` and `DATE_SPOKEN` (spoken date on the calendar cells), `validation.json` in canonical shape version 2 (ADR-0009 v1.2; the iOS agent owns the file, Android reads the same keys), idempotency key replaced on every change of a body field and kept for a pure retry (ADR-0008 v1.1; `OrderFlow.update`, hooks `applyPriceChange` and `replaceIdempotencyKey`; network use is slice 3). Android does the same alignment; its notes are not in this row. |
+| 1.8 | 2026-10-31 | iOS S-7 privacy notice (FR-20, AC-30): `Features/Order/Components/PrivacyNoticeCard`, shared `Core/Privacy/PrivacyLink` (opens `<API base URL>/privacy` in `SFSafariViewController`, `ERR_OPEN_PRIVACY` toast on failure) used by S-7 and the S-8 link `review.privacy.link`; `AppEnvironment.apiBaseURL`; debug stub mode `privacyFails` and a stub browser for UI tests. UI tests: the card pushes the lower S-7 fields under the keyboard, so `BanhUITestCase.reveal` scrolls before tapping address, district and note, and the note is typed last (`fillRecipient(note:)`). |
+| 1.9 | 2026-10-31 | Slice 3 iOS: order client, error mapping, sending state, S-9, stub order scenarios, `X-App-Version` normalised to `N.N.N`. |

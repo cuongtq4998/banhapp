@@ -16,7 +16,7 @@ Build mọi nền tảng: lặp `-destination` qua `generic/platform=iOS Simulat
 
 Chạy trên nhiều simulator bằng ddagent (tận dụng cache DerivedData):
 ```
-tools/ddagent/bin/ddagent run --target "iPhone 16"
+ddagent run --target "iPhone 16"
 ```
 Build lần đầu là `cold`; cùng code chạy lại là `cache-hit`. Dùng `prewarm` để build + boot + install mà không launch.
 

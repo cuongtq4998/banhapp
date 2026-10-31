@@ -1,0 +1,19 @@
+{
+  "server_date": "2026-11-02",
+  "shop": {
+    "name": "Tiệm Bánh An Nhiên",
+    "greeting": "Bánh làm thủ công, giao tận nơi.",
+    "phone_contact": "+84900000000",
+    "zalo_contact": "84900000000"
+  },
+  "settings": {
+    "min_qty": 2,
+    "lead_days": 2,
+    "max_days_ahead": 30,
+    "max_qty_per_cake": 99,
+    "note_max_length": 200
+  },
+  "products": [],
+  "districts": [],
+  "slots": []
+}

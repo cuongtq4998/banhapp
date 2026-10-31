@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vietnamese is the only language (ADR-0007). Resource names are the keys of docs/design/place-order-ui.md
+     section 8 in lower case. Texts of later screens are added with those screens. -->
+<resources>
+    <string name="app_name">Banh App</string>
+
+    <!-- Shared -->
+    <string name="logo_label">Logo cửa hàng</string>
+    <string name="common_retry">Thử lại</string>
+    <string name="common_back">Quay lại</string>
+    <string name="common_loading">Đang tải</string>
+    <string name="err_network_load">Không có kết nối mạng. Vui lòng kiểm tra kết nối và thử lại.</string>
+    <!-- Whole dong with the dong sign (design system principle 4); the amount is already grouped. -->
+    <string name="money_format">%1$s ₫</string>
+    <string name="price_each">%1$s/cái</string>
+
+    <!-- S-2 Home -->
+    <string name="home_btn_zalo">Zalo</string>
+    <string name="home_btn_phone">Gọi điện</string>
+    <string name="home_btn_products">Xem sản phẩm</string>
+    <string name="home_btn_order">Đặt bánh</string>
+    <string name="home_err">Không tải được thông tin cửa hàng. Vui lòng kiểm tra kết nối mạng và thử lại.</string>
+    <string name="err_open_zalo">Không mở được Zalo. Bạn có thể gọi điện cho cửa hàng.</string>
+    <string name="err_open_phone">Không mở được ứng dụng gọi điện.</string>
+    <string name="home_no_cakes">Hiện cửa hàng chưa có bánh để đặt. Bạn có thể liên hệ cửa hàng qua Zalo hoặc gọi điện.</string>
+
+    <!-- S-3 Products and S-4 Detail -->
+    <string name="products_title">Sản phẩm</string>
+    <string name="products_err">Không tải được thông tin bánh. Vui lòng thử lại.</string>
+    <string name="products_empty">Hiện cửa hàng chưa có bánh để đặt. Vui lòng quay lại sau hoặc liên hệ cửa hàng qua Zalo hoặc điện thoại.</string>
+    <string name="product_img_failed">Không tải được ảnh</string>
+    <string name="detail_btn_order">Đặt bánh</string>
+    <string name="detail_gone">Bánh này hiện không còn được bán.</string>
+    <string name="detail_gone_action">Xem các bánh khác</string>
+
+    <!-- Order flow, shared (S-5 to S-8) -->
+    <string name="flow_title">Đặt bánh</string>
+    <string name="step_label">Bước %1$d/4</string>
+    <string name="step1">Chọn bánh</string>
+    <string name="step2">Ngày và giờ nhận</string>
+    <string name="step3">Người nhận và địa chỉ</string>
+    <string name="step4">Xem lại đơn hàng</string>
+    <string name="common_next">Tiếp tục</string>
+    <string name="common_edit">Sửa</string>
+
+    <!-- S-5 Choose cakes -->
+    <string name="qty_total">Tổng số bánh: %1$d</string>
+    <string name="qty_subtotal">Tiền bánh: %1$s</string>
+    <string name="qty_min_hint">Đơn hàng cần ít nhất %1$d bánh.</string>
+    <string name="qty_inc_a11y">Tăng số lượng %1$s</string>
+    <string name="qty_dec_a11y">Giảm số lượng %1$s</string>
+    <string name="qty_value_a11y">%1$s, số lượng %2$d</string>
+    <string name="order_cake_removed">%1$s hiện không còn được bán và đã được bỏ khỏi đơn. Các bánh khác và thông tin bạn đã nhập vẫn được giữ lại.</string>
+    <!-- Not in the UI document: name used when the removed cake was never seen in this run (see report). -->
+    <string name="order_cake_removed_unknown_name">Một loại bánh</string>
+
+    <!-- S-6 Date and time -->
+    <string name="date_title">Chọn ngày nhận</string>
+    <string name="date_hint_range">Nhận bánh từ %1$s đến %2$s.</string>
+    <string name="date_legend_full">Ngày gạch chéo không còn đủ chỗ cho đơn của bạn.</string>
+    <string name="date_a11y_selected">%1$s, đã chọn</string>
+    <string name="date_a11y_full">%1$s, không còn đủ chỗ cho đơn này</string>
+    <string name="date_a11y_too_soon">%1$s, chưa thể chọn vì cần đặt trước ít nhất %2$d ngày</string>
+    <string name="date_a11y_too_far">%1$s, chưa thể chọn vì chỉ nhận đặt trước tối đa %2$d ngày</string>
+    <string name="date_empty">Không có ngày nào còn đủ chỗ cho đơn của bạn. Hãy giảm số lượng bánh.</string>
+    <string name="date_empty_action">Sửa số lượng</string>
+    <string name="date_err">Không tải được lịch nhận bánh. Vui lòng thử lại.</string>
+    <string name="date_cleared">Ngày bạn chọn không còn đủ chỗ cho đơn của bạn. Vui lòng chọn ngày khác.</string>
+    <string name="time_title">Chọn giờ nhận</string>
+    <string name="slot_label">%1$s – %2$s</string>
+    <string name="next_hint_date_time">Chọn ngày và giờ nhận để tiếp tục.</string>
+    <!-- Not in the UI document (calendar chrome and spoken date; see report). -->
+    <string name="date_a11y_available">%1$s, có thể chọn</string>
+    <string name="date_spoken">ngày %1$d tháng %2$d năm %3$d</string>
+    <string name="date_month_title">Tháng %1$d năm %2$d</string>
+    <string name="date_prev_month">Tháng trước</string>
+    <string name="date_next_month">Tháng sau</string>
+    <string name="date_weekday_1">T2</string>
+    <string name="date_weekday_2">T3</string>
+    <string name="date_weekday_3">T4</string>
+    <string name="date_weekday_4">T5</string>
+    <string name="date_weekday_5">T6</string>
+    <string name="date_weekday_6">T7</string>
+    <string name="date_weekday_7">CN</string>
+
+    <!-- S-7 Recipient and address -->
+    <string name="field_name">Họ và tên</string>
+    <string name="field_phone">Số điện thoại</string>
+    <string name="field_address">Địa chỉ giao hàng</string>
+    <string name="field_district">Quận/huyện</string>
+    <string name="district_placeholder">Chọn quận/huyện</string>
+    <string name="district_fee">Phí giao hàng: %1$s</string>
+    <string name="district_err">Không tải được danh sách khu vực giao hàng.</string>
+    <string name="district_empty">Hiện chưa có khu vực giao hàng nào. Vui lòng liên hệ cửa hàng.</string>
+    <string name="field_note">Ghi chú (không bắt buộc)</string>
+    <string name="note_counter">%1$d/%2$d</string>
+    <string name="err_name_required">Vui lòng nhập họ và tên.</string>
+    <string name="err_phone_required">Vui lòng nhập số điện thoại.</string>
+    <string name="err_phone_invalid">Vui lòng nhập số điện thoại di động Việt Nam (10 số, ví dụ 09xx xxx xxx).</string>
+    <string name="err_address_required">Vui lòng nhập địa chỉ giao hàng.</string>
+    <string name="err_district_required">Vui lòng chọn quận/huyện.</string>
+    <string name="err_note_max">Ghi chú tối đa %1$d ký tự.</string>
+
+    <!-- S-7 privacy notice (FR-20, AC-30) -->
+    <string name="privacy_title">Thông tin của bạn được dùng như thế nào</string>
+    <string name="privacy_body">Để giao bánh, cửa hàng cần họ tên, số điện thoại, địa chỉ giao hàng và ghi chú (nếu bạn nhập). Cửa hàng chỉ dùng các thông tin này để giao đơn hàng và liên hệ với bạn.</string>
+    <string name="privacy_draft">Bản nháp đơn hàng chỉ được lưu trên điện thoại của bạn và tự xoá sau 24 giờ.</string>
+    <string name="privacy_link">Xem chính sách quyền riêng tư đầy đủ</string>
+    <string name="privacy_link_a11y_hint">Mở trang chính sách trong trình duyệt</string>
+    <string name="err_open_privacy">Không mở được trang chính sách. Vui lòng thử lại sau.</string>
+
+    <!-- S-8 Review -->
+    <string name="review_sec_cakes">Bánh đã chọn</string>
+    <string name="review_item">%1$s × %2$d</string>
+    <string name="review_fee">Phí giao hàng</string>
+    <string name="review_total">Tổng cộng</string>
+    <string name="review_date">Ngày nhận</string>
+    <string name="review_time">Giờ nhận</string>
+    <string name="review_name">Người nhận</string>
+    <string name="review_phone">Số điện thoại</string>
+    <string name="review_address">Địa chỉ giao hàng</string>
+    <string name="review_note">Ghi chú</string>
+    <string name="review_privacy">Chúng tôi chỉ dùng họ tên, số điện thoại, địa chỉ và ghi chú của bạn để giao đơn hàng này và liên hệ với bạn.</string>
+    <string name="review_privacy_link">Xem chính sách đầy đủ</string>
+    <string name="btn_confirm">Xác nhận đơn hàng</string>
+    <string name="err_min_qty">Đơn hàng cần ít nhất %1$d bánh. Vui lòng thêm bánh.</string>
+    <string name="btn_sending">Đang gửi đơn</string>
+    <string name="err_date_capacity">Ngày %1$s không còn đủ chỗ cho đơn của bạn. Vui lòng chọn ngày khác.</string>
+    <string name="err_date_lead">Ngày nhận phải sau ngày đặt ít nhất %1$d ngày. Vui lòng chọn ngày khác.</string>
+    <string name="err_date_horizon">Chỉ nhận đặt trước tối đa %1$d ngày. Vui lòng chọn ngày sớm hơn.</string>
+    <string name="err_district_unserved">Cửa hàng chưa giao đến khu vực này. Vui lòng chọn quận/huyện khác.</string>
+    <string name="action_choose_date">Chọn ngày khác</string>
+    <string name="action_choose_district">Chọn khu vực khác</string>
+    <string name="action_choose_slot">Chọn giờ khác</string>
+    <string name="err_product_unavailable">Có bánh trong đơn hiện không còn được bán. Vui lòng chọn lại bánh. Đơn hàng chưa được gửi. Thông tin của bạn vẫn được giữ lại.</string>
+    <string name="err_slot_unavailable">Khung giờ nhận bánh bạn chọn không còn khả dụng. Vui lòng chọn giờ khác.</string>
+    <string name="err_rate_limited">Đơn hàng chưa được gửi vì có quá nhiều yêu cầu. Thông tin của bạn vẫn được giữ lại. Vui lòng đợi một lát rồi thử lại.</string>
+    <string name="err_offline">Đơn hàng chưa được gửi vì không có kết nối mạng. Thông tin của bạn vẫn được giữ lại.</string>
+    <string name="err_server">Đơn hàng chưa được gửi do có lỗi. Thông tin của bạn vẫn được giữ lại. Vui lòng thử lại.</string>
+    <string name="err_timeout">Đơn hàng chưa được gửi vì mất quá nhiều thời gian. Thông tin của bạn vẫn được giữ lại. Vui lòng thử lại.</string>
+    <string name="msg_price_changed">Giá đã thay đổi nên đơn hàng chưa được gửi. Vui lòng xem lại giá và tổng cộng mới, rồi bấm xác nhận lại.</string>
+
+    <!-- S-9 Confirmation -->
+    <string name="conf_title">Đã nhận đơn hàng</string>
+    <string name="conf_code_label">Mã đơn hàng</string>
+    <string name="conf_code_a11y">Mã đơn hàng %1$s</string>
+    <string name="conf_message">Cửa hàng đã nhận được đơn của bạn và sẽ liên hệ với bạn. Khi cần, bạn có thể nhắn Zalo hoặc gọi điện cho cửa hàng và cho biết mã đơn hàng.</string>
+    <string name="conf_btn_home">Về trang chủ</string>
+</resources>

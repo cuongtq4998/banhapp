@@ -1,0 +1,12 @@
+// Project-wide build settings. Machine-specific values (the Apple development
+// team, the API address of a real host) live in Local.xcconfig, which is
+// git-ignored because this repository is public.
+
+// Address of the backend (docs/system/api.md). The default points at a backend
+// started on this Mac (docs/engineering/dev-guide.md). "//" starts a comment in
+// an xcconfig file, so the scheme separator is written as "/$()/".
+API_BASE_URL = http:/$()/localhost:8080
+
+// "#include?" makes the file optional so CI and unsigned builds
+// (CODE_SIGNING_ALLOWED=NO) work without it. It comes last so its values win.
+#include? "Local.xcconfig"
