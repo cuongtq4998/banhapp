@@ -21,7 +21,7 @@ Does everything a staff member does, plus: [v1.5 | 2026-10-31]
 
 1. Settings has five plain entries: Cakes (add with a photo, change a price, hide, remove), Ordering (daily limit, days of notice, minimum cakes), Delivery (districts with fee, time slots), Shop info (name, greeting, phone, Zalo), Staff (add an e-mail, switch a person off or on). [v1.5 | 2026-10-31]
 2. A change applies to new orders only; orders already placed never change. [v1.5 | 2026-10-31]
-3. Lost phone: sign in on the new phone with one code, then tap "Sign out all other phones". If the owner can no longer open the owner mailbox, the operator helps outside the app (proposal P-1, Q-25). [v1.5 | 2026-10-31]
+3. Lost phone: sign in on the new phone with one code, then tap "Sign out all other phones". If the owner can no longer open the owner mailbox, the operator helps outside the app (decided P-1, Q-25, owner 2026-10-31). [v1.6 | 2026-10-31]
 
 ### Customer
 

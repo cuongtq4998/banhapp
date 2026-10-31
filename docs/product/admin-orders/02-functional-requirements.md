@@ -1,6 +1,6 @@
 # Admin Orders: Functional Requirements (section 5)
 
-Part of [Admin Orders](../admin-orders.md) (PRD v1.5). Holds: FR-1 to FR-27 (52 before; old ids in [08-deferred-and-id-mapping.md](08-deferred-and-id-mapping.md)). Priority: Must / Should. Values and rules are in [03-business-rules.md](03-business-rules.md); checks in the acceptance criteria parts. Every line is new or changed in v1.5. Items marked PROPOSAL change an explicit owner decision and wait for the owner (Q-25 to Q-28); if the owner declines, the v1.4 text applies (git history, mapping table). [v1.5 | 2026-10-31]
+Part of [Admin Orders](../admin-orders.md) (PRD v1.5). Holds: FR-1 to FR-27 (52 before; old ids in [08-deferred-and-id-mapping.md](08-deferred-and-id-mapping.md)). Priority: Must / Should. Values and rules are in [03-business-rules.md](03-business-rules.md); checks in the acceptance criteria parts. Every line is new or changed in v1.5. Items P-1 to P-4 (Q-25 to Q-28) were accepted by the owner on 2026-10-31. [v1.6 | 2026-10-31]
 
 ## 5. Functional Requirements
 
@@ -11,7 +11,7 @@ Part of [Admin Orders](../admin-orders.md) (PRD v1.5). Holds: FR-1 to FR-27 (52 
 | FR-1 | The system shall let a person enter an e-mail address, receive a 6-digit code by e-mail and sign in with it (BR-4). The screen and response are the same whether or not the address is registered. The person can request a new code after a short wait and can go back to change the address. One code is enough for every account, owner included (Q-18). Limits are in BR-4; when one is reached a Vietnamese message says when to try again. [v1.5 | 2026-10-31] | Must |
 | FR-2 | The system shall keep a person signed in on that phone while it is used at least once every 7 days (BR-5) and shall let the person sign out at any time. [v1.5 | 2026-10-31] | Must |
 | FR-3 | The system shall give each account one role, owner or staff (BR-1), hide what the role may not do and refuse it on the server. [v1.5 | 2026-10-31] | Must |
-| FR-4 | PROPOSAL P-2 (Q-26): the system shall let every signed-in person sign out all their other phones with one button; those phones cannot renew their sign-in and lose data access within 5 minutes (BR-5). This replaces the device list and per-device revoke of v1.4. [v1.5 | 2026-10-31] | Must |
+| FR-4 | Decided P-2 (Q-26, owner 2026-10-31): the system shall let every signed-in person sign out all their other phones with one button; those phones cannot renew their sign-in and lose data access within 5 minutes (BR-5). This replaces the device list and per-device revoke of v1.4. [v1.5 | 2026-10-31] | Must |
 | FR-5 | The system shall let the owner add a staff account (name and e-mail), see the list, and switch an account off or on. Switching off signs out all phones of that person (cannot renew at once, no data within 5 minutes). Limits in BR-6. [v1.5 | 2026-10-31] | Must |
 | FR-6 | Invisible: the system shall protect sign-in as in BR-4 and BR-5 (code and request limits, renewal that works once, a repeat within 20 seconds tolerated, nothing revealing which addresses exist). [v1.5 | 2026-10-31] | Must |
 | FR-7 | Invisible: when the owner signs in with a code on a phone not used by the owner before, the system shall send one short notice without a code to the owner e-mail (BR-13, Q-24). A failed notice never blocks sign-in. [v1.5 | 2026-10-31] | Must |
@@ -25,7 +25,7 @@ Part of [Admin Orders](../admin-orders.md) (PRD v1.5). Holds: FR-1 to FR-27 (52 
 | FR-10 | The system shall let the person narrow the list by one status (To do, New, Confirmed, Completed, Cancelled, All) and by delivery date (any, today, tomorrow, one chosen date). [v1.5 | 2026-10-31] | Must |
 | FR-11 | The system shall let the person search by order code, customer name or phone number (BR-10). [v1.5 | 2026-10-31] | Should |
 | FR-12 | The system shall refresh the list when the screen opens and on pull-down, and show loading, empty, offline and error-with-retry states in Vietnamese. [v1.5 | 2026-10-31] | Must |
-| FR-13 | The system shall show on the Orders tab a red round number of unfinished orders (New or Confirmed, delivery date today or earlier, BR-9), hidden at 0, "99+" above 99, refreshed with the list and after each status change (Q-22: badge kept; the separate view, chip and banner are PROPOSAL P-3, Q-27). [v1.5 | 2026-10-31] | Must |
+| FR-13 | The system shall show on the Orders tab a red round number of unfinished orders (New or Confirmed, delivery date today or earlier, BR-9), hidden at 0, "99+" above 99, refreshed with the list and after each status change (Q-22: badge kept; the separate view, chip and banner are dropped, P-3, Q-27, owner 2026-10-31). [v1.5 | 2026-10-31] | Must |
 
 ### 5.3 Order detail and status
 
