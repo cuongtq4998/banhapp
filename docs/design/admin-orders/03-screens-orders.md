@@ -1,54 +1,45 @@
-# Admin Orders UI, part 3: S-A4 to S-A7, orders (section 5)
+# Admin Orders UI, part 3: S-A3 to S-A5, orders (section 5)
 
-Part of the split UI specification; index: [admin-orders-ui.md](../admin-orders-ui.md). [v1.0 | 2026-10-31]
+Part of the split UI specification; index: [admin-orders-ui.md](../admin-orders-ui.md). [v1.1 | 2026-10-31]
 
-### S-A4 Order list
+### S-A3 Order list "To do"
 
-- Purpose: see and find orders; first screen after sign-in (FR-8 to FR-13, FR-41). Entry: sign-in, tab 1, app start with session, notification foreground tap on the banner. Exit: S-A6 (row tap), S-A5 (date chip), S-A19 (staff account button), S-A8 (owner tab).
-- Layout, top to bottom: large title `A_ORDERS_TITLE` with the `CountPill` `A_NEW_COUNT` ("Mới: {n}") beside it and, for staff only, a round glass account button at the right (label `A_ACCOUNT_A11Y`); search `TextField` (`A_SEARCH_PLACEHOLDER`, clear button, search key); chip row (horizontal scroll): `FilterChip` "Tất cả" (`A_FILTER_ALL`), `A_STATUS_NEW`, `A_STATUS_CONFIRMED`, `A_STATUS_COMPLETED`, `A_STATUS_CANCELLED`, then a date chip showing the current date filter (`A_FILTER_DATE` or the chosen label); line `A_LAST_UPDATED` ("Cập nhật lúc {time}"); optional `BannerAction` for notifications (below); list of `OrderRow`; tab bar (owner only).
-- Data shown per row: order code, customer name, status, delivery date and slot, cakes count, total, district (FR-8, AC-16). The row has no phone or address.
-- Default filter: New and Confirmed selected, no date filter (FR-8). Order: delivery date, slot, placed time (BR-13, AC-15), the same for every filter. Status chips are multi-select; "Tất cả" selects all four; deselecting the last selected status is ignored and the chip row shakes once, so the filter never means nothing. A chip row change reloads from the first page. Search combines with filters (assumption A-D1); search starts after 3 typed characters or the search key, and `A_SEARCH_HINT` ("Mã đơn, tên khách hoặc số điện thoại. Chỉ đơn trong 90 ngày.") is the placeholder help line below the field when empty and focused.
-- Paging: 50 rows at a time; reaching the last 5 rows loads the next 50; the footer shows a spinner, or on failure `A_LOAD_MORE_FAILED` with a retry text button (earlier rows stay) (BR-13, AC-23).
-- Refresh: opening the screen, returning from background after more than 60 s, and pull-to-refresh reload from the first page and set the time in `A_LAST_UPDATED` (FR-12, AC-20, AC-21). The New count is the count of all New orders in the 90-day window, independent of the chips.
-- Notification hint (FR-34, AC-51): when the system permission is denied, a `BannerAction` `A_NOTIF_HINT` with the button `A_OPEN_SETTINGS` shows once per sign-in; the close icon (label `A_DISMISS`) hides it until the next sign-in.
-- Actions: open an order (FR-14); filter by status (FR-9); open date sheet (FR-10); search (FR-11); pull to refresh (FR-12); open account (staff).
+- Purpose: see what has to be done and find any order; first screen after sign-in (FR-9 to FR-13). Entry: sign-in, tab 1, app start with a session, notification foreground toast. Exit: S-A4 (row tap), S-A13 (staff account button), S-A6 (owner tab). [v1.1 | 2026-10-31]
+- Layout, top to bottom: large title `A_ORDERS_TITLE` (staff: with the red `TabBadge` number beside it and a round glass account button at the right, label `A_ACCOUNT_A11Y`); search `TextField` (`A_SEARCH_PLACEHOLDER`, clear button, search key); one control row: status chips (`FilterChip`, single choice, horizontal scroll) `A_FILTER_TODO` (default, selected), `A_STATUS_NEW`, `A_STATUS_CONFIRMED`, `A_STATUS_COMPLETED`, `A_STATUS_CANCELLED`, `A_FILTER_ALL`, then the date chip `A_FILTER_DATE`; list of `OrderRow`; tab bar (owner only) with the red `TabBadge` on Orders. [v1.1 | 2026-10-31]
+- Row (FR-9, AC-15): code, customer name, status, delivery date and slot, number of cakes, total, district; no phone, address or note. When the order is New or Confirmed and the delivery date is today or earlier, the row shows the red `DueMark` after the date: `A_DUE_TODAY` or `A_OVERDUE` with `{n}` days. The app computes it from the order's delivery date and the server date of the same response (Vietnam time), not from the device clock; a row's mark does not change while the screen is open. Completed and Cancelled rows never show a mark (AC-16). [v1.1 | 2026-10-31]
+- Order (BR-9, AC-14): as the server returns it, earliest delivery date, then slot, then oldest placed; the same for every filter. Overdue orders are therefore on top; there is no other overdue view, chip or banner. [v1.1 | 2026-10-31]
+- Status filter (FR-10): exactly one chip is selected; tapping another replaces it; `A_FILTER_TODO` = all New and Confirmed of any date; `A_FILTER_ALL` = all four statuses. Date chip: a native menu (iOS `Menu`, Android `DropdownMenu`) with `A_DATE_ALL`, `A_DATE_TODAY`, `A_DATE_TOMORROW`, `A_DATE_ONE`; the last opens the native date picker (graphical dialog) for one date. The chip then reads "Hôm nay", "Ngày mai" or `dd/MM`; "today" and "tomorrow" follow the server date (AC-18). Any change reloads from the first page. No range, no multi-select. [v1.1 | 2026-10-31]
+- Search (FR-11, BR-10, AC-19): starts at 3 typed characters or the search key; fewer than 3 shows `A_SEARCH_MIN`; combines with the chips; `A_SEARCH_HINT` is the help line when the field is focused and empty; up to 100 characters.
+- Orders tab badge (FR-13, AC-17): red round number = New and Confirmed orders with delivery date today or earlier, taken from the same server answer as the list (a count field), not counted from the loaded rows; hidden at 0; "99+" above 99; refreshed on open, on pull-down, on return from background after more than 60 s, and right after each status change on S-A4/S-A5 without reopening the app. Screen-reader label `A_TAB_BADGE_A11Y`. Colour is never the only signal: the number is the signal. [v1.1 | 2026-10-31]
+- Paging (BR-9, AC-23): 50 rows at a time; reaching the last 5 rows loads the next 50; the footer shows a spinner, or on failure `A_LOAD_MORE_FAILED` with a retry text button (earlier rows stay).
+- Refresh (FR-12, AC-20): opening, returning from background after more than 60 s, and pull-to-refresh reload from the first page. No "last updated" line and no New counter.
+- Actions: open an order; choose status; choose date; search; pull to refresh; open account (staff).
 - States:
   - Default: rows as above.
-  - Loading: five `OrderRow` skeletons; the chips and search stay usable; on a refresh the old rows stay and the native refresh indicator shows.
-  - Empty: `StateView` `A_ORDERS_EMPTY` ("Không có đơn nào phù hợp.") with the button `A_CLEAR_FILTERS` when a filter other than the default is set; with a search term the text is `A_SEARCH_EMPTY` (AC-19).
-  - Error: `StateView` `A_ERR_GENERIC` and `A_RETRY`; rows already shown are replaced only on a full-list failure.
-  - Offline: `StateView` `A_OFFLINE` and `A_RETRY`; no earlier rows are shown as current (AC-22). A short `Toast` is not enough.
-  - Disabled: N/A (no disabled controls; the sign-in session ending leads to S-A1).
-  - Success: N/A for the list (a status change is seen on S-A6 and in the row after return).
-- Validation: search field accepts up to 100 characters; no other rules.
+  - Loading: five `OrderRow` skeletons; chips and search stay usable; on a refresh the old rows stay with the native indicator.
+  - Empty: `StateView` `A_ORDERS_EMPTY` with `A_CLEAR_FILTERS` when a chip other than To do or a date is set; in To do with no date the text is `A_TODO_EMPTY` ("all done"); with a search term `A_SEARCH_EMPTY` (AC-19, AC-20). [v1.1 | 2026-10-31]
+  - Error: `StateView` `A_ERR_GENERIC` and `A_RETRY`.
+  - Offline: `StateView` `A_OFFLINE` and `A_RETRY`; no earlier rows shown as current (AC-20).
+  - Disabled, Success: N/A.
 
-### S-A5 Date filter (sheet)
+### S-A4 Order detail
 
-- Purpose: filter by delivery date (FR-10). Entry: date chip on S-A4. Exit: apply or close.
-- Layout: sheet title `A_DATE_FILTER_TITLE`; single-select rows `A_DATE_ALL`, `A_DATE_TODAY`, `A_DATE_TOMORROW`, `A_DATE_ONE`, `A_DATE_RANGE`; for "one date" a native date picker below the row; for "range" two native pickers labelled `A_DATE_FROM` and `A_DATE_TO`; `PrimaryButton` `A_APPLY`; text button `A_RESET`.
-- Data: "today" and "tomorrow" are computed on the server date in Vietnam time (AC-18). The chip on S-A4 then reads "Hôm nay", "Ngày mai", "dd/MM" or "dd/MM – dd/MM".
-- Validation: range with end before start shows `A_ERR_RANGE`; Apply stays disabled.
-- States: Default; Loading N/A (local); Empty N/A; Error N/A (no network); Disabled (Apply when the range is invalid); Success (sheet closes, list reloads).
-
-### S-A6 Order detail
-
-- Purpose: read one order and move it forward (FR-14 to FR-20). Entry: row tap; notification tap (FR-33, AC-50). Exit: back to S-A4 (the list reloads on return).
-- Layout, top to bottom: `TopBar` (title is the code, `OrderCodeDisplay` style, selectable) with `StatusBadge`; customer `GlassCard` (section label `A_SEC_CUSTOMER`: name, phone, and two `ContactButton` capsules `A_CALL` ("Gọi {phone}") and `A_ZALO` ("Nhắn Zalo"), FR-15); delivery card (`A_SEC_DELIVERY`: weekday, date and slot; address, district); cakes card (`A_SEC_CAKES`: per cake name, quantity, unit price, line total as stored, then `SummaryRow` delivery fee and total, FR-14, AC-24); note card (`A_SEC_NOTE`, only if there is a note); cancel reason card (`A_SEC_REASON`, only if cancelled); history `HistoryTimeline` (`A_SEC_HISTORY`, FR-20, AC-31); placed date and time line `A_PLACED_AT`; `BottomActionBar` (below).
-- Action bar by status: New: left `A_CANCEL_ORDER` (destructive), right `A_CONFIRM_ORDER`; Confirmed: left `A_CANCEL_ORDER`, right `A_COMPLETE_ORDER`; Completed and Cancelled: no bar (AC-27, AC-30). Confirm = one tap, no dialog (G-2). Complete = `ConfirmDialog` `A_COMPLETE_TITLE`/`A_COMPLETE_BODY` naming the code with `A_COMPLETE_YES` and `A_BACK` (design choice: final action, allowed before the delivery date, see Q-D2). Cancel opens S-A7.
-- Behaviour: after Confirm or Complete the badge, bar and history update in place with `motion.spring.standard` and a success haptic; a `Toast` `A_STATUS_CHANGED` shows. During the request the pressed button shows a spinner and the other is disabled. Call opens the dialer with the number; Zalo opens the Zalo chat for the number, else `Toast` `A_ZALO_UNAVAILABLE` (AC-25; behaviour per ADR-0015). The phone is selectable text.
-- Conflict (FR-19, AC-30): if the server refuses because the order changed, the screen reloads, shows the current status and an `InlineMessage` (Warning) `A_CONFLICT` with `{status}` at the top, error haptic; any open sheet or dialog closes.
+- Purpose: read one order and move it forward (FR-14 to FR-19). Entry: row tap; notification tap (AC-31). Exit: back to S-A3 (the list and the badge reload on return). [v1.1 | 2026-10-31]
+- Layout, top to bottom: `TopBar` (title is the code, selectable) with `StatusBadge`; customer `GlassCard` (`A_SEC_CUSTOMER`: name, phone, `ContactButton` capsules `A_CALL` and `A_ZALO`, FR-15); delivery card (`A_SEC_DELIVERY`: weekday, date and slot, with the red `DueMark` when New or Confirmed and due; address, district); cakes card (`A_SEC_CAKES`: name, quantity, unit price, line total as stored, then `A_FEE` and `A_TOTAL`, AC-24); note card (`A_SEC_NOTE`, only if there is a note); cancel reason card (`A_SEC_REASON`, only if cancelled); two small lines: `A_PLACED_AT` and `A_LAST_CHANGED` ("Cập nhật lần cuối bởi {name}, {datetime}", name is `A_HIST_CUSTOMER` for an order not yet changed); `BottomActionBar`. No history list (deferred). [v1.1 | 2026-10-31]
+- Action bar (FR-16 to FR-18): New: left `A_CANCEL_ORDER` (destructive), right `A_CONFIRM_ORDER`; Confirmed: left `A_CANCEL_ORDER`, right `A_COMPLETE_ORDER`; Completed and Cancelled: no bar. Confirm = one tap, no dialog (AC-26, AC-30). Complete = `ConfirmDialog` `A_COMPLETE_TITLE`/`A_COMPLETE_BODY` naming the code, buttons `A_COMPLETE_YES` and `A_BACK` (final action; allowed any time after Confirmed, AC-27). Cancel opens S-A5.
+- Behaviour: after Confirm or Complete the badge, mark and bar update in place with `motion.spring.standard`, success haptic, `Toast` `A_STATUS_CHANGED`; the Orders tab number drops (S-A3). During the request the pressed button shows a spinner and the other is disabled. Call opens the dialer; Zalo opens the chat, else `Toast` `A_ZALO_UNAVAILABLE` (AC-25; ADR-0015). Phone is selectable text.
+- Conflict (FR-19, AC-29): if the server refuses because the order changed, the screen reloads and shows the current status with `InlineMessage` (Warning) `A_CONFLICT` with `{status}`, error haptic; open sheets and dialogs close. A repeated change (double tap) is not an error: the screen simply shows the result.
 - States:
   - Default: as above.
   - Loading: skeleton cards; bar hidden until the order is known.
-  - Empty: N/A (an order always has data). Order not found or older than 90 days (including from a notification): `StateView` `A_ORDER_GONE` with `A_BACK_TO_LIST` (FR-41, AC-67).
-  - Error: `StateView` `A_ERR_GENERIC`, `A_RETRY`. A failed status action shows `InlineMessage` (Error) `A_ERR_STATUS` above the bar; buttons return to enabled.
-  - Offline: `StateView` `A_OFFLINE`, `A_RETRY`; on a status action `A_OFFLINE_SAVE` and the status stays unchanged.
-  - Disabled: the other bar button while one request runs.
-  - Success: status updated as above.
+  - Empty N/A. Order not found or past 90 days, also from a notification: `StateView` `A_ORDER_GONE` with `A_BACK_TO_LIST` (AC-21).
+  - Error: `StateView` `A_ERR_GENERIC`, `A_RETRY`; a failed status action shows `InlineMessage` (Error) `A_ERR_STATUS` above the bar.
+  - Offline: `StateView` `A_OFFLINE`, `A_RETRY`; on a status action `A_OFFLINE_SAVE`, status unchanged.
+  - Disabled: the other bar button while one request runs. Success: status updated.
 
-### S-A7 Cancel order (sheet)
+### S-A5 Cancel order (sheet)
 
-- Purpose: cancel with one required reason (FR-18, BR-16). Entry: `A_CANCEL_ORDER` on S-A6. Exit: close (back) or done.
-- Layout: sheet title `A_CANCEL_TITLE`; text `A_CANCEL_BODY` naming the order code `{code}` and saying the cakes go back to the delivery date (BR-3); `ReasonList` with exactly five reasons `A_REASON_CUSTOMER`, `A_REASON_FULL`, `A_REASON_CANNOT_DELIVER`, `A_REASON_NO_CONTACT`, `A_REASON_SPAM` (none preselected, AC-69); `PrimaryButton` with destructive fill `A_CANCEL_CONFIRM` ("Hủy đơn {code}"), disabled until a reason is chosen; `SecondaryButton` `A_BACK` (status unchanged, AC-29).
-- Behaviour: success closes the sheet, S-A6 shows Cancelled with the reason card, `Toast` `A_STATUS_CHANGED`. The reason is not shown to the customer (note under the list `A_REASON_INTERNAL`: "Lý do chỉ nhân viên thấy.").
-- States: Default (nothing selected, confirm disabled); Loading (spinner in confirm); Empty N/A (fixed list); Error (`InlineMessage` `A_ERR_STATUS`, sheet stays); Offline (`A_OFFLINE_SAVE`); Disabled (confirm until a reason); Success (close). Conflict: as S-A6.
+- Purpose: cancel with one required reason (FR-18, BR-8). Entry: `A_CANCEL_ORDER` on S-A4. Exit: close or done.
+- Layout: sheet title `A_CANCEL_TITLE`; text `A_CANCEL_BODY` naming `{code}` and saying the cakes go back to the delivery date (BR-2); `ReasonList` with exactly four reasons `A_REASON_CUSTOMER`, `A_REASON_CANNOT_DELIVER`, `A_REASON_NO_CONTACT`, `A_REASON_SPAM`, none preselected (AC-28); `PrimaryButton` destructive `A_CANCEL_CONFIRM` ("Hủy đơn {code}"), disabled until a reason is chosen; `SecondaryButton` `A_BACK` (status unchanged). This one screen is the whole cancel step: choose and confirm. [v1.1 | 2026-10-31]
+- Behaviour: success closes the sheet, S-A4 shows Cancelled with the reason card, `Toast` `A_STATUS_CHANGED`. `A_REASON_INTERNAL` sits under the list.
+- States: Default (nothing selected, confirm disabled); Loading (spinner in confirm); Empty N/A; Error (`InlineMessage` `A_ERR_STATUS`); Offline (`A_OFFLINE_SAVE`); Disabled (confirm until a reason); Success (close). Conflict as S-A4.
