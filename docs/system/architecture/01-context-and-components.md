@@ -8,6 +8,8 @@ All owner decisions are recorded: Swift with Vapor (ADR-0001), PostgreSQL (ADR-0
 
 This document maps the system for the first slice: a customer browses the active cakes (one to four) and places an order [v1.5 | 2026-10-26] from an iOS or Android app, and a backend stores the order. It covers components, flows, storage, integrations and quality targets. It does not cover staff and owner features, push notifications or payment (later slices); their extension points are named in section 10.
 
+Update [v1.10 | 2026-10-31]: staff and owner features, push notifications and the admin apps are now in scope; see [07-admin-orders.md](07-admin-orders.md). The statements below about "no staff features" describe the first slice.
+
 ## 2. System Context
 
 ```mermaid

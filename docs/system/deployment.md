@@ -2,12 +2,12 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.9 |
-| Last updated | 2026-10-27 |
+| Version      | 1.10 [v1.10 | 2026-10-31] |
+| Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect (design), forge-dev (keeps it true) |
-| Based on     | architecture.md v1.0; product/place-order.md v1.2 |
-| Related      | ADR-0001 to ADR-0005; auth.md; data-model.md |
+| Based on     | architecture.md v1.0; product/place-order.md v1.2; product/admin-orders.md v1.2 [v1.10 | 2026-10-31] |
+| Related      | ADR-0001 to ADR-0005; ADR-0021 to ADR-0027; auth.md; data-model.md |
 
 Provider names in the body are the free trial setup of ADR-0003 (Accepted for the trial; no spend). The repository holds only variable names; no hostnames, accounts or keys.
 
@@ -25,6 +25,7 @@ This file is the index of the deployment document. The body lives in the folder 
 | 7 | Observability and alerts | [deployment/03-operations-and-cost.md](deployment/03-operations-and-cost.md) |
 | 8 | Rollback | [deployment/03-operations-and-cost.md](deployment/03-operations-and-cost.md) |
 | 9 | Cost notes | [deployment/03-operations-and-cost.md](deployment/03-operations-and-cost.md) |
+| 11 to 17 | Admin configuration, environments, build and release, infrastructure (mail, push, images), backup addition, alerts, cost and launch checklist [v1.10 \| 2026-10-31] | [deployment/04-admin-delivery-config.md](deployment/04-admin-delivery-config.md) |
 | 10 | Open questions and change log | this file |
 
 ## 10. Open Questions / Change log
@@ -34,6 +35,7 @@ This file is the index of the deployment document. The body lives in the folder 
 | DP-Q1 | Owner approval of costs in section 9 and hosting choice (ADR-0003) | Money, customer data | No | business | Closed for the trial (free plans, 2026-10-25); paid path needs approval later | Owner |
 | DP-Q2 | Operator name and alert email | Alerts need an owner | Yes for launch | business | Open (owner) | |
 | DP-Q3 | Is a staging environment wanted before launch | Free on the trial plans; paid later | No | business | Resolved for the trial: yes, free | Architect |
+| DP-Q4 | Owner approval of the domain, mail provider account, paid hosting and store accounts for the admin apps (ADR-0003 v1.4, ADR-0023, ADR-0026) | Money | Yes for go-live | business | Open (owner) | Recommendation: approve all four before the admin launch [v1.10 \| 2026-10-31] |
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
@@ -46,4 +48,5 @@ This file is the index of the deployment document. The body lives in the folder 
 | 1.6 | 2026-10-26 | DOC-1, DOC-3: `PUBLIC_ASSET_BASE_URL` rule, shared read budget wording, asset folder. |
 | 1.7 | 2026-10-26 | DOC-12: proxy-count assumption and client address rule (section 3.1), `TRUST_PROXY` needed from slice 1, `SHOP_ID` from slice 1 confirmed. |
 | 1.8 | 2026-10-27 | Section 3.1: one-proxy assumption contradicted by the host's articles; pointer to ADR-0019. |
+| 1.10 | 2026-10-31 | admin-orders: new file 04 (variables for auth, mail, push, images; admin CI and release; store notes; mail, push and image infrastructure; backup and restore addition; alerts; cost and launch checklist). Paid hosting is a go-live prerequisite for real use (ADR-0003 v1.4). Question DP-Q4 added. |
 | 1.9 | 2026-10-27 | Split into the folder `deployment/` (file size rule, 200 lines); this file became the index with a section map. No content change. |

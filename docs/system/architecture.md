@@ -2,12 +2,12 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.9 |
-| Last updated | 2026-10-29 |
+| Version      | 1.10 [v1.10 | 2026-10-31] |
+| Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
-| Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; design/design-system.md v1.0 |
-| Related      | data-model.md; api.md; order-lifecycle.md; auth.md; deployment.md; docs/decisions/; ADR-0017; ADR-0018 to ADR-0020 |
+| Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; design/design-system.md v1.0; product/admin-orders.md v1.2 [v1.10 | 2026-10-31] |
+| Related      | data-model.md; api.md; order-lifecycle.md; admin-order-handling.md; session-lifecycle.md; auth.md; deployment.md; docs/decisions/; ADR-0017; ADR-0018 to ADR-0020; ADR-0021 to ADR-0031 |
 
 This file is the index of the architecture document. The body lives in the folder `architecture/`, split by topic so that no file passes 200 lines (CLAUDE.md "Project rule: file size"). Section numbers are unchanged: "architecture.md section 11" still means the same text, found through the map below. [v1.8 | 2026-10-27]
 
@@ -23,6 +23,7 @@ This file is the index of the architecture document. The body lives in the folde
 | 13 (change log) | Version history | this file |
 | 14, 14.1 | Backend code structure, `DomainError` | [architecture/06-code-structure.md](architecture/06-code-structure.md) |
 | 15 | Client code structure (iOS MVVM-C, Android MVI) | [architecture/06-code-structure.md](architecture/06-code-structure.md) |
+| 16 to 22 | Admin apps: scope, context, components, flows, integrations, quality, risks [v1.10 \| 2026-10-31] | [architecture/07-admin-orders.md](architecture/07-admin-orders.md) |
 
 ## Change log
 
@@ -37,4 +38,5 @@ This file is the index of the architecture document. The body lives in the folde
 | 1.6 | 2026-10-26 | Section 14: global middleware order, limiter scope and bound, `APIError.headers`, uncached static not-found; `TRUST_PROXY` and `SHOP_ID` needed from slice 1. |
 | 1.7 | 2026-10-27 | ADR review: index lists ADR-0017 to ADR-0020 and the amendments; slice plan note for the iOS package extraction; section 14 `DomainError` target and module map pointer. |
 | 1.8 | 2026-10-27 | Split into the folder `architecture/` (file size rule, 200 lines); this file became the index with a section map. Owner decisions of 2026-10-27 applied (ADR-0007 v1.5, ADR-0018 v2.0): iOS MVVM-C and Android MVI recorded in new section 15; section 11 note and section 14.1 changed from a calendar of extractions to trigger-only splits, `DomainError` and the layering test confirmed; section 12 index updated. |
+| 1.10 | 2026-10-31 | admin-orders: new file 07 (sections 16 to 22): separate admin apps `ios/BanhAdmin*` and `android/admin` with shared packages and modules (ADR-0021, ADR-0018 trigger fired), backend admin feature folders without a new top-level folder, mail, APNs and FCM integrations with failure behaviour, quality targets, risks R-AO-1 to R-AO-8. Decision index extended (ADR-0021 to ADR-0031). Sections 1, 9, 10 statements that staff features are out of scope are superseded by section 16. |
 | 1.9 | 2026-10-29 | Slice 3 resync (06 code structure): transaction opened in `OrderRepository.insertOrder`; responses use sorted JSON keys so a replay is byte-identical; ADR-0014 status line. |

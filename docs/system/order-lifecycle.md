@@ -2,16 +2,16 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.4 |
-| Last updated | 2026-10-29 |
+| Version      | 1.5 [v1.5 | 2026-10-31] |
+| Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
-| Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0 |
-| Related      | data-model.md; api.md; ADR-0008, ADR-0010 |
+| Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; product/admin-orders.md v1.2 [v1.5 | 2026-10-31] |
+| Related      | data-model.md; api.md; admin-order-handling.md; ADR-0008, ADR-0010, ADR-0028, ADR-0030 |
 
 ## 1. Purpose & Scope
 
-How an order is created from the customer's confirmation, and the states an order moves through during its life. In this slice only creation is implemented (the order enters `New`). The other transitions are specified now so the data model and the database guard are right from the start; their endpoints belong to the later staff and owner slices.
+How an order is created from the customer's confirmation, and the states an order moves through during its life. In this slice only creation is implemented (the order enters `New`). The other transitions are specified now so the data model and the database guard are right from the start; their endpoints belong to the later staff and owner slices. The staff and owner endpoints now exist: see admin-order-handling.md and api/06 [v1.5 | 2026-10-31].
 
 ## 2. Actors
 
@@ -118,6 +118,8 @@ Final states: `Completed`, `Cancelled`. Every non-final state (`New`, `Confirmed
 | Confirmed | Completed | Delivery done | Staff, owner | Authenticated (later) | Event written; capacity unchanged (the cakes were made) |
 | Confirmed | Cancelled | Staff cancels | Staff, owner | Authenticated (later) | Capacity released as above; event written |
 
+Admin-orders additions [v1.5 | 2026-10-31]: "Authenticated (later)" is now an active owner or staff session calling `POST /v1/admin/orders/{order_code}/status` with `expected_status` (stale view: 409, ADR-0028); a cancellation also requires a `cancel_reason` stored on the order and copied into the event (ADR-0030), and after it the order no longer counts toward the per-phone limit unless the reason is `fake_spam` (FR-44). Completed is allowed at any time after Confirmed (BR-2).
+
 Any other pair is rejected by the database trigger `customer_order_status_guard` even for direct SQL, for example `Completed -> New`, `Cancelled -> Confirmed`, `New -> Completed`, and any change out of a final state. Each allowed change also writes its `order_event` through the trigger (rows above say "event written"; Confirmed and Completed do too) [v1.2 | 2026-10-26]. The status guard and the capacity release trigger are created in this slice (data-model.md section 5) so AC-28 can be tested at database level now.
 
 ## 7. Concurrency & Idempotency
@@ -152,4 +154,5 @@ Each flow step above traces to FR-9, FR-10, FR-11, FR-13, FR-16, FR-17, FR-18 an
 | 1.1 | 2026-10-25 | ADR-0010 accepted; no flow change. |
 | 1.2 | 2026-10-26 | Audit trigger wording aligned with the built migration (event on every status change). |
 | 1.3 | 2026-10-28 | Slice 2 review: split of local and server checks on S-8; key rule pointer to ADR-0008 v1.1. No flow change. |
+| 1.5 | 2026-10-31 | admin-orders: staff transitions are live (pointer to admin-order-handling.md); `expected_status`, cancel reason, per-phone count rule. No change to the state machine. |
 | 1.4 | 2026-10-29 | Slice 3 resync: transaction opened inside `OrderRepository.insertOrder`; collision retry is a new transaction, not a savepoint; replay body byte-identical (sorted keys). No flow change. |
