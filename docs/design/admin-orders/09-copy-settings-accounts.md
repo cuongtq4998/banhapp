@@ -28,6 +28,7 @@ Part of the split UI specification; index: [admin-orders-ui.md](../admin-orders-
 | `A_LIMIT_WARN_TITLE` | Một số ngày đã vượt giới hạn mới |
 | `A_LIMIT_WARN_BODY` | Có {count} ngày đã nhận nhiều bánh hơn giới hạn mới. Đơn đã đặt vẫn giữ nguyên và không bị hủy; những ngày này sẽ hiện là đã đầy. |
 | `A_SAVE_ANYWAY` | Vẫn lưu |
+| `A_UNDERSTOOD` | Đã hiểu [v1.3 | 2026-11-01] |
 | `A_SEC_DISTRICTS` | Quận/huyện và phí giao [v1.1 | 2026-10-31] |
 | `A_SEC_SLOTS` | Khung giờ giao [v1.1 | 2026-10-31] |
 | `A_ADD_SLOT` | Thêm khung giờ |
@@ -74,6 +75,8 @@ Part of the split UI specification; index: [admin-orders-ui.md](../admin-orders-
 | `A_ERR_IMG_TYPE` | Ảnh bánh: chỉ nhận ảnh JPEG hoặc PNG. |
 | `A_ERR_IMG_SIZE` | Ảnh bánh: tối đa 5 MB. |
 | `A_ERR_IMG_READ` | Không đọc được ảnh. Hãy chọn ảnh khác. |
+| `A_ERR_IMG_DIM_SMALL` | Ảnh bánh: ảnh quá nhỏ, mỗi cạnh cần ít nhất 200 px. [v1.3 | 2026-11-01] |
+| `A_ERR_IMG_DIM_LARGE` | Ảnh bánh: ảnh quá lớn, mỗi cạnh tối đa 4096 px. [v1.3 | 2026-11-01] |
 | `A_ERR_UPLOAD` | Không tải được ảnh lên. Bánh chưa được thêm. Vui lòng thử lại. |
 | `A_UPLOADING` | Đang tải ảnh… {percent}% |
 | `A_CANCEL_UPLOAD` | Dừng tải lên |
