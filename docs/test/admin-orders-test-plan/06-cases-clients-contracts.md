@@ -1,6 +1,6 @@
 # Admin Orders Test Plan: iOS and Android cases, contract fixtures (part 06)
 
-Part of [admin-orders-test-plan.md](../admin-orders-test-plan.md) (v1.1). Holds: TC-C01 to TC-C51 (each runs on iOS and on Android; results kept per platform) and TC-F01 to TC-F08. Vietnamese texts come from the UI spec; it is still on PRD v1.2, so expected texts below name the behaviour and the exact strings are checked after design updates it (R-30 to R-34). Every result is `Not run` for iOS / Android. [v1.1 | 2026-10-31]
+Part of [admin-orders-test-plan.md](../admin-orders-test-plan.md) (v2.0). Holds: TC-C01 to TC-C51 (answered by the named client tests in [part 12](12-client-verification.md); what is not covered is listed there) (each runs on iOS and on Android; results kept per platform) and TC-F01 to TC-F08. Vietnamese texts come from the UI spec; it is still on PRD v1.2, so expected texts below name the behaviour and the exact strings are checked after design updates it (R-30 to R-34). Every result is `Not run` for iOS / Android. [v1.1 | 2026-10-31]
 
 ## 4.16 Client cases (both platforms)
 

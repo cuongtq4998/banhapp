@@ -123,7 +123,9 @@ final class ErrorPipelineEdgeTests: ErrorPipelineBase {
     }
 
     func testBodyLimitOverRealHttpWithContentLengthAndChunked() async throws {
-        try await app.startup()
+        // app.startup() would run the default command and parse the xctest runner's argv
+        // ("Unknown command QATests.xctest"); starting the server directly avoids that.
+        try await app.server.start(address: .hostname("127.0.0.1", port: 0))
         let port = try XCTUnwrap(app.http.server.shared.localAddress?.port)
         let url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(port)/qa/echo"))
         let limit = RequestLimits.maxBodyBytes
@@ -149,6 +151,7 @@ final class ErrorPipelineEdgeTests: ErrorPipelineBase {
             XCTAssertEqual(atLimit, 200, "exactly 8 KB, chunked=\(chunked)")
             XCTAssertEqual(over, 413, "8 KB + 1, chunked=\(chunked)")
         }
+        await app.server.shutdown() // Vapor asserts that a started server is shut down before it is released
     }
 
     // ---- routing ----

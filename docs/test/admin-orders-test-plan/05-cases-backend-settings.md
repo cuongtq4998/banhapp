@@ -1,6 +1,6 @@
 # Admin Orders Test Plan: Backend cases, Settings (cakes, ordering, delivery, shop info) (part 05)
 
-Part of [admin-orders-test-plan.md](../admin-orders-test-plan.md) (v1.1). Holds: TC-B107 to TC-B145. Same columns as [part 03](03-cases-backend-auth.md). Every result is `Not run`. Owner session unless stated. [v1.1 | 2026-10-31]
+Part of [admin-orders-test-plan.md](../admin-orders-test-plan.md) (v2.0). Holds: TC-B107 to TC-B145. Same columns as [part 03](03-cases-backend-auth.md). Results (round 1, commit 6852302) are in [part 02](02-traceability-matrix.md) (evidence per AC) and [part 11](11-execution-backend.md); a case without a named test there is `manual/unverified`. Wording fixed to the built system in v2.0 where marked. Owner session unless stated. [v1.1 | 2026-10-31]
 
 ## 4.12 Cakes (FR-21, BR-11, BR-12)
 
@@ -14,8 +14,8 @@ Part of [admin-orders-test-plan.md](../admin-orders-test-plan.md) (v1.1). Holds:
 | TC-B112 | negative | AC-33 | No image; GIF; price 0; empty name; duplicate name (other case); each alone | Each refused with a message naming the field; no cake row, no file stored [v1.1 | 2026-10-31] |
 | TC-B113 | edge | AC-33 | JPEG of 5 242 880 bytes and of 5 242 881 bytes; 5 000 000 bytes | 5 242 880 and 5 000 000 accepted; 5 242 881 refused [v1.1 | 2026-10-31] |
 | TC-B114 | extra | AC-33 | 12 not removed cakes (active and hidden mixed), add a 13th; remove one, add again; two adds in parallel at 11 | 13th refused; add works after removal; parallel gives 12 not 13 [v1.1 | 2026-10-31] |
-| TC-B115 | negative | AC-33 | PNG named .jpg and reverse; SVG; HTML with image header; JPEG+ZIP polyglot; truncated JPEG; 0 bytes; HEIC bytes; 30 000 x 30 000 PNG; animated PNG; two image parts; file name `../x` | Only real JPEG/PNG accepted, by content; others refused without 500 or timeout; bomb refused; name never a path; EXIF location not served [v1.1 | 2026-10-31] |
-| TC-B116 | negative | AC-33 | Upload 5 MB while the global body limit is 8 KB | Cake route allows the image; every other route still answers 413 above 8 KB [v1.1 | 2026-10-31] |
+| TC-B115 | negative | AC-33 | PNG named .jpg and reverse; SVG; HTML with image header; JPEG+ZIP polyglot; truncated JPEG; 0 bytes; HEIC bytes; 30 000 x 30 000 PNG; animated PNG; two image parts; file name `../x` | Only real JPEG/PNG accepted, by content; others refused without 500 or timeout; bomb refused; name never a path; EXIF location not served (pictures are stored as sent, never decoded or re-encoded; EXIF stripping is the app's re-encode, see part 12). Executed: QA AdminImageAttackTests::TCB110 to TCB114; dimension limits 200 to 4,096 (api/07 10.17), codes `IMAGE_REQUIRED`, `IMAGE_TYPE_UNSUPPORTED`, `IMAGE_DIMENSIONS_INVALID`, `IMAGE_INVALID`, `IMAGE_TOO_LARGE` [v2.0 | 2026-11-01] |
+| TC-B116 | negative | AC-33 | Upload 5 MB while the global body limit is 8 KB | Cake route allows the image; every other route still answers 413 above 8 KB. Executed: QA TCB115 (413 before the body is read, after authentication and role) [v2.0 | 2026-11-01] |
 | TC-B117 | extra | AC-33 | Staff and anonymous post a cake; read the image URL headers; image URL of a removed cake | Staff 403 and no file stored; served type matches content with `nosniff`; removed image not listed [v1.1 | 2026-10-31] |
 | TC-B118 | negative | FR-21 | Change the image of an existing cake (PUT/PATCH with image part, replace route) | Refused or ignored; stored image unchanged; no route exists to replace it [v1.1 | 2026-10-31] |
 | TC-B119 | acceptance | AC-34 | "Banh Mau" in 3 orders at 150 000; remove it | Catalog excludes it; new order refused; settings list omits it; the 3 orders show name, quantity, price [v1.1 | 2026-10-31] |
