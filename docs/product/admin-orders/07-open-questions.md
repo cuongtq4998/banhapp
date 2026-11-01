@@ -1,6 +1,6 @@
 # Admin Orders: Open Questions and Change Log (sections 12 and 13)
 
-Part of [Admin Orders](../admin-orders.md) (PRD v1.7). Holds: Q-1 to Q-29 (business, all decided except Q-29), TQ-1 to TQ-13 (technical), design answers, the change log. Condensed in v1.5; every line is new or changed in v1.5 [v1.5 | 2026-10-31].
+Part of [Admin Orders](../admin-orders.md) (PRD v1.8). Holds: Q-1 to Q-29 (business, all decided except Q-29), TQ-1 to TQ-13 (technical; open: TQ-1, TQ-2, TQ-3) [v1.8 | 2026-11-01], design answers, the change log. Condensed in v1.5; every line is new or changed in v1.5 [v1.5 | 2026-10-31].
 
 ## 12. Open Questions
 
@@ -45,19 +45,19 @@ Q-25 to Q-28 (simplification proposals P-1 to P-4) were answered by the owner on
 
 | ID | Question | Status |
 | -- | -------- | ------ |
-| TQ-1 | E-mail delivery service and code delivery in test. | Open |
-| TQ-2 | Delivery of the admin app to a small audience on both platforms (S-2). | Open |
-| TQ-3 | Push service, guarantees, token handling at sign-out, switch-off and sign-out of other phones. | Open |
+| TQ-1 | E-mail delivery service and code delivery in test. | Open. Test delivery is answered (recording sender); real e-mail delivery is not: sender domain and provider are unapproved (money, DP-Q4; ADR-0023 Proposed). [v1.8 | 2026-11-01] |
+| TQ-2 | Delivery of the admin app to a small audience on both platforms (S-2). | Open. Decided in ADR-0026 but not verified against the stores; store fees are unapproved. [v1.8 | 2026-11-01] |
+| TQ-3 | Push service, guarantees, token handling at sign-out, switch-off and sign-out of other phones. | Open. Built behind a push sender and token handling is answered; not verified on live APNs and FCM (no accounts, no device test). [v1.8 | 2026-11-01] |
 | TQ-4 | Sessions: ADR-0022 accepted, including the 20-second grace (BR-5). | Closed |
-| TQ-5 | Stale-view conflicts for status changes; indexing for list, filter, search. | Open |
-| TQ-6 | Image upload for new cakes: formats, size, storage, resizing. | Open |
-| TQ-7 | 90-day rule for finished orders only, open orders exempt (BR-9, simpler than v1.4). | Open |
-| TQ-8 | Place-order limit ignoring cancelled orders except spam; storing the reason. | Open |
+| TQ-5 | Stale-view conflicts for status changes; indexing for list, filter, search. | Closed: built (architecture 16 section 32.4). [v1.8 | 2026-11-01] |
+| TQ-6 | Image upload for new cakes: formats, size, storage, resizing. | Closed: built (architecture 16 section 32.4). [v1.8 | 2026-11-01] |
+| TQ-7 | 90-day rule for finished orders only, open orders exempt (BR-9, simpler than v1.4). | Closed: built (architecture 16 section 32.4). [v1.8 | 2026-11-01] |
+| TQ-8 | Place-order limit ignoring cancelled orders except spam; storing the reason. | Closed: built (architecture 16 section 32.4). [v1.8 | 2026-11-01] |
 | TQ-9 | Identify a phone only to know "not used before" (FR-7) and to sign out other phones (FR-4); no device names needed. Answered by ADR-0022 and ADR-0031 (architecture 05). | Closed [v1.7 | 2026-11-01] |
 | TQ-10 | Recovery codes and backup e-mail: not needed (Q-25 accepted). | Deferred |
-| TQ-11 | Align ADR-0022 counters with BR-4 (no time lock, 5th wrong entry voids the code, limit per client address). | Open |
-| TQ-12 | Unfinished count: how the server serves the badge cheaply (New or Confirmed, date at or before shop day, any age); open orders exempt from the 90-day rule. | Open |
-| TQ-13 | New-device notice without blocking sign-in. | Open |
+| TQ-11 | Align ADR-0022 counters with BR-4 (no time lock, 5th wrong entry voids the code, limit per client address). | Closed: built (architecture 16 section 32.4). [v1.8 | 2026-11-01] |
+| TQ-12 | Unfinished count: how the server serves the badge cheaply (New or Confirmed, date at or before shop day, any age); open orders exempt from the 90-day rule. | Closed: superseded by PRD v1.6 (no Unfinished view); the badge count stays and is built (architecture 16 section 32.4). [v1.8 | 2026-11-01] |
+| TQ-13 | New-device notice without blocking sign-in. | Closed: built (architecture 16 section 32.4). [v1.8 | 2026-11-01] |
 
 ### 12.4 Design answers
 
@@ -70,4 +70,5 @@ Q-D1 (recovery way-in always shown) is void (Q-25 accepted). Q-D2 accepted (Comp
 | 1.0 to 1.4 | 2026-10-31 | First version, owner answers Q-1 to Q-14, approval of v1.2, review findings, Unfinished view and new-device notice. Full text of those versions is in git history. |
 | 1.5 | 2026-10-31 | Simplification review after the owner directive that all apps be easy for every kind of user. New "How a day works" (01 section 0). Rewritten: 52 FRs to 27, 28 BRs to 14, 103 ACs to 48; old ids in 08 section 15. Deferred list in 08 section 14. Proposals changing owner decisions: P-1 recovery (Q-25), P-2 device list (Q-26), P-3 Unfinished view, chip, banner (Q-27), P-4 four cancel reasons (Q-28). Invisible-by-design: code and session limits, record, 90-day rule, review account. Q-23 withdrawn. New questions Q-25 to Q-28; TQ-10 to TQ-13 revised. |
 | 1.7 | 2026-11-01 | Clarifications to match the built system (defect report X-1 to X-4): FR-7, BR-13 and AC-12 say "a phone on which the owner has no signed-in session at that moment" and add the sign-out-then-in example; stale labels removed ("Decided P-2", "proposed", PRD v1.5 headers); TQ-9 closed; BR-11 and AC-40 point to the new open question Q-29 (free delivery, non-blocking, recommendation: allow 0). No other requirement changed; ids and counts unchanged. |
+| 1.8 | 2026-11-01 | Technical questions TQ-5, TQ-6, TQ-7, TQ-8, TQ-11 and TQ-13 closed as built, TQ-12 closed as superseded by v1.6, all pointing to docs/system/architecture/16-review-account-final-alignment.md section 32.4. TQ-1, TQ-2 and TQ-3 stay open with a status line each. No requirement changed; ids and counts unchanged. |
 | 1.6 | 2026-10-31 | Owner accepted P-1 to P-4 (Q-25 to Q-28, all option a) on 2026-10-31. Status Approved. Q-25 to Q-28 closed as decided; Deferred list confirmed; PROPOSAL marks removed. No requirement text changed otherwise; ids and counts unchanged (27 FRs, 14 BRs, 48 ACs). |

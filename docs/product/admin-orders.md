@@ -2,9 +2,9 @@
 
 | Field        | Value                                                                 |
 | ------------ | --------------------------------------------------------------------- |
-| Version      | 1.7 [v1.7 | 2026-11-01]                                               |
+| Version      | 1.8 [v1.8 | 2026-11-01]                                               |
 | Last updated | 2026-11-01                                                            |
-| Status       | Approved. The owner accepted the simplification proposals P-1 to P-4 (Q-25 to Q-28) on 2026-10-31 (v1.6). v1.7 only clarifies wording to match the built system (new-device notice, labels). One non-blocking business question is open: Q-29 (free delivery). [v1.7 | 2026-11-01] |
+| Status       | Approved. The owner accepted the simplification proposals P-1 to P-4 (Q-25 to Q-28) on 2026-10-31 (v1.6). v1.7 only clarifies wording to match the built system (new-device notice, labels). One non-blocking business question is open: Q-29 (free delivery). v1.8 closes technical questions TQ-5 to TQ-8, TQ-11 to TQ-13; TQ-1, TQ-2 and TQ-3 stay open (real e-mail delivery, store delivery and fees, live push). [v1.8 | 2026-11-01] |
 | Owner        | scribe-requirements                                                   |
 | Based on     | docs/pipeline/admin-orders/00-request.md (2026-10-31); docs/product/place-order.md v1.6 |
 | Related      | docs/system/order-lifecycle.md; docs/system/auth.md; docs/system/data-model.md; docs/design/reference/screens/ (A1 to A4, reference only) |
@@ -21,7 +21,7 @@ This document is split into parts of at most 200 lines each. Cite ids (FR-n, BR-
 | [04-acceptance-criteria-sign-in-orders.md](admin-orders/04-acceptance-criteria-sign-in-orders.md) | 7 Acceptance Criteria: sign-in, list, detail | AC-1 to AC-31 [v1.5 | 2026-10-31] |
 | [05-acceptance-criteria-settings-notifications.md](admin-orders/05-acceptance-criteria-settings-notifications.md) | 7 Acceptance Criteria: settings, notifications, privacy, cross-feature | AC-32 to AC-48 [v1.5 | 2026-10-31] |
 | [06-nfr-dependencies-assumptions-sources.md](admin-orders/06-nfr-dependencies-assumptions-sources.md) | 8 Non-functional, 9 Impact, 10 Assumptions, 11 Sources | A-1 to A-11, S-2 to S-6 |
-| [07-open-questions.md](admin-orders/07-open-questions.md) | 12 Open Questions, 13 Change log | Q-1 to Q-29, TQ-1 to TQ-13 [v1.7 | 2026-11-01] |
+| [07-open-questions.md](admin-orders/07-open-questions.md) | 12 Open Questions, 13 Change log | Q-1 to Q-29, TQ-1 to TQ-13 [v1.8 | 2026-11-01] |
 | [08-deferred-and-id-mapping.md](admin-orders/08-deferred-and-id-mapping.md) | 14 Deferred, 15 Mapping of v1.4 ids to v1.5 ids | P-1 to P-4, D-3 to D-8 [v1.5 | 2026-10-31] |
 
 ## Summary of v1.5
