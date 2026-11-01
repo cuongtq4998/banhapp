@@ -79,6 +79,32 @@ class SessionManagerTest {
     }
 
     @Test
+    fun unauthenticatedGetsOneRefreshAndTheCallIsRepeated() = runTest {
+        session.restore()
+        var calls = 0
+        val result = session.authorized { calls++; if (calls == 1) throw httpError(401, ErrorCodes.UNAUTHENTICATED) else it }
+
+        assertEquals(listOf("rt_old", "rt_1"), auth.refreshTokensSeen)
+        assertEquals(2, calls)
+        assertEquals("at_2", result)
+        assertTrue(session.state.value is SessionState.SignedIn)
+    }
+
+    @Test
+    fun unauthenticatedWhoseRefreshFailsEndsTheSession() = runTest {
+        session.restore()
+        auth.refreshResults.add(httpError(401, ErrorCodes.SESSION_REVOKED))
+        try {
+            session.authorized<Unit> { throw httpError(401, ErrorCodes.UNAUTHENTICATED) }
+            fail()
+        } catch (_: SessionEndedException) {
+        }
+
+        assertNull(vault.load())
+        assertEquals(SessionState.SignedOut(ended = true), session.state.value)
+    }
+
+    @Test
     fun refreshRejectedWith401EndsTheSession() = runTest {
         auth.refreshResults.add(httpError(401, ErrorCodes.SESSION_REVOKED))
         session.restore()

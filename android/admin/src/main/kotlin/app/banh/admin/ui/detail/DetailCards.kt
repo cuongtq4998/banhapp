@@ -57,7 +57,7 @@ fun DeliveryCard(order: OrderDetail, serverDate: String?) {
     GlassCard(Modifier.fillMaxWidth().testTag(AdminTags.DETAIL_DELIVERY)) {
         SectionLabel(R.string.a_sec_delivery)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs), itemVerticalAlignment = Alignment.CenterVertically) {
-            Text("${formatWeekdayDate(order.deliveryDate)} · ${order.slot.start} – ${order.slot.end}", style = MaterialTheme.typography.titleMedium)
+            Text("${formatWeekdayDate(order.deliveryDate, serverDate)} · ${order.slot.start} – ${order.slot.end}", style = MaterialTheme.typography.titleMedium)
             if (due != null) DueMarkChip(due.text(context), painterResource(R.drawable.ic_clock), Modifier.testTag(AdminTags.DETAIL_DUE))
         }
         Text(order.customerAddress, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.testTag(AdminTags.DETAIL_ADDRESS))
@@ -108,11 +108,11 @@ fun ReasonCard(order: OrderDetail) {
 
 /** "Placed at" and "last changed by" (FR-14); the name is "khách hàng" for an order nobody changed yet. */
 @Composable
-fun HistoryLines(order: OrderDetail) {
+fun HistoryLines(order: OrderDetail, serverDate: String?) {
     val actor = order.lastChange?.actorName ?: stringResource(R.string.a_hist_customer)
-    val at = formatInstant(order.lastChange?.at ?: order.createdAt)
+    val at = formatInstant(order.lastChange?.at ?: order.createdAt, serverDate)
     Column {
-        Text(stringResource(R.string.a_placed_at, formatInstant(order.createdAt)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.a_placed_at, formatInstant(order.createdAt, serverDate)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(
             stringResource(R.string.a_last_changed, actor, at),
             style = MaterialTheme.typography.bodySmall,

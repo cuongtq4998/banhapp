@@ -14,6 +14,7 @@ import okhttp3.HttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 
@@ -33,13 +34,15 @@ class ApiClient(private val http: OkHttpClient, private val baseUrl: HttpUrl, va
         query: List<Pair<String, String>> = emptyList(),
         jsonBody: String? = null,
         headers: Map<String, String> = emptyMap(),
+        /** A prepared body (multipart upload); takes the place of [jsonBody]. */
+        body: RequestBody? = null,
     ): ApiResponse {
         val url = baseUrl.newBuilder().addPathSegments(path.trimStart('/')).apply {
             query.forEach { (name, value) -> addQueryParameter(name, value) }
         }.build()
         val builder = Request.Builder().url(url)
         headers.forEach { (name, value) -> builder.header(name, value) }
-        builder.method(method, jsonBody?.toRequestBody(JSON_MEDIA_TYPE) ?: if (method == "POST") "".toRequestBody() else null)
+        builder.method(method, body ?: jsonBody?.toRequestBody(JSON_MEDIA_TYPE) ?: if (method == "POST") "".toRequestBody() else null)
         val response = try {
             http.newCall(builder.build()).await()
         } catch (e: IOException) {

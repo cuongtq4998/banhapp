@@ -56,6 +56,7 @@
     <string name="a_date_all">Mọi ngày</string>
     <string name="a_date_today">Hôm nay</string>
     <string name="a_date_tomorrow">Ngày mai</string>
+    <string name="a_date_pick_ok">Chọn</string>
     <string name="a_date_one">Chọn một ngày…</string>
     <string name="a_due_today">Giao hôm nay</string>
     <string name="a_overdue">Quá hạn %1$d ngày</string>

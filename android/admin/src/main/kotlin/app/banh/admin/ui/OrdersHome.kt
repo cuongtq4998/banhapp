@@ -29,7 +29,9 @@ import app.banh.admin.account.AccountViewModel
 import app.banh.admin.auth.SessionState
 import app.banh.admin.orderlist.OrderListViewModel
 import app.banh.admin.ui.account.AccountSheet
-import app.banh.admin.ui.account.SettingsPlaceholder
+import app.banh.admin.owner.SettingsViewModel
+import app.banh.admin.ui.account.OwnerArea
+import app.banh.admin.ui.account.SettingsScreen
 import app.banh.admin.ui.orders.OrderListScreen
 import app.banh.core.common.badgeText
 import app.banh.core.design.BanhScreen
@@ -38,10 +40,10 @@ import app.banh.core.model.Role
 
 /**
  * S-A3 for both roles. Staff see the list alone with the account button in the header (S-A13 sheet); the owner has two tabs, Orders
- * (with the red number) and Settings (a placeholder holding the sign-out buttons until the settings slices exist).
+ * (with the red number) and Settings (S-A6: five areas and the sign-out buttons).
  */
 @Composable
-fun OrdersHome(container: AdminContainer, signedIn: SessionState.SignedIn, onOpenOrder: (String) -> Unit) {
+fun OrdersHome(container: AdminContainer, signedIn: SessionState.SignedIn, store: SettingsViewModel?, onOpenOrder: (String) -> Unit, onOpenArea: (OwnerArea) -> Unit) {
     val listModel = viewModel<OrderListViewModel>(factory = viewModelFactory { initializer { OrderListViewModel(container.orders, container.orderChanges, container.serverDate) } })
     val accountModel = viewModel<AccountViewModel>(factory = viewModelFactory { initializer { AccountViewModel(container.session) } })
     val list by listModel.state.collectAsStateWithLifecycle()
@@ -53,8 +55,9 @@ fun OrdersHome(container: AdminContainer, signedIn: SessionState.SignedIn, onOpe
     SecureWindow()
     BanhScreen(bottomBar = { if (isOwner) TabBar(settingsTab, list.unfinishedCount) { settingsTab = it } }) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
-            if (isOwner && settingsTab) {
-                SettingsPlaceholder(signedIn.account, signedIn.email, account, accountModel::dispatch)
+            if (isOwner && settingsTab && store != null) {
+                val settings by store.state.collectAsStateWithLifecycle()
+                SettingsScreen(settings, store::toastShown, onOpenArea, signedIn.account, signedIn.email, account, accountModel::dispatch)
             } else {
                 OrderListScreen(list, listModel::dispatch, onOpenOrder, staffControls = !isOwner, onAccount = { showAccount = true })
             }

@@ -61,7 +61,7 @@ class FakeAuthApi : AuthApi {
 
     override suspend fun me(accessToken: String): Me {
         bearersSeen += accessToken
-        return when (val r = meResults.removeFirstOrNull() ?: Me(Account("A", Role.STAFF), "dev", "2026-11-02")) {
+        return when (val r = meResults.removeFirstOrNull() ?: Me(Account("A", Role.STAFF), "a@example.com", "dev", "2026-11-02")) {
             is Throwable -> throw r
             else -> r as Me
         }

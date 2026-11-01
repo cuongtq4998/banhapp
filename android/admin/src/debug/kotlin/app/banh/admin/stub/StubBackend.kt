@@ -35,7 +35,9 @@ class StubBackend(private val fixtures: Fixtures, serverDate: String = "2026-11-
     private val store = StubOrders(template, serverDate)
     private val date = serverDate
 
+    private val owner = StubOwner(fixtures)
     private var account = Account("Nhan Vien A", Role.STAFF)
+    private var email = "nhanvien.a@example.com"
     private var accessGeneration = 0
     private var refreshGeneration = 0
     private var previousRefresh: String? = null
@@ -53,7 +55,9 @@ class StubBackend(private val fixtures: Fixtures, serverDate: String = "2026-11-
             request.method == "POST" && path == "v1/auth/sessions" -> signIn(request)
             request.method == "POST" && path == "v1/auth/refresh" -> refresh(request)
             !authorized(request) -> error("error-access-token-expired", 401)
-            request.method == "GET" && path == "v1/admin/me" -> ok(json.encodeToString(Me.serializer(), Me(account, "5B0C2F6A-0000-4A00-8000-000000000001", date)))
+            request.method == "GET" && path == "v1/admin/me" -> ok(json.encodeToString(Me.serializer(), Me(account, email, "5B0C2F6A-0000-4A00-8000-000000000001", date)))
+            request.method == "PUT" && path == "v1/admin/push-token" -> pushToken(request)
+            path.startsWith(OWNER_PREFIX) -> if (account.role != Role.OWNER) error("error-forbidden", 403) else owner.handle(request.method, path, request) ?: error("error-order-not-found", 404)
             request.method == "DELETE" && (path == "v1/admin/session" || path == "v1/admin/sessions/others") -> signOut(path)
             request.method == "GET" && path == "v1/admin/orders" -> failOnSearch(request) ?: ok(json.encodeToString(app.banh.core.model.OrdersPage.serializer(), store.list(request.query)))
             path.startsWith("v1/admin/orders/") -> orderRoute(request)
@@ -73,7 +77,7 @@ class StubBackend(private val fixtures: Fixtures, serverDate: String = "2026-11-
         val code = sent["code"]?.let { (it as JsonPrimitive).content }
         if (code == EXPIRED_CODE) return error("error-code-expired", 422)
         if (code != VALID_CODE) return error("error-code-invalid", 422)
-        val email = emailOf(request.body)
+        email = emailOf(request.body)
         account = if (email.contains("owner")) Account("Chu Tiem", Role.OWNER) else Account("Nhan Vien A", Role.STAFF)
         accessGeneration += 1
         refreshGeneration += 1
@@ -90,6 +94,13 @@ class StubBackend(private val fixtures: Fixtures, serverDate: String = "2026-11-
         refreshGeneration += 1
         accessGeneration += 1
         return ok(json.encodeToString(TokenPair.serializer(), TokenPair(accessToken(), refreshToken(), 300)))
+    }
+
+    // 204 like the server; the token is recorded so tests can see that the phone registered (and what it did not send).
+    private fun pushToken(request: StubRequest): StubResponse {
+        val token = (json.parseToJsonElement(request.body.orEmpty()).jsonObject["token"] as? JsonPrimitive)?.content
+        if (token != null) pushTokens.add(token)
+        return StubResponse(204)
     }
 
     private fun signOut(path: String): StubResponse {
@@ -150,4 +161,9 @@ class StubBackend(private val fixtures: Fixtures, serverDate: String = "2026-11-
 
     private fun emailOf(body: String?): String =
         (json.parseToJsonElement(body.orEmpty()).jsonObject["email"] as? JsonPrimitive)?.content.orEmpty().lowercase()
+
+    companion object {
+        /** Tokens the app sent with `PUT /v1/admin/push-token` (tests read and clear it). */
+        val pushTokens = java.util.concurrent.CopyOnWriteArrayList<String>()
+    }
 }

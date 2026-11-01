@@ -33,6 +33,9 @@ import app.banh.core.design.Spacing
 import app.banh.core.design.StateMessage
 import app.banh.core.design.StatusBadge
 
+/** Extra space under the content so the last lines stay readable above the floating action bar (the bar can grow with a banner). */
+private val BAR_CLEARANCE = 96.dp
+
 /** S-A4. Stateless: the store's state comes in, intents and the two contact actions go out. */
 @Composable
 fun OrderDetailScreen(
@@ -93,7 +96,7 @@ private fun Body(
             StateMessage(stringResource(R.string.a_err_generic), stringResource(R.string.a_retry), painterResource(R.drawable.ic_error), AdminTags.DETAIL_ERROR, AdminTags.DETAIL_RETRY, onRetry = { dispatch(OrderDetailIntent.Load) })
         }
         else -> Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Spacing.screenMargin, vertical = Spacing.md),
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = Spacing.screenMargin, end = Spacing.screenMargin, top = Spacing.md, bottom = if (state.hasActions) BAR_CLEARANCE else Spacing.md),
             verticalArrangement = Arrangement.spacedBy(Spacing.md),
         ) {
             CustomerCard(detail, onCall = { onCall(detail.customerPhone) }, onZalo = { onZalo(detail.customerPhone) })
@@ -101,7 +104,7 @@ private fun Body(
             CakesCard(detail)
             detail.note?.takeIf { it.isNotBlank() }?.let { NoteCard(it) }
             ReasonCard(detail)
-            HistoryLines(detail)
+            HistoryLines(detail, serverDate)
             // Without a bar (a final status) a conflict message still has to be seen.
             if (!state.hasActions) DetailBannerView(state.banner)
         }

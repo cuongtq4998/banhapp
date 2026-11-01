@@ -13,23 +13,29 @@ val ShopZone: ZoneId = ZoneId.of("Asia/Ho_Chi_Minh")
 
 private val DAY_MONTH_YEAR: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ROOT)
 private val DAY_MONTH: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM", Locale.ROOT)
-private val DATE_TIME: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy", Locale.ROOT)
+private val TIME: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT)
 private val WEEKDAYS = listOf("Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ nhật")
 
 fun parseShopDate(text: String): LocalDate = LocalDate.parse(text)
 
-fun formatDate(text: String): String = parseShopDate(text).format(DAY_MONTH_YEAR)
+/** `dd/MM`, with the year only when it is not the current year; "current" is the year of the server date, never the device clock. */
+private fun LocalDate.short(serverDate: String?): String =
+    if (serverDate == null || year == parseShopDate(serverDate).year) format(DAY_MONTH) else format(DAY_MONTH_YEAR)
+
+fun formatDate(text: String, serverDate: String? = null): String = parseShopDate(text).short(serverDate)
 
 fun formatDayMonth(date: LocalDate): String = date.format(DAY_MONTH)
 
-/** "Thứ Hai, 02/11/2026" for the delivery card (S-A4). */
-fun formatWeekdayDate(text: String): String {
+/** "Thứ Hai, 02/11" for the delivery card (S-A4); the year appears when it is not the current one. */
+fun formatWeekdayDate(text: String, serverDate: String? = null): String {
     val date = parseShopDate(text)
-    return "${WEEKDAYS[date.dayOfWeek.value - 1]}, ${date.format(DAY_MONTH_YEAR)}"
+    return "${WEEKDAYS[date.dayOfWeek.value - 1]}, ${date.short(serverDate)}"
 }
 
-fun formatInstant(text: String): String = Instant.parse(text).atZone(ShopZone).format(DATE_TIME)
-
+fun formatInstant(text: String, serverDate: String? = null): String {
+    val at = Instant.parse(text).atZone(ShopZone)
+    return "${at.format(TIME)} ${at.toLocalDate().short(serverDate)}"
+}
 /** A red mark next to the delivery date of an open order that is due (FR-9). */
 sealed interface DueMark {
     data object Today : DueMark

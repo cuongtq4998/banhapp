@@ -11,6 +11,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Color
+import app.banh.core.design.AlphaTokens
+import app.banh.core.design.ColorTokens
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -78,6 +83,13 @@ fun SearchField(text: String, tooShort: Boolean, onChange: (String) -> Unit, onS
                 IconButton(onClick = { onChange("") }) { Icon(painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.a_reset)) }
             }) else null,
             singleLine = true,
+            // A rounded glass pill, like the cards.
+            shape = CircleShape,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color(ColorTokens.SURFACE_GLASS).copy(alpha = AlphaTokens.GLASS_SURFACE),
+                unfocusedContainerColor = Color(ColorTokens.SURFACE_GLASS).copy(alpha = AlphaTokens.GLASS_SURFACE),
+                unfocusedBorderColor = Color(ColorTokens.SURFACE_STROKE).copy(alpha = AlphaTokens.STROKE),
+            ),
             isError = tooShort,
             supportingText = when {
                 tooShort -> ({ Text(stringResource(R.string.a_search_min), modifier = Modifier.testTag(AdminTags.ORDERS_SEARCH_MIN)) })

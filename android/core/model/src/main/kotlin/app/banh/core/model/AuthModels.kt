@@ -58,6 +58,8 @@ data class TokenPair(
 @Serializable
 data class Me(
     val account: Account,
+    /** The person's own address (api/06 10.6); null only from a server that does not send it yet. */
+    val email: String? = null,
     @SerialName("device_id") val deviceId: String,
     @SerialName("server_date") val serverDate: String,
 )

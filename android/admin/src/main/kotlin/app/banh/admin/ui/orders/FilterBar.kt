@@ -29,7 +29,10 @@ import app.banh.admin.orders.DateFilter
 import app.banh.admin.orders.StatusFilter
 import app.banh.admin.ui.AdminTags
 import app.banh.core.common.formatDayMonth
+import androidx.compose.ui.graphics.Color
 import app.banh.core.design.AdminSizes
+import app.banh.core.design.AlphaTokens
+import app.banh.core.design.ColorTokens
 import app.banh.core.design.Spacing
 
 private fun StatusFilter.labelRes(): Int = when (this) {
@@ -52,7 +55,7 @@ private fun StatusFilter.tag(): String = when (this) {
 
 /** One control row (FR-10): exactly one status chip is selected, then the date chip with its menu. */
 @Composable
-fun FilterBar(selected: StatusFilter, date: DateFilter, onStatus: (StatusFilter) -> Unit, onDate: (DateFilter) -> Unit) {
+fun FilterBar(selected: StatusFilter, date: DateFilter, serverDate: String?, onStatus: (StatusFilter) -> Unit, onDate: (DateFilter) -> Unit) {
     val groupLabel = stringResource(R.string.a_chip_group_a11y)
     // Seven chips: a plain scrolling row keeps all of them in the semantics tree (a lazy row would drop the off-screen ones).
     Row(
@@ -62,7 +65,7 @@ fun FilterBar(selected: StatusFilter, date: DateFilter, onStatus: (StatusFilter)
         StatusFilter.entries.forEach { filter ->
             Chip(stringResource(filter.labelRes()), filter == selected, Modifier.testTag(filter.tag())) { onStatus(filter) }
         }
-        DateChip(date, onDate)
+        DateChip(date, serverDate, onDate)
     }
 }
 
@@ -74,7 +77,15 @@ private fun Chip(text: String, selected: Boolean, modifier: Modifier, onClick: (
         onClick = onClick,
         label = { Text(text, style = MaterialTheme.typography.labelLarge) },
         modifier = modifier.defaultMinSize(minHeight = AdminSizes.chipHeight),
+        // Glass chips: translucent white with a hairline, like the cards (design system); the selected one is solid brand colour.
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = selected,
+            borderColor = Color(ColorTokens.SURFACE_STROKE).copy(alpha = AlphaTokens.STROKE),
+            selectedBorderColor = Color.Transparent,
+        ),
         colors = FilterChipDefaults.filterChipColors(
+            containerColor = Color(ColorTokens.SURFACE_GLASS).copy(alpha = AlphaTokens.GLASS_SURFACE),
             selectedContainerColor = MaterialTheme.colorScheme.primary,
             selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
         ),
@@ -82,7 +93,7 @@ private fun Chip(text: String, selected: Boolean, modifier: Modifier, onClick: (
 }
 
 @Composable
-private fun DateChip(date: DateFilter, onDate: (DateFilter) -> Unit) {
+private fun DateChip(date: DateFilter, serverDate: String?, onDate: (DateFilter) -> Unit) {
     var menu by remember { mutableStateOf(false) }
     var picker by remember { mutableStateOf(false) }
     val label = when (date) {
@@ -100,7 +111,7 @@ private fun DateChip(date: DateFilter, onDate: (DateFilter) -> Unit) {
             MenuItem(R.string.a_date_one, AdminTags.DATE_ONE) { menu = false; picker = true }
         }
     }
-    if (picker) OneDatePicker(onDismiss = { picker = false }, onPicked = { picker = false; onDate(DateFilter.One(it)) })
+    if (picker) OneDatePicker(serverDate, onDismiss = { picker = false }, onPicked = { picker = false; onDate(DateFilter.One(it)) })
 }
 
 @Composable

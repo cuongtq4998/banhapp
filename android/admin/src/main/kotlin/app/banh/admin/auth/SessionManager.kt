@@ -41,7 +41,7 @@ class SessionManager(
             mutableState.value = SessionState.Restoring
             try {
                 val me = authorized { auth.me(it) }
-                mutableState.value = SessionState.SignedIn(me.account, email = null, id = generation.incrementAndGet())
+                mutableState.value = SessionState.SignedIn(me.account, email = me.email, id = generation.incrementAndGet())
             } catch (_: SessionEndedException) {
                 Unit // endSession already moved to SignedOut(ended = true)
             } catch (e: ApiException) {
@@ -64,7 +64,8 @@ class SessionManager(
             return block(first)
         } catch (e: ApiException.Http) {
             if (e.status != UNAUTHORIZED) throw e
-            if (e.code != ErrorCodes.ACCESS_TOKEN_EXPIRED) return failSession()
+            // api/08: an expired or an unrecognised access token gets one renewal; a revoked or ended session does not.
+            if (e.code != ErrorCodes.ACCESS_TOKEN_EXPIRED && e.code != ErrorCodes.UNAUTHENTICATED) return failSession()
         }
         val second = refreshLocked(stale = first)
         try {

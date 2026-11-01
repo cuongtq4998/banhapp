@@ -53,6 +53,12 @@ android {
     }
 }
 
+// Push (FR-25): the Firebase dependency is optional. With no `google-services.json` next to this file (the repository never holds one)
+// the build uses `src/pushOff` (no token provider, push stays off). `src/pushFcm` (FCM service, token provider, Firebase Messaging and the
+// google-services plugin) does not exist yet: it is written when a Firebase project exists, and is then used only when the file is present too.
+val firebaseConfigured = file("google-services.json").exists() && file("src/pushFcm").exists()
+android.sourceSets.getByName("main").kotlin.directories.add(if (firebaseConfigured) "src/pushFcm/kotlin" else "src/pushOff/kotlin")
+
 dependencies {
     implementation(project(":core:design"))
     implementation(project(":core:common"))
