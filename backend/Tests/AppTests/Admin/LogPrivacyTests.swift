@@ -52,7 +52,8 @@ final class LogPrivacyTests: AdminOrderTestCase {
         let lines = capture.lines.filter { !$0.message.hasPrefix("Executing") }
         let decoded = lines.filter { $0.message.contains("Decoded") || $0.message.contains("Invalid HTTP") }
         XCTAssertTrue(decoded.isEmpty, "trace and debug lines of the server are dropped")
-        let warned = try XCTUnwrap(lines.last { $0.message == "Something" })
+        XCTAssertFalse(lines.contains { $0.message == "Something" }, "a library message is replaced by the marker")
+        let warned = try XCTUnwrap(lines.last { $0.message == RedactingLogHandler.foreignMarker })
         XCTAssertEqual(warned.metadata["database-id"], "psql", "harmless keys stay")
         XCTAssertNil(warned.metadata["head"], "other metadata of a library line is dropped")
     }
@@ -61,5 +62,17 @@ final class LogPrivacyTests: AdminOrderTestCase {
         app.logger.log(level: .trace, "own trace", metadata: ["route": "/v1/orders"], source: RedactingLogHandler.ownSource)
         let own = try XCTUnwrap(capture.lines.last { $0.message == "own trace" })
         XCTAssertEqual(own.metadata["route"], "/v1/orders")
+    }
+
+    /// F-2: a library may write a value into its message text; at trace the sentinel must not reach the log.
+    func testAValueInAForeignMessageNeverLeaks() async throws {
+        let sentinel = "SENTINEL-+84911112222-Authorization-Bearer-xyz"
+        for logger in [app.logger, app.http.server.configuration.logger] {
+            for level in Logger.Level.allCases {
+                logger.log(level: level, "query \(sentinel)", metadata: ["bound": "\(sentinel)"], source: "FluentKit")
+            }
+        }
+        XCTAssertFalse(everythingLogged().contains("SENTINEL"), "no text of a foreign event is kept")
+        XCTAssertTrue(capture.lines.contains { $0.message == RedactingLogHandler.foreignMarker }, "info and above leave the marker")
     }
 }

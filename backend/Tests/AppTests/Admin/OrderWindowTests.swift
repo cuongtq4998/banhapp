@@ -62,6 +62,11 @@ final class OrderWindowTests: AdminOrderTestCase {
         XCTAssertEqual(hidden.status, .notFound)
         let reviewer = try await phone(.staff, "Reviewer")
         try await run("UPDATE account SET kind = 'review' WHERE id = (SELECT account_id FROM device_session WHERE id = \(bind: reviewer.deviceID))")
+        // A review session lives only while the configuration names its address (ADR-0027).
+        let row = try await sql.raw("SELECT email FROM account WHERE kind = 'review' AND shop_id = \(bind: shopID)").first()
+        let address = try XCTUnwrap(row).decode(column: "email", as: String.self)
+        app.services.adminAuth = AdminAuthConfig(pepper: pepper, emailProvider: .recording, emailMaxPerDay: 1_000_000,
+                                                 review: ReviewAccountConfig(email: address, code: "246810"))
         try await expectCodes(reviewer, [demo])
         let other = try await detail(reviewer, real)
         XCTAssertEqual(other.status, .notFound)

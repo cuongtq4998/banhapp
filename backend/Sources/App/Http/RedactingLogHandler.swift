@@ -11,12 +11,17 @@ import Logging
 /// - an event written by this module follows the log policy already (no name,
 ///   phone, address, note, e-mail address, token or code) and passes unchanged;
 /// - an event written by any other module is dropped below `info`, and from
-///   `info` up only its message and a short list of harmless metadata keys
-///   (`allowedForeignMetadata`) are kept.
+///   `info` up it keeps no text of its own: the message becomes a fixed marker
+///   (`foreignMarker`) and only a short list of harmless metadata keys
+///   (`allowedForeignMetadata`) is kept. A library may put a value into the
+///   message, so the message cannot be trusted either.
 struct RedactingLogHandler: LogHandler {
     /// Metadata of library events that never holds user data: ids of the
     /// pool and connection, and the request id tag.
     static let allowedForeignMetadata: Set<String> = ["database-id", "psql_connection_id", "request-id"]
+
+    /// What a foreign event writes instead of its message.
+    static let foreignMarker = "library event"
 
     /// The module of this file: `App` in the server, another name where the
     /// sources are compiled into a test package.
@@ -38,12 +43,14 @@ struct RedactingLogHandler: LogHandler {
 
     func log(event: LogEvent) {
         var merged = metadata.merging(event.metadata ?? [:]) { $1 }
+        var message = event.message
         if event.source != Self.ownSource {
             guard event.level >= .info else { return }
             merged = merged.filter { Self.allowedForeignMetadata.contains($0.key) }
+            message = Logger.Message(stringLiteral: Self.foreignMarker)
         }
         target.log(
-            level: event.level, event.message, metadata: merged.isEmpty ? nil : merged,
+            level: event.level, message, metadata: merged.isEmpty ? nil : merged,
             source: event.source, file: event.file, function: event.function, line: event.line
         )
     }

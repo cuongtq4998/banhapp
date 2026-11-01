@@ -31,6 +31,11 @@ struct AdminAuthMiddleware: AsyncMiddleware {
 
         let now = services.clock.now()
         if record.isRevoked || !record.accountActive { throw APIError(.sessionRevoked) }
+        // Kill switch (ADR-0027): a review session lives only while the configuration names its address.
+        if record.isReview {
+            let configured = services.adminAuth?.review, address = EmailAddress(record.email)
+            guard let configured, let address, configured.isReviewAddress(address) else { throw APIError(.unauthenticated) }
+        }
         if now >= record.refreshExpiresAt { throw APIError(.sessionExpired) }
         // Valid strictly before the expiry instant.
         if now >= record.accessExpiresAt { throw APIError(.accessTokenExpired) }
