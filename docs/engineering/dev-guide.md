@@ -177,3 +177,4 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 | 1.18 | 2026-11-01 | Android admin app part 2: owner screens S-A6 to S-A12, photo re-encode, optional push (fake token provider), stub owner routes, UNAUTHENTICATED refresh, canvas-ui fixes. |
 | 1.19 | 2026-11-01 | Admin iOS part 2: owner settings, cakes, staff, push registration, part 1 fixes and defects D-3, D-4. |
 | 1.20 | 2026-11-01 | Backend: store-review account and `review-account on|off`, migration 0006, log redaction at every level, cancel against a smaller `day_load` handled (defects D-1, D-3, D-4). |
+| 1.21 | 2026-11-01 | Backend: `AdminAuthMiddleware` answers 401 `UNAUTHENTICATED` to a review session when `REVIEW_ACCOUNT_*` is absent or names another address (removing the variables and restarting is the kill switch); `RedactingLogHandler` replaces the message of every foreign event at `info` and above with the marker `library event`. |
