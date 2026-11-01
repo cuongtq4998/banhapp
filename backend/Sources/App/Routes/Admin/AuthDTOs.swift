@@ -56,8 +56,15 @@ struct RefreshResponse: Content {
     }
 }
 
+/// The signed-in person's own account on `/me`: the name, the role and their own address.
+struct MeAccount: Content {
+    let name: String
+    let role: String
+    let email: String
+}
+
 struct MeResponse: Content {
-    let account: AccountSummary
+    let account: MeAccount
     let deviceID: UUID
     let serverDate: String
     enum CodingKeys: String, CodingKey { case account, deviceID = "device_id", serverDate = "server_date" }

@@ -14,7 +14,7 @@ final class AccountSchemaTests: AdminDatabaseTestCase {
         try await createOwner("  \(email.uppercased()) ", name: "Chu Mau")
         let phone = try await signedIn(email)
         let me = try await authed(.GET, "v1/admin/me", phone.access)
-        XCTAssertEqual((me.json["account"] as? [String: String]), ["name": "Chu Mau", "role": "owner"])
+        XCTAssertEqual((me.json["account"] as? [String: String]), ["name": "Chu Mau", "role": "owner", "email": email])
     }
 
     func testCreateOwnerRefusesASecondOwnerBadAddressAndBadName() async throws {

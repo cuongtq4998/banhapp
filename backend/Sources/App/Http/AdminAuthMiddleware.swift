@@ -38,7 +38,7 @@ struct AdminAuthMiddleware: AsyncMiddleware {
         let client = try ClientHeaders.parse(request.headers)
         request.adminPrincipal = AdminPrincipal(
             sessionID: record.sessionID, accountID: record.accountID, role: record.role,
-            isReview: record.isReview, displayName: record.displayName, platform: client.platform
+            isReview: record.isReview, displayName: record.displayName, email: record.email, platform: client.platform
         )
         return try await next.respond(to: request)
     }

@@ -14,6 +14,8 @@ struct AdminSessionRecord: Decodable, Sendable {
     let role: AccountRole
     let isReview: Bool
     let displayName: String
+    /// The person's own address; only `GET /v1/admin/me` hands it back, to that person.
+    let email: String
     let accessHash: Data
     let accessExpiresAt: Date
     let refreshExpiresAt: Date
@@ -21,9 +23,10 @@ struct AdminSessionRecord: Decodable, Sendable {
     let accountActive: Bool
 
     init(
-        sessionID: UUID, accountID: UUID, role: AccountRole, isReview: Bool, displayName: String, accessHash: Data,
+        sessionID: UUID, accountID: UUID, role: AccountRole, isReview: Bool, displayName: String, email: String = "", accessHash: Data,
         accessExpiresAt: Date, refreshExpiresAt: Date, isRevoked: Bool, accountActive: Bool
     ) {
+        self.email = email
         self.sessionID = sessionID; self.accountID = accountID; self.role = role; self.isReview = isReview
         self.displayName = displayName; self.accessHash = accessHash; self.accessExpiresAt = accessExpiresAt
         self.refreshExpiresAt = refreshExpiresAt; self.isRevoked = isRevoked; self.accountActive = accountActive
@@ -31,7 +34,7 @@ struct AdminSessionRecord: Decodable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case sessionID = "session_id", accountID = "account_id", role, isReview = "is_review"
-        case displayName = "display_name", accessHash = "access_hash"
+        case displayName = "display_name", email, accessHash = "access_hash"
         case accessExpiresAt = "access_expires_at", refreshExpiresAt = "refresh_expires_at"
         case isRevoked = "is_revoked", accountActive = "account_active"
     }
@@ -67,7 +70,7 @@ struct AuthStore: AdminSessionLookup {
         return try await translatingDatabaseErrors {
             try await sql.raw("""
                 SELECT s.id AS session_id, s.account_id, a.role, (a.kind = 'review') AS is_review,
-                       a.display_name, s.access_token_hash AS access_hash, s.access_expires_at,
+                       a.display_name, a.email, s.access_token_hash AS access_hash, s.access_expires_at,
                        s.refresh_expires_at, (s.revoked_at IS NOT NULL) AS is_revoked,
                        a.is_active AS account_active
                   FROM device_session s JOIN account a ON a.id = s.account_id

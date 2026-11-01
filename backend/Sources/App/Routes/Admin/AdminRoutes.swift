@@ -13,7 +13,7 @@ struct AdminRoutes: RouteCollection {
     private func me(_ req: Request) async throws -> MeResponse {
         let principal = try Self.principal(req)
         return MeResponse(
-            account: AccountSummary(name: principal.displayName, role: principal.role.rawValue),
+            account: MeAccount(name: principal.displayName, role: principal.role.rawValue, email: principal.email),
             deviceID: principal.sessionID, serverDate: req.application.services.calendar.today().description
         )
     }
