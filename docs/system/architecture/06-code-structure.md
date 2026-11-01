@@ -1,6 +1,6 @@
 # System Architecture: Backend code structure and client code structure
 
-Part of [architecture.md](../architecture.md) (index, version, change log), sections 14, 14.1, 15. Moved from architecture.md v1.7 with the wording unchanged unless a line carries a newer label [v1.8 | 2026-10-27].
+Part of [architecture.md](../architecture.md) (index, version, change log), sections 14, 14.1, 15. Moved from architecture.md v1.7 with the wording unchanged unless a line carries a newer label [v1.8 | 2026-10-27]; section 15.1 added [v1.19 | 2026-11-01].
 
 ## 14. Backend Code Structure Target [v1.4 | 2026-10-26]
 
@@ -61,3 +61,15 @@ Owner decisions of 2026-10-27 (ADR-0007 v1.5, ADR-0018 v2.0). Both apps stay one
 | Import rules | A script fails CI on `Core` importing `Features`, a feature importing another feature, `Design` importing other folders | A JUnit test scans imports for the same directions (Konsist not verified) |
 
 Coordinator condition: the coordinator stays thin (navigation only, no business logic, no network). A coordinator that only forwards calls is a smell to revisit in ADR-0007. Full reasoning, risks and the independent review that preferred plain `NavigationStack`: ADR-0007.
+
+## 15.1 As built for the admin apps [v1.19 | 2026-11-01]
+
+Section 15 still describes the customer apps. Since admin part 1 the clients are no longer "one module each" (ADR-0021 v1.1, ADR-0018 trigger fired):
+
+| Topic | iOS | Android |
+| ----- | --- | ------- |
+| Projects | `ios/BanhApp.xcodeproj` (customer, untouched) and `ios/BanhAdmin.xcodeproj` (format 77, synchronized folders) | One Gradle build: `:app` (customer), `:admin`, `:core:design`, `:core:common`, `:core:network`, `:core:model`, `build-logic/` |
+| Shared code | Local packages `ios/Packages/BanhCore` and `BanhDesign`, used by the admin app only; the customer app keeps its own `Core/Design` and `Core/Network` (known duplication, ADR-0021 v1.1) | `:core:design` is used by both apps (customer design package moved there); `:core:model/:network/:common` by `:admin`. Customer data and order code stay in `:app` |
+| Convention plugins | none | `banh.android.library`, `banh.android.compose`; the Compose compiler spike worked (AGP 9.4, Kotlin 2.4.21) |
+| Import rule | Admin may import packages, never `BanhApp` | `ImportDirectionTest` (in `:app`) now forbids only a `design` package inside `:app`; module direction is the Gradle dependency graph |
+| Admin pattern | MVVM-C: `AppCoordinator`, `OrdersCoordinator` | MVI with `MviViewModel` from `:core:common`, one reducer per screen |
