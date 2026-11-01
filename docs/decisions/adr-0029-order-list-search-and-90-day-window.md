@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0029 |
-| Version  | 1.3 [v1.3 | 2026-10-31] (simplified for PRD v1.6: one list, one window rule; Unfinished view, banner, `new_count`, multi-status and date-range filters removed) |
+| Version  | 1.5 [v1.5 | 2026-11-01] (search minimum 3, opaque cursor and field codes as built; earlier: v1.3 simplified for PRD v1.6: one list, one window rule; Unfinished view, banner, `new_count`, multi-status and date-range filters removed) |
 | Status   | Accepted (no money; the window follows the owner decision Q-13; retention remains an owner question). The TQ-12 exception of v1.2 (unfinished orders reachable for detail only) is superseded by v1.3: open orders are always in the window. Unfinished view, `view=unfinished`, banner and `new_count` are removed [v1.3 | 2026-10-31] |
 | Date     | 2026-10-31 |
 | Decider  | atlas-architect |
@@ -31,11 +31,11 @@ At most about 100 orders a day, so about 9,000 orders fall in 90 days. Rows must
 
 ## Decision
 
-Keyset paging, 50 rows a page (fixed). Sort key: `delivery_date`, `slot_start_time`, `created_at`, `id` ascending (BR-9). The cursor is the base64url of those four values of the last row; the next page uses a row-value comparison `(delivery_date, slot_start_time, created_at, id) > (...)`. Filters [v1.3 | 2026-10-31]: at most one `status` (`todo` = New and Confirmed, the default; `New`, `Confirmed`, `Completed`, `Cancelled`, `all`) and at most one delivery date (`date_preset` `today` or `tomorrow` by the shop date on the server, or `delivery_date`). Search `q`: 2 to 50 characters after trim; matches the order code (case-insensitive substring), the customer name (`unaccent(lower(name)) LIKE unaccent(lower('%' || escaped q || '%'))`, with `LIKE` wildcards in `q` escaped) and the phone (digits of `q` against the stored E.164 number, with a leading `0` read as `+84`). Extension `unaccent` is created by the migration (trusted since PostgreSQL 13; availability on the managed host is to be verified in CI and staging); if it is unavailable the fallback is plain `lower()` matching and a note to the UI that diacritics must match.
+Keyset paging, 50 rows a page (fixed). Sort key: `delivery_date`, `slot_start_time`, `created_at`, `id` ascending (BR-9). The cursor is the base64url of those four values of the last row; the next page uses a row-value comparison `(delivery_date, slot_start_time, created_at, id) > (...)`. Filters [v1.3 | 2026-10-31]: at most one `status` (`todo` = New and Confirmed, the default; `New`, `Confirmed`, `Completed`, `Cancelled`, `all`) and at most one delivery date (`date_preset` `today` or `tomorrow` by the shop date on the server, or `delivery_date`). Search `q`: 3 to 50 characters after trim (v1.5: was 2 in v1.1 to v1.4, corrected to the PRD BR-10 and the code); matches the order code (case-insensitive substring), the customer name (`unaccent(lower(name)) LIKE unaccent(lower('%' || escaped q || '%'))`, with `LIKE` wildcards in `q` escaped) and the phone (digits of `q` against the stored E.164 number, with a leading `0` read as `+84`). Extension `unaccent` is created by the migration (trusted since PostgreSQL 13; availability on the managed host is to be verified in CI and staging); if it is unavailable the fallback is plain `lower()` matching and a note to the UI that diacritics must match.
 
 Consistency while paging (R-14) [v1.1 | 2026-10-31]: the four sort-key columns of an order never change after creation, so a row cannot move between pages and none repeats. An order placed after page 1 sorts into place and shows on a refresh from the first page (the badge and the push tell the user); a status change on a row not yet fetched can make it leave the filter, so it is simply not shown; a change on a row already shown is corrected by the next refresh. Nothing is guaranteed to be a snapshot; the list is read again on pull to refresh.
 
-Partial search (TQ-D7) [v1.1 | 2026-10-31]: the server accepts `q` from 2 characters and matches by substring on order code, name and phone digits, so a part of a name or of a phone number works; the apps may require 3 characters before calling, that is a UI choice. At about 9,000 rows in the window a scan takes a few milliseconds; the `pg_trgm` trigger above stays. Case and diacritics are ignored through `unaccent(lower())`; both sides are normalised to NFC first.
+Partial search (TQ-D7) [v1.1 | 2026-10-31]: the server matches by substring on order code, name and phone digits, so a part of a name or of a phone number works. The minimum is 3 characters (3 digits for a phone), for the server and the apps alike [v1.5 | 2026-11-01]; v1.1 to v1.4 said 2 on the server and 3 in the apps, which contradicted BR-10. At about 9,000 rows in the window a scan takes a few milliseconds; the `pg_trgm` trigger above stays. Case and diacritics are ignored through `unaccent(lower())`; both sides are normalised to NFC first.
 
 Replay note [v1.4 | 2026-11-01]: the window gates the list and the detail; the status route tests an exact repeat before the window (ADR-0028 v1.3, R-1).
 
@@ -63,3 +63,10 @@ Indexes: the existing `(shop_id, delivery_date, status)` serves the list; add `c
 ## Links
 
 Related: ADR-0028. Detail: api/06, data-model/05.
+
+## Amendment v1.5 [v1.5 | 2026-11-01]: as built in slices B2 and B3
+
+- Minimum length of `q` is 3 (see above). A text of only digits, spaces and `+-().` is also matched as a phone number and needs 3 digits. Control characters (PostgreSQL text cannot hold NUL) are rejected with `SEARCH_INVALID`; the text is NFC-normalised and trimmed first.
+- The fold is the SQL function `search_fold(text)`, created by migration 0003: `lower(unaccent(x))` when the host lets the migration create `unaccent`, plain `lower(x)` otherwise. The application never branches on it. Where `unaccent` is used the function is `STABLE`, not `IMMUTABLE`, so it cannot back an index; this matches the scan decision above.
+- The cursor is an opaque string to clients: the encoding is internal and may change without a version change (a cursor issued by an older release then answers `CURSOR_INVALID`). A cursor that the server cannot read answers 422 `VALIDATION_FAILED` with field code `CURSOR_INVALID`. The list of field codes is in api/08 section 11.1.
+- Unknown and repeated parameters, and a preset together with a date, are 422 field errors (`UNKNOWN_PARAMETER`, `REPEATED_PARAMETER`, `DATE_FILTER_CONFLICT`); the 50-row page size is fixed.

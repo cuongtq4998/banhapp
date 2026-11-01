@@ -12,7 +12,7 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 | TQ-D4 | See 24.2 | This file; deployment/04 section 13 |
 | TQ-D5 | A preview endpoint (already `GET /v1/owner/settings/ordering/impact`), no confirmation token. The save always succeeds and its response repeats `over_limit` computed at save time, so a race shows the true list afterwards. Cancelling nothing is BR-11 | api/07 10.15 |
 | TQ-D6 | App clears data and shows sign-in at once; it keeps only a pending sign-out (refresh token, no customer data), unregisters the push token locally, repeats refresh then `DELETE /v1/admin/session` until 204 or 401, at most 7 days. The person can use "Sign out all other phones" from another phone | ADR-0022 v1.3; api/06 10.6; session-lifecycle.md |
-| TQ-D7 | The API supports partial name, phone and code search from 2 characters (substring, diacritics and case ignored). The apps may require 3 characters; that is a UI choice. At about 9,000 rows a scan takes milliseconds | ADR-0029 v1.1; api/06 10.9 |
+| TQ-D7 | The API supports partial name, phone and code search from 3 characters (3 digits for a phone; substring, diacritics and case ignored), the same minimum as BR-10 for server and apps; the earlier 2 contradicted the PRD. [v1.15 | 2026-11-01] At about 9,000 rows a scan takes milliseconds | ADR-0029 v1.5; api/06 10.9 |
 
 ## 24.2 App-switcher and capture privacy (TQ-D4, R-19)
 
