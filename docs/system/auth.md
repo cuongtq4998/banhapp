@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 2.5 [v2.5 | 2026-11-01] |
+| Version      | 2.6 [v2.6 | 2026-11-01] |
 | Last updated | 2026-10-31 |
 | Status       | Draft (ADR-0022 and ADR-0027 accepted by the owner 2026-10-31) |
 | Owner        | atlas-architect |
@@ -99,3 +99,4 @@ Staff cannot edit orders, delete orders or see payment data (BR-1): no such endp
 | 2.3 | 2026-10-31 | PRD v1.6: owner recovery and backup address removed, device list replaced by "Sign out all other phones", notice to the owner address only, push-token delete removed; ids renumbered. |
 | 2.4 | 2026-11-01 | B1 alignment: `create-owner`, `AUTH_CODE_PEPPER`, `EMAIL_*`; sign-in off when unconfigured; per-session and 401 limits dropped; review account and push-token deferred; one new-device rule. |
 | 2.5 | 2026-11-01 | B7 alignment: `PUT /v1/admin/push-token` is built; `push_apns_environment` cleared with the token (architecture/14). |
+| 2.6 | 2026-11-01 | `GET /v1/admin/me` returns the caller's own e-mail address (not logged, not stored on the phone); client session handling checked against the code (architecture/15). |

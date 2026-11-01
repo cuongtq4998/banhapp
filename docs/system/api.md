@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.21 [v1.21 | 2026-11-01] |
+| Version      | 1.22 [v1.22 | 2026-11-01] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -62,3 +62,4 @@ This file is the index of the API specification. The body lives in the folder `a
 | 1.19 | 2026-11-01 | Aligned with built slices B4 and B5 (architecture/12): staff list body, review accounts hidden, ordering `GET` without `over_limit`, field codes `BODY_EMPTY`, `FIELD_UNKNOWN`, `NAME_TAKEN` (districts), slot time codes, no-op staff `PATCH`, slot renumbering. |
 | 1.20 | 2026-11-01 | Aligned with built slice B6 (architecture/13): cake create error table (image codes and keys, `IMAGE_INVALID`, two 413 codes, 503 gate, repeated field `<FIELD>_INVALID`), `GET /assets/cakes/{id}` delivery, cakes list filter, `PATCH` rules; api/06 replay beyond the window now built (D-1). |
 | 1.21 | 2026-11-01 | Aligned with built slice B7 (architecture/14): 10.8 push token built (field codes `PLATFORM_MISMATCH`, `PLATFORM_INVALID`, `TOKEN_INVALID`, `APNS_ENVIRONMENT_INVALID`, `UNKNOWN_FIELD`); 10.12 FCM field path `android.notification.title_loc_key`; payload content. |
+| 1.22 | 2026-11-01 | `GET /v1/admin/me` also returns the caller's own `email` (own address only, never logged, `no-store`): api/05 index row, api/06 10.6; fixture `admin/me.json` and the backend to follow (architecture/15). |

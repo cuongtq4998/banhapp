@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0021 |
-| Version  | 1.0 |
+| Version  | 1.1 [v1.1 | 2026-11-01] (as built in admin part 1; v1.0: decision) |
 | Status   | Accepted (no money, no customer data; reversible by moving folders) |
 | Date     | 2026-10-31 |
 | Decider  | atlas-architect |
@@ -44,6 +44,14 @@ Option B for iOS and a multi-module Gradle build for Android.
 - Negative: extraction work before admin features; two Xcode projects to keep in step; Android Compose-in-library-module behaviour is unverified.
 - Follow-up: forge-dev extracts packages as the first admin slice, updates the dev guide and the import-direction script (`BanhAdmin` may import packages, never `BanhApp`); ADR-0018 v2.2 records the trigger. Application ids: ADR-0026.
 
+## As built (admin part 1) [v1.1 | 2026-11-01]
+
+The decision stands. What exists, and where it differs from the text above:
+
+- Android: all six modules and `build-logic` exist (`banh.android.library`, `banh.android.compose`). `:core:design` was extracted: the customer design package moved there unchanged (plus admin components) and the customer app imports it. The Compose compiler spike worked in a library module (AGP 9.4, Kotlin 2.4.21). `:admin` is the admin app. Customer data and order code stay in `:app` (moving them was not needed). `ImportDirectionTest` now only forbids a `design` package inside `:app`.
+- iOS: `ios/BanhAdmin.xcodeproj` (format 77, synchronized folders, scheme `BanhAdmin`) with local packages `ios/Packages/BanhCore` (money, `ShopDay`, `Load`, `APIClient`, `APIError`, `HTTPTransport`) and `BanhDesign`. Not as planned: `BanhCore` holds no repository protocols, and the admin Codable types live in `BanhAdmin/Core/Models`, not in `BanhContracts` (Android has them in `:core:model`).
+- Known duplication: the customer iOS app does NOT use the packages. Its `Core/Design` and `Core/Network` stay, and the packages hold a copy of design and network code, because moving them would touch every customer file. Condition to remove it: the next customer iOS change that already touches most files (or a bug fixed twice in both copies), done as its own change with the customer UI and unit tests green. Until then a change to design tokens or the error envelope is made in both places; the dev guide says so.
+
 ## Sources
 
 | Claim | Source (URL) | Read on | Confidence |
@@ -53,4 +61,4 @@ Option B for iOS and a multi-module Gradle build for Android.
 
 ## Links
 
-Amends ADR-0018 (trigger fired). Related: ADR-0004, ADR-0007, ADR-0026.
+Built state: architecture/15-client-part1-alignment.md. Amends ADR-0018 (trigger fired). Related: ADR-0004, ADR-0007, ADR-0026.

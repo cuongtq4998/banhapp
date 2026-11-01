@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0022 |
-| Version  | 1.4 [v1.4 | 2026-11-01] (B1 alignment; v1.3: simplified for PRD v1.5/v1.6: recovery, backup address and device list removed; "sign out all other phones" added) |
+| Version  | 1.5 [v1.5 | 2026-11-01] (client storage as built; v1.4: B1 alignment; v1.3: simplified for PRD v1.5/v1.6: recovery, backup address and device list removed; "sign out all other phones" added) |
 | Status   | Accepted (product owner, 2026-10-31: 20 s refresh grace, one code for owner sign-in, no time lock Q-20, new-device notice Q-24, and the simplified PRD v1.6). Parts superseded by v1.3: the Recovery decision (two codes, backup e-mail), the per-device revoke and device list, the backup-address copy of the notice. Those parts are deleted below, not kept [v1.3 | 2026-10-31] |
 | Date     | 2026-10-31 |
 | Decider  | atlas-architect proposes; product owner accepted on 2026-10-31 [v1.1 | 2026-10-31] |
@@ -45,7 +45,7 @@ Option B. Details (values are configuration, defaults shown):
 - Refresh grace [v1.4 | 2026-11-01]: the 20 s run from the first rotation; a retry inside it keeps the stored time and previous hash, so repeated retries never extend it. A malformed or unknown refresh token answers 401 `SESSION_REVOKED`.
 - New device [v1.4 | 2026-11-01] (R-12): one rule, "no live session of the owner with this installation id"; sign out then in on the same phone does send a notice.
 - Offline sign-out (TQ-D6) [v1.1 | 2026-10-31]: the app clears customer data and shows the sign-in screen at once; if the server call fails it keeps only the refresh token as a pending sign-out (no customer data), unregisters the push token locally, and retries on the next launch or connection (refresh, then `DELETE /v1/admin/session`) until the answer is 204 or 401, at most 7 days. Until then pushes (code, cakes, date only) may still arrive; the person can use "Sign out all other phones" from another phone.
-- On devices: iOS Keychain (accessible after first unlock, this device only); Android a Keystore-wrapped key encrypting the app-private store (unverified details, forge-dev spike).
+- On devices: iOS Keychain (accessible after first unlock, this device only); Android a Keystore-wrapped key encrypting the app-private store (unverified details, forge-dev spike). As built [v1.5 | 2026-11-01]: iOS `KeychainTokenStore` (`AfterFirstUnlockThisDeviceOnly`); Android `KeystoreTokenVault` (AES-256-GCM key in the Android Keystore, file in `noBackupFilesDir`, atomic write, an unreadable file counts as signed out). Both keep only the refresh token and, for an unconfirmed sign-out, a pending flag or token; the access token stays in memory. The 7-day limit for retrying a pending sign-out is enforced by the server (401 `SESSION_EXPIRED`), not counted by the apps.
 
 ## Consequences
 

@@ -105,7 +105,7 @@ Decision index: ADR-0021 to ADR-0031 (architecture/05); technical answers to the
 | R-AO-3 | Push lost when the process dies after commit | List is truth; counter to decide on an outbox (ADR-0024) |
 | R-AO-4 | No absolute session cap: a stolen device used weekly stays signed in until revoked | Owner decision Q-15; "Sign out all other phones"; consider a 90-day cap later |
 | R-AO-5 | Store review needs access to a code-only app | ADR-0027 accepted, option B [v1.11 | 2026-10-31] |
-| R-AO-6 | Compose compiler plugin in library modules unverified; two Xcode projects drift | Spike first (ADR-0021); shared packages are the only shared code |
+| R-AO-6 | Compose compiler plugin in library modules unverified; two Xcode projects drift | Spike first (ADR-0021); spike worked, two Xcode projects still drift: customer iOS duplication recorded (architecture/15) [v1.19 | 2026-11-01]; shared packages are the only shared code |
 | R-AO-7 | `availability.cakes` upper bound grows with 12 products (99 times 12 = 1188) | Bound is computed from active products; no contract change |
 | R-AO-8 | Customer apps designed for four cakes and fixed rules text | Place Order UI update (query to canvas-ui and forge-dev) |
 

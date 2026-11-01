@@ -26,7 +26,7 @@ Part of [api.md](../api.md) (index, version, change log), sections 9 and 10.1 to
 | POST | /v1/auth/code-requests | public | Request a sign-in code | FR-1, FR-6, BR-4 |
 | POST | /v1/auth/sessions | public | Sign in with address and code | FR-1, FR-2, FR-6, FR-7, BR-4, BR-5 |
 | POST | /v1/auth/refresh | public (refresh token) | Rotate credentials | FR-2, FR-6, BR-5 |
-| GET | /v1/admin/me | owner, staff | Account, role, server date | FR-3, FR-20 |
+| GET | /v1/admin/me | owner, staff | Account, role, own e-mail address, server date [v1.22 | 2026-11-01] | FR-3, FR-20 |
 | DELETE | /v1/admin/session | owner, staff | Sign out this phone | FR-2 |
 | DELETE | /v1/admin/sessions/others | owner, staff | Sign out all other phones of this account | FR-4, BR-5 |
 | PUT | /v1/admin/push-token | owner, staff | Register this phone's push token (built in B7 [v1.21 | 2026-11-01]) | FR-25 |

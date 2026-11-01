@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.4 [v1.4 | 2026-11-01] |
+| Version      | 1.5 [v1.5 | 2026-11-01] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -53,7 +53,7 @@ Steps: (1) request, limits first, then the row; (2) the mail is sent after the r
 | Person taps "Sign out all other phones" | Every other session of the account revoked in one transaction, push tokens cleared; the calling phone stays; the other phones are refused on their next request | FR-4 |
 | Owner deactivates a staff account | All sessions of that account revoked at once; renewal impossible | FR-5 |
 | Mail service fails when sending the new-device notice | Sign-in succeeds; failure logged without addresses | FR-7 |
-| Sign-out while offline | App clears data and shows sign-in at once; keeps a pending sign-out (refresh token only), unregisters the push token locally, repeats refresh then `DELETE /v1/admin/session` when online, for 7 days at most | FR-2 |
+| Sign-out while offline | App clears data and shows sign-in at once; keeps a pending sign-out (refresh token only), unregisters the push token locally, repeats refresh then `DELETE /v1/admin/session` when online, for 7 days at most (neither app counts the days: after 7 days the refresh answers 401 `SESSION_EXPIRED`, which ends the retry, so the server enforces the limit; the leftover token is unusable) [v1.5 | 2026-11-01] | FR-2 |
 
 ## 5. State Machine (device session)
 
@@ -109,3 +109,4 @@ Two refreshes at once with the same token: the row update is conditional on the 
 | 1.2 | 2026-10-31 | Aligned with PRD v1.4: 5th wrong entry voids the code, no time lock, recovery counters separate, new-device notice (TQ-11, TQ-13); SL-Q2 closed. |
 | 1.3 | 2026-10-31 | PRD v1.6: recovery flow, backup address and per-device revoke removed; "Sign out all other phones" added; notice to the owner address only; ids renumbered. |
 | 1.4 | 2026-11-01 | Grace anchored to the first rotation; one new-device rule stated in PRD terms (R-12). |
+| 1.5 | 2026-11-01 | Offline sign-out retry: the 7-day limit is enforced by the server (401 `SESSION_EXPIRED`), neither app counts days; `me` returns the own e-mail (architecture/15). |
