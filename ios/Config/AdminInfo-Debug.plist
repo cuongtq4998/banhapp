@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Debug builds only: AdminInfo.plist plus the local-networking exception, so the app can talk to a
+     backend on this Mac over http (http://127.0.0.1:8080). Release builds use AdminInfo.plist (https only). -->
+<plist version="1.0">
+<dict>
+	<key>BanhAPIBaseURL</key>
+	<string>$(API_BASE_URL)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Banh Admin</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>BeVietnamPro-Regular.ttf</string>
+		<string>BeVietnamPro-Medium.ttf</string>
+		<string>BeVietnamPro-SemiBold.ttf</string>
+		<string>BeVietnamPro-Bold.ttf</string>
+	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+</dict>
+</plist>

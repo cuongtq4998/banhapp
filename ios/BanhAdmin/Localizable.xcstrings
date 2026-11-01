@@ -1,0 +1,966 @@
+{
+  "sourceLanguage": "vi",
+  "strings": {
+    "A_ACCOUNT_A11Y": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tài khoản"
+          }
+        }
+      }
+    },
+    "A_ACCOUNT_TITLE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tài khoản"
+          }
+        }
+      }
+    },
+    "A_BACK": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quay lại"
+          }
+        }
+      }
+    },
+    "A_BACK_TO_LIST": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Về danh sách"
+          }
+        }
+      }
+    },
+    "A_CALL": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gọi %@"
+          }
+        }
+      }
+    },
+    "A_CANCEL_BODY": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hủy đơn %@? Số bánh sẽ được trả lại cho ngày giao. Hãy chọn một lý do."
+          }
+        }
+      }
+    },
+    "A_CANCEL_CONFIRM": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hủy đơn %@"
+          }
+        }
+      }
+    },
+    "A_CANCEL_ORDER": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hủy đơn"
+          }
+        }
+      }
+    },
+    "A_CANCEL_TITLE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hủy đơn"
+          }
+        }
+      }
+    },
+    "A_CHANGE_EMAIL": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đổi email"
+          }
+        }
+      }
+    },
+    "A_CLEAR_FILTERS": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa bộ lọc"
+          }
+        }
+      }
+    },
+    "A_CODE_EXPIRED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mã không còn hiệu lực. Hãy yêu cầu mã mới."
+          }
+        }
+      }
+    },
+    "A_CODE_FIELD_A11Y": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mã xác thực 6 số"
+          }
+        }
+      }
+    },
+    "A_CODE_PROMPT": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhập mã 6 số đã gửi về %@"
+          }
+        }
+      }
+    },
+    "A_CODE_TITLE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhập mã xác thực"
+          }
+        }
+      }
+    },
+    "A_CODE_WRONG": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mã không đúng. Kiểm tra lại mã trong email."
+          }
+        }
+      }
+    },
+    "A_COMPLETE_BODY": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đơn đã hoàn thành thì không mở lại được."
+          }
+        }
+      }
+    },
+    "A_COMPLETE_ORDER": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoàn thành"
+          }
+        }
+      }
+    },
+    "A_COMPLETE_TITLE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoàn thành đơn %@?"
+          }
+        }
+      }
+    },
+    "A_COMPLETE_YES": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoàn thành"
+          }
+        }
+      }
+    },
+    "A_CONFIRM_ORDER": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xác nhận đơn"
+          }
+        }
+      }
+    },
+    "A_CONFLICT": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đơn này vừa được người khác thay đổi. Trạng thái hiện tại: %@."
+          }
+        }
+      }
+    },
+    "A_DATE_ALL": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mọi ngày"
+          }
+        }
+      }
+    },
+    "A_DATE_ONE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn một ngày…"
+          }
+        }
+      }
+    },
+    "A_DATE_TODAY": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hôm nay"
+          }
+        }
+      }
+    },
+    "A_DATE_TOMORROW": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngày mai"
+          }
+        }
+      }
+    },
+    "A_DUE_TODAY": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giao hôm nay"
+          }
+        }
+      }
+    },
+    "A_EMAIL_LABEL": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email"
+          }
+        }
+      }
+    },
+    "A_ERR_EMAIL_INVALID": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email không hợp lệ."
+          }
+        }
+      }
+    },
+    "A_ERR_FORBIDDEN": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn không có quyền thực hiện việc này."
+          }
+        }
+      }
+    },
+    "A_ERR_GENERIC": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Có lỗi xảy ra. Vui lòng thử lại."
+          }
+        }
+      }
+    },
+    "A_ERR_RATE_SEND": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn đã yêu cầu mã quá nhiều lần. Thử lại sau %@ phút."
+          }
+        }
+      }
+    },
+    "A_ERR_STATUS": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không đổi được trạng thái đơn. Vui lòng thử lại."
+          }
+        }
+      }
+    },
+    "A_FEE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phí giao hàng"
+          }
+        }
+      }
+    },
+    "A_FILTER_ALL": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tất cả"
+          }
+        }
+      }
+    },
+    "A_FILTER_DATE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngày giao"
+          }
+        }
+      }
+    },
+    "A_FILTER_TODO": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cần làm"
+          }
+        }
+      }
+    },
+    "A_HIST_CUSTOMER": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "khách hàng"
+          }
+        }
+      }
+    },
+    "A_LAST_CHANGED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cập nhật lần cuối bởi %@, %@"
+          }
+        }
+      }
+    },
+    "A_LOAD_MORE_FAILED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không tải thêm được."
+          }
+        }
+      }
+    },
+    "A_OFFLINE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không có kết nối mạng. Kiểm tra mạng rồi thử lại."
+          }
+        }
+      }
+    },
+    "A_OFFLINE_SAVE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không có kết nối mạng. Chưa lưu được."
+          }
+        }
+      }
+    },
+    "A_OFFLINE_SIGNOUT": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không có mạng. Đã đăng xuất trên máy này."
+          }
+        }
+      }
+    },
+    "A_ORDERS_EMPTY": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không có đơn nào phù hợp."
+          }
+        }
+      }
+    },
+    "A_ORDERS_TITLE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đơn hàng"
+          }
+        }
+      }
+    },
+    "A_ORDER_GONE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không tìm thấy đơn, hoặc đơn đã quá 90 ngày."
+          }
+        }
+      }
+    },
+    "A_OVERDUE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quá hạn %@ ngày"
+          }
+        }
+      }
+    },
+    "A_PLACED_AT": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đặt lúc %@"
+          }
+        }
+      }
+    },
+    "A_REASON_CANNOT_DELIVER": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không giao được (kể cả khi ngày đã đầy)"
+          }
+        }
+      }
+    },
+    "A_REASON_CUSTOMER": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khách yêu cầu hủy"
+          }
+        }
+      }
+    },
+    "A_REASON_INTERNAL": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lý do chỉ nhân viên và Chủ tiệm thấy, khách không thấy."
+          }
+        }
+      }
+    },
+    "A_REASON_NO_CONTACT": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không liên lạc được với khách"
+          }
+        }
+      }
+    },
+    "A_REASON_SPAM": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đơn giả hoặc spam"
+          }
+        }
+      }
+    },
+    "A_RESEND": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gửi lại mã"
+          }
+        }
+      }
+    },
+    "A_RESEND_WAIT": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gửi lại sau %@ giây"
+          }
+        }
+      }
+    },
+    "A_RESET": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đặt lại"
+          }
+        }
+      }
+    },
+    "A_RETRY": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thử lại"
+          }
+        }
+      }
+    },
+    "A_ROLE_OWNER": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chủ tiệm"
+          }
+        }
+      }
+    },
+    "A_ROLE_STAFF": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhân viên"
+          }
+        }
+      }
+    },
+    "A_ROW_DELIVERY": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        }
+      }
+    },
+    "A_ROW_HINT_A11Y": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở chi tiết đơn"
+          }
+        }
+      }
+    },
+    "A_ROW_META": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ bánh · %@ · %@"
+          }
+        }
+      }
+    },
+    "A_SAVE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lưu"
+          }
+        }
+      }
+    },
+    "A_SEARCH_EMPTY": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không tìm thấy đơn nào."
+          }
+        }
+      }
+    },
+    "A_SEARCH_HINT": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mã đơn, tên khách hoặc số điện thoại. Chỉ tìm trong đơn 90 ngày gần đây."
+          }
+        }
+      }
+    },
+    "A_SEARCH_MIN": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhập ít nhất 3 ký tự để tìm."
+          }
+        }
+      }
+    },
+    "A_SEARCH_PLACEHOLDER": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tìm mã đơn, tên, số điện thoại"
+          }
+        }
+      }
+    },
+    "A_SEC_CAKES": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bánh đã đặt"
+          }
+        }
+      }
+    },
+    "A_SEC_CUSTOMER": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khách hàng"
+          }
+        }
+      }
+    },
+    "A_SEC_DELIVERY": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giao hàng"
+          }
+        }
+      }
+    },
+    "A_SEC_NOTE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ghi chú của khách"
+          }
+        }
+      }
+    },
+    "A_SEC_REASON": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lý do hủy"
+          }
+        }
+      }
+    },
+    "A_SEND_CODE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gửi mã"
+          }
+        }
+      }
+    },
+    "A_SESSION_ENDED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phiên đăng nhập đã hết. Vui lòng đăng nhập lại."
+          }
+        }
+      }
+    },
+    "A_SESSION_NOTE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Máy này được nhớ 7 ngày, và gia hạn mỗi lần bạn dùng."
+          }
+        }
+      }
+    },
+    "A_SETTINGS_TITLE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cài đặt"
+          }
+        }
+      }
+    },
+    "A_SIGNIN": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đăng nhập"
+          }
+        }
+      }
+    },
+    "A_SIGNIN_HINT": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhập email để nhận mã xác thực 6 số. Chỉ email do Chủ tiệm thêm mới đăng nhập được."
+          }
+        }
+      }
+    },
+    "A_SIGNIN_TITLE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quản lý đơn hàng"
+          }
+        }
+      }
+    },
+    "A_SIGNOUT_BODY": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thông tin khách hàng sẽ được xóa khỏi máy này."
+          }
+        }
+      }
+    },
+    "A_SIGNOUT_OTHERS": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đăng xuất các máy khác"
+          }
+        }
+      }
+    },
+    "A_SIGNOUT_OTHERS_BODY": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mọi máy khác đang đăng nhập tài khoản này sẽ bị đăng xuất trong tối đa 5 phút. Máy này vẫn dùng bình thường."
+          }
+        }
+      }
+    },
+    "A_SIGNOUT_OTHERS_DONE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã đăng xuất các máy khác."
+          }
+        }
+      }
+    },
+    "A_SIGNOUT_OTHERS_TITLE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đăng xuất các máy khác?"
+          }
+        }
+      }
+    },
+    "A_SIGNOUT_TITLE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đăng xuất?"
+          }
+        }
+      }
+    },
+    "A_SIGN_OUT": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đăng xuất"
+          }
+        }
+      }
+    },
+    "A_STATUS_CANCELLED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã hủy"
+          }
+        }
+      }
+    },
+    "A_STATUS_CHANGED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã cập nhật trạng thái đơn."
+          }
+        }
+      }
+    },
+    "A_STATUS_COMPLETED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã hoàn thành"
+          }
+        }
+      }
+    },
+    "A_STATUS_CONFIRMED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã xác nhận"
+          }
+        }
+      }
+    },
+    "A_STATUS_NEW": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mới"
+          }
+        }
+      }
+    },
+    "A_TAB_BADGE_A11Y": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ đơn cần xử lý"
+          }
+        }
+      }
+    },
+    "A_TODO_EMPTY": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không còn đơn nào cần làm."
+          }
+        }
+      }
+    },
+    "A_TOTAL": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tổng cộng"
+          }
+        }
+      }
+    },
+    "A_ZALO": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhắn Zalo"
+          }
+        }
+      }
+    },
+    "A_ZALO_UNAVAILABLE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không mở được Zalo trên máy này."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

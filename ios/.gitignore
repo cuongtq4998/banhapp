@@ -1,2 +1,4 @@
 # Machine-specific signing settings; see Config/Local.xcconfig.example
 Config/Local.xcconfig
+.build/
+Packages/*/.build/
