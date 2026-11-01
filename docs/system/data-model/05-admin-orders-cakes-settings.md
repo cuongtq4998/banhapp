@@ -67,7 +67,7 @@ New CHECKs on `shop_setting`: `daily_limit <= 9999`, `lead_days <= 14`, `min_qty
 
 ## 14. Retention and purge jobs
 
-A maintenance task inside the backend (once at start-up and then every 24 h; idempotent, safe to run twice) deletes: `auth_code` rows 24 h after expiry; revoked or expired `device_session` rows 30 days later; `security_event` rows older than 180 days. Orders are not purged (retention pending, DM-Q1); the 90-day display window is not retention (ADR-0029).
+DEFERRED: the task is not built in slice B1 (`auth_code` rows keep addresses, so it must exist before real staff use; planned in slice B2 and a go-live gate item). Design: a maintenance task inside the backend (once at start-up and then every 24 h; idempotent, safe to run twice) deletes: `auth_code` rows 24 h after expiry; revoked or expired `device_session` rows 30 days later; `security_event` rows older than 180 days. Orders are not purged (retention pending, DM-Q1); the 90-day display window is not retention (ADR-0029).
 
 ## 15. Migrations
 

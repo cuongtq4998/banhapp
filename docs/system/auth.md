@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 2.3 [v2.3 | 2026-10-31] |
+| Version      | 2.4 [v2.4 | 2026-11-01] |
 | Last updated | 2026-10-31 |
 | Status       | Draft (ADR-0022 and ADR-0027 accepted by the owner 2026-10-31) |
 | Owner        | atlas-architect |
@@ -17,8 +17,8 @@ Scope [v2.0 | 2026-10-31]: the anonymous customer slice and the admin apps (owne
 | ----- | -------- | ----- |
 | Anonymous customer | None; an order holds name, phone, address (PO BR-7) | Unchanged |
 | Staff | E-mail address added by the owner, up to 30 active (BR-6) | Orders only (BR-1) |
-| Owner | One account, created by the operator command `bootstrap-owner` (A-2) | Staff rights plus settings and staff accounts |
-| Review account | Staff-role account of kind `review` while ADR-0027 is enabled | Sees demo orders only |
+| Owner | One account, created by the operator command `create-owner` (A-2) | Staff rights plus settings and staff accounts |
+| Review account | DEFERRED to the launch slice (ADR-0027; not built in B1): staff-role account of kind `review` | Sees demo orders only |
 | System | Backup job, migration runner, maintenance task, push and mail senders | Uses database credentials or provider keys; not an API caller |
 
 ## 2. Authentication
@@ -70,7 +70,7 @@ Enforced on the server: `AdminAuthMiddleware` loads session and account, then `R
 | `/v1/auth/*` | Allowed (rate limited) | Allowed | Allowed | Allowed |
 | `GET /v1/admin/me`, `DELETE /v1/admin/session`, `DELETE /v1/admin/sessions/others` | 401 | Allowed | Allowed | Allowed |
 | `/v1/admin/orders*` | 401 | Allowed | Allowed | Demo rows only |
-| `PUT /v1/admin/push-token` | 401 | Allowed | Allowed | Accepted, never used |
+| `PUT /v1/admin/push-token` (deferred, push slice) | 401 | Allowed | Allowed | Accepted, never used |
 | `/v1/owner/*` (settings, cakes, districts, slots, staff) | 401 | 403 | Allowed | 403 |
 
 Staff cannot edit orders, delete orders or see payment data (BR-1): no such endpoint exists. The database role of the backend has no schema rights and no DELETE on `account`, `order_event`, `security_event`, `settings_change`; migrations use a separate role.
@@ -97,3 +97,4 @@ Staff cannot edit orders, delete orders or see payment data (BR-1): no such endp
 | 2.1 | 2026-10-31 | Owner decisions of 2026-10-31: ADR-0022 and ADR-0027 accepted; ordinary owner sign-in always one code (SL-Q1, AU-Q3 closed); plain statement of what two-code recovery protects and does not; AU-Q2 closed. |
 | 2.2 | 2026-10-31 | Aligned with PRD v1.4: no address lock (Q-20), recovery counters separate, new-device notice decided (Q-24, FR-47); AU-Q4 and AU-Q5 closed. |
 | 2.3 | 2026-10-31 | PRD v1.6: owner recovery and backup address removed, device list replaced by "Sign out all other phones", notice to the owner address only, push-token delete removed; ids renumbered. |
+| 2.4 | 2026-11-01 | B1 alignment: `create-owner`, `AUTH_CODE_PEPPER`, `EMAIL_*`; sign-in off when unconfigured; per-session and 401 limits dropped; review account and push-token deferred; one new-device rule. |

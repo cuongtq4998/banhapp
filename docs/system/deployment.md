@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.11 [v1.11 | 2026-10-31] |
+| Version      | 1.12 [v1.12 | 2026-11-01] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect (design), forge-dev (keeps it true) |
@@ -52,3 +52,4 @@ This file is the index of the deployment document. The body lives in the folder 
 | 1.10 | 2026-10-31 | admin-orders: new file 04 (variables for auth, mail, push, images; admin CI and release; store notes; mail, push and image infrastructure; backup and restore addition; alerts; cost and launch checklist). Paid hosting is a go-live prerequisite for real use (ADR-0003 v1.4). Question DP-Q4 added. |
 | 1.9 | 2026-10-27 | Split into the folder `deployment/` (file size rule, 200 lines); this file became the index with a section map. No content change. |
 | 1.11 | 2026-10-31 | Owner decision: free tier only (DP-Q4 updated). deployment/04: `EmailSender` selection, new variable `RATE_LIMIT_AUTH_PER_HOUR_IP`, upload body limit, free-tier mode and go-live gate (section 18), launch checklist marked blocked. |
+| 1.12 | 2026-11-01 | Variable names `EMAIL_PROVIDER`, `EMAIL_MAX_PER_DAY`, `AUTH_CODE_PEPPER`; command `create-owner`; sign-in off when both secrets unset, start refused when only one is; admin limit variables dropped or fixed in code. |

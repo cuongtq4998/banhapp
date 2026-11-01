@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.3 [v1.3 | 2026-10-31] |
+| Version      | 1.4 [v1.4 | 2026-11-01] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -37,7 +37,7 @@ sequenceDiagram
     API-->>App: 201 access and refresh tokens
 ```
 
-Steps: (1) request, limits first, then the row; (2) the mail is sent after the response; (3) verification: latest usable code (unused, fewer than 5 wrong entries, unexpired), HMAC compare, a wrong entry adds 1 to the code's `wrong_count`; (4) success consumes the code, decides whether the device is new (below), replaces an older session of the same installation, creates the session, writes a security event [v1.2 | 2026-10-31]; (5) owner only, device new: the new-device notice is sent after the response (FR-7, BR-13): to the owner address only, with phone model, time and the advice to use "Sign out all other phones", no code or link; one retry after 5 s; a failure is logged and never affects the sign-in. "New" means no unrevoked, unexpired session of the owner account has this `installation_id` when the code is accepted (ADR-0022). Staff, renewals and review sign-ins send nothing. First owner: the operator runs `bootstrap-owner` (A-2).
+Steps: (1) request, limits first, then the row; (2) the mail is sent after the response; (3) verification: latest usable code (unused, fewer than 5 wrong entries, unexpired), HMAC compare, a wrong entry adds 1 to the code's `wrong_count`; (4) success consumes the code, decides whether the device is new (below), replaces an older session of the same installation, creates the session, writes a security event [v1.2 | 2026-10-31]; (5) owner only, device new: the new-device notice is sent after the response (FR-7, BR-13): to the owner address only, with phone model, time and the advice to use "Sign out all other phones", no code or link; one retry after 5 s; a failure is logged and never affects the sign-in. "New" means no unrevoked, unexpired session of the owner account has this `installation_id` when the code is accepted (ADR-0022). This is the one rule, also in PRD terms: "a phone on which the owner has no signed-in session at that moment". Signing out and signing in again on the same phone therefore sends a notice; a renewal does not [v1.4 | 2026-11-01]. Staff, renewals and review sign-ins send nothing. First owner: the operator runs `create-owner` (A-2).
 
 ## 4. Alternate & Error Flows
 
@@ -48,7 +48,7 @@ Steps: (1) request, limits first, then the row; (2) the mail is sent after the r
 | Wrong code (fifth) | The 5th wrong entry voids the code: 422 `CODE_EXPIRED` ("request a new code"), also for its correct digits later; no time lock; a new code after 30 s starts a fresh count of 5 | BR-4 |
 | Code older than 10 minutes or used | `CODE_EXPIRED` or `CODE_INVALID`; a new code makes older ones invalid | BR-4 |
 | Mail provider failure | Logged without the address; the person requests a new code | FR-1 |
-| Refresh response lost | Retry with the old refresh token within 20 s returns a new pair | FR-6, BR-5 |
+| Refresh response lost | Retry with the old refresh token within 20 s of the FIRST rotation returns a new pair; the window is not extended by the retry (safer: a stolen old token gains at most 20 s) [v1.4 | 2026-11-01] | FR-6, BR-5 |
 | Old refresh token replayed later | Whole session revoked (`reuse_detected`), 401 `SESSION_REVOKED` | FR-6, BR-5 |
 | Person taps "Sign out all other phones" | Every other session of the account revoked in one transaction, push tokens cleared; the calling phone stays; the other phones are refused on their next request | FR-4 |
 | Owner deactivates a staff account | All sessions of that account revoked at once; renewal impossible | FR-5 |
@@ -70,7 +70,7 @@ stateDiagram-v2
 | From | To | Trigger | Actor | Guard | Side effects |
 | ---- | -- | ------- | ----- | ----- | ------------ |
 | (none) | Active | Correct code | Person | Account active, code usable (not void) | Tokens issued, older session of the installation revoked, security event, push token not yet set |
-| Active | Active | `POST /v1/auth/refresh` | Device | Current hash, or previous hash within 20 s | New hashes, `refresh_expires_at` = now + 7 days, previous hash kept |
+| Active | Active | `POST /v1/auth/refresh` | Device | Current hash, or previous hash within 20 s of the first rotation (a retry keeps the stored time and previous hash) | New hashes, `refresh_expires_at` = now + 7 days, previous hash kept |
 | Active | Revoked | Sign-out | Person | Own device | Push token deleted |
 | Active | Revoked | Sign out other phones | Person | Not the calling session; own account | Push tokens deleted; one event |
 | Active | Revoked | Deactivation | Owner | Target is staff | All sessions of the account, tokens deleted, same transaction |
@@ -108,3 +108,4 @@ Two refreshes at once with the same token: the row update is conditional on the 
 | 1.1 | 2026-10-31 | SL-Q1 closed by the owner (one code), SL-Q2 opened, offline sign-out row, recovery separated from ordinary sign-in. |
 | 1.2 | 2026-10-31 | Aligned with PRD v1.4: 5th wrong entry voids the code, no time lock, recovery counters separate, new-device notice (TQ-11, TQ-13); SL-Q2 closed. |
 | 1.3 | 2026-10-31 | PRD v1.6: recovery flow, backup address and per-device revoke removed; "Sign out all other phones" added; notice to the owner address only; ids renumbered. |
+| 1.4 | 2026-11-01 | Grace anchored to the first rotation; one new-device rule stated in PRD terms (R-12). |
