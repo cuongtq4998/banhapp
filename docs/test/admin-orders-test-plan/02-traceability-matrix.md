@@ -1,65 +1,63 @@
-# Admin Orders Test Plan: Traceability Matrix (part 02)
+# Admin Orders Test Plan: Traceability Matrix AC to evidence (part 02)
 
-Part of [admin-orders-test-plan.md](../admin-orders-test-plan.md) (v1.1). Holds: section 2 Traceability Matrix, AC-1 to AC-48 (PRD v1.5) to test cases, and the FR/BR coverage notes. B = backend ([03](03-cases-backend-auth.md), [04](04-cases-backend-orders.md), [05](05-cases-backend-settings.md)), C = iOS and Android ([06](06-cases-clients-contracts.md)), F = contract fixtures. Old AC-1 to AC-72 no longer exist; the id mapping is in the PRD file `admin-orders/08-deferred-and-id-mapping.md`. [v1.1 | 2026-10-31]
+Part of [admin-orders-test-plan.md](../admin-orders-test-plan.md) (v2.0). Holds: section 2, AC-1 to AC-48 (PRD v1.6, ids as v1.5) to concrete evidence on commit 6852302. FR-n to evidence and the list of ACs without automated evidence: [part 10](10-fr-matrix-and-gaps.md). Case ids TC-B/TC-C/TC-F stay in parts 03 to 06; evidence below names the real tests. [v2.0 | 2026-11-01]
 
-## 2. Traceability Matrix
+Key (names are test function names, shortened; no file path needed to find them):
+- **BE** = `backend/Tests/AppTests` (developer tests: Admin/, Push/, Database/). **QA** = `backend/Tests/qa/Tests/QATests/Admin/` (class::test, black box over HTTP, written by probe-qa).
+- **iU** = `ios/BanhAdminTests` (93 tests), **iUI** = `ios/BanhAdminUITests` (55). **aU** = `android/admin/src/test` (117), **aI** = `android/admin/src/androidTest` (64).
+- Result column: P = evidence exists and the run passed (backend: run by me on this commit, part 11; clients: orchestrator runs, part 12). G = gap: part of the AC has no automated evidence (see part 10). Results of the client suites are the orchestrator's, not re-run by probe-qa. [v2.0 | 2026-11-01]
 
-| AC | FR / BR | Priority | Test cases |
-| -- | ------- | -------- | ---------- |
-| AC-1 | FR-1, BR-4 | Must | TC-B01, B02, B03, B14, B16, B18, C01, C46 |
-| AC-2 | FR-1, BR-4 | Must | TC-B04, B05, B13, B15, B17, C01, C03 |
-| AC-3 | FR-1, BR-4 | Must | TC-B06, C01, C02, C49 |
-| AC-4 | FR-1, FR-6, BR-4 | Must | TC-B07, B08, B09, B10, B11, B12, B19, C03 |
-| AC-5 | FR-2, BR-5 | Must | TC-B20, B21, C04 |
-| AC-6 | FR-2 | Must | TC-B22, C05 |
-| AC-7 | FR-4 | Must | TC-B23, B24, B25, C06 |
-| AC-8 | FR-3, FR-20, BR-1 | Must | TC-B31, B32, B33, B34, B35, B28, C07 |
-| AC-9 | FR-5, BR-6, BR-4 | Must | TC-B16, B36, B37, B39, B40, C08 |
-| AC-10 | FR-5, BR-6 | Must | TC-B29, B30, B38, C08, C47 |
-| AC-11 | FR-6, BR-5 | Must | TC-B26, B27, C09 |
-| AC-12 | FR-7, BR-13 | Must | TC-B41, B42, B43, B44 |
-| AC-13 | FR-8, BR-14 | Must | TC-B45, B46, B47, B48, C10 |
-| AC-14 | FR-9, BR-9 | Must | TC-B49, B50, C11 |
-| AC-15 | FR-9, BR-7 | Must | TC-B51, C11 |
-| AC-16 | FR-9, BR-9 | Must | TC-B52, B53, C12, C45, C50, F08 |
-| AC-17 | FR-13, BR-9 | Must | TC-B54, B55, C13, C51, F01, F08 |
-| AC-18 | FR-10 | Must | TC-B56, B57, B58, C14 |
-| AC-19 | FR-11, BR-10 | Should | TC-B59, B60, B61, B62, C15 |
-| AC-20 | FR-12 | Must | TC-B63, C16, C37 |
-| AC-21 | FR-9, BR-9 | Must | TC-B64, B65, C18 |
-| AC-22 | FR-9, BR-9 | Must | TC-B66, B67, B68, B72, C17 |
-| AC-23 | BR-9 | Must | TC-B69, B70, B71, B72, C19 |
-| AC-24 | FR-14 | Must | TC-B73, B74, C20 |
-| AC-25 | FR-15 | Must | TC-C20 (dialer and Zalo on a real device) |
-| AC-26 | FR-16, BR-3 | Must | TC-B75, C21 |
-| AC-27 | FR-17, BR-2 | Must | TC-B76, C21 |
-| AC-28 | FR-18, BR-2, BR-8 | Must | TC-B77, B78, B79, B84, C22 |
-| AC-29 | FR-19 | Must | TC-B80, B81, B82, B83, C23, C35, C38 |
-| AC-30 | G-2 | Must | TC-C24, B75 |
-| AC-31 | G-1, FR-26 | Must | TC-C25 |
-| AC-32 | FR-21 | Must | TC-B107, B108, B109, B110, C26, C34 |
-| AC-33 | FR-21, BR-12 | Must | TC-B111 to B118, C26 |
-| AC-34 | FR-21, BR-12 | Must | TC-B119, B120, B121, C26 |
-| AC-35 | FR-22, BR-11 | Must | TC-B122, B123, B124, C27 |
-| AC-36 | FR-22, BR-11 | Must | TC-B125 to B129, B131, C28, C34 |
-| AC-37 | FR-23, BR-11 | Must | TC-B132, B133, C29 |
-| AC-38 | FR-23, BR-11 | Must | TC-B134, B135, B136, C29 |
-| AC-39 | FR-24, BR-11 | Must | TC-B137, B138, C29, C34 |
-| AC-40 | BR-11 | Must | TC-B130, B139 to B143, C28 |
-| AC-41 | BR-11 | Must | TC-B144 |
-| AC-42 | FR-25, G-1 | Must | TC-B88, B93, B94, B95, C31 |
-| AC-43 | FR-26 | Must | TC-B89, B90, C31, C39, C40, F06 |
-| AC-44 | FR-25, BR-7 | Must | TC-B91, B92, C32, C43 |
-| AC-45 | BR-7 | Must | TC-B96, B97, C32 |
-| AC-46 | FR-27, BR-8 | Must | TC-B98 to B104, C33, F07 |
-| AC-47 | BR-3 | Must | TC-B85, B86, B87, B145 |
-| AC-48 | FR-20 | Must | TC-C07, C30 |
+## 2. Matrix
 
-## Coverage notes
+| AC | Pri | Backend evidence (BE, QA) | Client evidence | Res |
+| -- | --- | ------------------------- | --------------- | --- |
+| AC-1 | Must | BE SignInCodeTests::RegisteredAndUnregisteredAddressesGetTheSameAnswer, InactiveAddress..., AuthPrimitivesTests::AddressIsStoredTrimmedLowerCaseAndNFC; QA AdminAuthAbuseTests::TCB01 | iU SignInViewModelTests::sendTrimsAndLowercasesThenMoves; iUI SignInWithEmailAndCodeLandsOnTheTodoList, InvalidEmailShowsTheFormatMessage; aU SignInReducerTest::badFormat..., validAddress...; aI SignInFlowTest::sendIsDisabled... | P |
+| AC-2 | Must | BE SignInCodeTests::CodeWorksStrictlyBeforeTenMinutesAndOnlyOnce, AuthRulesTests::CodeIsValidStrictlyBeforeTenMinutes; QA TCB15 (used code twice in TCB08) | iU submitNeedsSixDigitsAndSignsIn; aI wrongCodeThenCorrectCodeSignsInToTheList | P |
+| AC-3 | Must | BE AuthRulesTests::ResendRefusedBefore30Seconds..., SignInLimitTests::ResendWaitBoundaries; QA TCB14, TCB15 (older code dies) | iU resendWaitsThirtySecondsThenSendsAgain; iUI ChangeEmailKeepsTheAddress; aU resendIsBlockedDuringTheWait...; aI changeEmailGoesBackAndKeepsTheAddress | P |
+| AC-4 | Must | BE SignInCodeTests::FiveWrongEntriesVoid..., SignInLimitTests::ThreeCodesAnHour..., SignedInPhoneIsUnaffected..., ParallelWrongGuessesNeverPassFive; QA TCB08, TCB09, TCB14 | iU wrongAndExpiredCodes..., rateLimitShowsMinutesRoundedUp; iUI RateLimitedAddressShowsMinutes, WrongCodeShowsErrorAndClearsTheField; aI expiredCodeAndTheRateLimit... | P |
+| AC-5 | Must | BE AuthRulesTests::SessionIsValidStrictlyLessThanSevenDays, SessionRenewalTests::IdleSessionLivesStrictlyLessThanSevenDays, EachRenewalReturnsANewPair...; QA TCB10, TCB11 | iU SessionManagerTests::expiredAccessTokenRefreshesOnceAndRetries, refreshRotation...; iUI ExpiredAccessTokenIsRefreshed...; aU SessionManagerTest::restoreRefreshes... | P, G (7-day wait on a phone: logic only) |
+| AC-6 | Must | BE SignOutTests::SignOutEndsOnlyThisPhone; QA TCB23 | iU signOutForgetsTheSessionAtOnce...; iUI OwnerSignsOutFromSettings; aU signOutClearsThePhoneFirst...; aI SettingsFlowTest::signOutAsksOnce..., SignInFlowTest::staffSignOutReturns... | P |
+| AC-7 | Must | BE SignOutTests::SignOutOthersKeepsTheCallerAndEndsTheRest, RenewalRacingWithSignOutOthers..., AdminAuthMiddlewareTests::AccessTokenLivesStrictlyLessThan300Seconds; QA TCB23 | iUI StaffAccountSheetSignsOutOtherPhonesAndThisOne; aU signOutOthersGoesThroughAuthorizedCall | P |
+| AC-8 | Must | BE RoleCoverageTests::* (5), OwnerSettingsReadTests::StaffAndSignedOutCallersAreRefused...; QA AdminRoleMatrixTests::TCB22, 22b, 22c, AdminFuzzTests::TCB146 | iUI StaffNeverSeesTheSettingsTab; Android: code only (OrdersHome.kt `isOwner`), no test | P, G (Android) |
+| AC-9 | Must | BE OwnerStaffTests::AddingStaff..., AnAddressAlreadyUsed..., BadInput..., ThirtyOneActiveStaff..., TwoAdditionsAtTheLimit...; AccountSchemaTests::ThirtyFirstActiveStaff... | iU staffAddMapsEmailTakenAndLimit; iUI StaffListAddAndEmailTaken, AtThirtyStaff...; aU StaffTest::addNeeds..., takenAddressAndTheLimit...; aI staffAddRefuses..., theThirtyFirstStaff... | P |
+| AC-10 | Must | BE OwnerStaffTests::SwitchingOffEndsEveryPhoneAtOnce..., SessionRenewalTests::DeactivatedAccountCannotRenewOrRead; QA TCB12 | iU deactivateReactivateAndOwnerProtected; iUI DeactivateAndReactivateAStaffAccount; aI deactivateAsksFirst... | P |
+| AC-11 | Must | BE AuthRulesTests::PreviousCredentialIsToleratedFor20SecondsIncluded, SessionRenewalTests::ReplayAfterGraceRevokes..., LostAnswerRetry..., RepeatedRetryInsideTheGrace...; QA TCB10, TCB11 | iU lostRefreshResponseKeepsTheOldToken...; aU lostRefreshResponse..., refreshRejectedWith401EndsTheSession; iUI RevokedSessionShowsTheSessionEndedBanner | P |
+| AC-12 | Must | BE NewDeviceNoticeTests::* (7), MailTests::NoticeHoldsNoCodeAndShowsShopTime, FailureAfterTheRetry... | none (mail only) | P, G (real mail delivery; wording item X-1) |
+| AC-13 | Must | BE OrderWindowTests::DemoRowsAreInvisible..., DemoCapacityTests::*, PushOnOrderTests::ReviewAccountsNeverGetAPush. Fixed-code sign-in and the 3 demo orders do not exist in code | none | **Fail (D-1)** |
+| AC-14 | Must | BE OrderListTests::DefaultListHoldsOpenOrdersOfAnyAgeSorted...; QA AdminSearchCursorTests::TCB71 | iUI TodoListShowsDueMarksAndTheStaffBadge; aU/aI OrderFlowTest::listShowsDueMarks... | P |
+| AC-15 | Must | BE OrderListTests::RowHasListFieldsAndNoPhoneAddressOrNote | iUI TodoListShows...; aI listShowsDueMarks... | P |
+| AC-16 | Must | BE OrderWindowTests::DueAndOverdueFollowTheShopDate...; OrderListTests::EachStatusFilterIsExact... | iU dueMarkUsesTheServerDate, MiscTests::dueStateOnlyForOpenOrders...; iUI TodoListShowsDueMarks...; aI listShowsDueMarksOnlyForOpenOrders... | P |
+| AC-17 | Must | BE OrderWindowTests::BadgeCountsOpenOrdersDueTodayOrEarlier..., BadgeIsZero...GrowsPastOneHundredAsANumber; QA AdminPerformanceTests::TCB105 (badge 1,000) | iU firstLoadDefaultsToTodo...KeepsTheServerCount; iUI TodoListShows...Badge; aI backToTheListShowsTheNewStatusAndTheBadgeDrops | P, G ("99+" text on screen: part 10) |
+| AC-18 | Must | BE OrderListTests::EachStatusFilter..., DeliveryDateFilters, InvalidParametersAreRefused...; QA AdminSearchCursorTests::TCB57 (field codes of api/08 11.1) | iU choosingAStatusOrDateReloads...; iUI StatusChipsAndDateMenu, DatePickerOpensOnTheServerDay...; aI statusChipsDateMenuAndSearch... | P |
+| AC-19 | Should | BE OrderSearchTests::* (7), OrderMigrationTests::SearchFoldIgnoresCaseAndAccents...; QA AdminSearchCursorTests::TCB59, 60, 61, 62 | iU searchNeedsThreeCharacters...; iUI SearchNeedsThreeCharacters, SearchFieldStopsAtFiftyCharacters; aU searchStartsAtThreeCharactersOnly | P |
+| AC-20 | Must | BE OrderListTests (new order appears on reload) | iUI OfflineAndServerErrorStatesOfferRetry, EmptyTodoListSaysAllDone; iU failuresPickTheirState; aU failedReloadShowsNoOldRows... | P, G (pull-to-refresh gesture: part 10) |
+| AC-21 | Must | BE OrderWindowTests::FinishedOrdersStayNinetyDays..., AnOldFinishedOrderAnswersLikeAnUnknownCode; QA AdminStatusRulesTests::TCB64 | none needed (server rule) | P |
+| AC-22 | Must | BE OrderWindowTests::AnOpenOrderOfAnyAge..., OrderStatusTests::AnOldOpenOrderCanBeClosedAndThenLeavesTheWindow, AnOldCancelledOrderWithNoCapacityRow...; QA AdminStatusRulesTests::TCB68 (D-1 fix), AdminCancelRaceTests::TCB67, AdminPerformanceTests::TCB105b | none | P |
+| AC-23 | Must | BE OrderPagingTests::* (5); QA AdminSearchCursorTests::TCB71 (120 rows 50/50/20, cursor tampering), AdminPerformanceTests::TCB105b (1,000 rows) | iU nextPageLoadsNearTheEnd...; aU pagingAppendsWithoutRepeatingRows | P |
+| AC-24 | Must | BE OrderDetailTests::* (5) | iUI DetailShowsCustomerDeliveryCakesAndActions; aU/aI OrderFlowTest::cancelNeedsAReasonThenShowsTheReasonCard | P |
+| AC-25 | Must | none (device feature) | iU MiscTests::contactLinks (URL building only) | **G (manual)** |
+| AC-26 | Must | BE OrderStatusTests::ConfirmMovesTheOrderAndRecordsWhoDidIt | iU confirmSendsTheExpectedStatus...; aU confirmIsOneTapWithNoDialog; aI confirmIsOneTapAndUpdatesInPlace... | P |
+| AC-27 | Must | BE OrderStatusRulesTests::OnlyTheFourAllowedPairsSucceedOutOfSixteen, OrderStatusTests::CompleteNeedsAConfirmedOrder...; QA AdminStatusRulesTests::TCB82 | iUI ConfirmThenCompleteWithDialog; aU completeNeedsAConfirmedOrderAndOneConfirmation | P |
+| AC-28 | Must | BE OrderStatusRulesTests::EachOfTheFourReasons..., CancelWithoutAValidReason...; OrderStatusTests::CancelTwiceWithDifferentReasons...; QA AdminCancelRaceTests::TCB81, TCB84; AdminStatusRulesTests::TCB78 | iUI CancelNeedsAReasonAndShowsItAfterwards; aU cancelNeedsAReasonAndStartsNothingPreselected | P |
+| AC-29 | Must | BE OrderStatusRaceTests::* (3), OrderStatusTests::TwoStaffOnTheSameView...; QA AdminStatusRulesTests::TCB80, AdminCancelRaceTests::TCB81 | iUI ConflictShowsTheCurrentStatusWithAWarning; iU conflictShowsTheCurrentStatus...; aU conflictClosesSheets...; aI anOrderChangedByAnotherPerson... | P |
+| AC-30 | Must | indirect (single POST per action) | tap counts by reading screens in iUI StatusUITests and aI OrderFlowTest | G (manual count) |
+| AC-31 | Must | none | iUI TappedNotificationOpensTheOrderAfterLaunch; aI aTapOnANotificationOpensTheOrder... | G (2-tap path: manual) |
+| AC-32 | Must | BE OwnerCakeChangeTests::*, OwnerCakeCustomerTests::TheCatalogServesTheNewCake... | iUI CakesUITests::EditHidesTheCake...; aI changingThePriceSaves... | P |
+| AC-33 | Must | BE OwnerCakeCreateTests::* (10); QA AdminImageAttackTests::TCB110 to TCB115 | iU CakeFormViewModelTests (14); iUI CakesUITests (10); aU CakeFormTest (14), ImageFitTest (8); aI CakeFlowTest (11), PhotoEncoderTest (6) | P, G (HEIC on Android 8/9) |
+| AC-34 | Must | BE OwnerCakeChangeTests::RemovalIsFinal..., OwnerCakeCustomerTests::ARemovedCakeCannotBeOrdered... | iUI RemoveAsksThenDeletesTheCake; aI removeAsksForConfirmation... | P |
+| AC-35 | Must | BE OwnerOrderingSettingsTests::LoweringBelowAcceptedCakes...; ImpactChecksItsParameter | iU loweringBelowAcceptedCakesAsksFirst...; iUI LoweringTheLimitWarnsThenSaves; aI aLowerLimitAsksWhichDates... | P |
+| AC-36 | Must | BE OwnerOrderingSettingsTests::EveryRangeIsChecked, CustomerCatalogAndAvailabilityReadTheChangedRules | iU rangesAndMinimumAboveLimit...; iUI RulesValidationShowsEveryErrorAtOnce; aU everyBadFieldIsListed... | P |
+| AC-37 | Must | BE OwnerDistrictSlotTests (district tests) | iU districtSheetChecksRange...; iUI DeliveryShowsBothSections..; aI addADistrictThenTheSameName... | P |
+| AC-38 | Must | BE OwnerDistrictSlotTests (slot tests) | iUI SlotAddAndDuplicate, LastActiveDistrictAndSlot...; aI aNewSlotIsAdded... | P |
+| AC-39 | Must | BE OwnerShopSettingsTests::* (5) | iU shopValidatesPhoneAndSendsE164; iUI ShopInfoValidatesAndSaves; aU ShopTest::* | P |
+| AC-40 | Must | BE OwnerShopSettingsTests::EveryProblemIsListed..., OwnerOrderingSettingsTests::EveryRangeIsChecked, CakeSchemaTests::ProductRules; QA AdminFuzzTests::TCB146 | iU/aU validation tests (ValidationTest, SupportTests) | P |
+| AC-41 | Must | BE OwnerDistrictSlotTests::ChangingADistrictLeavesEarlierOrdersAlone, OrderDetailTests::DetailHasEveryField...StoredValues | none needed | P |
+| AC-42 | Must | BE PushOnOrderTests::* (11), PushDispatcherTests::* (10); QA AdminPushTests::TCB88, TCB91, TCB92, TCB95 | iUI ForegroundNotificationShowsAToast...; aI anOrderThatArrivesWhileTheAppIsOpen... | P (fake sender), **G (real APNs/FCM, 60 s, D-2)** |
+| AC-43 | Must | BE PushPayloadPrivacyTests::SerialisedRequestsHoldNoPersonalData, ApnsPushSenderTests::PayloadHoldsKeysAndArgumentsOnly, FcmPushSenderTests::MessageRequestAndPayload; QA AdminPushTests::TCB88 | iU PushAndOwnerAPITests::orderCodeComesFromThePayloadOnly; iUI TappedNotificationWhileSignedOut...; aI aTapWhileSignedOut... | P, G (real device) |
+| AC-44 | Must | BE PushRegistrationTests::SignOut..., Deactivating..., ReuseOfARefreshToken...; SignOutTests::SignOutOthersClearsPushTokens...; QA AdminPushTests::TCB91, TCB92 | iU aFailedCallIsSilentAndSignOutUnregisters; aU forgetClearsTheToken...; aI signOutMakesThePhoneForgetItsToken | P, G ("no customer data readable after sign-out": clearing of in-app data not tested on device) |
+| AC-45 | Must | QA AdminLogPrivacyTests::TCB96, 96b, AdminLogDebugLevelTests::TCB96c; BE MailTests, PushPayloadPrivacyTests; dependency scan (no analytics SDK in Gradle or SwiftPM: grep, part 11) | iOS preview cover in `RootView.swift`, Android `FLAG_SECURE` in `SecureWindow.kt`: code only, no test | P (server), **G (app preview, crash report)** |
+| AC-46 | Must | BE PhoneLimitCountTests::* (6), OrderPhoneRuleTests::* (2); QA AdminPhoneLimitTests::TCB98 to TCB104 | none needed | P |
+| AC-47 | Must | BE OrderMigrationTests::TheEventKeepsTheReason..., OwnerDistrictSlotTests::TheChangeRecordCannotBeEdited..., AccountSchemaTests::SecurityEventsCannotBeChanged..., OrderStatusTests::ConfirmMoves... | none | P |
+| AC-48 | Must | BE OwnerSettingsReadTests::OverviewListsEverySectionAndTheLimits | iUI SettingsShowsFiveRowsWithValuesAndNote; aI SettingsFlowTest::fiveRowsShowTheirCurrentValues | P |
 
-- All 48 ACs and all 27 FRs have at least one case (checked FR by FR against the FR column of the PRD ACs). FR-6 is covered by AC-4 and AC-11; FR-12 by AC-20; FR-15 by AC-25 (Should in spirit, Must in PRD). [v1.1 | 2026-10-31]
-- BR without a dedicated AC, covered by extra cases: BR-1 last sentence (no edit or delete of an order, no payment data) TC-B35; BR-4 address format and length TC-B16; BR-5 grace boundary TC-B27; BR-7 logs and analytics TC-B96, B97; BR-8 first reason kept TC-B103; BR-9 boundaries TC-B53, B65, B72; BR-13 mail content TC-B43; BR-14 isolation TC-B47, B48.
-- New rules with strong negative cases: no address lock (TC-B07, B09, B11), four reasons only and removed value `day_full` refused (TC-B78), `fake_spam` is the only reason that counts toward 5 per phone (TC-B98 to B104), notice to the owner address only (TC-B41, B44).
-- Deferred features (backup e-mail, two-code recovery, device list and revoke, Unfinished view/chip/banner, status history, multi-filter, push settings, reminder push): no positive cases; negative checks that they are absent are TC-B57, B87, B95, C14, C48.
-- G-1 and G-2 now have ACs (AC-31, AC-30): TC-C25, C24. NFR items: performance TC-B105, B106; accessibility TC-C36; privacy TC-B96, TC-C32; Vietnamese format TC-C41; parity is checked in every TC-C case.
-- Should ACs: 1 (AC-19); the other 47 are Must. The verdict needs all Must ACs to Pass.
+Summary: 47 of 48 ACs have automated evidence for at least their server side; 1 Must AC fails (AC-13), 9 have partial gaps listed in part 10. [v2.0 | 2026-11-01]

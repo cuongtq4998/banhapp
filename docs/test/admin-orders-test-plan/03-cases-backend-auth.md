@@ -1,6 +1,6 @@
 # Admin Orders Test Plan: Backend cases, sign-in, sessions, roles, staff, notices (part 03)
 
-Part of [admin-orders-test-plan.md](../admin-orders-test-plan.md) (v1.1). Holds: TC-B01 to TC-B48. Columns: id, type, traces, steps and data, expected. Every result is `Not run`. Type `extra` = added by the tester beyond the ACs. Rewritten for PRD v1.5 (27 FR, 14 BR, 48 AC); cases of deferred features are deleted. [v1.1 | 2026-10-31]
+Part of [admin-orders-test-plan.md](../admin-orders-test-plan.md) (v2.0). Holds: TC-B01 to TC-B48. Columns: id, type, traces, steps and data, expected. Results (round 1, commit 6852302) are in [part 02](02-traceability-matrix.md) (evidence per AC) and [part 11](11-execution-backend.md); a case without a named test there is `manual/unverified`. Wording fixed to the built system in v2.0 where marked. Type `extra` = added by the tester beyond the ACs. Rewritten for PRD v1.5 (27 FR, 14 BR, 48 AC); cases of deferred features are deleted. [v1.1 | 2026-10-31]
 
 ## 4.1 Sign-in codes (FR-1, FR-6, BR-4)
 

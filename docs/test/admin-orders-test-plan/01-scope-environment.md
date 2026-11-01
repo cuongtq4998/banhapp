@@ -1,36 +1,28 @@
 # Admin Orders Test Plan: Scope and Environment (part 01)
 
-Part of [admin-orders-test-plan.md](../admin-orders-test-plan.md) (v1.1). Holds: section 1 Scope & Environment, case id scheme, fake data. [v1.1 | 2026-10-31]
+Part of [admin-orders-test-plan.md](../admin-orders-test-plan.md) (v2.0). Holds: section 1 Scope & Environment, case id scheme, fake data. [v2.0 | 2026-11-01]
 
 ## 1. Scope & Environment
 
-Mode: EARLY (plan only). The plan is rederived from the approved simplified PRD v1.5 (FR-1 to FR-27, BR-1 to BR-14, AC-1 to AC-48) and the system documents (api/05 to 08, data-model/04 and 05, architecture/07 to 09, session-lifecycle). The UI spec is still on PRD v1.2 (R-30). Every result is `Not run`. No build, test or repository command was run. [v1.1 | 2026-10-31]
+Mode: EXECUTE, round 1, on commit 6852302 (`feature/admin-orders`): backend slices B1 to B7 (sign-in, orders, status, owner settings, districts and slots, staff, cakes with pictures, push) and `/me` with the caller's e-mail, iOS and Android admin apps parts 1 and 2, UI spec v1.3, system documents aligned in stages 10 to 15. Based on PRD v1.6 (ids as v1.5: FR-1 to FR-27, BR-1 to BR-14, AC-1 to AC-48), `docs/design/admin-orders-ui.md` v1.3, `docs/system/api/05` to `08`, `architecture/07` to `10`, `data-model/04`, `05`, `auth.md`, ADR-0022 to ADR-0031. [v2.0 | 2026-11-01]
 
-In scope: admin backend endpoints (sign-in, sessions, sign out all other phones, orders, settings, cakes, staff, push, new-device e-mail, review account), the admin app on iOS and Android, the contract fixtures, and the effect on Place Order (FR-27, catalog with up to 12 cakes, lead days, minimum cakes, limit). Out of scope: payment, order editing, customer notifications, reports, and the deferred features (backup e-mail, two-code recovery, device list/revoke, Unfinished view, status history screen, multi-filter, push settings, reminders), which are checked only for absence. [v1.1 | 2026-10-31]
+In scope: all admin endpoints, the effect on Place Order (FR-27, 12 cakes, lead days, minimum cakes, limit), the two admin apps (through the orchestrator's runs), contract fixtures. Out of scope: payment, order editing, customer notifications, reports, and the deferred features, which are checked only for absence. Details of the environment and of what ran: [part 11](11-execution-backend.md) (backend) and [part 12](12-client-verification.md) (clients). [v2.0 | 2026-11-01]
 
-Endpoint names come from `docs/system/api` where they exist; the system documents still contain deferred endpoints (R-4), so cases say "request a code", "sign out all other phones" and so on, and the executable tests bind to the real paths. [v1.1 | 2026-10-31]
+Real endpoint names (the early plan used neutral words): `POST /v1/auth/code-requests`, `POST /v1/auth/sessions`, `POST /v1/auth/refresh`, `GET /v1/admin/me`, `DELETE /v1/admin/session`, `DELETE /v1/admin/sessions/others`, `PUT /v1/admin/push-token`, `GET /v1/admin/orders` (+ `/{order_code}`, `POST .../status`), `/v1/owner/settings`, `/settings/shop`, `/settings/ordering` (+ `/impact`), `/districts`, `/slots`, `/cakes`, `/staff`, `GET /assets/cakes/{id}`. [v2.0 | 2026-11-01]
 
-## Levels and tooling (proposed; forge-dev confirms in the dev guide)
+## Levels and tooling (as built)
 
 | Level | Id prefix | Tooling | Where tests live |
 | ----- | --------- | ------- | ---------------- |
-| Backend API and database | TC-B01 to TC-B145 | HTTP-level tests against real PostgreSQL, parallel requests for races, SQL for assertions, fake mail sink, fake push provider, controlled clock | `backend/Tests/qa/` |
-| Admin app, both platforms | TC-C01 to TC-C51 | iOS: XCUITest against a stub backend (simulator iOS 17.5+ and 26.x). Android: Compose UI tests (emulator API 26 and 34). Each TC-C case runs on BOTH platforms; results per platform | `ios/qa/`, `android/qa/` |
-| Contract fixtures | TC-F01 to TC-F08 | `contracts/fixtures/admin-*.json` decoded by backend, iOS, Android | `contracts/`, each `qa/` |
-
-Real devices only: push delivery through real push services, the phone dialer, Zalo, e-mail deliverability. Everything else runs against fakes. Anything that cannot run here is marked Blocked with the reason. [v1.1 | 2026-10-31]
+| Backend, developer tests | (named in part 02) | XCTVapor with a real PostgreSQL, injected clock, recording mail and push senders | `backend/Tests/AppTests` |
+| Backend, black box | TC-B | Real application on a loopback port, URLSession and a raw socket, PostgreSQL for seeding and assertions, log capture | `backend/Tests/qa/Tests/QATests/Admin/` |
+| Admin apps | TC-C | iOS: Swift Testing and XCUITest with a stub backend. Android: JVM tests and Compose tests with fake APIs | `ios/BanhAdminTests`, `ios/BanhAdminUITests`, `android/admin/src/test`, `android/admin/src/androidTest` (developers' own; probe-qa wrote none, `ios/qa` and `android/qa` do not exist) |
+| Contract fixtures | TC-F | `contracts/fixtures/admin/*.json`, `contracts/swift` | backend, both apps |
 
 ## Conventions
 
-- Controlled clock: today `D` = 2026-11-02 (Monday, shop time UTC+7) unless a case names a date. The server clock is injectable; device clocks are never used.
-- Case types: acceptance, negative, edge, regression, extra. Extra cases say why they exist. Result values: Not run, Pass, Fail, Blocked.
-- Fake accounts: owner "Chu Mau" `chu.mau@example.com`; staff A "Nhan Vien A" `nhanvien.a@example.com`, B `nhanvien.b@example.com`, C `nhanvien.c@example.com`; review `review.demo@example.com` (fixed code only in test configuration, never in the repo); unregistered `khong.co@example.com`. Customer phones `+84 900 000 0xx`. Order codes `BT-AAAAAA` style.
-- "+11 min" means 11 minutes after the code was sent.
-
-## Environment rules for the executable tests
-
-1. Mail sink: codes and notices go to a test sink when `MAIL_MODE=test`; never to a real mail service. Production configuration refuses `MAIL_MODE=test`. The sink can be set to fail (TC-B42).
-2. Push fake: `PUSH_MODE=test` records every push (token, payload) and injects failures. Real APNs and FCM are Blocked here.
-3. Proposed limits (BR-4, BR-5, BR-6, BR-11, BR-12) are configuration values; tests read them from configuration.
-4. Database: PostgreSQL is required for race and trigger cases (TC-B25, B39, B82 to B84, B110, B114, B121). No PostgreSQL on this host (Place Order precedent): Blocked locally, run in CI.
-5. Logs: the run captures server logs so TC-B96 can scan for personal data.
+- Case types: acceptance, negative, edge, regression, extra. Results: Pass, Fail, Blocked, Not run, manual/unverified.
+- Fake data only: owner "Chu Mau", staff "Nhan Vien A/B/C", `@example.com` addresses, phones `+84 900 000 0xx`, codes `BT-XXXXXX`. QA tests create their own random shop, accounts and addresses per test; unknown addresses are random per run (code rows of unknown addresses are kept per address across shops and clocks).
+- Clock: tests that move time use a random far-future day (no collision between runs); the per-phone limit, the 90-day window and the performance tests compare stored `created_at` (database clock) with the app clock, so they use the real time.
+- Log level: tests capture the server log at `info` (the deployment default, `LOG_LEVEL`); one test captures `debug`.
+- Throwaway databases only (`qa_admin_<n>`); the shared database `banh` is never used.

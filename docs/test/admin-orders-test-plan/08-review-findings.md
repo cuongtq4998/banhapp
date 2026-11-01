@@ -1,6 +1,6 @@
 # Admin Orders Test Plan: Document review, contradictions and untestable items (part 08)
 
-Part of [admin-orders-test-plan.md](../admin-orders-test-plan.md) (v1.1). Holds: section 9.1 review of PRD v1.5 against the UI spec and the system documents. Owner = who must fix or answer. `requirements` = scribe-requirements, `architect` = atlas-architect, `design` = canvas-ui. Findings of PRD v1.2 that the simplification removed (backup e-mail, recovery, device list, history, lock, FR-34 hint) are deleted. [v1.1 | 2026-10-31]
+Part of [admin-orders-test-plan.md](../admin-orders-test-plan.md) (v2.0). Holds: section 9.1 review of PRD v1.5 against the UI spec and the system documents. Owner = who must fix or answer. `requirements` = scribe-requirements, `architect` = atlas-architect, `design` = canvas-ui. Findings of PRD v1.2 that the simplification removed (backup e-mail, recovery, device list, history, lock, FR-34 hint) are deleted. [v1.1 | 2026-10-31]
 
 Reviewed: `docs/product/admin-orders.md` and parts 01 to 08 (v1.5); `docs/design/admin-orders-ui.md` and parts 01 to 11 (v1.0, based on PRD v1.2); `docs/system/api/05` to `08`, `architecture/07` to `09`, `data-model/04`, `05`, `auth.md` v2.2, `session-lifecycle.md`, `order-lifecycle.md`. [v1.1 | 2026-10-31]
 
@@ -43,3 +43,25 @@ Reviewed: `docs/product/admin-orders.md` and parts 01 to 08 (v1.5); `docs/design
 | R-40 | AC-42 "within 60 seconds", AC-7/AC-10 "within 5 minutes": measured on the server and the fake provider only | Needs real services; "normal conditions" is not measurable | requirements (define), architect |
 | R-41 | AC-30 and AC-31 are goal checks (tap counts) with no timing; counted by hand in TC-C24, C25 | Manual step counting | requirements |
 | R-42 | Performance figures in the NFR are indicative on the test host | Single host | requirements |
+
+## 9.4 Status of the findings after the build (v2.0, commit 6852302)
+
+| ID | Status | Evidence |
+| -- | ------ | -------- |
+| R-1 | Settled in code: D-1 fix in B6 answers the exact repeat with 200 after the order left the window; other calls 404 | QA AdminStatusRulesTests::TCB68 |
+| R-2 | Settled: open orders of any age are listed and searched; finished ones need 90 days | BE OrderWindowTests; QA TCB64 |
+| R-3 | Confirmed as designed (accepted risk, operator recovery A-7); see O-2 in part 11 | QA AdminAuthAbuseTests::TCB14 |
+| R-4, R-8, R-10 | Settled in system documents v1.17 to v1.22 (recovery, devices, backup removed) | api/05 to 08 |
+| R-5 | Settled: four reasons; `day_full` refused | QA TCB78 |
+| R-6 | Documented (20 and 60 requests an hour per client address) and tested | BE SignInLimitTests::ClientAddressLimitOn21stCodeRequestAnHour |
+| R-7 | Settled: default list holds open orders of any age; `view=unfinished` is `UNKNOWN_PARAMETER` | QA TCB57 |
+| R-9 | PROPOSAL labels are gone from PRD v1.6; "Decided P-2" remains in FR-4 and AC-7 (cosmetic, X-2) | PRD |
+| R-11 | Open: no rule for a limit saved below the stored minimum beyond the pair check; backend refuses the pair, clients check the pair (iU rangesAndMinimumAboveLimit..., aU everyBadFieldIsListed...) | no defect |
+| R-12 | Rule implemented as TQ-13 (no live session with the same installation id); PRD wording differs (X-1) | BE NewDeviceNoticeTests::OwnerSignedOutAndBackIn... |
+| R-13 | Settled: name unique ignoring case among live cakes and districts; NFC | BE OwnerCakeCreateTests::ANameIsUnique..., OwnerDistrictSlotTests |
+| R-14 | Settled by keyset paging on fixed keys; changed rows appear on the next refresh | BE OrderPagingTests::NewAndStatusChanged... |
+| R-15 | Settled: no mark on finished rows; "last changed by" empty until someone changes the order | BE OrderDetailTests::LastChangeNamesNobodyUntil... |
+| R-16 | Settled: upload route limit 5,308,416 bytes, others 8 KB; server stores JPEG or PNG only (HEIC refused: signature) | QA TCB115, TCB111 |
+| R-17 | Open (business): an old Confirmed order can be completed once and not corrected; no defect | none |
+| R-30 to R-34 | Settled by UI spec v1.3 | design/admin-orders-ui.md v1.3 |
+| R-40 to R-42 | Unchanged: goal and time checks are measured on the server and the fake sender only | part 10 |

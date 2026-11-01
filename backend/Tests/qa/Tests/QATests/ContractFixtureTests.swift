@@ -29,11 +29,31 @@ final class ContractFixtureTests: XCTestCase {
         XCTAssertNil(json["response_headers"]?["Content-Type"], "a 304 does not repeat Content-Type")
     }
 
-    func testExtra_FixtureReadmeListsEveryCatalogFixture() throws {
+    /// The README documents a family of files with one glob row (`order-error-*.json`) and names the
+    /// members inside it, so a file is described when it is named or matches a glob row and its
+    /// short name (without prefix and suffix) appears in that row. Same rule for admin/.
+    func testExtra_FixtureReadmeListsEveryFixture() throws {
         let readme = try String(contentsOf: QAPaths.fixtures.appendingPathComponent("README.md"), encoding: .utf8)
-        let files = try FileManager.default.contentsOfDirectory(atPath: QAPaths.fixtures.path).filter { $0.hasSuffix(".json") }
-        XCTAssertGreaterThanOrEqual(files.count, 10)
-        for file in files { XCTAssertTrue(readme.contains(file), "\(file) is not described in contracts/fixtures/README.md") }
+        let rows = readme.split(separator: "\n").map(String.init).filter { $0.hasPrefix("|") }
+        let globs = rows.compactMap { row -> (prefix: String, row: String)? in
+            guard let range = row.range(of: "`[a-z-]+-\\*\\.json`", options: .regularExpression) else { return nil }
+            let name = row[range].dropFirst().dropLast().replacingOccurrences(of: "*.json", with: "")
+            return (name, row)
+        }
+        func described(_ file: String) -> Bool {
+            let stem = file.replacingOccurrences(of: ".json", with: "")
+            if readme.contains(file) || readme.contains("`\(stem)`") { return true }
+            // Abbreviated lists such as "`error-a`, `-b`, `-c`" name later members by their tail only.
+            if stem.hasPrefix("error-"), readme.contains("`-\(stem.dropFirst(6))`") { return true }
+            return globs.contains { stem.hasPrefix($0.prefix) && $0.row.contains(String(stem.dropFirst($0.prefix.count))) }
+        }
+        let top = try FileManager.default.contentsOfDirectory(atPath: QAPaths.fixtures.path).filter { $0.hasSuffix(".json") }
+        XCTAssertGreaterThanOrEqual(top.count, 10)
+        for file in top { XCTAssertTrue(described(file), "\(file) is not described in contracts/fixtures/README.md") }
+        let adminPath = QAPaths.fixtures.appendingPathComponent("admin").path
+        for file in try FileManager.default.contentsOfDirectory(atPath: adminPath).filter({ $0.hasSuffix(".json") }) {
+            XCTAssertTrue(described(file), "admin/\(file) is not described in contracts/fixtures/README.md")
+        }
     }
 
     // MARK: Static scan of the sample data (TC-66, AC-29)
