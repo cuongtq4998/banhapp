@@ -1,0 +1,654 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		50829B8758995640192B9E6B /* BanhCore in Frameworks */ = {isa = PBXBuildFile; productRef = 9F5DC3E585668E86F8719666 /* BanhCore */; };
+		AF3EC3B9B37C8126657F657B /* BanhDesign in Frameworks */ = {isa = PBXBuildFile; productRef = 967D4FF0A1C5ABE1042F2AFF /* BanhDesign */; };
+		D784C585CB50AE7B65F18AF8 /* BanhCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6BA6D81E420DC4174EADAA14 /* BanhCore */; };
+		19EE7ED5FE375AB385A1C264 /* BanhDesign in Frameworks */ = {isa = PBXBuildFile; productRef = 0EEC10093EF3815CABD1AE52 /* BanhDesign */; };
+		31104684BCA0CA3E3F5B27E9 /* BanhContracts in Frameworks */ = {isa = PBXBuildFile; productRef = 202F922BB2B6F3374945AE81 /* BanhContracts */; };
+		ED2C21DD99DCBD740DCBBB3F /* BanhContracts in Frameworks */ = {isa = PBXBuildFile; productRef = 76B6FF5AF21DE2EA9B406285 /* BanhContracts */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A448483057EA1D95B6DC03E8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 947855D6C06FD6FB3E471ACF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = ED7EEDF44A22A2E82BB1DFC8;
+			remoteInfo = BanhAdmin;
+		};
+		DFD3DE03D39F0F288356D0E7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 947855D6C06FD6FB3E471ACF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = ED7EEDF44A22A2E82BB1DFC8;
+			remoteInfo = BanhAdmin;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		E14EDD9537114F9DCF24A81D /* BanhAdmin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BanhAdmin.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7828403BD8A8D41C341F0078 /* BanhAdminTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BanhAdminTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2061FC295F0077CB5FF6B3B3 /* BanhAdminUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BanhAdminUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		66E042A4F5E899A6295B64F1 /* AdminProject.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/AdminProject.xcconfig; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		59BF4FE9EE988A5567F87B56 /* BanhAdmin */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BanhAdmin;
+			sourceTree = "<group>";
+		};
+		9FC09991D8D55083FE08B8D6 /* BanhAdminTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BanhAdminTests;
+			sourceTree = "<group>";
+		};
+		E052F9D235557982BC4C1665 /* BanhAdminShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BanhAdminShared;
+			sourceTree = "<group>";
+		};
+		35E6DBEEA6983E2E2C25A382 /* BanhAdminUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BanhAdminUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2F50434C453281A4CE995DF0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				50829B8758995640192B9E6B /* BanhCore in Frameworks */,
+				31104684BCA0CA3E3F5B27E9 /* BanhContracts in Frameworks */,
+				AF3EC3B9B37C8126657F657B /* BanhDesign in Frameworks */,
+			);
+		};
+		912572E76A1AE2F3C804B8AC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				D784C585CB50AE7B65F18AF8 /* BanhCore in Frameworks */,
+				ED2C21DD99DCBD740DCBBB3F /* BanhContracts in Frameworks */,
+				19EE7ED5FE375AB385A1C264 /* BanhDesign in Frameworks */,
+			);
+		};
+		30C3830FE2DF3A650821894B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		C90F16F4D0246173F5002EB6 = {
+			isa = PBXGroup;
+			children = (
+				66E042A4F5E899A6295B64F1 /* AdminProject.xcconfig */,
+				59BF4FE9EE988A5567F87B56 /* BanhAdmin */,
+				9FC09991D8D55083FE08B8D6 /* BanhAdminTests */,
+				35E6DBEEA6983E2E2C25A382 /* BanhAdminUITests */,
+				E052F9D235557982BC4C1665 /* BanhAdminShared */,
+				D600A1F161AA42B185E45FD6 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D600A1F161AA42B185E45FD6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E14EDD9537114F9DCF24A81D /* BanhAdmin.app */,
+				7828403BD8A8D41C341F0078 /* BanhAdminTests.xctest */,
+				2061FC295F0077CB5FF6B3B3 /* BanhAdminUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		ED7EEDF44A22A2E82BB1DFC8 /* BanhAdmin */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3B679799B00B69D83D5DE3D0 /* Build configuration list for PBXNativeTarget "BanhAdmin" */;
+			buildPhases = (
+				0807F14E5066B3C5EC1DCCD3 /* Sources */,
+				2F50434C453281A4CE995DF0 /* Frameworks */,
+				11A1ACAAF8BAFD2F29DA61FF /* Resources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				59BF4FE9EE988A5567F87B56 /* BanhAdmin */,
+				E052F9D235557982BC4C1665 /* BanhAdminShared */,
+			);
+			packageProductDependencies = (
+				9F5DC3E585668E86F8719666 /* BanhCore */,
+				202F922BB2B6F3374945AE81 /* BanhContracts */,
+				967D4FF0A1C5ABE1042F2AFF /* BanhDesign */,
+			);
+			name = BanhAdmin;
+			productName = BanhAdmin;
+			productReference = E14EDD9537114F9DCF24A81D /* BanhAdmin.app */;
+			productType = "com.apple.product-type.application";
+		};
+		4350BAD1DAC287A67AD2D8A9 /* BanhAdminTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8FE5976287832BE782805D70 /* Build configuration list for PBXNativeTarget "BanhAdminTests" */;
+			buildPhases = (
+				B3725711A1FF2E78AE9F5E6D /* Sources */,
+				912572E76A1AE2F3C804B8AC /* Frameworks */,
+				FA8B74CEBF5245524326FCDE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D9E9E24B84A3F1A7932C82B7 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				9FC09991D8D55083FE08B8D6 /* BanhAdminTests */,
+			);
+			packageProductDependencies = (
+				6BA6D81E420DC4174EADAA14 /* BanhCore */,
+				76B6FF5AF21DE2EA9B406285 /* BanhContracts */,
+				0EEC10093EF3815CABD1AE52 /* BanhDesign */,
+			);
+			name = BanhAdminTests;
+			productName = BanhAdminTests;
+			productReference = 7828403BD8A8D41C341F0078 /* BanhAdminTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		8665B9EB480C53979062D18A /* BanhAdminUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 615427D49391DCB6DDC4FEFA /* Build configuration list for PBXNativeTarget "BanhAdminUITests" */;
+			buildPhases = (
+				223D97C94F426440915FEAD5 /* Sources */,
+				30C3830FE2DF3A650821894B /* Frameworks */,
+				4F8F006CE0F397A329EC4BF7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CAA9EEB7A04D95A3DE21741A /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				35E6DBEEA6983E2E2C25A382 /* BanhAdminUITests */,
+				E052F9D235557982BC4C1665 /* BanhAdminShared */,
+			);
+			name = BanhAdminUITests;
+			productName = BanhAdminUITests;
+			productReference = 2061FC295F0077CB5FF6B3B3 /* BanhAdminUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		947855D6C06FD6FB3E471ACF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2710;
+				LastUpgradeCheck = 2710;
+				TargetAttributes = {
+					ED7EEDF44A22A2E82BB1DFC8 = {
+						CreatedOnToolsVersion = 27.1;
+					};
+					4350BAD1DAC287A67AD2D8A9 = {
+						CreatedOnToolsVersion = 27.1;
+						TestTargetID = ED7EEDF44A22A2E82BB1DFC8;
+					};
+					8665B9EB480C53979062D18A = {
+						CreatedOnToolsVersion = 27.1;
+						TestTargetID = ED7EEDF44A22A2E82BB1DFC8;
+					};
+				};
+			};
+			buildConfigurationList = 8232C68333AF5DFA635E5C29 /* Build configuration list for PBXProject "BanhAdmin" */;
+			developmentRegion = vi;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				vi,
+				Base,
+			);
+			mainGroup = C90F16F4D0246173F5002EB6;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				41706899688AF0C081BA791D /* XCLocalSwiftPackageReference "Packages/BanhCore" */,
+				AC152017F44A77837BB2A52E /* XCLocalSwiftPackageReference "../contracts/swift" */,
+				CFE61B0213861F58508559C3 /* XCLocalSwiftPackageReference "Packages/BanhDesign" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = D600A1F161AA42B185E45FD6 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				ED7EEDF44A22A2E82BB1DFC8 /* BanhAdmin */,
+				4350BAD1DAC287A67AD2D8A9 /* BanhAdminTests */,
+				8665B9EB480C53979062D18A /* BanhAdminUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		11A1ACAAF8BAFD2F29DA61FF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		FA8B74CEBF5245524326FCDE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		4F8F006CE0F397A329EC4BF7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0807F14E5066B3C5EC1DCCD3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		B3725711A1FF2E78AE9F5E6D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		223D97C94F426440915FEAD5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D9E9E24B84A3F1A7932C82B7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = ED7EEDF44A22A2E82BB1DFC8 /* BanhAdmin */;
+			targetProxy = A448483057EA1D95B6DC03E8 /* PBXContainerItemProxy */;
+		};
+		CAA9EEB7A04D95A3DE21741A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = ED7EEDF44A22A2E82BB1DFC8 /* BanhAdmin */;
+			targetProxy = DFD3DE03D39F0F288356D0E7 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		E263CDA28462340979AC6399 /* Debug configuration for PBXProject "BanhAdmin" */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 66E042A4F5E899A6295B64F1 /* AdminProject.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		68C9A0DDA544A48ECC306ECE /* Release configuration for PBXProject "BanhAdmin" */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 66E042A4F5E899A6295B64F1 /* AdminProject.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		D1860A402DA6A6EC6960BDB5 /* Debug configuration for PBXNativeTarget "BanhAdmin" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/AdminInfo-Debug.plist;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.banh.admin;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		A9665977510128FDB917B336 /* Release configuration for PBXNativeTarget "BanhAdmin" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/AdminInfo.plist;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.banh.admin;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		F7581617539359AD9E33E247 /* Debug configuration for PBXNativeTarget "BanhAdminTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.banh.admin.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BanhAdmin.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BanhAdmin";
+			};
+			name = Debug;
+		};
+		CE8C02888820D34664B81F52 /* Release configuration for PBXNativeTarget "BanhAdminTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.banh.admin.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BanhAdmin.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BanhAdmin";
+			};
+			name = Release;
+		};
+		9D01214A8B52E9F09D50DB55 /* Debug configuration for PBXNativeTarget "BanhAdminUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.banh.admin.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = BanhAdmin;
+			};
+			name = Debug;
+		};
+		015B0645D92D1772C335EBFB /* Release configuration for PBXNativeTarget "BanhAdminUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.banh.admin.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = BanhAdmin;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		8232C68333AF5DFA635E5C29 /* Build configuration list for PBXProject "BanhAdmin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E263CDA28462340979AC6399 /* Debug configuration for PBXProject "BanhAdmin" */,
+				68C9A0DDA544A48ECC306ECE /* Release configuration for PBXProject "BanhAdmin" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		3B679799B00B69D83D5DE3D0 /* Build configuration list for PBXNativeTarget "BanhAdmin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D1860A402DA6A6EC6960BDB5 /* Debug configuration for PBXNativeTarget "BanhAdmin" */,
+				A9665977510128FDB917B336 /* Release configuration for PBXNativeTarget "BanhAdmin" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		8FE5976287832BE782805D70 /* Build configuration list for PBXNativeTarget "BanhAdminTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F7581617539359AD9E33E247 /* Debug configuration for PBXNativeTarget "BanhAdminTests" */,
+				CE8C02888820D34664B81F52 /* Release configuration for PBXNativeTarget "BanhAdminTests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		615427D49391DCB6DDC4FEFA /* Build configuration list for PBXNativeTarget "BanhAdminUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9D01214A8B52E9F09D50DB55 /* Debug configuration for PBXNativeTarget "BanhAdminUITests" */,
+				015B0645D92D1772C335EBFB /* Release configuration for PBXNativeTarget "BanhAdminUITests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+/* Begin XCLocalSwiftPackageReference section */
+		41706899688AF0C081BA791D /* XCLocalSwiftPackageReference "Packages/BanhCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/BanhCore;
+		};
+		CFE61B0213861F58508559C3 /* XCLocalSwiftPackageReference "Packages/BanhDesign" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/BanhDesign;
+		};
+		AC152017F44A77837BB2A52E /* XCLocalSwiftPackageReference "../contracts/swift" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../contracts/swift;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9F5DC3E585668E86F8719666 /* BanhCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BanhCore;
+		};
+		967D4FF0A1C5ABE1042F2AFF /* BanhDesign */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BanhDesign;
+		};
+		6BA6D81E420DC4174EADAA14 /* BanhCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BanhCore;
+		};
+		0EEC10093EF3815CABD1AE52 /* BanhDesign */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BanhDesign;
+		};
+		202F922BB2B6F3374945AE81 /* BanhContracts */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BanhContracts;
+		};
+		76B6FF5AF21DE2EA9B406285 /* BanhContracts */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BanhContracts;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 947855D6C06FD6FB3E471ACF /* Project object */;
+	validationLevel = 1;
+}
