@@ -26,6 +26,7 @@ func configure(_ app: Application, config: AppConfig) async throws {
         repositories: .postgres
     )
     try configureAdminAuth(app, config: config)
+    try configurePush(app, config: config)
 
     try registerRoutes(app, config: config)
 }
@@ -44,6 +45,7 @@ private func registerRoutes(_ app: Application, config: AppConfig) throws {
     try app.register(collection: PrivacyRoutes(directory: assetsPath))
     try app.register(collection: AuthRoutes(shopID: config.shopID, trustProxy: config.trustProxy))
     try app.register(collection: AdminRoutes())
+    try app.register(collection: PushTokenRoutes())
     try app.register(collection: AdminOrderRoutes(shopID: config.shopID))
     try app.register(collection: OwnerSettingsRoutes(shopID: config.shopID, assets: assets))
     try app.register(collection: OwnerCakeRoutes(shopID: config.shopID, assets: assets))

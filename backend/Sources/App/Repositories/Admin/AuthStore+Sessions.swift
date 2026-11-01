@@ -58,7 +58,7 @@ extension AuthTransaction {
 
     func revokeInstallation(_ installationID: UUID, now: Date) async throws {
         try await sql.raw("""
-            UPDATE device_session SET revoked_at = \(timestamp(now)), revoked_reason = 'replaced', push_token = NULL
+            UPDATE device_session SET revoked_at = \(timestamp(now)), revoked_reason = 'replaced', push_token = NULL, push_apns_environment = NULL
              WHERE installation_id = \(bind: installationID) AND revoked_at IS NULL
             """).run()
     }
@@ -111,7 +111,7 @@ extension AuthTransaction {
 
     func revoke(sessionID: UUID, reason: RevokeReason, now: Date) async throws {
         try await sql.raw("""
-            UPDATE device_session SET revoked_at = \(timestamp(now)), revoked_reason = \(bind: reason.rawValue), push_token = NULL
+            UPDATE device_session SET revoked_at = \(timestamp(now)), revoked_reason = \(bind: reason.rawValue), push_token = NULL, push_apns_environment = NULL
              WHERE id = \(bind: sessionID) AND revoked_at IS NULL
             """).run()
     }
@@ -119,7 +119,7 @@ extension AuthTransaction {
     /// Every other unrevoked session of the account, in one statement.
     func revokeOthers(accountID: UUID, keeping sessionID: UUID, now: Date) async throws {
         try await sql.raw("""
-            UPDATE device_session SET revoked_at = \(timestamp(now)), revoked_reason = 'signed_out_others', push_token = NULL
+            UPDATE device_session SET revoked_at = \(timestamp(now)), revoked_reason = 'signed_out_others', push_token = NULL, push_apns_environment = NULL
              WHERE account_id = \(bind: accountID) AND id <> \(bind: sessionID) AND revoked_at IS NULL
             """).run()
     }
