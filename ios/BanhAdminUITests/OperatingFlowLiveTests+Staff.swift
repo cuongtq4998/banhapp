@@ -34,7 +34,7 @@ extension OperatingFlowLiveTests {
     /// deactivated by the owner while the session is on the phone (the owner side is an API call, because one
     /// phone holds one session).
     func test05b_StaffSignsInAndIsDeactivated() throws {
-        let (first, _) = try orders()
+        _ = try orders()
         let app = admin()
         if element(app, AdminID.signInEmail).waitForExistence(timeout: 4) { signInLive(app, email: Live.ownerEmail) }
         openSettingsTab(app, row: AdminOwnerID.rowStaff)
@@ -48,9 +48,13 @@ extension OperatingFlowLiveTests {
 
         signInLive(app, email: Live.staffEmail)
         XCTAssertEqual(app.tabBars.count, 0, "staff must not see a tab bar")
-        waitFor(app, AdminID.row(first.code))
+        // Order 1 is completed (not in "To do"): open the first order that is still open (a limit probe order).
+        let anyRow = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH 'admin.orders.row.'")).firstMatch
+        XCTAssertTrue(anyRow.waitForExistence(timeout: 10), "no open order in the staff list")
+        let openCode = String(anyRow.identifier.dropFirst("admin.orders.row.".count))
+        note("staff opens \(openCode)")
         evidence("staff-order-list-no-tab-bar", app: app)
-        open(app, first.code)
+        open(app, openCode)
         evidence("staff-order-detail", app: app)
         backToList(app)
 
