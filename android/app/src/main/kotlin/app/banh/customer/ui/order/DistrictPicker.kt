@@ -37,8 +37,8 @@ import app.banh.customer.data.Load
 import app.banh.customer.data.catalog.District
 import app.banh.customer.ui.common.ErrorMessage
 import app.banh.customer.ui.common.InfoMessage
-import app.banh.customer.design.Radii
-import app.banh.customer.design.Spacing
+import app.banh.core.design.Radii
+import app.banh.core.design.Spacing
 import app.banh.customer.ui.common.formatMoney
 
 private const val SPINNER_SIZE_DP = 24

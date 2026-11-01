@@ -9,14 +9,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import app.banh.customer.R
 import app.banh.customer.TestTags
-import app.banh.customer.design.BackControl
-import app.banh.customer.design.BanhInlineTopBar
-import app.banh.customer.design.BanhLargeTitleTopBar
-import app.banh.customer.design.ErrorMessageView
-import app.banh.customer.design.InfoMessageView
-import app.banh.customer.design.LogoBlob
-import app.banh.customer.design.StateMessage
-import app.banh.customer.design.loadingSemanticsLabeled
+import app.banh.core.design.BackControl
+import app.banh.core.design.BanhInlineTopBar
+import app.banh.core.design.BanhLargeTitleTopBar
+import app.banh.core.design.ErrorMessageView
+import app.banh.core.design.InfoMessageView
+import app.banh.core.design.LogoBlob
+import app.banh.core.design.StateMessage
+import app.banh.core.design.loadingSemanticsLabeled
 
 /*
  * ADR-0018: the design package imports neither the generated resource class nor the test tags. These functions give

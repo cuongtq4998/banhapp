@@ -26,10 +26,10 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import app.banh.customer.R
 import app.banh.customer.TestTags
-import app.banh.customer.design.GlassCard
-import app.banh.customer.design.Sizes
-import app.banh.customer.design.Spacing
-import app.banh.customer.design.bodyStrong
+import app.banh.core.design.GlassCard
+import app.banh.core.design.Sizes
+import app.banh.core.design.Spacing
+import app.banh.core.design.bodyStrong
 
 /**
  * Full privacy notice at the top of S-7 (FR-20, AC-30): always visible, not dismissible or collapsible, grows with the

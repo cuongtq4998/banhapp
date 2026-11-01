@@ -21,8 +21,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import app.banh.customer.R
 import app.banh.customer.TestTags
-import app.banh.customer.design.Sizes
-import app.banh.customer.design.bodyStrong
+import app.banh.core.design.Sizes
+import app.banh.core.design.bodyStrong
 
 /**
  * Chooses a quantity from 0 to [max]. Minus is off at 0 and plus is off at [max], silently: the upper bound is an

@@ -19,8 +19,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import app.banh.customer.TestTags
 import app.banh.customer.data.catalog.Slot
-import app.banh.customer.design.Sizes
-import app.banh.customer.design.Spacing
+import app.banh.core.design.Sizes
+import app.banh.core.design.Spacing
 
 /** The same fixed slots for every date (AC-10); single choice. A selected chip is filled, not only coloured (UI document 9). */
 @Composable

@@ -14,9 +14,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import app.banh.customer.AppContainer
-import app.banh.customer.design.BanhTheme
-import app.banh.customer.design.LocalReduceMotion
-import app.banh.customer.design.Motion
+import app.banh.core.design.BanhTheme
+import app.banh.core.design.LocalReduceMotion
+import app.banh.core.design.Motion
 import app.banh.customer.ui.common.LocalImageLoader
 import app.banh.customer.ui.home.HomeRoute
 import app.banh.customer.ui.home.HomeViewModel

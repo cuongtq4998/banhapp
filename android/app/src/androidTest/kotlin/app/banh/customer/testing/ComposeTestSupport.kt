@@ -14,7 +14,7 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.findRootCoordinates
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
-import app.banh.customer.design.BanhTheme
+import app.banh.core.design.BanhTheme
 import app.banh.customer.ui.common.ImageLoader
 import app.banh.customer.ui.common.LocalImageLoader
 import org.junit.Assert.assertFalse
