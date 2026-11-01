@@ -22,7 +22,8 @@ xcrun simctl install $SIMULATOR $DD/customer/Build/Products/Debug-iphonesimulato
 # A background job of a script ignores SIGINT; simctl needs it to finish the file, so reset it first.
 perl -e '$SIG{INT}="DEFAULT"; exec @ARGV' xcrun simctl io $SIMULATOR recordVideo --codec h264 --force $VIDEO &
 REC=$!
-sleep 2
+sleep 3
+kill -0 $REC 2>/dev/null || echo "WARNING: the recorder did not start (another recording of this simulator may be running: Host recording is already in progress)"
 # E2E_TESTS="test02b_PhoneLimitStillCountsTheSpamOrder test05_..." runs only those methods (default: all).
 ONLY=()
 for t in ${=E2E_TESTS:-}; do ONLY+=(-only-testing:BanhAdminUITests/OperatingFlowLiveTests/$t); done
