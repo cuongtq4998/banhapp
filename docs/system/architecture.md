@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.16 [v1.16 | 2026-11-01] |
+| Version      | 1.17 [v1.17 | 2026-11-01] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -28,6 +28,7 @@ This file is the index of the architecture document. The body lives in the folde
 | 26 | Slice B1 alignment: dropped and deferred items, `Retry-After` rule, review findings [v1.14 | 2026-11-01] | [architecture/10-b1-alignment.md](architecture/10-b1-alignment.md) |
 | 27 | Slices B2 and B3 alignment: decisions, document corrections, purge task not built, open defects [v1.15 | 2026-11-01] | [architecture/11-b2b3-alignment.md](architecture/11-b2b3-alignment.md) |
 | 28 | Slices B4 and B5 alignment: staff list, settings field codes, migration `0004`, slot order [v1.16 | 2026-11-01] | [architecture/12-b4b5-alignment.md](architecture/12-b4b5-alignment.md) |
+| 29 | Slice B6 alignment: image codes, upload limits and gate, image delivery, cap trigger, D-1 and D-2 fixed [v1.17 | 2026-11-01] | [architecture/13-b6-alignment.md](architecture/13-b6-alignment.md) |
 | 25 | Admin simplification, answers to TQ-11 to TQ-13, list of what the PRD v1.6 simplification deleted [v1.13 \| 2026-10-31] | [architecture/09-admin-simplification.md](architecture/09-admin-simplification.md) |
 
 ## Change log
@@ -51,3 +52,4 @@ This file is the index of the architecture document. The body lives in the folde
 | 1.14 | 2026-11-01 | New file architecture/10 (slice B1 alignment: built, dropped, deferred, review findings); names `create-owner`, `EMAIL_*`. |
 | 1.15 | 2026-11-01 | New file architecture/11 (section 27): alignment with built slices B2 and B3; search minimum 3; purge task not built (go-live gate); defects D-1 and D-2 for forge. |
 | 1.16 | 2026-11-01 | New file architecture/12 (section 28): alignment with built slices B4 and B5; `settings_change` is in migration 0004 (not 0002); review accounts hidden from staff; field codes. |
+| 1.17 | 2026-11-01 | New file architecture/13 (section 29): alignment with built slice B6; defects D-1 and D-2 fixed; no open defect for forge. |

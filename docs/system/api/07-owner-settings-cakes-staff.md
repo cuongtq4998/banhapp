@@ -1,12 +1,12 @@
 # API Specification: Owner settings, cakes, staff
 
-Part of [api.md](../api.md) (index, version, change log), sections 10.13 to 10.19. New in v1.13 [v1.13 | 2026-10-31]. FR and BR ids renumbered to PRD v1.6; backup e-mail removed [v1.16 | 2026-10-31]. All routes under `/v1/owner`: role owner only (staff get 403 `FORBIDDEN`). Every successful write is one transaction that also writes `settings_change` rows (BR-3) and changes nothing on refusal (BR-11). Validation errors list every problem in `fields[]` with codes `*_REQUIRED`, `*_INVALID`, `*_TOO_LONG`, `*_OUT_OF_RANGE` and message keys `ERR_FIELD_*`. Limits are those of BR-11 and BR-12. Changes apply to new orders only (BR-11). Built in slices B4 and B5 except cakes (10.17, slice B6); aligned with the code in v1.19, see architecture/12 [v1.19 | 2026-11-01].
+Part of [api.md](../api.md) (index, version, change log), sections 10.13 to 10.19. New in v1.13 [v1.13 | 2026-10-31]. FR and BR ids renumbered to PRD v1.6; backup e-mail removed [v1.16 | 2026-10-31]. All routes under `/v1/owner`: role owner only (staff get 403 `FORBIDDEN`). Every successful write is one transaction that also writes `settings_change` rows (BR-3) and changes nothing on refusal (BR-11). Validation errors list every problem in `fields[]` with codes `*_REQUIRED`, `*_INVALID`, `*_TOO_LONG`, `*_OUT_OF_RANGE` and message keys `ERR_FIELD_*`. Limits are those of BR-11 and BR-12. Changes apply to new orders only (BR-11). Built in slices B4 and B5 and, for cakes (10.17), B6; aligned with the code in v1.19 (architecture/12) and v1.20 (architecture/13) [v1.20 | 2026-11-01].
 
 Common rules of the built routes [v1.19 | 2026-11-01]: the body must be a JSON object. Unknown keys are field problems (`field` = the key, `FIELD_UNKNOWN`, `ERR_FIELD_INVALID`). A `PATCH` with `{}` is 422 `VALIDATION_FAILED`, field `body`, code `BODY_EMPTY`, `ERR_FIELD_REQUIRED`. Text is trimmed and NFC; control characters are `*_INVALID`. A value of the wrong JSON type is `*_INVALID`; absent or null in a required field is `*_REQUIRED`. Every write first locks the `shop_setting` row, so two owner devices are serialised.
 
 ### 10.13 GET /v1/owner/settings
 
-200: `shop` (`name`, `greeting`, `phone_contact`, `zalo_contact`), `ordering` (`daily_limit`, `lead_days`, `min_qty`, fixed `max_days_ahead`), `cakes` (non-removed: `cake_id`, `name`, `description`, `price_vnd`, `is_active`, `image_url`), `districts` (`district_id`, `name`, `delivery_fee_vnd`, `is_active`), `slots` (`slot_id`, `start`, `end`, `is_active`; ordered by `start`, then `end`), districts ordered by `sort_order` [v1.19 | 2026-11-01], `cake_count_max: 12`, `staff_count_max: 30`. Staff cannot call it. Until slice B6 the `cakes` list holds every `product` row (the `removed_at IS NULL` filter comes with B6) [v1.19 | 2026-11-01].
+200: `shop` (`name`, `greeting`, `phone_contact`, `zalo_contact`), `ordering` (`daily_limit`, `lead_days`, `min_qty`, fixed `max_days_ahead`), `cakes` (non-removed: `cake_id`, `name`, `description`, `price_vnd`, `is_active`, `image_url`), `districts` (`district_id`, `name`, `delivery_fee_vnd`, `is_active`), `slots` (`slot_id`, `start`, `end`, `is_active`; ordered by `start`, then `end`), districts ordered by `sort_order` [v1.19 | 2026-11-01], `cake_count_max: 12`, `staff_count_max: 30`. Staff cannot call it. The `cakes` list holds only cakes with `removed_at IS NULL`, ordered by `sort_order`, then id (built in B6) [v1.20 | 2026-11-01].
 
 ### 10.14 PUT /v1/owner/settings/shop
 
@@ -22,9 +22,29 @@ Body: `name` (1 to 100), `greeting` (1 to 300), `phone_contact` (E.164 as data-m
 
 ### 10.17 Cakes
 
-`POST /v1/owner/cakes` is `multipart/form-data` with text fields `name` (1 to 100, unique among non-removed, case-insensitive), `description` (1 to 300), `price_vnd` (1 to 100,000,000) and file field `image` (exactly one, JPEG or PNG by signature, at most 5,242,880 bytes after the app re-encodes the picture as JPEG (ADR-0025 v1.1) [v1.14 | 2026-10-31], 200 to 4096 pixels on each side; ADR-0025). The cake is active at once. 201 returns the cake as in 10.13. Errors: 422 `VALIDATION_FAILED` (field `image` codes `IMAGE_REQUIRED`, `IMAGE_TYPE_UNSUPPORTED`, `IMAGE_DIMENSIONS_INVALID`; field `name` `NAME_TAKEN`; others as above), 413 `PAYLOAD_TOO_LARGE`/`IMAGE_TOO_LARGE`, 409 `CAKE_LIMIT_REACHED` (13th). The request is atomic: nothing is stored on any error. A repeat after a lost response answers `NAME_TAKEN`; the client then reads 10.13.
+`POST /v1/owner/cakes` is `multipart/form-data` with text fields `name` (1 to 100, unique among non-removed, case-insensitive), `description` (1 to 300), `price_vnd` (1 to 100,000,000, a whole number) and file field `image` (exactly one, JPEG or PNG by signature, at most 5,242,880 bytes after the app re-encodes the picture as JPEG (ADR-0025 v1.1) [v1.14 | 2026-10-31], 200 to 4096 pixels on each side; ADR-0025). The cake is active at once. 201 returns the cake as in 10.13. The cake is added last in the order. Only the owner may call it; the role is checked before the body is read [v1.20 | 2026-11-01].
 
-`PATCH /v1/owner/cakes/{id}` any of `name`, `description`, `price_vnd`, `is_active` (the image is not editable); 200. Hiding the last active cake: 409 `LAST_ACTIVE_CAKE`. A removed cake: 404. `DELETE /v1/owner/cakes/{id}`: removal (BR-12), 204; last active cake: 409 `LAST_ACTIVE_CAKE`; already removed: 404. Effects: the customer catalog drops the cake at its next request, orders containing it get `PRODUCT_UNAVAILABLE`, earlier orders keep stored name, quantity and price. Example create fields: `name=Banh Mau`, `description=Banh mau`, `price_vnd=150000`, `image=<JPEG 2 MB>`.
+Errors [v1.20 | 2026-11-01]:
+
+| Status | Code | Field and message key | When |
+| ------ | ---- | --------------------- | ---- |
+| 422 | `VALIDATION_FAILED` | `image` `IMAGE_REQUIRED` (`ERR_FIELD_REQUIRED`) | No file part `image`, or an empty one |
+| 422 | `VALIDATION_FAILED` | `image` `IMAGE_INVALID` (`ERR_FIELD_INVALID`) | Two or more file parts named `image` |
+| 422 | `VALIDATION_FAILED` | `image` `IMAGE_TYPE_UNSUPPORTED` (`ERR_FIELD_TYPE_UNSUPPORTED`) | Signature is not JPEG or PNG, or the header holds no size |
+| 422 | `VALIDATION_FAILED` | `image` `IMAGE_DIMENSIONS_INVALID` (`ERR_FIELD_DIMENSIONS_INVALID`) | A side under 200 or over 4096 pixels |
+| 422 | `VALIDATION_FAILED` | text field `<FIELD>_REQUIRED`, `_INVALID`, `_TOO_LONG`, `_OUT_OF_RANGE`, `FIELD_UNKNOWN` | As in the intro; a text field sent twice, or as a file, is `<FIELD>_INVALID`; a part named otherwise is `FIELD_UNKNOWN` |
+| 422 | `VALIDATION_FAILED` | `name` `NAME_TAKEN` (`ERR_FIELD_TAKEN`) | A live cake has that name (any letter case) |
+| 422 | `VALIDATION_FAILED` | none | Not `multipart/form-data` with a boundary, or the body cannot be parsed |
+| 413 | `IMAGE_TOO_LARGE` | `ERR_IMAGE_TOO_LARGE` | A file part over 5,242,880 bytes; answered before other field problems are listed |
+| 413 | `PAYLOAD_TOO_LARGE` | | `Content-Length` over 5,308,416 (refused before the body is read, after authentication and the role), or a body without a length that grows past it |
+| 409 | `CAKE_LIMIT_REACHED` | `ERR_CAKE_LIMIT` | 12 cakes not removed already (the 13th); a database trigger repeats the rule |
+| 503 | `SERVICE_UNAVAILABLE` | | Two uploads are already running and a place did not free within 5 s (`UploadGate`) |
+
+All problems of fields and image (except the 413 above) are listed together in one response. The request is atomic: nothing is stored on any error. A repeat after a lost response answers `NAME_TAKEN`; the client then reads 10.13.
+
+`PATCH /v1/owner/cakes/{id}` any of `name`, `description`, `price_vnd`, `is_active` (JSON; the image is not editable, key `image` is `FIELD_UNKNOWN`); 200 returns the cake. A new name taken by another live cake: 422 `NAME_TAKEN`. Hiding the last active cake: 409 `LAST_ACTIVE_CAKE`. A removed or unknown cake: 404 `NOT_FOUND`. `DELETE /v1/owner/cakes/{id}`: removal (BR-12), 204; the picture bytes are deleted; last active cake: 409 `LAST_ACTIVE_CAKE`; already removed: 404. Effects: the customer catalog drops the cake at its next request, orders containing it get `PRODUCT_UNAVAILABLE`, earlier orders keep stored name, quantity and price. Example create fields: `name=Banh Mau`, `description=Banh mau`, `price_vnd=150000`, `image=<JPEG 2 MB>`.
+
+`GET /assets/cakes/{id}?v=<8 hex>` (public, no token) returns the stored picture with its stored `Content-Type`, `X-Content-Type-Options: nosniff` and `Cache-Control: public, max-age=31536000, immutable`. `image_url` of a cake is this path with `v` = the first 8 hex characters of the SHA-256 of the bytes. A removed or unknown cake, or one without a stored picture, is 404 `NOT_FOUND`. It counts toward the shared read rate limit (api/01) [v1.20 | 2026-11-01].
 
 ### 10.18 Staff
 

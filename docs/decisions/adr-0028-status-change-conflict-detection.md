@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0028 |
-| Version  | 1.4 [v1.4 | 2026-11-01] (built in slice B3, deviation D-1 noted; earlier: replay beyond the window, R-1) |
+| Version  | 1.5 [v1.5 | 2026-11-01] (deviation D-1 fixed in slice B6; earlier: built in B3, replay beyond the window, R-1) |
 | Status   | Accepted (no money, no new customer data) |
 | Date     | 2026-10-31 |
 | Decider  | atlas-architect |
@@ -46,7 +46,7 @@ Window note [v1.2 | 2026-10-31]: the order lookup uses the window function of AD
 | Compare-and-set in a single UPDATE is atomic under PostgreSQL READ COMMITTED (the second writer re-checks the WHERE clause after the first commits) | https://www.postgresql.org/docs/current/transaction-iso.html (section 13.2.1) | from memory, not fetched | Medium |
 
 
-Built in slice B3 [v1.4 | 2026-11-01]: the order of checks, the compare-and-set, the replay rule (same account, current status equals the target, last event `from_status` equals `expected_status`) and the 409 body are built as written. One deviation, open as defect D-1 (architecture/11 section 27.4): the code looks the order up through the window first, so the replay rule of v1.3 (200 after the order left the window) answers 404 instead. Field codes of the body (`UNKNOWN_FIELD`, `STATUS_INVALID`, `REASON_NOT_ALLOWED`): api/08 section 11.1.
+Built in slice B3 [v1.4 | 2026-11-01]: the order of checks, the compare-and-set, the replay rule (same account, current status equals the target, last event `from_status` equals `expected_status`) and the 409 body are built as written. One deviation was found, defect D-1: the code looked the order up through the window first, so the replay rule of v1.3 (200 after the order left the window) answered 404. Status: fixed in B6 [v1.5 | 2026-11-01]; `AdminOrderService.changeStatus` falls back to a lookup without the age limit and answers the exact repeat with 200 and `Idempotent-Replay: true`; any other call on such an order stays 404 and builds no `details.order`. Field codes of the body (`UNKNOWN_FIELD`, `STATUS_INVALID`, `REASON_NOT_ALLOWED`): api/08 section 11.1.
 
 ## Links
 

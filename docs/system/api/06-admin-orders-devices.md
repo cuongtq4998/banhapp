@@ -48,7 +48,7 @@ Request: `expected_status` (the status the client shows), `to_status`, `cancel_r
 | Status | Code | Body |
 | ------ | ---- | ---- |
 | 200 | | The order detail of 10.10 after the change; header `Idempotent-Replay: true` when the repeat rule of ADR-0028 applied |
-| 404 | `ORDER_NOT_FOUND` | Unknown, malformed code, or outside the window and not a replay. Specified: an exact repeat of the change that closed an order which has since left the window answers 200 with `Idempotent-Replay: true` (FR-19, ADR-0028 v1.3). Built differently: the code applies the window first and answers 404 (open defect D-1, architecture/11 section 27.4) [v1.18 | 2026-11-01] |
+| 404 | `ORDER_NOT_FOUND` | Unknown, malformed code, or outside the window and not a replay. Specified: an exact repeat of the change that closed an order which has since left the window answers 200 with `Idempotent-Replay: true` (FR-19, ADR-0028 v1.3). Built as specified since B6: the repeat answers 200 (defect D-1 fixed, architecture/13 section 29.2); any other call on such an order is 404 [v1.20 | 2026-11-01] |
 | 409 | `ORDER_STATE_CHANGED` | `details.order` is the current detail of 10.10; the client shows the current status (FR-19) |
 | 422 | `STATUS_TRANSITION_INVALID` | The pair is not allowed (for example New to Completed, or from a final state); `details.status` is `expected_status` |
 | 422 | `CANCEL_REASON_REQUIRED` | Cancelled without a valid reason |

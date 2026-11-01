@@ -25,9 +25,10 @@ Part of [api.md](../api.md) (index, version, change log), sections 11 to 13. Sec
 | EMAIL_TAKEN | 409 | `ERR_EMAIL_TAKEN` | Address is already an account address | Message on the form |
 | OWNER_PROTECTED | 409 | `ERR_SERVER` | Deactivation of the owner | Control is not offered |
 | SLOT_DUPLICATE | 422 | `ERR_SLOT_DUPLICATE` | Same start and end as another slot | Message on the form |
-| IMAGE_TOO_LARGE | 413 | `ERR_IMAGE_TOO_LARGE` | Image over 5 MB | Message on the image field |
+| IMAGE_TOO_LARGE | 413 | `ERR_IMAGE_TOO_LARGE` | A file part over 5,242,880 bytes | Message on the image field |
+| PAYLOAD_TOO_LARGE | 413 | `ERR_SERVER` | Cake upload request over 5,308,416 bytes (any other route: over 8 KB) [v1.20 | 2026-11-01] | Treat as a programming error; the app re-encodes below 5 MB |
 
-Field-level codes in `fields[]` (owner routes, v1.19: `BODY_EMPTY` on field `body`, `FIELD_UNKNOWN`, `START_INVALID`, `END_INVALID`, `END_OUT_OF_RANGE`, `NAME_TAKEN` also for districts; `message_key` `ERR_FIELD_*`) and (`NAME_TAKEN`, `IMAGE_REQUIRED`, `IMAGE_TYPE_UNSUPPORTED`, `IMAGE_DIMENSIONS_INVALID`, `EMAIL_INVALID`, `CODE_FORMAT`, `INSTALLATION_ID_INVALID`, `DEVICE_NAME_INVALID` (sign-in, api/05 10.2), `*_REQUIRED`, `*_OUT_OF_RANGE`) follow the rule of section 5: the client reads `fields[].message_key`. Existing codes reused: `VALIDATION_FAILED`, `RATE_LIMITED` (signed-in routes), `PAYLOAD_TOO_LARGE`, `HEADER_INVALID`, `NOT_FOUND`, `SERVICE_UNAVAILABLE`, `INTERNAL_ERROR`.
+Field-level codes in `fields[]` (owner routes, v1.19: `BODY_EMPTY` on field `body`, `FIELD_UNKNOWN`, `START_INVALID`, `END_INVALID`, `END_OUT_OF_RANGE`, `NAME_TAKEN` also for districts; `message_key` `ERR_FIELD_*`) and (`NAME_TAKEN`, `IMAGE_REQUIRED` (`ERR_FIELD_REQUIRED`), `IMAGE_TYPE_UNSUPPORTED` (`ERR_FIELD_TYPE_UNSUPPORTED`), `IMAGE_DIMENSIONS_INVALID` (`ERR_FIELD_DIMENSIONS_INVALID`), `IMAGE_INVALID` (`ERR_FIELD_INVALID`, two image files) [v1.20 | 2026-11-01], `EMAIL_INVALID`, `CODE_FORMAT`, `INSTALLATION_ID_INVALID`, `DEVICE_NAME_INVALID` (sign-in, api/05 10.2), `*_REQUIRED`, `*_OUT_OF_RANGE`) follow the rule of section 5: the client reads `fields[].message_key`. A repeated text field of the cake form is `<FIELD>_INVALID` [v1.20 | 2026-11-01]. Existing codes reused: `VALIDATION_FAILED`, `RATE_LIMITED` (signed-in routes), `PAYLOAD_TOO_LARGE`, `HEADER_INVALID`, `NOT_FOUND`, `SERVICE_UNAVAILABLE`, `INTERNAL_ERROR`.
 
 ### 11.1 Field codes of the order list and the status change [v1.18 | 2026-11-01]
 

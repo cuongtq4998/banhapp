@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.11 [v1.11 | 2026-11-01] |
+| Version      | 1.12 [v1.12 | 2026-11-01] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -50,3 +50,4 @@ This file is the index of the data model. The body lives in the folder `data-mod
 | 1.9 | 2026-10-31 | Simplified for PRD v1.6 (27 FR, 14 BR): removed `account.backup_email*`, trigger `account_email_guard`, `auth_code.purpose` and `challenge_id`, `device_session.sign_in_method = recovery`, `revoked_by_owner` (now `signed_out_others`), three `security_event` types and `actor_account_id`, cancel reason `day_full`; Unfinished view support reduced to the open-orders partial index. FR and BR ids of the admin sections follow PRD v1.6. Admin tables still 5. |
 | 1.10 | 2026-11-01 | Aligned with built slices B2 and B3 (architecture/11): migration is `0003_admin_orders.sql` (section 11 only), capacity trigger has no `GREATEST` floor and what a cancel does to `day_load` is written, per-phone rule text agrees with the code, purge task confirmed NOT built (go-live gate), defect D-2 (`is_demo` and `day_load`). |
 | 1.11 | 2026-11-01 | Aligned with built slices B4 and B5 (architecture/12): `settings_change` and the BR-11 CHECKs are in `0004_admin_settings.sql` (not 0002); case-insensitive district name, slot renumbering, review accounts outside staff lists. |
+| 1.12 | 2026-11-01 | Aligned with built slice B6 (architecture/13): migration `0005_admin_cakes.sql` (section 12 and the D-2 trigger fix), cap trigger also fires on `UPDATE OF removed_at` when a cake is brought back, `product_image` checks, removal deletes the image. |
