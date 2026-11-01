@@ -37,3 +37,7 @@ Admin sign-in and session exchanges (docs/system/api/05, api/06, api/08; admin-o
 | `me.json` | `GET /v1/admin/me` | 200 |
 | `error-unauthenticated`, `-access-token-expired`, `-session-revoked`, `-session-expired`, `-forbidden` | admin routes | 401 and 403 envelopes |
 | `error-code-invalid`, `-code-expired`, `-code-resend-wait`, `-code-request-limit`, `-validation-email` | `/v1/auth` | 422 and 429 envelopes; limits carry `retry_after_seconds` |
+| `orders-list.json` | `GET /v1/admin/orders` | 200 list: `items[]`, `next_cursor` (null at the end), `unfinished_count`, `server_date` |
+| `order-detail.json` | `GET /v1/admin/orders/{order_code}` | 200 detail with `items`, `cancel_reason`, `allowed_actions`, `last_change` |
+| `order-status-change.json` | `POST /v1/admin/orders/{order_code}/status` | Request body and the 200 detail after cancelling |
+| `error-order-not-found`, `-status-transition-invalid`, `-cancel-reason-required`, `-order-state-changed` | status route | 404, 422 and 409 envelopes; the 409 carries `details.order` (the current detail) |

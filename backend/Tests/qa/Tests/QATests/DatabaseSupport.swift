@@ -63,11 +63,14 @@ struct Q: Sendable {
                              date: String = "2030-01-10", status: String = "New",
                              phone: String = "+84901234567", subtotal: Int? = nil, total: Int? = nil) -> String {
         let sub = subtotal ?? cakes * 50000
+        // A Cancelled row must carry a reason (migration 0003 CHECK).
+        let reasonColumn = status == "Cancelled" ? ", cancel_reason" : ""
+        let reasonValue = status == "Cancelled" ? ", 'customer_asked'" : ""
         return """
-        INSERT INTO customer_order (id, shop_id, order_code, status, delivery_date, slot_id, slot_start_time, slot_end_time,
+        INSERT INTO customer_order (id, shop_id, order_code, status\(reasonColumn), delivery_date, slot_id, slot_start_time, slot_end_time,
             district_id, district_name, delivery_fee_vnd, items_subtotal_vnd, total_vnd, total_cakes, customer_name,
             customer_phone, customer_address, idempotency_key, request_hash, client_platform, app_version)
-        VALUES (\(id), \(Ids.shop), \(code), '\(status)', '\(date)', \(Ids.slot), '08:00', '10:00',
+        VALUES (\(id), \(Ids.shop), \(code), '\(status)'\(reasonValue), '\(date)', \(Ids.slot), '08:00', '10:00',
             \(Ids.district), 'QA district', 20000, \(sub), \(total ?? sub + 20000), \(cakes), 'QA Customer',
             '\(phone)', '1 QA street', \(key), '\(String(repeating: "a", count: 64))', 'ios', '1.0.0')
         """

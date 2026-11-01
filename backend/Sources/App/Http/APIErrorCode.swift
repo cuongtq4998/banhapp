@@ -33,6 +33,11 @@ enum APIErrorCode: String, CaseIterable, Sendable {
     case codeExpired = "CODE_EXPIRED"
     case codeResendWait = "CODE_RESEND_WAIT"
     case codeRequestLimit = "CODE_REQUEST_LIMIT"
+    // Admin orders (api/08 section 11).
+    case orderNotFound = "ORDER_NOT_FOUND"
+    case orderStateChanged = "ORDER_STATE_CHANGED"
+    case statusTransitionInvalid = "STATUS_TRANSITION_INVALID"
+    case cancelReasonRequired = "CANCEL_REASON_REQUIRED"
 
     var status: HTTPResponseStatus {
         switch self {
@@ -42,6 +47,10 @@ enum APIErrorCode: String, CaseIterable, Sendable {
             return .unauthorized
         case .forbidden: return .forbidden
         case .codeResendWait, .codeRequestLimit: return .tooManyRequests
+        case .statusTransitionInvalid, .cancelReasonRequired:
+            return .unprocessableEntity
+        case .orderNotFound: return .notFound
+        case .orderStateChanged: return .conflict
         case .validationFailed, .minQty, .dateLead, .dateHorizon, .districtUnserved, .idempotencyKeyReused:
             return .unprocessableEntity
         case .dateCapacity, .priceChanged, .productUnavailable, .slotUnavailable:
@@ -73,6 +82,10 @@ enum APIErrorCode: String, CaseIterable, Sendable {
         case .codeExpired: return "ERR_CODE_EXPIRED"
         case .codeResendWait: return "ERR_CODE_RESEND_WAIT"
         case .codeRequestLimit: return "ERR_CODE_REQUEST_LIMIT"
+        case .orderNotFound: return "ERR_ORDER_NOT_FOUND"
+        case .orderStateChanged: return "ERR_ORDER_STATE_CHANGED"
+        case .statusTransitionInvalid: return "ERR_ORDER_STATUS_INVALID"
+        case .cancelReasonRequired: return "ERR_CANCEL_REASON_REQUIRED"
         default:
             return Self.genericMessageKey
         }

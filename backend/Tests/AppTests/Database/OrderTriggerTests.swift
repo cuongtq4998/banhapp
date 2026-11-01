@@ -43,6 +43,11 @@ final class OrderTriggerTests: DatabaseTestCase {
         try await withRolledBackTransaction { sql in
             let order = try await OrderFixture.insert(on: sql)
             let staffID = UUID()
+            // order_event.actor_id is a foreign key to account since migration 0003.
+            try await sql.raw("""
+                INSERT INTO account (id, shop_id, role, email, display_name)
+                VALUES (\(bind: staffID), \(bind: order.shopID), 'staff', \(bind: "\(staffID.uuidString.lowercased())@example.com"), 'Nhan Vien')
+                """).run()
             // `true` makes the setting local to the transaction.
             try await sql.raw("SELECT set_config('app.actor_type', 'staff', true)").run()
             try await sql.raw("SELECT set_config('app.actor_id', \(bind: staffID.uuidString), true)").run()

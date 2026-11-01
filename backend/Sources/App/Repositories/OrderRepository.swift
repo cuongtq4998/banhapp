@@ -11,7 +11,8 @@ protocol OrderRepository: Sendable {
     /// The order stored under this key, if any (FR-16).
     func findOrder(shopID: UUID, idempotencyKey: UUID) async throws -> StoredOrder?
 
-    /// Orders created for this E.164 phone at or after `since` (ADR-0014).
+    /// Counted orders created for this E.164 phone at or after `since`: not cancelled,
+    /// or cancelled as `fake_spam` (ADR-0014, ADR-0030).
     func countOrders(shopID: UUID, phone: String, since: Date) async throws -> Int
 
     /// One transaction: take capacity, insert the order, its items and the
