@@ -50,7 +50,7 @@ extension SettingsWriter {
             """).run()
         if !active {
             try await sql.raw("""
-                UPDATE device_session SET revoked_at = \(timestamp(now)), revoked_reason = 'account_deactivated', push_token = NULL
+                UPDATE device_session SET revoked_at = \(timestamp(now)), revoked_reason = 'account_deactivated', push_token = NULL, push_apns_environment = NULL
                 WHERE account_id = \(bind: id) AND revoked_at IS NULL
                 """).run()
         }

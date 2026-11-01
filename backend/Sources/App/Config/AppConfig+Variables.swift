@@ -40,7 +40,8 @@ extension AppConfig {
             publicAssetBaseURL: value(Key.publicAssetBaseURL).map(Self.trimmingTrailingSlashes)
                 ?? Default.publicAssetBaseURL,
             orders: try OrderPolicy(environment: environment),
-            admin: try AdminAuthConfig(environment: environment, stage: stage)
+            admin: try AdminAuthConfig(environment: environment, stage: stage),
+            push: try PushConfig(environment: environment, stage: stage)
         )
     }
 

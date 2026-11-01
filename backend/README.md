@@ -35,6 +35,8 @@ Admin sign-in (slice B1, `docs/system/api/05`): `AuthRoutes` (`/v1/auth/code-req
 
 Admin orders (slices B2 and B3, `docs/system/api/06`): `AdminOrderRoutes` (`GET /v1/admin/orders`, `GET /v1/admin/orders/{order_code}`, `POST /v1/admin/orders/{order_code}/status`) in `Routes/Admin/`; rules in `Services/Admin/Orders/` (`OrderWindow` is the one visibility rule for list, search, badge, detail and status change; `OrderListQuery`, `OrderSearch`, `OrderCursor`, `StatusRequest`, `AdminOrderService`); SQL in `Repositories/Admin/AdminOrder*`. A status change is one conditional `UPDATE ... WHERE status = expected_status` (ADR-0028): 409 `ORDER_STATE_CHANGED` for a stale view, 200 with `Idempotent-Replay: true` for a repeat by the same account. Migration `0003_admin_orders.sql` adds `cancel_reason`, `is_demo`, the event `reason` and `actor_name`, two indexes and `search_fold()` (uses `unaccent` when the extension can be created, else `lower()`); Place Order's per-phone count skips orders cancelled for any reason but `fake_spam`. Order-handling tests extend `AdminOrderTestCase` and commit rows, so use a throwaway database.
 
+Push (slice B7, `docs/system/api/06` 10.8 and 10.12): `PushTokenRoutes` (`PUT /v1/admin/push-token`), `Services/Admin/Push/` (`PushSender`, `PushDispatcher`, `PushTokenRequest`), `Repositories/Admin/PushStore`, real clients in `Http/Outbound/` (APNs and FCM, never run against the real services). A new customer order is announced after the commit through `BackgroundWork`; a failure never touches the order. `PUSH_PROVIDER` is `off` (default), `recording` (tests) or `live` (needs the six `APNS_*`/`FCM_*` values, see `.env.example`).
+
 ## Commands (run in `backend/`)
 
 ```

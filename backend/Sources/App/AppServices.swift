@@ -14,11 +14,16 @@ struct AppServices: Sendable {
     var adminAuth: AdminAuthConfig?
     var email: any EmailSender = UnavailableEmailSender()
     var mailRetryDelay: Duration = MailDispatcher.defaultRetryDelay
+    /// Push to phones (ADR-0024); nil while `PUSH_PROVIDER=off`.
+    var push: (any PushSender)?
+    var pushRetryDelays: [Duration] = PushDispatcher.defaultRetryDelays
     /// Mail and other work that runs after the response; tests `drain()` it.
     var background = BackgroundWork()
 
     /// Derived from `clock`, so replacing the clock also moves the calendar.
     var calendar: ShopCalendar { ShopCalendar(clock: clock) }
+
+    var pushDispatcher: PushDispatcher { PushDispatcher(sender: push, work: background, retryDelays: pushRetryDelays) }
 
     var mail: MailDispatcher { MailDispatcher(sender: email, work: background, retryDelay: mailRetryDelay) }
 }

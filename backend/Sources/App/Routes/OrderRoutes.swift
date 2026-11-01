@@ -30,6 +30,13 @@ struct OrderRoutes: RouteCollection {
             shopID: shopID, request: request, idempotencyKey: headers.idempotencyKey,
             platform: headers.platform, appVersion: headers.appVersion
         ))
+        // Only a newly stored order; a replay already had its push. After the commit.
+        if case .created(let placed) = result {
+            services.pushDispatcher.notifyNewOrder(
+                PushMessage(orderCode: placed.orderCode, cakes: request.totalCakes, deliveryDate: request.deliveryDate),
+                shopID: shopID, store: services.repositories.makePushStore(database), now: services.clock.now(), logger: req.logger
+            )
+        }
         return try Self.makeResponse(result)
     }
 

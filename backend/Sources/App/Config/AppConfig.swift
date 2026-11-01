@@ -33,6 +33,8 @@ struct AppConfig: Equatable, Sendable {
     let orders: OrderPolicy
     /// Admin sign-in; nil leaves `/v1/auth` answering `SERVICE_UNAVAILABLE`.
     let admin: AdminAuthConfig?
+    /// Push sender and its credentials (ADR-0024); off unless `PUSH_PROVIDER` says otherwise.
+    let push: PushConfig
 
     init(
         stage: Stage,
@@ -45,7 +47,8 @@ struct AppConfig: Equatable, Sendable {
         publicAssetBaseURL: String = Default.publicAssetBaseURL,
         rateLimitWindowSeconds: TimeInterval = Default.rateLimitWindowSeconds,
         orders: OrderPolicy = OrderPolicy(),
-        admin: AdminAuthConfig? = nil
+        admin: AdminAuthConfig? = nil,
+        push: PushConfig = .off
     ) {
         self.stage = stage
         self.port = port
@@ -58,5 +61,6 @@ struct AppConfig: Equatable, Sendable {
         self.rateLimitWindowSeconds = rateLimitWindowSeconds
         self.orders = orders
         self.admin = admin
+        self.push = push
     }
 }
