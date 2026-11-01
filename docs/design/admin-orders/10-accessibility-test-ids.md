@@ -24,7 +24,7 @@ Defaults of standard 02 apply: touch target 44 pt (iOS) and 48 dp (Android) at l
 
 ## 9.1 Test identifiers
 
-One list for both platforms: iOS `accessibilityIdentifier` and Android `Modifier.testTag` use the identical string. UI tests select by identifier only. `<id>` is the server id of the item; `<code>` the order code. Prefix `admin.`. Removed in v1.1: `admin.signin.recovery`, `admin.recovery.*`, `admin.orders.newCount`, `.lastUpdated`, `.notif*`, `admin.date.*` (sheet), `admin.detail.history*`, `admin.cancel.reason.full`, `admin.settings.row.slots/districts/devices/backup/backupReminder`, `admin.devices.*`, `admin.backup.*`, `admin.account.devices`.
+One list for both platforms: iOS `accessibilityIdentifier` and Android `Modifier.testTag` use the identical string, except the documented differences in section 9.2. UI tests select by identifier only. `<id>` is the server id of the item; `<code>` the order code. Prefix `admin.`. Removed in v1.1: `admin.signin.recovery`, `admin.recovery.*`, `admin.orders.newCount`, `.lastUpdated`, `.notif*`, `admin.date.*` (sheet), `admin.detail.history*`, `admin.cancel.reason.full`, `admin.settings.row.slots/districts/devices/backup/backupReminder`, `admin.devices.*`, `admin.backup.*`, `admin.account.devices`.
 
 | Identifier | Element | Screen |
 | ---------- | ------- | ------ |
@@ -33,12 +33,12 @@ One list for both platforms: iOS `accessibilityIdentifier` and Android `Modifier
 | `admin.orders.title` / `.search` / `.accountButton` / `.badge` | Header items; staff header number | S-A3 |
 | `admin.orders.filter.todo` / `.new` / `.confirmed` / `.completed` / `.cancelled` / `.all` / `.date` | Status chips and date chip | S-A3 |
 | `admin.orders.date.all` / `.today` / `.tomorrow` / `.one` | Date menu items (the picker is native) | S-A3 |
-| `admin.orders.list` / `.row.<code>` / `.due.<code>` / `.skeleton` / `.empty` / `.error` / `.offline` / `.loadMoreError` / `.searchMin` | List, due mark, states | S-A3 |
-| `admin.tab.orders` / `admin.tab.orders.badge` / `admin.tab.settings` | Tab bar items and the red number | S-A3, S-A6 |
+| `admin.orders.list` / `.row.<code>` / `.due.<code>` / `.skeleton` / `.empty` / `.error` / `.offline` / `.loadMoreError` / `.searchMin` / `.clearFilters` / `.retry` | List, due mark, states, "clear filters" and retry buttons (v1.2) | S-A3 |
+| `admin.tab.orders` / `admin.tab.orders.badge` / `admin.tab.settings` | Tab bar items and the red number; see the platform table below | S-A3, S-A6 |
 | `admin.detail.code` / `.status` / `.due` / `.customer` / `.phone` / `.call` / `.zalo` / `.address` | Detail header and customer | S-A4 |
 | `admin.detail.delivery` / `.cakes` / `.cake.<index>` / `.fee` / `.total` / `.note` / `.reason` / `.lastChanged` | Detail cards | S-A4 |
-| `admin.detail.confirm` / `.complete` / `.cancel` / `.completeYes` / `.completeBack` / `.conflict` / `.error` / `.gone` | Actions and messages | S-A4 |
-| `admin.cancel.reason.customer` / `.cannotDeliver` / `.noContact` / `.spam` / `.confirm` / `.back` | Cancel sheet | S-A5 |
+| `admin.detail.confirm` / `.complete` / `.cancel` / `.completeYes` / `.completeBack` / `.conflict` / `.error` / `.gone` / `.retry` | Actions and messages; retry button of the error state (v1.2) | S-A4 |
+| `admin.cancel.reason.customer` / `.cannotDeliver` / `.noContact` / `.spam` / `.confirm` / `.back` / `admin.cancel.error` | Cancel sheet; inline error (v1.2). Android uses `admin.cancel.reason.confirm` / `.back` for the two buttons; iOS uses `admin.cancel.confirm` / `.back` (see platform table) | S-A5 |
 | `admin.settings.row.cakes` / `.rules` / `.delivery` / `.shop` / `.staff` / `.signOutOthers` / `.signOutOthersYes` / `.signOut` / `.signOutYes` | Five rows and sign-out buttons | S-A6 |
 | `admin.cakes.add` / `.count` / `.row.<id>` / `.full` | Cake list | S-A7 |
 | `admin.cakeForm.image` / `.change` / `.name` / `.desc` / `.price` / `.active` / `.save` / `.progress` / `.cancel` / `.remove` / `.removeYes` / `.error.<field>` | Cake form (add and edit) | S-A8 |
@@ -50,3 +50,20 @@ One list for both platforms: iOS `accessibilityIdentifier` and Android `Modifier
 | `admin.staffAdd.name` / `.email` / `.save` / `.error.<field>` | Add staff sheet | S-A12 |
 | `admin.account.name` / `.email` / `.signOutOthers` / `.signOutOthersYes` / `.signOut` / `.signOutYes` | Account sheet | S-A13 |
 | `admin.toast` / `admin.nav.back` / `admin.discard.confirm` / `admin.discard.keep` | Shared | all |
+
+## 9.2 Per-platform differences (v1.2 | 2026-11-01)
+
+Source of truth in the code: `ios/BanhAdminShared/AccessibilityID.swift` (`AdminID`) and `android/admin/.../ui/AdminTags.kt` (`AdminTags`). A test for one platform may use only the ids that platform has.
+
+| Topic | iOS | Android |
+| ----- | --- | ------- |
+| Tab buttons | SwiftUI `TabView` does not forward identifiers to the tab buttons: `admin.tab.orders` and `admin.tab.settings` exist in `AdminID` but cannot be found. UI tests select the tab by position in the tab bar (`tabBars.buttons.element(boundBy: 0)` Orders, `1` Settings) or by its label | `admin.tab.orders` and `admin.tab.settings` work (`NavigationBarItem` test tag) |
+| Orders number | Owner: the native tab badge on the Orders tab (no id; read its value from the tab button). Staff: `admin.orders.badge` beside the title. `admin.tab.orders.badge` does not exist | Owner: `admin.tab.orders.badge`. Staff: `admin.orders.badge` |
+| Clear filters | `admin.orders.clearFilters` | not in `AdminTags` yet: add it on the Android empty-state button |
+| Order detail extras | none | `admin.detail.backToList` (gone state button), `admin.detail.offline` |
+| Cancel buttons | `admin.cancel.confirm`, `admin.cancel.back` | `admin.cancel.reason.confirm`, `admin.cancel.reason.back` |
+| Settings sign-out (owner) | `admin.settings.signOutOthers`, `.signOutOthersYes`, `.signOut`, `.signOutYes` | the same with the extra segment: `admin.settings.row.signOutOthers` and so on |
+| Root | none | `admin.root.loading`, `admin.root.retry` (start-up session check) |
+| Same on both | `admin.orders.retry`, `admin.detail.retry`, `admin.cancel.error`, `admin.account.name` / `.email` / `.signOutOthers` / `.signOutOthersYes` / `.signOut` / `.signOutYes` (account sheet), `admin.toast`, `admin.nav.back` | |
+
+Rule for new ids: if a platform cannot attach an id, the spec lists the substitute here instead of the code silently differing. The cancel and settings differences are accepted as built; forge may align them in a later change. The sheet ids `admin.account.*` and `admin.cancel.*` are attached to the sheet content, not to the presenting button.
