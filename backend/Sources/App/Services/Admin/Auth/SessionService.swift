@@ -7,6 +7,8 @@ struct AdminPrincipal: Sendable {
     let role: AccountRole
     let isReview: Bool
     let displayName: String
+    /// Own address, for `GET /v1/admin/me` only; never logged.
+    let email: String
     let platform: String
 }
 

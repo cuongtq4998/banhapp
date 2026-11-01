@@ -4,7 +4,8 @@
   "body": {
     "account": {
       "name": "Nhan Vien A",
-      "role": "staff"
+      "role": "staff",
+      "email": "nhan.vien.a@example.com"
     },
     "device_id": "5b0c2f6a-0000-4a00-8000-000000000001",
     "server_date": "2026-11-02"
