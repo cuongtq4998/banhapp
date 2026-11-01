@@ -26,6 +26,11 @@ struct CancelSheet: View {
                 if let text = model.messageText, model.actionMessage != nil {
                     InlineMessage(kind: .error, text: text).accessibilityIdentifier(AdminID.cancelError)
                 }
+            }
+            .padding(Spacing.lg)
+        }
+        .bottomActionBar {
+            VStack(spacing: Spacing.sm) {
                 ActionButton(
                     verbatim: AStrings.cancelConfirm(code: model.code), emphasis: .destructive,
                     showsProgress: model.running == .cancel
@@ -37,9 +42,9 @@ struct CancelSheet: View {
                 ActionButton(title: AStrings.back, emphasis: .secondary) { dismiss() }
                     .accessibilityIdentifier(AdminID.cancelBack)
             }
-            .padding(Spacing.lg)
         }
         .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
         .background(Palette.surfaceSolid.ignoresSafeArea())
     }
 
@@ -54,7 +59,9 @@ struct CancelSheet: View {
                         Image(systemName: reason == option ? "checkmark.circle.fill" : "circle")
                             .foregroundStyle(reason == option ? Palette.primary : Palette.textSecondary)
                     }
+                    .padding(.horizontal, Spacing.md)
                     .frame(minHeight: 52)
+                    .background(reason == option ? Palette.primaryContainer : Color.clear, in: RoundedRectangle(cornerRadius: Radius.field))
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)

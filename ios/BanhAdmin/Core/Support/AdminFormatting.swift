@@ -38,11 +38,24 @@ nonisolated enum AdminFormatting {
     /// `dd/MM` of a delivery date, for the list rows.
     static func shortDate(_ wire: String) -> String { ShopDay(wire)?.shortText ?? wire }
 
-    /// The shop date of a `DatePicker` value, for the one-date filter.
-    static func wire(of date: Date) -> String {
+    /// The shop calendar: Gregorian in Vietnam time, whatever the zone of the device.
+    static var shopCalendar: Calendar {
         var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone.current
-        let parts = calendar.dateComponents([.year, .month, .day], from: date)
+        calendar.timeZone = vietnam
+        return calendar
+    }
+
+    static var shopTimeZone: TimeZone { vietnam }
+
+    /// The shop date (Vietnam calendar day) of a `DatePicker` value, for the one-date filter.
+    static func wire(of date: Date) -> String {
+        let parts = shopCalendar.dateComponents([.year, .month, .day], from: date)
         return String(format: "%04d-%02d-%02d", parts.year ?? 1970, parts.month ?? 1, parts.day ?? 1)
+    }
+
+    /// Noon of a shop date, to start a `DatePicker` on the server's "today" (now when unreadable).
+    static func pickerDate(_ wire: String) -> Date {
+        guard let day = ShopDay(wire) else { return Date() }
+        return Date(timeIntervalSince1970: TimeInterval(day.epochDay * 86_400 + 43_200 - 7 * 3_600))
     }
 }

@@ -5,8 +5,11 @@ import UIKit
 nonisolated enum InstallationID {
     private static let key = "BanhAdminInstallationID"
 
-    static func current(defaults: UserDefaults = .standard) -> String {
+    /// A missing id means a fresh install (UserDefaults go with the app, the Keychain does not): any
+    /// token a deleted install left behind is removed before the new id is created (`onFirstStart`).
+    static func current(defaults: UserDefaults = .standard, onFirstStart: () -> Void = {}) -> String {
         if let existing = defaults.string(forKey: key) { return existing }
+        onFirstStart()
         let created = UUID().uuidString.lowercased()
         defaults.set(created, forKey: key)
         return created

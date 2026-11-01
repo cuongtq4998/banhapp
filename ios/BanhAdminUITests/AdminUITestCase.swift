@@ -83,4 +83,47 @@ class AdminUITestCase: XCTestCase {
         tap(app, AdminID.row(code))
         waitFor(app, AdminID.detailCode)
     }
+
+    /// Owner stub: opens the Settings tab and one of its rows.
+    func openSettings(_ app: XCUIApplication, row: String? = nil) {
+        tab(app, index: 1).tap()
+        waitFor(app, AdminOwnerID.rowCakes)
+        if let row { tap(app, row) }
+    }
+
+    /// Replaces the text of a field: focus, delete what is there, type the new text.
+    func replaceText(_ app: XCUIApplication, _ identifier: String, with text: String) {
+        let field = waitFor(app, identifier)
+        // A field under the keyboard cannot be tapped: close the keyboard first, the form scrolls back.
+        if app.keyboards.count > 0, field.frame.maxY > app.keyboards.firstMatch.frame.minY - 20 {
+            dismissKeyboard(app)
+            let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "count == 0"), object: app.keyboards)
+            _ = XCTWaiter().wait(for: [gone], timeout: 5)
+        }
+        field.tap()
+        Thread.sleep(forTimeInterval: 0.6)
+        // Typing goes through the app: it reaches whatever has the focus (a multiline field too).
+        let current = (field.value as? String) ?? ""
+        if !current.isEmpty, current != "Optional" {
+            app.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
+        }
+        if !text.isEmpty { app.typeText(text) }
+    }
+
+    func dismissKeyboard(_ app: XCUIApplication) {
+        if app.keyboards.count > 0 { app.swipeDown() }
+    }
+
+    /// Flips a labelled switch: the centre of the row is the label, the switch is at the right edge.
+    func flip(_ app: XCUIApplication, _ identifier: String) {
+        let toggle = app.switches[identifier]
+        var scrolls = 0
+        while toggle.waitForExistence(timeout: 5), !toggle.isHittable, scrolls < 4 {
+            app.swipeUp()
+            scrolls += 1
+        }
+        if toggle.exists { toggle.tap() } else {
+            waitFor(app, identifier).coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        }
+    }
 }

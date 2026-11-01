@@ -5,6 +5,8 @@ final class AccountUITests: AdminUITestCase {
         let app = launch(AdminLaunch.modeStaff)
         tap(app, AdminID.ordersAccount)
         waitFor(app, AdminID.accountName)
+        let email = waitFor(app, AdminID.accountEmail)
+        XCTAssertEqual(email.label, AdminLaunch.fakeEmail, "the e-mail comes from GET /v1/admin/me, also after a restart")
         shot("S-A13-default")
         tap(app, AdminID.accountSignOutOthers)
         waitFor(app, AdminID.accountSignOutOthersYes)

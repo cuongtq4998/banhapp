@@ -104,6 +104,50 @@ struct SessionManagerTests {
         #expect(store.refreshToken == nil)
         #expect(store.pendingSignOutToken == "rt_old")
     }
+
+    @Test func serverTroubleKeepsThePendingSignOut() async throws {
+        for failure in [ScriptedTransport.error(429, "RATE_LIMITED"), ScriptedTransport.error(503, "SERVICE_UNAVAILABLE"), (200, "not json")] {
+            // Refresh fails.
+            let store = InMemoryTokenStore(refreshToken: "rt_old")
+            let (session, _) = manager(store: store) { _, _ in failure }
+            await session.clearLocalSession()
+            #expect(await session.completePendingSignOut() == .offline)
+            #expect(store.pendingSignOutToken == "rt_old")
+            // Refresh works, DELETE fails: the rotated token is kept (a 200 with a odd body is still success).
+            guard failure.0 != 200 else { continue }
+            let second = InMemoryTokenStore(refreshToken: "rt_old")
+            let (other, _) = manager(store: second) { request, _ in request.httpMethod == "DELETE" ? failure : (200, ScriptedTransport.pair) }
+            await other.clearLocalSession()
+            #expect(await other.completePendingSignOut() == .offline)
+            #expect(second.pendingSignOutToken == "rt_new")
+        }
+    }
+
+    @Test func a401ClearsThePendingSignOut() async throws {
+        for code in ["SESSION_EXPIRED", "SESSION_REVOKED"] {
+            let store = InMemoryTokenStore(refreshToken: "rt_old")
+            let (session, _) = manager(store: store) { _, _ in ScriptedTransport.error(401, code) }
+            await session.clearLocalSession()
+            #expect(await session.completePendingSignOut() == .done)
+            #expect(store.pendingSignOutToken == nil)
+            let late = InMemoryTokenStore(refreshToken: "rt_old")
+            let (deleting, _) = manager(store: late) { request, _ in request.httpMethod == "DELETE" ? ScriptedTransport.error(401, code) : (200, ScriptedTransport.pair) }
+            await deleting.clearLocalSession()
+            #expect(await deleting.completePendingSignOut() == .done)
+            #expect(late.pendingSignOutToken == nil)
+        }
+    }
+
+    @Test func freshInstallClearsLeftoverKeychainItems() {
+        let defaults = UserDefaults(suiteName: "installation-\(UUID().uuidString)")!
+        let store = InMemoryTokenStore(refreshToken: "left_over")
+        store.savePendingSignOut("left_over")
+        let first = InstallationID.current(defaults: defaults, onFirstStart: store.clearAll)
+        #expect(store.refreshToken == nil && store.pendingSignOutToken == nil)
+        store.saveRefreshToken("rt")
+        #expect(InstallationID.current(defaults: defaults, onFirstStart: store.clearAll) == first)
+        #expect(store.refreshToken == "rt")
+    }
 }
 
 final class EndedFlag: @unchecked Sendable {

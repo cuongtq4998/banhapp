@@ -16,7 +16,14 @@ final class OrderListViewModel {
 
     private(set) var status: OrderQuery.StatusFilter = .todo
     private(set) var date: OrderQuery.DateFilter = .any
-    var searchText = "" { didSet { if searchText != oldValue { searchChanged() } } }
+    var searchText = "" {
+        didSet {
+            // The API takes 50 characters at most; a longer paste is cut (spec 5, search).
+            if searchText.count > Self.maxSearchLength { searchText = String(searchText.prefix(Self.maxSearchLength)) }
+            if searchText != oldValue { searchChanged() }
+        }
+    }
+    static let maxSearchLength = 50
 
     private let api: any OrdersAPI
     private let debounce: Duration

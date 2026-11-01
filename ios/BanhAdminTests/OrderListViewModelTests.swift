@@ -110,4 +110,10 @@ struct OrderListViewModelTests {
         model.searchText = "abc"
         #expect(model.emptyKind == .search)
     }
+
+    @Test func searchTextIsCutAtFiftyCharacters() {
+        let model = model(FakeOrdersAPI())
+        model.searchText = String(repeating: "a", count: 80)
+        #expect(model.searchText.count == 50)
+    }
 }

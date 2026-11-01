@@ -36,6 +36,8 @@ nonisolated struct CodeRequestResponse: Codable, Equatable, Sendable {
 /// `GET /v1/admin/me` 200.
 nonisolated struct MeResponse: Codable, Equatable, Sendable {
     let account: AdminAccount
+    /// Returned since the backend change of 2026-11-01; optional so an older server still decodes.
+    let email: String?
     let deviceId: String
     let serverDate: String
 }
@@ -43,7 +45,7 @@ nonisolated struct MeResponse: Codable, Equatable, Sendable {
 /// What the app keeps in memory for a signed-in person. Never written to disk.
 nonisolated struct SignedInUser: Equatable, Sendable {
     let account: AdminAccount
-    /// Known only right after sign-in: `GET /v1/admin/me` does not return it, and it is not stored.
+    /// From the sign-in form or from `GET /v1/admin/me`. Never written to disk.
     let email: String?
     let serverDate: String
 }

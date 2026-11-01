@@ -16,7 +16,7 @@ struct ShellView: View {
                     }
                     .badge(badge)
                     .tag(OrdersCoordinator.Tab.orders)
-                SettingsPlaceholderView(model: coordinator.account)
+                SettingsTabView(coordinator: coordinator.settings!, baseURL: coordinator.baseURL)
                     .tabItem {
                         Label(String(localized: AStrings.settingsTitle), systemImage: "gearshape")
                             .accessibilityIdentifier(AdminID.tabSettings)
@@ -24,8 +24,9 @@ struct ShellView: View {
                     .tag(OrdersCoordinator.Tab.settings)
             }
             .tint(Palette.primary)
+            .foregroundToast(code: $coordinator.foregroundCode, onOpen: coordinator.openOrder)
         } else {
-            orders
+            orders.foregroundToast(code: $coordinator.foregroundCode, onOpen: coordinator.openOrder)
         }
     }
 

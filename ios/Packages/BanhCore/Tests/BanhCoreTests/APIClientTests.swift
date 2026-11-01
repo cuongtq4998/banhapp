@@ -69,3 +69,14 @@ struct APIClientTests {
         await #expect(throws: APIError.invalidResponse) { try await client.decode(Sample.self, "GET", path: "/x") }
     }
 }
+
+struct FieldProblemTests {
+    @Test func validationFieldsAreReadable() throws {
+        let body = Data(#"{"error":{"code":"VALIDATION_FAILED","message_key":"ERR_SERVER","fields":[{"field":"name","code":"NAME_TAKEN","message_key":"ERR_FIELD_TAKEN"}],"details":{}},"request_id":"r"}"#.utf8)
+        let response = HTTPURLResponse(url: URL(string: "http://x.invalid")!, statusCode: 422, httpVersion: nil, headerFields: nil)!
+        let error = APIErrorParser.parse(body, response: response)
+        #expect(error.code == "VALIDATION_FAILED")
+        #expect(error.fieldProblems == [FieldProblem(field: "name", code: "NAME_TAKEN")])
+        #expect(APIError.networkUnavailable.fieldProblems.isEmpty)
+    }
+}
