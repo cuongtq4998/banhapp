@@ -46,6 +46,13 @@ extension OperatingFlowLiveTests {
         goBack(app)
         signOutOwner(app)
 
+        // The owner's helper session (one phone holds one session): a second code, 30 s after the first.
+        Thread.sleep(forTimeInterval: 32)
+        Self.ownerToken = Self.ownerToken ?? LiveOwnerAPI.signIn(Live.ownerEmail)
+        if let token = Self.ownerToken {
+            // A run before this one left the member deactivated.
+            note("reactivate staff: \(LiveOwnerAPI.setStaffActive(token: token, email: Live.staffEmail, active: true).status)")
+        }
         signInLive(app, email: Live.staffEmail)
         XCTAssertEqual(app.tabBars.count, 0, "staff must not see a tab bar")
         // Order 1 is completed (not in "To do"): open the first order that is still open (a limit probe order).
@@ -61,13 +68,17 @@ extension OperatingFlowLiveTests {
         // The owner's helper session (the phone cannot hold two): a second sign-in by code.
         Self.ownerToken = Self.ownerToken ?? LiveOwnerAPI.signIn(Live.ownerEmail)
         guard let token = Self.ownerToken else { return XCTFail("no owner token") }
+        // The customer app is shown first, then the staff app comes back to the front before the deactivation.
+        showCakeInCustomerCatalog(token: token)
+        _ = admin()
         let off = LiveOwnerAPI.setStaffActive(token: token, email: Live.staffEmail, active: false)
         XCTAssertEqual(off.status, 200, "deactivate: \(off.text)")
         note("owner deactivated \(Live.staffEmail) through PATCH /v1/owner/staff/{id}: \(off.status)")
-        showCakeInCustomerCatalog(token: token)
-        admin().activate()
-        tapChip(app, AdminID.filterConfirmed)
-        waitFor(app, AdminID.signInEmail)
+        // The next action is a pull-to-refresh; the sign-in screen may take a moment (up to 20 s).
+        Thread.sleep(forTimeInterval: 3)
+        app.swipeDown()
+        let ended = element(app, AdminID.signInEmail).waitForExistence(timeout: 20)
+        XCTAssertTrue(ended, "the staff app did not return to sign-in after the session was revoked")
         waitFor(app, AdminID.signInBanner)
         note("session-ended banner: \(label(app, AdminID.signInBanner))")
         evidence("staff-session-ended", app: app)
