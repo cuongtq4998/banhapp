@@ -44,6 +44,7 @@ private func registerRoutes(_ app: Application, config: AppConfig) throws {
     try app.register(collection: PrivacyRoutes(directory: assetsPath))
     try app.register(collection: AuthRoutes(shopID: config.shopID, trustProxy: config.trustProxy))
     try app.register(collection: AdminRoutes())
+    try app.register(collection: AdminOrderRoutes(shopID: config.shopID))
 }
 
 /// Mail sender and sign-in settings. Without `AUTH_CODE_PEPPER` and

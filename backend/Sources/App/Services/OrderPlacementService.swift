@@ -43,8 +43,9 @@ struct OrderPlacementService: Sendable {
         return .replayed(stored.placed)
     }
 
-    /// Step 7. Counts orders stored for the phone in the last 24 hours (every
-    /// status: a cancelled order still cost the shop a conversation).
+    /// Step 7. Counts the orders stored for the phone in the last 24 hours that
+    /// count: every order except one cancelled for a reason other than
+    /// "fake or spam" (ADR-0030, FR-27).
     private func requirePhoneBelowLimit(_ command: OrderCommand) async throws {
         let since = calendar.clock.now().addingTimeInterval(-Self.phoneWindowSeconds)
         let count = try await repository.countOrders(
