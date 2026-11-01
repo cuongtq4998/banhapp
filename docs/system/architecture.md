@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.14 [v1.14 | 2026-11-01] |
+| Version      | 1.15 [v1.15 | 2026-11-01] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -26,6 +26,7 @@ This file is the index of the architecture document. The body lives in the folde
 | 16 to 22 | Admin apps: scope, context, components, flows, integrations, quality, risks [v1.10 \| 2026-10-31] | [architecture/07-admin-orders.md](architecture/07-admin-orders.md) |
 | 24 | Admin technical answers (UI questions TQ-D1 to TQ-D7, QA review items, measurable targets) [v1.11 | 2026-10-31] | [architecture/08-admin-technical-answers.md](architecture/08-admin-technical-answers.md) |
 | 26 | Slice B1 alignment: dropped and deferred items, `Retry-After` rule, review findings [v1.14 | 2026-11-01] | [architecture/10-b1-alignment.md](architecture/10-b1-alignment.md) |
+| 27 | Slices B2 and B3 alignment: decisions, document corrections, purge task not built, open defects [v1.15 | 2026-11-01] | [architecture/11-b2b3-alignment.md](architecture/11-b2b3-alignment.md) |
 | 25 | Admin simplification, answers to TQ-11 to TQ-13, list of what the PRD v1.6 simplification deleted [v1.13 \| 2026-10-31] | [architecture/09-admin-simplification.md](architecture/09-admin-simplification.md) |
 
 ## Change log
@@ -47,3 +48,4 @@ This file is the index of the architecture document. The body lives in the folde
 | 1.12 | 2026-10-31 | Aligned with PRD v1.4 and the owner directive to keep things simple: new file 09 (section 25); lock removed, tables 7 to 5, R-7 superseded. |
 | 1.13 | 2026-10-31 | PRD v1.6 simplification applied (27 FR, 14 BR): recovery, backup address, device list, Unfinished view, status history screen, push settings and reminder removed from the system documents; "Sign out all other phones" added; one window rule (open orders always listed); four cancel reasons. Section 25.3 is now the record of what was deleted (see 25.5). |
 | 1.14 | 2026-11-01 | New file architecture/10 (slice B1 alignment: built, dropped, deferred, review findings); names `create-owner`, `EMAIL_*`. |
+| 1.15 | 2026-11-01 | New file architecture/11 (section 27): alignment with built slices B2 and B3; search minimum 3; purge task not built (go-live gate); defects D-1 and D-2 for forge. |

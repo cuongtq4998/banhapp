@@ -1,6 +1,6 @@
 # API Specification: Admin error catalogue, compatibility, traceability
 
-Part of [api.md](../api.md) (index, version, change log), sections 11 to 13. New in v1.13 [v1.13 | 2026-10-31]; `CODE_LOCKED` removed in v1.15 [v1.15 | 2026-10-31] (no address lock, Q-20); `DEVICE_NOT_FOUND` removed and `EMAIL_TAKEN` narrowed in v1.16 [v1.16 | 2026-10-31]. The envelope, `message_key` rules and unknown-code behaviour of section 5 apply. Message keys belong to the admin UI document (canvas-ui); keys below are proposed names until that document lists them.
+Part of [api.md](../api.md) (index, version, change log), sections 11 to 13. Section 11.1 (order list and status field codes) added in v1.18 [v1.18 | 2026-11-01]. New in v1.13 [v1.13 | 2026-10-31]; `CODE_LOCKED` removed in v1.15 [v1.15 | 2026-10-31] (no address lock, Q-20); `DEVICE_NOT_FOUND` removed and `EMAIL_TAKEN` narrowed in v1.16 [v1.16 | 2026-10-31]. The envelope, `message_key` rules and unknown-code behaviour of section 5 apply. Message keys belong to the admin UI document (canvas-ui); keys below are proposed names until that document lists them.
 
 ## 11. Admin error catalogue
 
@@ -28,6 +28,25 @@ Part of [api.md](../api.md) (index, version, change log), sections 11 to 13. New
 | IMAGE_TOO_LARGE | 413 | `ERR_IMAGE_TOO_LARGE` | Image over 5 MB | Message on the image field |
 
 Field-level codes in `fields[]` (`NAME_TAKEN`, `IMAGE_REQUIRED`, `IMAGE_TYPE_UNSUPPORTED`, `IMAGE_DIMENSIONS_INVALID`, `EMAIL_INVALID`, `CODE_FORMAT`, `INSTALLATION_ID_INVALID`, `DEVICE_NAME_INVALID` (sign-in, api/05 10.2), `*_REQUIRED`, `*_OUT_OF_RANGE`) follow the rule of section 5: the client reads `fields[].message_key`. Existing codes reused: `VALIDATION_FAILED`, `RATE_LIMITED` (signed-in routes), `PAYLOAD_TOO_LARGE`, `HEADER_INVALID`, `NOT_FOUND`, `SERVICE_UNAVAILABLE`, `INTERNAL_ERROR`.
+
+### 11.1 Field codes of the order list and the status change [v1.18 | 2026-11-01]
+
+All of these arrive as 422 `VALIDATION_FAILED` with the defect in `fields[]` (`field`, `code`, `message_key` = `ERR_SERVER` until the UI lists a key). One response lists every defect found in the query; a client shows at most the first and treats any of them as a programming error, because the apps build these requests from fixed choices.
+
+| Code | Field | Meaning |
+| ---- | ----- | ------- |
+| UNKNOWN_PARAMETER | the parameter name | Not one of `status`, `date_preset`, `delivery_date`, `q`, `cursor` (also `date_from`, `date_to`, `view`) |
+| REPEATED_PARAMETER | the parameter name | The same parameter twice; no list-valued filter exists |
+| STATUS_INVALID | `status` (list), `expected_status` or `to_status` (change) | Not `todo`, `all` or one of the four statuses (list); not one of the four statuses or missing (change) |
+| DATE_INVALID | `delivery_date` | Not a real calendar date `YYYY-MM-DD` (`2026-02-31` is invalid) |
+| DATE_PRESET_INVALID | `date_preset` | Not `today` or `tomorrow` |
+| DATE_FILTER_CONFLICT | `delivery_date` | `date_preset` and `delivery_date` together |
+| SEARCH_INVALID | `q` | After trimming, under 3 or over 50 characters; contains a control character (including NUL); looks like a phone number (only digits, spaces and `+-().`) with under 3 digits. An empty `q=` is invalid, an absent `q` is no search |
+| CURSOR_INVALID | `cursor` | Not a cursor issued by the server (altered, truncated or from another API). The cursor is opaque: the client passes `next_cursor` back unchanged and, on this error, drops the cursor and reloads page 1 |
+| UNKNOWN_FIELD | the body key | Status change body has a key other than `expected_status`, `to_status`, `cancel_reason` |
+| REASON_NOT_ALLOWED | `cancel_reason` | Reason sent with a target other than `Cancelled` |
+
+Checks run in this order for the list: unknown or repeated names, `status`, preset against date, preset, date, `q`, `cursor`. Order data, `q` and the cursor are never logged (they can hold a name or a phone number).
 
 Rules: 401 and 403 bodies never say whether an account exists. `CODE_*` errors are the same for registered and unknown addresses. Limit messages carry `Retry-After` and `details.retry_after_seconds`, at most 3600 (api/05 10.1) [v1.17 | 2026-11-01]. A refresh token that is malformed or unknown answers `SESSION_REVOKED`.
 

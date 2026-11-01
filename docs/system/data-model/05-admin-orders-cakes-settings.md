@@ -1,6 +1,6 @@
 # Data Model: Changes to orders, events, cakes and settings for admin-orders
 
-Part of [data-model.md](../data-model.md) (index, version, change log), sections 11 to 16. New in v1.6 [v1.6 | 2026-10-31]. Aligned with PRD v1.6 in v1.9: four cancel reasons, one window rule, ids renumbered [v1.9 | 2026-10-31]. Migration `backend/db/migrations/0003_admin_orders_catalog.sql` (after `0002_admin_auth.sql`). Decisions: ADR-0025, ADR-0028 to ADR-0031.
+Part of [data-model.md](../data-model.md) (index, version, change log), sections 11 to 16. New in v1.6 [v1.6 | 2026-10-31]. Aligned with PRD v1.6 in v1.9: four cancel reasons, one window rule, ids renumbered [v1.9 | 2026-10-31]. Migration `backend/db/migrations/0003_admin_orders.sql` (after `0002_admin_auth.sql`; built in slices B2 and B3, covers section 11 only; sections 12 and 13 come in a later file [v1.10 | 2026-11-01]). Decisions: ADR-0025, ADR-0028 to ADR-0031.
 
 ## 11. customer_order and order_event (FR-14, FR-18, FR-27; BR-3, BR-8, BR-9; TQ-8) [v1.9 | 2026-10-31]
 
@@ -17,13 +17,15 @@ Triggers (replaced with `CREATE OR REPLACE`, same names):
 
 | Trigger | Change |
 | ------- | ------ |
-| `customer_order_release_capacity` | The inserted event also takes `reason = NEW.cancel_reason` and `actor_name = NULLIF(current_setting('app.actor_name', true), '')`. Capacity release on `Cancelled` unchanged |
+| `customer_order_release_capacity` | The inserted event also takes `reason = NEW.cancel_reason` and `actor_name = NULLIF(current_setting('app.actor_name', true), '')`. Capacity release on `Cancelled` is the rule of 0001, with no `GREATEST` floor (see "Cancelling and `day_load`" below) [v1.10 | 2026-11-01] |
 | `customer_order_immutable` | `cancel_reason` and `is_demo` are not snapshot columns, but a set `cancel_reason` cannot change or clear (raises `check_violation`) |
 | `customer_order_status_guard` | Unchanged (the four transitions of order-lifecycle.md section 6) |
 
 Migration guard: a `DO` block raises an error if any `Cancelled` row exists before the CHECK is added.
 
-Per-phone rule (ADR-0030): a stored order counts toward the limit when `status <> 'Cancelled' OR cancel_reason = 'fake_spam'`.
+Per-phone rule (ADR-0030): a stored order counts toward the limit when `status <> 'Cancelled' OR cancel_reason = 'fake_spam'`, within 24 hours of `created_at` (built in `PostgresOrderRepository.countOrders`; `POST /v1/orders` in api/03 step 7 states the same) [v1.10 | 2026-11-01].
+
+Cancelling and `day_load` [v1.10 | 2026-11-01]: when an order becomes `Cancelled` the trigger runs `UPDATE day_load SET cakes_accepted = cakes_accepted - OLD.total_cakes` for the order's `(shop_id, delivery_date)`. Migration 0003 has no `GREATEST(..., 0)` floor (an earlier design had one; it was removed) and one must not return, because it would hide a wrong counter. The guards are: the CHECK `cakes_accepted >= 0` (a cancel that would go below zero fails and rolls back, only possible if the counter was edited by hand); the compare-and-set of ADR-0028 (a repeated cancel changes nothing, so cakes return once); and a missing row (a past date whose row was removed) is simply not touched, the cancel succeeds. `capacity_limit` is not changed by a cancel. A cancelled order only frees room: the date shows more remaining at once. Completing and confirming do not touch `day_load`. Open defect D-2 (architecture/11 section 27.4): the trigger does not skip `is_demo` rows, which the rule "demo rows are excluded from `day_load`" requires.
 
 Indexes added: `customer_order (shop_id, created_at)` (finished orders of the 90-day window, ADR-0029). The existing `(shop_id, delivery_date, status)`, `(shop_id, status, created_at)` and `(customer_phone, created_at)` serve the list and the per-phone check. Extension `unaccent` (ADR-0029). Partial index `customer_order (shop_id, delivery_date) WHERE status IN ('New','Confirmed')` serves the open-orders part of the window predicate and the badge count (ADR-0029 v1.3); it holds only open orders, so it stays tiny. There is no Unfinished view, no `new_count` query and no `status = 'Cancelled'`-only index [v1.9 | 2026-10-31].
 
@@ -67,14 +69,14 @@ New CHECKs on `shop_setting`: `daily_limit <= 9999`, `lead_days <= 14`, `min_qty
 
 ## 14. Retention and purge jobs
 
-DEFERRED: the task is not built in slice B1 (`auth_code` rows keep addresses, so it must exist before real staff use; planned in slice B2 and a go-live gate item). Design: a maintenance task inside the backend (once at start-up and then every 24 h; idempotent, safe to run twice) deletes: `auth_code` rows 24 h after expiry; revoked or expired `device_session` rows 30 days later; `security_event` rows older than 180 days. Orders are not purged (retention pending, DM-Q1); the 90-day display window is not retention (ADR-0029).
+DEFERRED: the task is NOT built (checked after slices B1, B2 and B3: no maintenance code exists). `auth_code` rows keep addresses, so it must exist before real staff use: it is a go-live gate item, owned by a later backend slice [v1.10 | 2026-11-01]. Design: a maintenance task inside the backend (once at start-up and then every 24 h; idempotent, safe to run twice) deletes: `auth_code` rows 24 h after expiry; revoked or expired `device_session` rows 30 days later; `security_event` rows older than 180 days. Orders are not purged (retention pending, DM-Q1); the 90-day display window is not retention (ADR-0029).
 
 ## 15. Migrations
 
 | File | Content |
 | ---- | ------- |
 | `0002_admin_auth.sql` | Tables `account`, `device_session`, `auth_code`, `security_event`, `settings_change` (sections 3.10 to 3.16), triggers, indexes |
-| `0003_admin_orders_catalog.sql` | Section 11 to 13 changes, extension `unaccent`, replaced trigger functions |
+| `0003_admin_orders.sql` (built, B2 and B3) | Section 11 changes: `cancel_reason`, `is_demo`, `order_event.reason` and `actor_name`, the actor foreign key, two indexes, `search_fold()` on `unaccent` when the host allows it, replaced trigger functions; stops with an error if a `Cancelled` row exists. Sections 12 and 13 (cakes, settings CHECKs) are not in it and come in a later migration [v1.10 | 2026-11-01] |
 
 Both are forward-only and additive: the previous backend release still runs against them (the new columns have defaults or are nullable; the replaced triggers write the same event shape plus nulls). The first owner row comes from the `bootstrap-owner` command, not from a migration. Sample seed gets no accounts.
 
