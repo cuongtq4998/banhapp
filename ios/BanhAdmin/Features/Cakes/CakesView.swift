@@ -73,12 +73,16 @@ struct CakeThumbnail: View {
     let baseURL: URL
 
     var body: some View {
-        AsyncImage(url: URL(string: path, relativeTo: baseURL)) { phase in
-            switch phase {
-            case .success(let image): image.resizable().scaledToFill()
-            case .failure:
-                placeholder.accessibilityLabel(Text(AStrings.imgFailedA11y))
-            default: placeholder.overlay { ProgressView() }
+        // A fill-scaled picture that is not square (a 3:2 photo) is wider than the frame it is given:
+        // `Color.clear` takes the frame and the picture is only an overlay, so the clip cuts it to the frame.
+        Color.clear.overlay {
+            AsyncImage(url: URL(string: path, relativeTo: baseURL)) { phase in
+                switch phase {
+                case .success(let image): image.resizable().scaledToFill()
+                case .failure:
+                    placeholder.accessibilityLabel(Text(AStrings.imgFailedA11y))
+                default: placeholder.overlay { ProgressView() }
+                }
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: Radius.field, style: .continuous))

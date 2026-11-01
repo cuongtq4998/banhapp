@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.20 |
+| Version      | 1.22 |
 | Last updated | 2026-11-01 |
 | Status       | Draft |
 | Owner        | forge-dev (orchestrator wrote the first version) |
@@ -153,6 +153,9 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 - Apple `DEVELOPMENT_TEAM` is no longer in the repository: copy `ios/Config/Local.xcconfig.example` to the git-ignored `ios/Config/Local.xcconfig` to sign for a device; unsigned builds need no file.
 - Startup warning for sample rows in production (ADR-0013) is left to slice 4.
 
+Live end-to-end run, iOS (admin-orders) [v1.22 | 2026-11-01]: `ios/BanhAdminUITests/OperatingFlowLiveTests*.swift` (helpers in `Live/`) drive the real BanhAdmin and, by bundle id, the real BanhApp against a running backend (console mail provider, log file read for the one-time codes). Skipped unless `TEST_RUNNER_E2E_LIVE=1`, so the normal plan only reports them as skipped. Variables: `E2E_DIR` (state file, log, screenshots), `E2E_API_BASE_URL` (default `http://127.0.0.1:8080`), `E2E_BACKEND_LOG`, `E2E_SHOTS_DIR`, `E2E_REUSE_ORDERS=1` (keep the orders of an earlier run: a phone may place 5 orders a day). Run: `E2E_DIR=<folder> SIMULATOR=<udid> DEVELOPER_DIR=<Xcode> ios/Tools/run-e2e-live.sh` (builds and installs BanhApp, records the video, runs the class; `E2E_TESTS="test05b_StaffSignsInAndIsDeactivated"` runs single methods). Limits to plan for: 3 code requests an hour per address (a full run needs 2 for the owner: the phone and a helper session for the multipart cake upload and the staff deactivation, because PhotosPicker cannot be driven and one phone holds one session), 5 orders a day per phone. App fixes found by the run: a 3:2 cake photo spilled out of its square thumbnail in S-A7 and in the customer catalog (`CakeThumbnail`, `ProductImage`: the picture is now an overlay of `Color.clear` before the clip). Not a defect: the owner tab badge counts only orders due today or earlier (FR-13), so it is hidden for orders due in two days. UNVERIFIED on this run: staff sign-in, deactivation and the session-ended banner (method `test05b`), the owner sign-out, and a finished screen recording.
+
+
 ## 9. Change log
 
 | Version | Date | Change |
@@ -178,3 +181,4 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 | 1.19 | 2026-11-01 | Admin iOS part 2: owner settings, cakes, staff, push registration, part 1 fixes and defects D-3, D-4. |
 | 1.20 | 2026-11-01 | Backend: store-review account and `review-account on|off`, migration 0006, log redaction at every level, cancel against a smaller `day_load` handled (defects D-1, D-3, D-4). |
 | 1.21 | 2026-11-01 | Backend: `AdminAuthMiddleware` answers 401 `UNAUTHENTICATED` to a review session when `REVIEW_ACCOUNT_*` is absent or names another address (removing the variables and restarting is the kill switch); `RedactingLogHandler` replaces the message of every foreign event at `info` and above with the marker `library event`. |
+| 1.22 | 2026-11-01 | iOS live end-to-end run (`OperatingFlowLiveTests`, `run-e2e-live.sh`), thumbnail clip fix. |

@@ -13,7 +13,9 @@ struct ProductImage: View {
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-        content
+        // The picture is an overlay of `Color.clear`: a fill-scaled 3:2 photo would otherwise be wider than
+        // the square it is given and spill out of the rounded corners.
+        Color.clear.overlay { content }
             .clipShape(shape)
             .overlay { shape.strokeBorder(Palette.tileStroke, lineWidth: Size.hairline) }
     }
