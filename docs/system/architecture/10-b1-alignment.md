@@ -21,7 +21,7 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 | 401 limit 60 a minute per client address | Dropped | Token secrets are 256 bits, guessing is not feasible; the `/v1/auth` limits (20 and 60 an hour) stay, fixed in code |
 | `last_used_at` periodic write | Dropped | Nothing reads it; expiry uses `refresh_expires_at`. The column stays with its default |
 | Store review account and `review-account on/off` (ADR-0027) | Deferred to the launch slice A6 | Needed only for store submission, which waits for the money approvals (DP-Q4) |
-| `PUT /v1/admin/push-token` | Deferred to the push slice | FR-25 and FR-26 are built there with the push sender |
+| `PUT /v1/admin/push-token` | Built in slice B7 (architecture/14) [v1.18 | 2026-11-01] | FR-25 and FR-26 |
 | Purge task (codes, sessions, security events) | Deferred to slice B2, and a go-live gate item; NOT built in B2 or B3 either (architecture/11 section 27.2) [v1.15 \| 2026-11-01] | `auth_code` rows hold addresses; harmless on the free staging host with fake data, not for real staff |
 
 ## 26.3 Review findings owned by the architect (test plan 08)
