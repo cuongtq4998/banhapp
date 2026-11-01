@@ -1,3 +1,5 @@
+import Foundation
+
 /// Builds the `image_url` of a product from its stored `image_path`
 /// (api.md 4.1, 4.6).
 struct AssetURLBuilder: Sendable {
@@ -5,6 +7,8 @@ struct AssetURLBuilder: Sendable {
     /// route and for the URLs that point at it.
     static let routeSegment = "assets"
     static let versionQueryName = "v"
+    /// Folder of the route that serves uploaded cake pictures from the database.
+    static let uploadedSegment = "cakes"
 
     /// Empty for the common case (assets on the API host); a full origin such
     /// as `https://cdn.example` when they move (`PUBLIC_ASSET_BASE_URL`).
@@ -22,9 +26,14 @@ struct AssetURLBuilder: Sendable {
         versions.version(forPath: imagePath) != nil
     }
 
-    func imageURL(forPath imagePath: String) -> String {
+    /// `uploadVersion` is the stored hash of an uploaded picture
+    /// (`cakes/<id>`, served from the database); a file picture is hashed at start.
+    func imageURL(forPath imagePath: String, uploadVersion: String? = nil) -> String {
         let url = "\(baseURL)/\(Self.routeSegment)/\(imagePath)"
-        guard let version = versions.version(forPath: imagePath) else { return url }
+        guard let version = uploadVersion ?? versions.version(forPath: imagePath) else { return url }
         return "\(url)?\(Self.versionQueryName)=\(version)"
     }
+
+    /// The path an uploaded picture is served under, relative to `/assets/`.
+    static func uploadedPath(of id: UUID) -> String { "\(uploadedSegment)/\(id.uuidString.lowercased())" }
 }

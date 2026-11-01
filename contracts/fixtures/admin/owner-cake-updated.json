@@ -1,0 +1,18 @@
+{
+  "description": "PATCH /v1/owner/cakes/{id}: 200 returns the cake. DELETE answers 204 with no body.",
+  "request": {
+    "body": {
+      "price_vnd": 160000,
+      "is_active": false
+    }
+  },
+  "status": 200,
+  "body": {
+    "cake_id": "5b0c2f6a-0000-4a00-8000-0000000000c2",
+    "name": "Banh Mau",
+    "description": "Banh mau",
+    "price_vnd": 160000,
+    "is_active": false,
+    "image_url": "/assets/cakes/5b0c2f6a-0000-4a00-8000-0000000000c2?v=0a1b2c3d"
+  }
+}

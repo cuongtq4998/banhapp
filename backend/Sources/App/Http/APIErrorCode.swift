@@ -45,6 +45,9 @@ enum APIErrorCode: String, CaseIterable, Sendable {
     case emailTaken = "EMAIL_TAKEN"
     case staffLimitReached = "STAFF_LIMIT_REACHED"
     case ownerProtected = "OWNER_PROTECTED"
+    case lastActiveCake = "LAST_ACTIVE_CAKE"
+    case cakeLimitReached = "CAKE_LIMIT_REACHED"
+    case imageTooLarge = "IMAGE_TOO_LARGE"
 
     var status: HTTPResponseStatus {
         switch self {
@@ -56,7 +59,7 @@ enum APIErrorCode: String, CaseIterable, Sendable {
         case .codeResendWait, .codeRequestLimit: return .tooManyRequests
         case .statusTransitionInvalid, .cancelReasonRequired, .slotDuplicate:
             return .unprocessableEntity
-        case .lastActiveDistrict, .lastActiveSlot, .emailTaken, .staffLimitReached, .ownerProtected:
+        case .lastActiveDistrict, .lastActiveSlot, .lastActiveCake, .cakeLimitReached, .emailTaken, .staffLimitReached, .ownerProtected:
             return .conflict
         case .orderNotFound: return .notFound
         case .orderStateChanged: return .conflict
@@ -67,7 +70,7 @@ enum APIErrorCode: String, CaseIterable, Sendable {
         case .idempotencyKeyRequired, .headerInvalid:
             return .badRequest
         case .rateLimited: return .tooManyRequests
-        case .payloadTooLarge: return .payloadTooLarge
+        case .payloadTooLarge, .imageTooLarge: return .payloadTooLarge
         case .orderingPaused, .serviceUnavailable: return .serviceUnavailable
         case .internalError: return .internalServerError
         case .notFound: return .notFound
@@ -98,6 +101,9 @@ enum APIErrorCode: String, CaseIterable, Sendable {
         case .lastActiveDistrict: return "ERR_LAST_ACTIVE_DISTRICT"
         case .lastActiveSlot: return "ERR_LAST_ACTIVE_SLOT"
         case .slotDuplicate: return "ERR_SLOT_DUPLICATE"
+        case .lastActiveCake: return "ERR_LAST_ACTIVE_CAKE"
+        case .cakeLimitReached: return "ERR_CAKE_LIMIT"
+        case .imageTooLarge: return "ERR_IMAGE_TOO_LARGE"
         case .emailTaken: return "ERR_EMAIL_TAKEN"
         case .staffLimitReached: return "ERR_STAFF_LIMIT"
         default:

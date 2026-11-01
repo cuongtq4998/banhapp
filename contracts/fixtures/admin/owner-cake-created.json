@@ -1,0 +1,21 @@
+{
+  "description": "POST /v1/owner/cakes: 201. The request is multipart/form-data; the test builds the JPEG in code.",
+  "request": {
+    "content_type": "multipart/form-data",
+    "fields": {
+      "name": "Banh Mau",
+      "description": "Banh mau",
+      "price_vnd": "150000"
+    },
+    "file": "image: a JPEG of 600 x 400 pixels"
+  },
+  "status": 201,
+  "body": {
+    "cake_id": "5b0c2f6a-0000-4a00-8000-0000000000c2",
+    "name": "Banh Mau",
+    "description": "Banh mau",
+    "price_vnd": 150000,
+    "is_active": true,
+    "image_url": "/assets/cakes/5b0c2f6a-0000-4a00-8000-0000000000c2?v=0a1b2c3d"
+  }
+}

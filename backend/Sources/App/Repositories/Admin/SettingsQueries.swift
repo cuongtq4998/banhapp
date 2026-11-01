@@ -26,12 +26,15 @@ struct SettingsQueries: Sendable {
             """).all(decoding: OverLimitDate.self)
     }
 
-    /// Read-only here; adding, hiding and removing belong to the cake slice.
+    /// Cakes that are not removed, in shelf order (api/07 10.13).
     func cakes(shopID: UUID, assets: AssetURLBuilder) async throws -> [CakeView] {
-        try await sql.raw("""
-            SELECT id AS cake_id, name, description, price_vnd, is_active, image_path FROM product
-            WHERE shop_id = \(bind: shopID) ORDER BY sort_order, id
-            """).all(decoding: CakeRow.self).map { $0.view(assets) }
+        try await sql.raw("\(CakeRow.select) WHERE p.shop_id = \(bind: shopID) AND p.removed_at IS NULL ORDER BY p.sort_order, p.id")
+            .all(decoding: CakeRow.self).map { $0.view(assets) }
+    }
+
+    func cake(shopID: UUID, id: UUID, assets: AssetURLBuilder) async throws -> CakeView? {
+        try await sql.raw("\(CakeRow.select) WHERE p.shop_id = \(bind: shopID) AND p.id = \(bind: id) AND p.removed_at IS NULL")
+            .first(decoding: CakeRow.self).map { $0.view(assets) }
     }
 
     func districts(shopID: UUID) async throws -> [DistrictView] {
@@ -46,23 +49,5 @@ struct SettingsQueries: Sendable {
             SELECT id AS slot_id, to_char(start_time, 'HH24:MI') AS start, to_char(end_time, 'HH24:MI') AS "end", is_active
             FROM delivery_slot WHERE shop_id = \(bind: shopID) ORDER BY start_time, end_time, id
             """).all(decoding: SlotView.self)
-    }
-}
-
-private struct CakeRow: Decodable {
-    let cakeID: UUID
-    let name: String
-    let description: String
-    let priceVND: Int
-    let isActive: Bool
-    let imagePath: String
-
-    private enum CodingKeys: String, CodingKey {
-        case cakeID = "cake_id", name, description, priceVND = "price_vnd", isActive = "is_active", imagePath = "image_path"
-    }
-
-    func view(_ assets: AssetURLBuilder) -> CakeView {
-        CakeView(cakeID: cakeID, name: name, description: description, priceVND: priceVND, isActive: isActive,
-                 imageURL: assets.imageURL(forPath: imagePath))
     }
 }
