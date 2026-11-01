@@ -1,0 +1,22 @@
+{
+  "description": "GET /v1/owner/staff: 200, owner first.",
+  "status": 200,
+  "body": {
+    "accounts": [
+      {
+        "account_id": "5b0c2f6a-0000-4a00-8000-0000000000a1",
+        "name": "Chu Mau",
+        "email": "chu.mau@example.com",
+        "role": "owner",
+        "is_active": true
+      },
+      {
+        "account_id": "5b0c2f6a-0000-4a00-8000-0000000000a2",
+        "name": "Nhan Vien A",
+        "email": "nhanvien.a@example.com",
+        "role": "staff",
+        "is_active": true
+      }
+    ]
+  }
+}

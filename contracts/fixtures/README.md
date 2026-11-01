@@ -41,3 +41,16 @@ Admin sign-in and session exchanges (docs/system/api/05, api/06, api/08; admin-o
 | `order-detail.json` | `GET /v1/admin/orders/{order_code}` | 200 detail with `items`, `cancel_reason`, `allowed_actions`, `last_change` |
 | `order-status-change.json` | `POST /v1/admin/orders/{order_code}/status` | Request body and the 200 detail after cancelling |
 | `error-order-not-found`, `-status-transition-invalid`, `-cancel-reason-required`, `-order-state-changed` | status route | 404, 422 and 409 envelopes; the 409 carries `details.order` (the current detail) |
+
+Owner settings and staff (docs/system/api/07; admin-orders slices B4 and B5), in `admin/`. Ids and addresses are placeholders; tests compare key sets and value kinds.
+
+| File | Endpoint | Meaning |
+| ---- | -------- | ------- |
+| `owner-settings.json` | `GET /v1/owner/settings` | 200 with `shop`, `ordering`, `cakes`, `districts`, `slots`, `cake_count_max`, `staff_count_max` |
+| `owner-shop-saved.json` | `PUT /v1/owner/settings/shop` | Request and the 200 section |
+| `owner-ordering-saved.json` | `PUT /v1/owner/settings/ordering` | 200 section plus `over_limit` and `count` true at save time |
+| `owner-ordering-impact.json` | `GET /v1/owner/settings/ordering/impact?daily_limit=60` | 200 preview, writes nothing |
+| `owner-district-created.json`, `owner-slot-created.json` | `POST /v1/owner/districts`, `/slots` | 201 |
+| `owner-staff-list.json`, `owner-staff-created.json`, `owner-staff-deactivated.json` | `/v1/owner/staff` | `{ accounts: [...] }` (owner first), 201 account, 200 account |
+| `error-settings-validation`, `-staff-validation` | settings and staff writes | 422 with every problem in `fields[]` (`ERR_FIELD_*` keys) |
+| `error-last-active-district`, `-last-active-slot`, `-slot-duplicate`, `-email-taken`, `-staff-limit-reached`, `-owner-protected` | districts, slots, staff | 409 and 422 envelopes |
