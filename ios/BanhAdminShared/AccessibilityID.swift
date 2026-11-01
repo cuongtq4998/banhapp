@@ -27,6 +27,8 @@ nonisolated enum AdminID {
     static let dateToday = "admin.orders.date.today"
     static let dateTomorrow = "admin.orders.date.tomorrow"
     static let dateOne = "admin.orders.date.one"
+    static let dateOk = "admin.orders.date.ok"
+    static let dateCancel = "admin.orders.date.cancel"
     static let ordersList = "admin.orders.list"
     static let ordersSkeleton = "admin.orders.skeleton"
     static let ordersEmpty = "admin.orders.empty"
@@ -110,6 +112,13 @@ nonisolated enum AdminLaunch {
     static let modeEmpty = "empty"
     static let modeGone = "gone"
     static let modeServerError = "serverError"
+    /// Owner modes: `ownerFull` has 12 cakes and 30 active staff, `ownerOffline` and `ownerError` fail every
+    /// owner call (no connection, 500), `ownerSlow` makes the cake upload take 30 s (cancel test).
+    static let modeOwnerFull = "ownerFull"
+    static let modeOwnerOffline = "ownerOffline"
+    static let modeOwnerError = "ownerError"
+    static let modeOwnerSlow = "ownerSlow"
+    static let ownerModes: Set<String> = [modeOwner, modeSignInOwner, modeOwnerFull, modeOwnerOffline, modeOwnerError, modeOwnerSlow]
     static let fakeCode = "123456"
     static let fakeEmail = "nhanvien.a@example.com"
 }

@@ -55,6 +55,7 @@ enum AStrings {
     static let dateAll = LocalizedStringResource("A_DATE_ALL")
     static let dateToday = LocalizedStringResource("A_DATE_TODAY")
     static let dateTomorrow = LocalizedStringResource("A_DATE_TOMORROW")
+    static let datePickOk = LocalizedStringResource("A_DATE_PICK_OK")
     static let dateOne = LocalizedStringResource("A_DATE_ONE")
     static let dueToday = LocalizedStringResource("A_DUE_TODAY")
     static let rowHintA11y = LocalizedStringResource("A_ROW_HINT_A11Y")

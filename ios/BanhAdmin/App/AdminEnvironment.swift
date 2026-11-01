@@ -7,6 +7,11 @@ struct AdminEnvironment {
     let auth: any AuthService
     let orders: any OrdersAPI
     let account: any AccountAPI
+    let owner: any OwnerAPI
+    /// Host of `image_url` paths.
+    let baseURL: URL
+    let push: PushRegistrar
+    let router: NotificationRouter
     let opener: any URLOpener
     /// Debug stub only: the countdown of the resend button runs this fast.
     var tick: Duration = .seconds(1)
@@ -21,12 +26,17 @@ struct AdminEnvironment {
             appVersion: BuildConfiguration.appVersion(in: bundle),
             transport: URLSessionTransport()
         )
-        return assemble(client: client, store: KeychainTokenStore(), opener: SystemURLOpener())
+        let store = KeychainTokenStore()
+        // D-4: the Keychain outlives app deletion, the installation id does not.
+        _ = InstallationID.current(defaults: defaults, onFirstStart: store.clearAll)
+        return assemble(client: client, store: store, opener: SystemURLOpener(), tokens: ApnsTokenProvider.shared)
     }
 
     /// Wires the clients on one transport and one token store. The stub backend uses the same wiring.
     @MainActor
-    static func assemble(client: APIClient, store: any TokenStore, opener: any URLOpener) -> AdminEnvironment {
+    static func assemble(
+        client: APIClient, store: any TokenStore, opener: any URLOpener, tokens: any TokenProvider
+    ) -> AdminEnvironment {
         let session = SessionManager(client: client, store: store)
         return AdminEnvironment(
             session: session,
@@ -36,6 +46,10 @@ struct AdminEnvironment {
             ),
             orders: HTTPOrdersAPI(client: client, session: session),
             account: HTTPAccountAPI(client: client, session: session),
+            owner: HTTPOwnerAPI(client: client, session: session),
+            baseURL: client.baseURL,
+            push: PushRegistrar(provider: tokens, api: HTTPPushAPI(client: client, session: session)),
+            router: NotificationRouter.shared,
             opener: opener
         )
     }

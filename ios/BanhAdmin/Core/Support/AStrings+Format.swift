@@ -3,7 +3,7 @@ import Foundation
 /// Texts with placeholders. The catalogue holds `%@` for each `{name}`; the arguments are formatted
 /// strings, so the result never depends on the device locale.
 extension AStrings {
-    private static func fill(_ resource: LocalizedStringResource, _ args: [String]) -> String {
+    static func fill(_ resource: LocalizedStringResource, _ args: [String]) -> String {
         String(format: String(localized: resource), arguments: args)
     }
 

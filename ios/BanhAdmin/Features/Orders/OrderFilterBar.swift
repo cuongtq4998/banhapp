@@ -7,6 +7,9 @@ struct OrderFilterBar: View {
     @State private var showsDatePicker = false
     @State private var pickedDate = Date()
     @FocusState private var searchFocused: Bool
+    /// What the field shows. A change made inside `onChange` is a new transaction, so the field takes
+    /// back the cut text (a binding that cuts silently leaves the 51st character on screen).
+    @State private var draft = ""
 
     private static let chips: [(OrderQuery.StatusFilter, LocalizedStringResource, String)] = [
         (.todo, AStrings.filterTodo, AdminID.filterTodo),
@@ -30,12 +33,19 @@ struct OrderFilterBar: View {
             chipRow
         }
         .sheet(isPresented: $showsDatePicker) { datePickerSheet }
+        .onChange(of: draft) { _, text in
+            let cut = String(text.prefix(OrderListViewModel.maxSearchLength))
+            if cut != text { draft = cut }
+            model.searchText = cut
+        }
+        .onChange(of: model.searchText) { _, text in if text != draft { draft = text } }
+        .onAppear { draft = model.searchText }
     }
 
     private var searchField: some View {
         HStack(spacing: Spacing.sm) {
             Image(systemName: "magnifyingglass").foregroundStyle(Palette.textSecondary).accessibilityHidden(true)
-            TextField(String(localized: AStrings.searchPlaceholder), text: $model.searchText)
+            TextField(String(localized: AStrings.searchPlaceholder), text: $draft)
                 .textStyle(Typography.body)
                 .submitLabel(.search)
                 .textInputAutocapitalization(.never)
@@ -43,8 +53,8 @@ struct OrderFilterBar: View {
                 .focused($searchFocused)
                 .onSubmit { model.submitSearch() }
                 .accessibilityIdentifier(AdminID.ordersSearch)
-            if !model.searchText.isEmpty {
-                Button { model.searchText = "" } label: {
+            if !draft.isEmpty {
+                Button { draft = "" } label: {
                     Image(systemName: "xmark.circle.fill").foregroundStyle(Palette.textSecondary)
                         .frame(width: Size.touchTarget, height: Size.touchTarget)
                 }
@@ -77,7 +87,10 @@ struct OrderFilterBar: View {
             Button(String(localized: AStrings.dateAll)) { model.select(date: .any) }.accessibilityIdentifier(AdminID.dateAll)
             Button(String(localized: AStrings.dateToday)) { model.select(date: .today) }.accessibilityIdentifier(AdminID.dateToday)
             Button(String(localized: AStrings.dateTomorrow)) { model.select(date: .tomorrow) }.accessibilityIdentifier(AdminID.dateTomorrow)
-            Button(String(localized: AStrings.dateOne)) { showsDatePicker = true }.accessibilityIdentifier(AdminID.dateOne)
+            Button(String(localized: AStrings.dateOne)) {
+                pickedDate = AdminFormatting.pickerDate(model.serverDate)
+                showsDatePicker = true
+            }.accessibilityIdentifier(AdminID.dateOne)
         } label: {
             FilterChip(title: dateTitle, isSelected: model.date != .any, showsChevron: true)
         }
@@ -93,17 +106,23 @@ struct OrderFilterBar: View {
         }
     }
 
+    /// The picker, its text and the returned day use the shop time zone, never the device zone.
     private var datePickerSheet: some View {
         VStack(spacing: Spacing.lg) {
             DatePicker("", selection: $pickedDate, displayedComponents: .date)
                 .datePickerStyle(.graphical)
                 .environment(\.locale, Locale(identifier: "vi_VN"))
-            ActionButton(title: AStrings.save) {
+                .environment(\.calendar, AdminFormatting.shopCalendar)
+                .environment(\.timeZone, AdminFormatting.shopTimeZone)
+            ActionButton(title: AStrings.datePickOk) {
                 model.select(date: .day(AdminFormatting.wire(of: pickedDate)))
                 showsDatePicker = false
             }
+            .accessibilityIdentifier(AdminID.dateOk)
+            ActionButton(title: AStrings.back, emphasis: .secondary) { showsDatePicker = false }
+                .accessibilityIdentifier(AdminID.dateCancel)
         }
         .padding(Spacing.lg)
-        .presentationDetents([.medium])
+        .presentationDetents([.large])
     }
 }

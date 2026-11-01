@@ -86,4 +86,28 @@ final class OrdersUITests: AdminUITestCase {
         waitFor(app, AdminID.settingsSignOut)
         shot("S-A6-settings-placeholder-owner")
     }
+
+    func testDatePickerOpensOnTheServerDayAndFiltersByIt() {
+        let app = launch(AdminLaunch.modeStaff)
+        waitFor(app, AdminID.row("BT-7K3M9Q"))
+        tapChip(app, AdminID.filterDate)
+        tap(app, AdminID.dateOne)
+        waitFor(app, AdminID.dateOk)
+        shot("S-A3-date-picker")
+        tap(app, AdminID.dateCancel)
+        absent(app, AdminID.dateOk)
+        tapChip(app, AdminID.filterDate)
+        tap(app, AdminID.dateOne)
+        tap(app, AdminID.dateOk)
+        // The picker opened on the server date 2026-11-02, so the chip reads 02/11.
+        XCTAssertTrue(element(app, AdminID.filterDate).label.contains("02/11"))
+    }
+
+    func testSearchFieldStopsAtFiftyCharacters() {
+        let app = launch(AdminLaunch.modeStaff)
+        let field = waitFor(app, AdminID.ordersSearch)
+        field.tap()
+        field.typeText(String(repeating: "a", count: 60))
+        XCTAssertEqual((field.value as? String)?.count, 50)
+    }
 }

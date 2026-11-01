@@ -13,15 +13,22 @@ final class StubAdminTransport: HTTPTransport, @unchecked Sendable {
     private var currentAccess = ""
     private var pendingExpiry: Bool
     private(set) var staffRole = true
+    private let owner: StubOwnerBackend
+    /// Push tokens the app registered (`PUT /v1/admin/push-token`), for tests.
+    private(set) var pushTokens: [String] = []
 
     init(mode: String) {
         self.mode = mode
         pendingExpiry = mode == AdminLaunch.modeRefresh
-        staffRole = mode != AdminLaunch.modeOwner && mode != AdminLaunch.modeSignInOwner
+        staffRole = !AdminLaunch.ownerModes.contains(mode)
+        owner = StubOwnerBackend(full: mode == AdminLaunch.modeOwnerFull)
     }
 
     func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
-        try respond(request)
+        if mode == AdminLaunch.modeOwnerSlow, request.httpMethod == "POST", request.url?.path == "/v1/owner/cakes" {
+            try await Task.sleep(for: .seconds(30))
+        }
+        return try respond(request)
     }
 
     private func respond(_ request: URLRequest) throws -> (Data, HTTPURLResponse) {
@@ -46,10 +53,11 @@ final class StubAdminTransport: HTTPTransport, @unchecked Sendable {
             return StubReply.error(401, "ACCESS_TOKEN_EXPIRED", "ERR_ADMIN_SIGN_IN_REQUIRED")
         }
         if mode == AdminLaunch.modeOffline, path.hasPrefix("/v1/admin/orders") { throw APIError.networkUnavailable }
+        if mode == AdminLaunch.modeOwnerOffline, path.hasPrefix("/v1/owner") { throw APIError.networkUnavailable }
         if mode == AdminLaunch.modeServerError, path.hasPrefix("/v1/admin/orders") {
             return StubReply.error(500, "INTERNAL_ERROR", "ERR_SERVER")
         }
-        return admin(method, path, json: json, query: request.url?.query ?? "")
+        return admin(method, path, json: json, query: request.url?.query ?? "", request: request)
     }
 
     // MARK: Auth
@@ -95,25 +103,39 @@ final class StubAdminTransport: HTTPTransport, @unchecked Sendable {
 
     // MARK: Admin
 
-    private func admin(_ method: String, _ path: String, json: [String: Any], query: String) -> (Int, Data) {
+    private func admin(_ method: String, _ path: String, json: [String: Any], query: String, request: URLRequest) -> (Int, Data) {
         switch (method, path) {
         case ("GET", "/v1/admin/me"):
             return StubReply.ok(200, [
                 "account": ["name": staffRole ? "Nhan Vien A" : "Chu Tiem", "role": staffRole ? "staff" : "owner"],
+                "email": staffRole ? AdminLaunch.fakeEmail : StubOwnerData.ownerEmail,
                 "device_id": "5b0c2f6a-0000-4a00-8000-000000000001", "server_date": StubOrderData.serverDate,
             ])
         case ("DELETE", "/v1/admin/session"), ("DELETE", "/v1/admin/sessions/others"):
+            return (204, Data())
+        case ("PUT", "/v1/admin/push-token"):
+            guard let token = json["token"] as? String, json["platform"] as? String == "ios",
+                  ["sandbox", "production"].contains(json["apns_environment"] as? String)
+            else { return StubReply.error(422, "VALIDATION_FAILED", "ERR_SERVER") }
+            pushTokens.append(token)
             return (204, Data())
         case ("GET", "/v1/admin/orders"): return list(query: query)
         default: break
         }
         let parts = path.split(separator: "/").map(String.init)
+        if parts.count >= 3, parts[1] == "owner" { return ownerRoute(method, parts, json: json, query: query, request: request) }
         guard parts.count >= 4, parts[2] == "orders", mode != AdminLaunch.modeGone,
               let index = orders.firstIndex(where: { $0.orderCode == parts[3] })
         else { return StubReply.error(404, "ORDER_NOT_FOUND", "ERR_ORDER_NOT_FOUND") }
         if method == "GET", parts.count == 4 { return StubReply.codable(200, orders[index]) }
         if method == "POST", parts.count == 5, parts[4] == "status" { return changeStatus(index, json) }
         return StubReply.error(404, "NOT_FOUND", "ERR_NOT_FOUND")
+    }
+
+    private func ownerRoute(_ method: String, _ parts: [String], json: [String: Any], query: String, request: URLRequest) -> (Int, Data) {
+        if staffRole { return StubReply.error(403, "FORBIDDEN", "ERR_FORBIDDEN") }
+        if mode == AdminLaunch.modeOwnerError { return StubReply.error(500, "INTERNAL_ERROR", "ERR_SERVER") }
+        return owner.handle(method, parts, json: json, query: query, request: request)
     }
 
     private func list(query: String) -> (Int, Data) {

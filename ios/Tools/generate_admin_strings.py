@@ -29,6 +29,16 @@ def table_text():
     return texts
 
 
+# Keys of spec v1.2 (docs/design/admin-orders/08, on feature/admin-orders) that this branch's copy of the
+# table does not hold yet; the table wins as soon as it has the key.
+FALLBACK = {
+    "A_DATE_PICK_OK": "Chọn",
+    "A_UNDERSTOOD": "Đã hiểu",
+    "A_ERR_IMG_DIM_SMALL": "Ảnh bánh: ảnh quá nhỏ, mỗi cạnh cần ít nhất 200 px.",
+    "A_ERR_IMG_DIM_LARGE": "Ảnh bánh: ảnh quá lớn, mỗi cạnh tối đa 4096 px.",
+}
+
+
 def used_keys():
     keys = set()
     for path in glob.glob(os.path.join(ROOT, "ios/BanhAdmin/**/*.swift"), recursive=True):
@@ -37,8 +47,11 @@ def used_keys():
 
 
 def main():
-    texts = table_text()
-    keys = sorted(used_keys())
+    texts = {**FALLBACK, **table_text()}
+    # Keys the system resolves from a push payload (api/06 10.12): the copy of A_NOTIF_TITLE and A_NOTIF_BODY.
+    texts["PUSH_NEW_ORDER_TITLE"] = texts["A_NOTIF_TITLE"]
+    texts["PUSH_NEW_ORDER_BODY"] = texts["A_NOTIF_BODY"]
+    keys = sorted(used_keys() | {"PUSH_NEW_ORDER_TITLE", "PUSH_NEW_ORDER_BODY"})
     missing = [key for key in keys if key not in texts]
     if missing:
         sys.exit("keys without text in docs/design/admin-orders/08 or 09: " + ", ".join(missing))

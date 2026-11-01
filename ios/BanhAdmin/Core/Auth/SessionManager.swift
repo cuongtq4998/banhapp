@@ -114,26 +114,31 @@ actor SessionManager {
         store.clearRefreshToken()
     }
 
-    /// Sign out, step two (also run at launch): tell the server. Repeats until 204 or 401.
+    /// Sign out, step two (also run at launch): tell the server. Only a 401 (the session is already gone)
+    /// or a 2xx clears the pending token; a network error, 429, 5xx or an unreadable answer keeps it and
+    /// returns `.offline` ("not confirmed yet"), so the next launch tries again (a live session and its
+    /// push token must not be forgotten).
     func completePendingSignOut() async -> SignOutResult {
         guard let token = store.pendingSignOutToken else { return .done }
+        let pair: RefreshResponse
         do {
-            let pair = try await Self.refreshCall(client, token)
-            do {
-                _ = try await client.send("DELETE", path: "/v1/admin/session", headers: ["Authorization": "Bearer \(pair.accessToken)"])
-                store.clearPendingSignOut()
-            } catch let error as APIError where error.isConnectivity {
-                store.savePendingSignOut(pair.refreshToken)
-                return .offline
-            } catch {
-                store.clearPendingSignOut()
-            }
-            return .done
-        } catch let error as APIError where error.isConnectivity {
-            return .offline
-        } catch {
+            pair = try await Self.refreshCall(client, token)
+        } catch let error as APIError where error.httpStatus == 401 {
             store.clearPendingSignOut()
             return .done
+        } catch {
+            return .offline
+        }
+        store.savePendingSignOut(pair.refreshToken)
+        do {
+            _ = try await client.send("DELETE", path: "/v1/admin/session", headers: ["Authorization": "Bearer \(pair.accessToken)"])
+            store.clearPendingSignOut()
+            return .done
+        } catch let error as APIError where error.httpStatus == 401 {
+            store.clearPendingSignOut()
+            return .done
+        } catch {
+            return .offline
         }
     }
 }

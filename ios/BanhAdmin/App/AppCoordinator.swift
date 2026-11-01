@@ -24,6 +24,8 @@ final class AppCoordinator {
 
     let environment: AdminEnvironment
     private var lastEmail = ""
+    /// Order code of a notification tapped while signed out: kept in memory only, opened after sign-in (AC-43).
+    private var pendingOrderCode: String?
 
     init(environment: AdminEnvironment) {
         self.environment = environment
@@ -32,6 +34,7 @@ final class AppCoordinator {
 
     /// App start: finish a sign-out the server has not confirmed, then open the session if there is one.
     func start() async {
+        environment.router.listen { [weak self] event in self?.handle(event) }
         await environment.session.setOnEnded { [weak self] in Task { @MainActor [weak self] in self?.sessionEnded() } }
         let signOut = await environment.session.completePendingSignOut()
         let hasSession = await environment.session.hasSession
@@ -40,7 +43,7 @@ final class AppCoordinator {
         screen = .launching
         do {
             let me = try await environment.account.me()
-            enter(SignedInUser(account: me.account, email: nil, serverDate: me.serverDate))
+            enter(SignedInUser(account: me.account, email: me.email, serverDate: me.serverDate), freshSignIn: false)
         } catch {
             if !(error is SessionEnded) { screen = .launchFailed }
         }
@@ -60,7 +63,7 @@ final class AppCoordinator {
         step = .code(CodeViewModel(
             email: email, resendAfterSeconds: resendAfter, auth: environment.auth,
             sleep: { [tick = environment.tick] _ in try await Task.sleep(for: tick) }
-        ) { [weak self] user in self?.enter(user) })
+        ) { [weak self] user in self?.enter(user, freshSignIn: true) })
     }
 
     /// "Change e-mail" keeps the address (AC-3).
@@ -75,20 +78,41 @@ final class AppCoordinator {
 
     // MARK: Session
 
-    private func enter(_ user: SignedInUser) {
+    /// `freshSignIn`: the notification permission is asked right after the first sign-in on this phone
+    /// (FR-25); a restored session only refreshes the token when the permission is already granted.
+    private func enter(_ user: SignedInUser, freshSignIn: Bool) {
         banner = nil
-        screen = .signedIn(OrdersCoordinator(user: user, environment: environment) { [weak self] in self?.signOut() })
+        let orders = OrdersCoordinator(user: user, environment: environment) { [weak self] in self?.signOut() }
+        screen = .signedIn(orders)
+        if let code = pendingOrderCode {
+            pendingOrderCode = nil
+            orders.openOrder(code: code)
+        }
+        Task { await environment.push.register(prompt: freshSignIn) }
+    }
+
+    private func handle(_ event: NotificationEvent) {
+        guard case .signedIn(let orders) = screen else {
+            if case .tapped(let code) = event { pendingOrderCode = code }
+            return
+        }
+        switch event {
+        case .tapped(let code): orders.openOrder(code: code)
+        case .foreground(let code): orders.showForeground(code: code)
+        }
     }
 
     /// A 401 that cannot be repaired: every model of the signed-in session is dropped, so no order or
     /// customer data stays in memory (BR-7).
     func sessionEnded() {
+        environment.push.unregister()
         banner = AStrings.sessionEnded
         showSignIn()
     }
 
     /// The person signed out: forget this phone at once, tell the server afterwards.
     func signOut() {
+        environment.push.unregister()
         Task {
             await environment.session.clearLocalSession()
             banner = nil
