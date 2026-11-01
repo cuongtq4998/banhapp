@@ -2,11 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-<<<<<<< HEAD
-| Version      | 1.17 |
-=======
 | Version      | 1.18 |
->>>>>>> stage/admin-orders/15-forge-android2
 | Last updated | 2026-11-01 |
 | Status       | Draft |
 | Owner        | forge-dev (orchestrator wrote the first version) |
@@ -169,8 +165,5 @@ Naming: verb plus a specific object (`loadCatalog`, not `setupData`). Comments a
 | 1.14 | 2026-11-01 | Admin slice B7 backend: push token route, new-order push dispatch, `PUSH_PROVIDER` switch, APNs and FCM clients (unverified against the real services). |
 | 1.15 | 2026-11-01 | Admin iOS part 1: second project, local packages, session handling, sign-in, order list and detail, stub backend, tests. |
 | 1.16 | 2026-11-01 | Android admin app part 1: modules, convention plugins, session storage, stub backend, tests. |
-<<<<<<< HEAD
 | 1.17 | 2026-11-01 | `GET /v1/admin/me` also returns the caller's own `account.email`. |
-=======
 | 1.18 | 2026-11-01 | Android admin app part 2: owner screens S-A6 to S-A12, photo re-encode, optional push (fake token provider), stub owner routes, UNAUTHENTICATED refresh, canvas-ui fixes. |
->>>>>>> stage/admin-orders/15-forge-android2
