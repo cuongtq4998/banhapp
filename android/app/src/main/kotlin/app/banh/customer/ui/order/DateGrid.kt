@@ -36,8 +36,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import app.banh.customer.R
 import app.banh.customer.TestTags
-import app.banh.customer.design.Sizes
-import app.banh.customer.design.Spacing
+import app.banh.core.design.Sizes
+import app.banh.core.design.Spacing
 import app.banh.customer.order.CalendarDay
 import app.banh.customer.order.CalendarMonth
 import app.banh.customer.order.DateCalendar

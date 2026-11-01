@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vietnamese is the only language. Resource names are the copy keys of docs/design/admin-orders/08 in lower case.
+     Placeholders use %1$s style in the order the key lists them. -->
+<resources>
+    <string name="app_name">Banh Admin</string>
+
+    <!-- 8.1 Common -->
+    <string name="a_retry">Thử lại</string>
+    <string name="a_back">Quay lại</string>
+    <string name="a_err_generic">Có lỗi xảy ra. Vui lòng thử lại.</string>
+    <string name="a_offline">Không có kết nối mạng. Kiểm tra mạng rồi thử lại.</string>
+    <string name="a_offline_save">Không có kết nối mạng. Chưa lưu được.</string>
+    <string name="a_offline_signout">Không có mạng. Đã đăng xuất trên máy này.</string>
+    <string name="a_session_ended">Phiên đăng nhập đã hết. Vui lòng đăng nhập lại.</string>
+    <string name="a_status_new">Mới</string>
+    <string name="a_status_confirmed">Đã xác nhận</string>
+    <string name="a_status_completed">Đã hoàn thành</string>
+    <string name="a_status_cancelled">Đã hủy</string>
+    <string name="a_sign_out">Đăng xuất</string>
+    <string name="a_signout_title">Đăng xuất?</string>
+    <string name="a_signout_body">Thông tin khách hàng sẽ được xóa khỏi máy này.</string>
+    <string name="a_signout_others">Đăng xuất các máy khác</string>
+    <string name="a_signout_others_title">Đăng xuất các máy khác?</string>
+    <string name="a_signout_others_body">Mọi máy khác đang đăng nhập tài khoản này sẽ bị đăng xuất trong tối đa 5 phút. Máy này vẫn dùng bình thường.</string>
+    <string name="a_signout_others_done">Đã đăng xuất các máy khác.</string>
+
+    <!-- 8.2 Sign-in -->
+    <string name="a_signin_title">Quản lý đơn hàng</string>
+    <string name="a_signin_hint">Nhập email để nhận mã xác thực 6 số. Chỉ email do Chủ tiệm thêm mới đăng nhập được.</string>
+    <string name="a_email_label">Email</string>
+    <string name="a_send_code">Gửi mã</string>
+    <string name="a_session_note">Máy này được nhớ 7 ngày, và gia hạn mỗi lần bạn dùng.</string>
+    <string name="a_err_email_invalid">Email không hợp lệ.</string>
+    <string name="a_err_rate_send">Bạn đã yêu cầu mã quá nhiều lần. Thử lại sau %1$d phút.</string>
+    <string name="a_code_title">Nhập mã xác thực</string>
+    <string name="a_code_prompt">Nhập mã 6 số đã gửi về %1$s</string>
+    <string name="a_code_field_a11y">Mã xác thực 6 số</string>
+    <string name="a_resend_wait">Gửi lại sau %1$d giây</string>
+    <string name="a_resend">Gửi lại mã</string>
+    <string name="a_change_email">Đổi email</string>
+    <string name="a_signin">Đăng nhập</string>
+    <string name="a_code_wrong">Mã không đúng. Kiểm tra lại mã trong email.</string>
+    <string name="a_code_expired">Mã không còn hiệu lực. Hãy yêu cầu mã mới.</string>
+
+    <!-- 8.3 Orders -->
+    <string name="a_orders_title">Đơn hàng</string>
+    <string name="a_tab_badge_a11y">%1$d đơn cần xử lý</string>
+    <string name="a_account_a11y">Tài khoản</string>
+    <string name="a_search_placeholder">Tìm mã đơn, tên, số điện thoại</string>
+    <string name="a_search_hint">Mã đơn, tên khách hoặc số điện thoại. Chỉ tìm trong đơn 90 ngày gần đây.</string>
+    <string name="a_search_min">Nhập ít nhất 3 ký tự để tìm.</string>
+    <string name="a_reset">Đặt lại</string>
+    <string name="a_filter_todo">Cần làm</string>
+    <string name="a_filter_all">Tất cả</string>
+    <string name="a_filter_date">Ngày giao</string>
+    <string name="a_date_all">Mọi ngày</string>
+    <string name="a_date_today">Hôm nay</string>
+    <string name="a_date_tomorrow">Ngày mai</string>
+    <string name="a_date_one">Chọn một ngày…</string>
+    <string name="a_due_today">Giao hôm nay</string>
+    <string name="a_overdue">Quá hạn %1$d ngày</string>
+    <string name="a_row_hint_a11y">Mở chi tiết đơn</string>
+    <string name="a_row_delivery">%1$s · %2$s</string>
+    <string name="a_row_meta">%1$d bánh · %2$s · %3$s</string>
+    <string name="a_load_more_failed">Không tải thêm được.</string>
+    <string name="a_orders_empty">Không có đơn nào phù hợp.</string>
+    <string name="a_todo_empty">Không còn đơn nào cần làm.</string>
+    <string name="a_search_empty">Không tìm thấy đơn nào.</string>
+    <string name="a_clear_filters">Xóa bộ lọc</string>
+    <string name="a_sec_customer">Khách hàng</string>
+    <string name="a_sec_delivery">Giao hàng</string>
+    <string name="a_sec_cakes">Bánh đã đặt</string>
+    <string name="a_sec_note">Ghi chú của khách</string>
+    <string name="a_sec_reason">Lý do hủy</string>
+    <string name="a_placed_at">Đặt lúc %1$s</string>
+    <string name="a_last_changed">Cập nhật lần cuối bởi %1$s, %2$s</string>
+    <string name="a_hist_customer">khách hàng</string>
+    <string name="a_fee">Phí giao hàng</string>
+    <string name="a_total">Tổng cộng</string>
+    <string name="a_call">Gọi %1$s</string>
+    <string name="a_zalo">Nhắn Zalo</string>
+    <string name="a_zalo_unavailable">Không mở được Zalo trên máy này.</string>
+    <string name="a_confirm_order">Xác nhận đơn</string>
+    <string name="a_complete_order">Hoàn thành</string>
+    <string name="a_cancel_order">Hủy đơn</string>
+    <string name="a_complete_title">Hoàn thành đơn %1$s?</string>
+    <string name="a_complete_body">Đơn đã hoàn thành thì không mở lại được.</string>
+    <string name="a_complete_yes">Hoàn thành</string>
+    <string name="a_status_changed">Đã cập nhật trạng thái đơn.</string>
+    <string name="a_conflict">Đơn này vừa được người khác thay đổi. Trạng thái hiện tại: %1$s.</string>
+    <string name="a_order_gone">Không tìm thấy đơn, hoặc đơn đã quá 90 ngày.</string>
+    <string name="a_back_to_list">Về danh sách</string>
+    <string name="a_err_status">Không đổi được trạng thái đơn. Vui lòng thử lại.</string>
+    <string name="a_cancel_title">Hủy đơn</string>
+    <string name="a_cancel_body">Hủy đơn %1$s? Số bánh sẽ được trả lại cho ngày giao. Hãy chọn một lý do.</string>
+    <string name="a_reason_customer">Khách yêu cầu hủy</string>
+    <string name="a_reason_cannot_deliver">Không giao được (kể cả khi ngày đã đầy)</string>
+    <string name="a_reason_no_contact">Không liên lạc được với khách</string>
+    <string name="a_reason_spam">Đơn giả hoặc spam</string>
+    <string name="a_cancel_confirm">Hủy đơn %1$s</string>
+    <string name="a_reason_internal">Lý do chỉ nhân viên và Chủ tiệm thấy, khách không thấy.</string>
+
+    <!-- 9: account, settings placeholder -->
+    <string name="a_account_title">Tài khoản</string>
+    <string name="a_role_owner">Chủ tiệm</string>
+    <string name="a_role_staff">Nhân viên</string>
+    <string name="a_settings_title">Cài đặt</string>
+
+    <!-- Shared labels that have no key in the copy tables (screen reader text) -->
+    <string name="a_loading">Đang tải</string>
+    <string name="a_chip_group_a11y">Lọc theo trạng thái</string>
+</resources>

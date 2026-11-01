@@ -15,8 +15,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.semantics
-import app.banh.customer.design.Radii
-import app.banh.customer.design.Spacing
+import app.banh.core.design.Radii
+import app.banh.core.design.Spacing
 
 /** A line under a text field: the error on the left, an optional counter on the right. */
 data class FieldMessages(

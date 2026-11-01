@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google()
         mavenCentral()
@@ -16,3 +17,8 @@ dependencyResolutionManagement {
 
 rootProject.name = "banhapp-android"
 include(":app")
+include(":admin")
+include(":core:design")
+include(":core:common")
+include(":core:network")
+include(":core:model")

@@ -22,8 +22,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import app.banh.customer.R
 import app.banh.customer.TestTags
-import app.banh.customer.design.Radii
-import app.banh.customer.design.SkeletonBlock
+import app.banh.core.design.Radii
+import app.banh.core.design.SkeletonBlock
 
 /** Provided once at the root so product pictures do not need the loader passed through every screen. */
 val LocalImageLoader = compositionLocalOf<ImageLoader> { error("No ImageLoader provided") }

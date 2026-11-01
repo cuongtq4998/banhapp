@@ -17,10 +17,10 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import app.banh.customer.R
 import app.banh.customer.TestTags
-import app.banh.customer.design.BanhScreen
-import app.banh.customer.design.BottomActionBar
+import app.banh.core.design.BanhScreen
+import app.banh.core.design.BottomActionBar
 import app.banh.customer.ui.common.InlineTopBar
-import app.banh.customer.design.Spacing
+import app.banh.core.design.Spacing
 
 @StringRes
 private fun stepTitle(step: Int): Int = when (step) {

@@ -22,9 +22,9 @@ import app.banh.customer.R
 import app.banh.customer.TestTags
 import app.banh.customer.data.Load
 import app.banh.customer.data.map
-import app.banh.customer.design.GlassCard
-import app.banh.customer.design.PrimaryButton
-import app.banh.customer.design.Spacing
+import app.banh.core.design.GlassCard
+import app.banh.core.design.PrimaryButton
+import app.banh.core.design.Spacing
 import app.banh.customer.order.OrderEffect
 import app.banh.customer.order.OrderFlowState
 import app.banh.customer.order.OrderFlowViewModel
