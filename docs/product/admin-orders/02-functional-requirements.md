@@ -1,6 +1,6 @@
 # Admin Orders: Functional Requirements (section 5)
 
-Part of [Admin Orders](../admin-orders.md) (PRD v1.5). Holds: FR-1 to FR-27 (52 before; old ids in [08-deferred-and-id-mapping.md](08-deferred-and-id-mapping.md)). Priority: Must / Should. Values and rules are in [03-business-rules.md](03-business-rules.md); checks in the acceptance criteria parts. Every line is new or changed in v1.5. Items P-1 to P-4 (Q-25 to Q-28) were accepted by the owner on 2026-10-31. [v1.6 | 2026-10-31]
+Part of [Admin Orders](../admin-orders.md) (PRD v1.7). Holds: FR-1 to FR-27 (52 before; old ids in [08-deferred-and-id-mapping.md](08-deferred-and-id-mapping.md)). Priority: Must / Should. Values and rules are in [03-business-rules.md](03-business-rules.md); checks in the acceptance criteria parts. Every line is new or changed in v1.5. Items P-1 to P-4 (Q-25 to Q-28) were accepted by the owner on 2026-10-31. [v1.6 | 2026-10-31]
 
 ## 5. Functional Requirements
 
@@ -11,10 +11,10 @@ Part of [Admin Orders](../admin-orders.md) (PRD v1.5). Holds: FR-1 to FR-27 (52 
 | FR-1 | The system shall let a person enter an e-mail address, receive a 6-digit code by e-mail and sign in with it (BR-4). The screen and response are the same whether or not the address is registered. The person can request a new code after a short wait and can go back to change the address. One code is enough for every account, owner included (Q-18). Limits are in BR-4; when one is reached a Vietnamese message says when to try again. [v1.5 | 2026-10-31] | Must |
 | FR-2 | The system shall keep a person signed in on that phone while it is used at least once every 7 days (BR-5) and shall let the person sign out at any time. [v1.5 | 2026-10-31] | Must |
 | FR-3 | The system shall give each account one role, owner or staff (BR-1), hide what the role may not do and refuse it on the server. [v1.5 | 2026-10-31] | Must |
-| FR-4 | Decided P-2 (Q-26, owner 2026-10-31): the system shall let every signed-in person sign out all their other phones with one button; those phones cannot renew their sign-in and lose data access within 5 minutes (BR-5). This replaces the device list and per-device revoke of v1.4. [v1.5 | 2026-10-31] | Must |
+| FR-4 | The system shall let every signed-in person sign out all their other phones with one button (Q-26); those phones cannot renew their sign-in and lose data access within 5 minutes (BR-5). This replaces the device list and per-device revoke of v1.4. [v1.7 | 2026-11-01] | Must |
 | FR-5 | The system shall let the owner add a staff account (name and e-mail), see the list, and switch an account off or on. Switching off signs out all phones of that person (cannot renew at once, no data within 5 minutes). Limits in BR-6. [v1.5 | 2026-10-31] | Must |
 | FR-6 | Invisible: the system shall protect sign-in as in BR-4 and BR-5 (code and request limits, renewal that works once, a repeat within 20 seconds tolerated, nothing revealing which addresses exist). [v1.5 | 2026-10-31] | Must |
-| FR-7 | Invisible: when the owner signs in with a code on a phone not used by the owner before, the system shall send one short notice without a code to the owner e-mail (BR-13, Q-24). A failed notice never blocks sign-in. [v1.5 | 2026-10-31] | Must |
+| FR-7 | Invisible: when the owner signs in with a code on a phone on which the owner has no signed-in session at that moment, the system shall send one short notice without a code to the owner e-mail (BR-13, Q-24). A failed notice never blocks sign-in. [v1.7 | 2026-11-01] | Must |
 | FR-8 | The system shall provide a store-review staff account with a fixed code that sees only fake demo orders (BR-14, Q-19). [v1.5 | 2026-10-31] | Must |
 
 ### 5.2 Order list

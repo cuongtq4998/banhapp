@@ -1,6 +1,6 @@
 # Admin Orders: Non-functional, Dependencies, Assumptions, Sources (sections 8 to 11)
 
-Part of [Admin Orders](../admin-orders.md) (PRD v1.5). Holds: Non-functional, Impact & Dependencies, Assumptions A-1 to A-11, Sources S-2 to S-6. Shortened in v1.5; every line is new or changed in v1.5 [v1.5 | 2026-10-31].
+Part of [Admin Orders](../admin-orders.md) (PRD v1.7). Holds: Non-functional, Impact & Dependencies, Assumptions A-1 to A-11, Sources S-2 to S-6. Shortened in v1.5; every line is new or changed in v1.5 [v1.5 | 2026-10-31].
 
 ## 8. Non-functional
 
@@ -9,7 +9,7 @@ Part of [Admin Orders](../admin-orders.md) (PRD v1.5). Holds: Non-functional, Im
 - Platforms: iOS and Android at the same time (D-2), native look. [v1.5 | 2026-10-31]
 - Security: sign-in is the only way to customer data; every action is authorised on the server; codes and credentials are not stored readable; the sign-in screen never reveals which addresses exist. Accepted risk (Q-18): the owner mailbox alone opens the owner account; the owner is warned by e-mail on a new phone (FR-7). The review account is on only around store review (BR-14). [v1.5 | 2026-10-31]
 - Privacy: staff see name, phone and address, which is personal data: active accounts only, finished orders for 90 days (BR-9), none in notifications, logs or analytics (BR-7). The store declaration of the admin app states this. Staff e-mail addresses are used only for sign-in and the notice of FR-7. [v1.5 | 2026-10-31]
-- Performance (proposed). Normal connection means 4G, at least 5 Mbit/s, round trip at most 300 ms. Server: list page of 50 within 1 second and a status change within 2 seconds for 95 percent of requests. Phone: first rows within 3 seconds, status result within 5 seconds, otherwise an error with retry. The code mail is handed to the mail service within 60 seconds. [v1.5 | 2026-10-31]
+- Performance (approved default values). Normal connection means 4G, at least 5 Mbit/s, round trip at most 300 ms. Server: list page of 50 within 1 second and a status change within 2 seconds for 95 percent of requests. Phone: first rows within 3 seconds, status result within 5 seconds, otherwise an error with retry. The code mail is handed to the mail service within 60 seconds. [v1.5 | 2026-10-31]
 - Accessibility: text scales with system font size; every control has a text label; contrast meets WCAG 2.2 AA; status and "overdue" are never shown by colour alone (each has its word). [v1.5 | 2026-10-31]
 - Cost: no SMS (Q-3). E-mail is cheap at this volume (S-5). Paid hosting is not approved (Q-21): free tier first, goals G-1 and G-4 are best effort there; ask again before real customers rely on the app. [v1.5 | 2026-10-31]
 
@@ -32,7 +32,7 @@ Part of [Admin Orders](../admin-orders.md) (PRD v1.5). Holds: Non-functional, Im
 - A-7: If the owner cannot open the owner mailbox, the operator recovers the account outside the app (this is the only recovery in v1.6, P-1 accepted). [v1.6 | 2026-10-31]
 - A-8: The sender and wording of the code mail are chosen by the architect.
 - A-9: Sample and test data are fake.
-- A-10: Values marked "proposed" are author defaults; a changed value is written into this document first (new version and change log).
+- A-10: Values marked "approved default" are the values approved with this document; a changed value is written into this document first (new version and change log).
 - A-11: Store reviewers can use the fixed-code review account for the whole review (S-3, unverified); the operator switches it off afterwards.
 
 ## 11. Research & Sources

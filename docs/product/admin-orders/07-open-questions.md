@@ -1,12 +1,16 @@
 # Admin Orders: Open Questions and Change Log (sections 12 and 13)
 
-Part of [Admin Orders](../admin-orders.md) (PRD v1.6). Holds: Q-1 to Q-28 (business, all decided), TQ-1 to TQ-13 (technical), design answers, the change log. Condensed in v1.5; every line is new or changed in v1.5 [v1.5 | 2026-10-31].
+Part of [Admin Orders](../admin-orders.md) (PRD v1.7). Holds: Q-1 to Q-29 (business, all decided except Q-29), TQ-1 to TQ-13 (technical), design answers, the change log. Condensed in v1.5; every line is new or changed in v1.5 [v1.5 | 2026-10-31].
 
 ## 12. Open Questions
 
 ### 12.1 Business questions open for the owner
 
-None. Q-25 to Q-28 (simplification proposals P-1 to P-4) were answered by the owner on 2026-10-31 and are listed in 12.2. [v1.6 | 2026-10-31]
+| ID | Question | Affects | Blocking | Type | Status | Recommendation |
+| -- | -------- | ------- | -------- | ---- | ------ | -------------- |
+| Q-29 | May the shop set a delivery fee of 0 (free delivery), for example for one district? Today the owner settings and both customer apps refuse 0; the allowed range is 1 to 10 000 000. | BR-11, AC-40, PO BR-3, PO AC-11 | No | business | Open | Allow 0 as free delivery. The customer apps already show the fee line, so they would show 0 and the total would stay correct. Nothing else changes for staff. Until answered, 0 stays refused. [v1.7 | 2026-11-01] |
+
+Q-25 to Q-28 (simplification proposals P-1 to P-4) were answered by the owner on 2026-10-31 and are listed in 12.2. [v1.7 | 2026-11-01]
 
 ### 12.2 Business questions already decided
 
@@ -49,7 +53,7 @@ None. Q-25 to Q-28 (simplification proposals P-1 to P-4) were answered by the ow
 | TQ-6 | Image upload for new cakes: formats, size, storage, resizing. | Open |
 | TQ-7 | 90-day rule for finished orders only, open orders exempt (BR-9, simpler than v1.4). | Open |
 | TQ-8 | Place-order limit ignoring cancelled orders except spam; storing the reason. | Open |
-| TQ-9 | Identify a phone only to know "not used before" (FR-7) and to sign out other phones (FR-4); no device names needed. | Open |
+| TQ-9 | Identify a phone only to know "not used before" (FR-7) and to sign out other phones (FR-4); no device names needed. Answered by ADR-0022 and ADR-0031 (architecture 05). | Closed [v1.7 | 2026-11-01] |
 | TQ-10 | Recovery codes and backup e-mail: not needed (Q-25 accepted). | Deferred |
 | TQ-11 | Align ADR-0022 counters with BR-4 (no time lock, 5th wrong entry voids the code, limit per client address). | Open |
 | TQ-12 | Unfinished count: how the server serves the badge cheaply (New or Confirmed, date at or before shop day, any age); open orders exempt from the 90-day rule. | Open |
@@ -65,4 +69,5 @@ Q-D1 (recovery way-in always shown) is void (Q-25 accepted). Q-D2 accepted (Comp
 | ------- | ---- | ------ |
 | 1.0 to 1.4 | 2026-10-31 | First version, owner answers Q-1 to Q-14, approval of v1.2, review findings, Unfinished view and new-device notice. Full text of those versions is in git history. |
 | 1.5 | 2026-10-31 | Simplification review after the owner directive that all apps be easy for every kind of user. New "How a day works" (01 section 0). Rewritten: 52 FRs to 27, 28 BRs to 14, 103 ACs to 48; old ids in 08 section 15. Deferred list in 08 section 14. Proposals changing owner decisions: P-1 recovery (Q-25), P-2 device list (Q-26), P-3 Unfinished view, chip, banner (Q-27), P-4 four cancel reasons (Q-28). Invisible-by-design: code and session limits, record, 90-day rule, review account. Q-23 withdrawn. New questions Q-25 to Q-28; TQ-10 to TQ-13 revised. |
+| 1.7 | 2026-11-01 | Clarifications to match the built system (defect report X-1 to X-4): FR-7, BR-13 and AC-12 say "a phone on which the owner has no signed-in session at that moment" and add the sign-out-then-in example; stale labels removed ("Decided P-2", "proposed", PRD v1.5 headers); TQ-9 closed; BR-11 and AC-40 point to the new open question Q-29 (free delivery, non-blocking, recommendation: allow 0). No other requirement changed; ids and counts unchanged. |
 | 1.6 | 2026-10-31 | Owner accepted P-1 to P-4 (Q-25 to Q-28, all option a) on 2026-10-31. Status Approved. Q-25 to Q-28 closed as decided; Deferred list confirmed; PROPOSAL marks removed. No requirement text changed otherwise; ids and counts unchanged (27 FRs, 14 BRs, 48 ACs). |
