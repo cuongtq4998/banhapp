@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0027 |
-| Version  | 1.1 [v1.1 | 2026-10-31] |
+| Version  | 1.2 [v1.2 | 2026-11-01] (B4: review accounts hidden from staff list, count and `PATCH`) |
 | Status   | Accepted, option B (product owner, 2026-10-31): fixed-code staff account of kind `review` that sees fake demo orders only [v1.1 | 2026-10-31] |
 | Date     | 2026-10-31 |
 | Decider  | atlas-architect proposes; product owner decided on 2026-10-31 [v1.1 | 2026-10-31] |
@@ -47,3 +47,5 @@ Option B (owner decision 2026-10-31). `account.kind` is `normal` or `review`. Wh
 ## Links
 
 Related: ADR-0022, ADR-0026. Detail: auth.md section 1 and auth/abuse-secrets-threats.md section 5.
+
+Built in slice B4 [v1.2 | 2026-11-01]: `GET /v1/owner/staff` and the 30-account count skip `kind = 'review'`; `PATCH /v1/owner/staff/{id}` on a review account is 404; the address of a review account still blocks a new staff account (`EMAIL_TAKEN`).
