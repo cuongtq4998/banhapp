@@ -63,6 +63,10 @@ Source of truth in the code: `ios/BanhAdminShared/AccessibilityID.swift` (`Admin
 | Order detail extras | none | `admin.detail.backToList` (gone state button), `admin.detail.offline` |
 | Cancel buttons | `admin.cancel.confirm`, `admin.cancel.back` | `admin.cancel.reason.confirm`, `admin.cancel.reason.back` |
 | Settings sign-out (owner) | `admin.settings.signOutOthers`, `.signOutOthersYes`, `.signOut`, `.signOutYes` | the same with the extra segment: `admin.settings.row.signOutOthers` and so on |
+| Ordering (v1.3) | `admin.rules.warnDialog`, `.warnConfirm` (first dialog button `A_SAVE_ANYWAY`; second dialog button `A_UNDERSTOOD`) | adds `admin.rules.warnBack` (the `A_BACK` button of the first dialog) |
+| Owner settings data (v1.3) | add the same ids on iOS | `admin.owner.skeleton`, `.error`, `.offline`, `.retry`, `.saveError` (loading, load error, offline, retry button, inline save error of S-A8 to S-A11) |
+| Settings account card (v1.3) | `admin.account.name`, `admin.account.email` on S-A6 | the same |
+| Other additions on Android (v1.3) | none | `admin.cakes.count`, `admin.cakeForm.gone`, `admin.cakeForm.backToList`, `admin.delivery.error`, `admin.delivery.district.error.name` / `.fee`, `admin.staff.count`, `.full`, `.none`, `admin.cakes.full` |
 | Root | none | `admin.root.loading`, `admin.root.retry` (start-up session check) |
 | Same on both | `admin.orders.retry`, `admin.detail.retry`, `admin.cancel.error`, `admin.account.name` / `.email` / `.signOutOthers` / `.signOutOthersYes` / `.signOut` / `.signOutYes` (account sheet), `admin.toast`, `admin.nav.back` | |
 
