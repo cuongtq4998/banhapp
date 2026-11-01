@@ -20,7 +20,7 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 | Per-session limit 240 a minute (`RATE_LIMIT_ADMIN_PER_MINUTE`) | Dropped | At most 31 accounts; the PRD asks for no such limit; requests are authenticated, so abuse is limited to a known account |
 | 401 limit 60 a minute per client address | Dropped | Token secrets are 256 bits, guessing is not feasible; the `/v1/auth` limits (20 and 60 an hour) stay, fixed in code |
 | `last_used_at` periodic write | Dropped | Nothing reads it; expiry uses `refresh_expires_at`. The column stays with its default |
-| Store review account and `review-account on/off` (ADR-0027) | Deferred to the launch slice A6 | Needed only for store submission, which waits for the money approvals (DP-Q4) |
+| Store review account and `review-account on/off` (ADR-0027) | Deferred to the launch slice A6; BUILT later, see architecture/16 [v1.20 | 2026-11-01] | Needed only for store submission, which waits for the money approvals (DP-Q4) |
 | `PUT /v1/admin/push-token` | Built in slice B7 (architecture/14) [v1.18 | 2026-11-01] | FR-25 and FR-26 |
 | Purge task (codes, sessions, security events) | Deferred to slice B2, and a go-live gate item; NOT built in B2 or B3 either (architecture/11 section 27.2) [v1.15 \| 2026-11-01] | `auth_code` rows hold addresses; harmless on the free staging host with fake data, not for real staff |
 

@@ -38,7 +38,7 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 | [ADR-0030](../../decisions/adr-0030-cancel-reason-and-per-phone-limit.md) | Cancel reason column and per-phone count rule | Accepted |
 | [ADR-0031](../../decisions/adr-0031-cake-add-and-remove-model.md) | Soft removal of cakes | Accepted |
 
-Amended on 2026-10-31 [v1.10 | 2026-10-31]: ADR-0003 v1.4 (paid path before real use), ADR-0014 v1.3, ADR-0017 v1.2, ADR-0018 v2.2. Mapping of admin-orders technical questions: TQ-1 to ADR-0023; TQ-2 to ADR-0026; TQ-3 to ADR-0024; TQ-4 to ADR-0022; TQ-5 to ADR-0028 and ADR-0029; TQ-6 to ADR-0025; TQ-7 to ADR-0029; TQ-8 to ADR-0030; TQ-9 to ADR-0022 and ADR-0031; TQ-10 to ADR-0022.
+Amended on 2026-10-31 [v1.10 | 2026-10-31]: ADR-0003 v1.4 (paid path before real use), ADR-0014 v1.3, ADR-0017 v1.2, ADR-0018 v2.2. Mapping of admin-orders technical questions: TQ-1 to ADR-0023; TQ-2 to ADR-0026; TQ-3 to ADR-0024; TQ-4 to ADR-0022; TQ-5 to ADR-0028 and ADR-0029; TQ-6 to ADR-0025; TQ-7 to ADR-0029; TQ-8 to ADR-0030; TQ-9 to ADR-0022 and ADR-0031; TQ-10 to ADR-0022. Status of every admin-orders TQ [v1.20 | 2026-11-01]: architecture/16 section 32.4. Note: the TQ ids of the place-order mapping further below are another series (place-order PRD); admin-orders TQs are the ones in this paragraph and in architecture/08, 09 and 16.
 
 Amended on 2026-10-27 [v1.6]: ADR-0001 (toolchain floor 6.2), ADR-0004 (no `tools/`, ddagent external, per-component CI), ADR-0007 (toolchain table moved to the dev guide), ADR-0013 (warning deferred), ADR-0014 (see above).
 

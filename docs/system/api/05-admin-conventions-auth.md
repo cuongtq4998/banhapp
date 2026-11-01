@@ -15,7 +15,7 @@ Part of [api.md](../api.md) (index, version, change log), sections 9 and 10.1 to
 | Body limit | 8 KB as section 1. Only `POST /v1/owner/cakes` differs: 5,308,416 bytes (`IMAGE_MAX_BYTES` 5,242,880 + 65,536); a larger `Content-Length` is refused with 413 before the body is read; role is checked first (ADR-0025) [v1.14 | 2026-10-31] |
 | Pagination | Order list only: keyset cursor, 50 rows (ADR-0029) |
 | Rate limits | `/v1/auth/*`: per address and global limits of auth.md section 4.2 (429 `CODE_*`); per client address 20 requests an hour on code requests and 60 an hour on the other `/v1/auth` routes (fixed in code, in memory). The per-session limit of 240 a minute and the 401 limit of 60 a minute are DROPPED [v1.17 | 2026-11-01] (architecture/10). `Retry-After` is at most 3600 seconds (section 10.1) |
-| Logging | No e-mail address, token, code or customer data in logs or error bodies (BR-7). Log fields: request id, route, status, duration, role, platform |
+| Logging | No e-mail address, token, code or customer data in logs or error bodies (BR-7). Log fields: request id, route, status, duration, role, platform. Enforced for libraries too [v1.23 | 2026-11-01]: `RedactingLogHandler` wraps `app.logger` and the HTTP server logger; events of other modules are dropped below `info` and lose their metadata (except `database-id`, `psql_connection_id`, `request-id`) from `info` up, so `debug` and `trace` never show SQL, bound values, rows, query strings or the `Authorization` header |
 | Errors | Envelope of section 1; new codes in api/08 |
 | Dates | `YYYY-MM-DD` shop dates; `created_at` instants UTC |
 

@@ -23,7 +23,7 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 | ---- | -------- | ------ |
 | Cake add, hide, remove (`/v1/owner/cakes`) | Slice B6 | ADR-0025, ADR-0031 |
 | Cake list filter | The cakes list in `GET /v1/owner/settings` has no `removed_at IS NULL` filter yet; B6 must add it with the removal | api/07 10.13 |
-| Purge task, review-account sign-in | Unchanged from architecture/11 27.2; the push token route was built in B7 (architecture/14) [v1.18 | 2026-11-01] | go-live gate, slice A6 |
+| Purge task, review-account sign-in | Unchanged from architecture/11 27.2 (review account built later: architecture/16 [v1.20 | 2026-11-01]); the push token route was built in B7 (architecture/14) [v1.18 | 2026-11-01] | go-live gate, slice A6 |
 
 ## 28.3 Other document and code differences found (B4 and B5)
 
