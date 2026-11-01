@@ -1,0 +1,46 @@
+{
+  "description": "GET /v1/owner/settings: 200, owner only.",
+  "status": 200,
+  "body": {
+    "shop": {
+      "name": "Tiem Banh Mau",
+      "greeting": "Xin chao",
+      "phone_contact": "+84900000000",
+      "zalo_contact": "zalo.me/tiembanhmau"
+    },
+    "ordering": {
+      "daily_limit": 60,
+      "lead_days": 2,
+      "min_qty": 2,
+      "max_days_ahead": 30
+    },
+    "cakes": [
+      {
+        "cake_id": "5b0c2f6a-0000-4a00-8000-0000000000c1",
+        "name": "Banh Mau",
+        "description": "Banh mau",
+        "price_vnd": 150000,
+        "is_active": true,
+        "image_url": "/assets/images/banana.png?v=0a1b2c3d"
+      }
+    ],
+    "districts": [
+      {
+        "district_id": "5b0c2f6a-0000-4a00-8000-0000000000d1",
+        "name": "Quan An Phu",
+        "delivery_fee_vnd": 20000,
+        "is_active": true
+      }
+    ],
+    "slots": [
+      {
+        "slot_id": "5b0c2f6a-0000-4a00-8000-0000000000e1",
+        "start": "08:00",
+        "end": "10:00",
+        "is_active": true
+      }
+    ],
+    "cake_count_max": 12,
+    "staff_count_max": 30
+  }
+}

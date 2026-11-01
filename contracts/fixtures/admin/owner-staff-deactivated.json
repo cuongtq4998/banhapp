@@ -1,0 +1,16 @@
+{
+  "description": "PATCH /v1/owner/staff/{id}: 200; every phone of the account is signed out in the same transaction.",
+  "request": {
+    "body": {
+      "is_active": false
+    }
+  },
+  "status": 200,
+  "body": {
+    "account_id": "5b0c2f6a-0000-4a00-8000-0000000000a2",
+    "name": "Nhan Vien A",
+    "email": "nhanvien.a@example.com",
+    "role": "staff",
+    "is_active": false
+  }
+}

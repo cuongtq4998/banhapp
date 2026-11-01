@@ -1,0 +1,16 @@
+{
+  "description": "POST /v1/owner/slots: 201.",
+  "request": {
+    "body": {
+      "start": "08:00",
+      "end": "10:00"
+    }
+  },
+  "status": 201,
+  "body": {
+    "slot_id": "5b0c2f6a-0000-4a00-8000-0000000000e1",
+    "start": "08:00",
+    "end": "10:00",
+    "is_active": true
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "description": "POST /v1/owner/districts: 201.",
+  "request": {
+    "body": {
+      "name": "Quan An Phu",
+      "delivery_fee_vnd": 20000
+    }
+  },
+  "status": 201,
+  "body": {
+    "district_id": "5b0c2f6a-0000-4a00-8000-0000000000d1",
+    "name": "Quan An Phu",
+    "delivery_fee_vnd": 20000,
+    "is_active": true
+  }
+}

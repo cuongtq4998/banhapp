@@ -1,0 +1,25 @@
+{
+  "error": {
+    "code": "VALIDATION_FAILED",
+    "message_key": "ERR_SERVER",
+    "fields": [
+      {
+        "field": "name",
+        "code": "NAME_REQUIRED",
+        "message_key": "ERR_FIELD_REQUIRED"
+      },
+      {
+        "field": "greeting",
+        "code": "GREETING_TOO_LONG",
+        "message_key": "ERR_FIELD_TOO_LONG"
+      },
+      {
+        "field": "phone_contact",
+        "code": "PHONE_CONTACT_INVALID",
+        "message_key": "ERR_FIELD_INVALID"
+      }
+    ],
+    "details": {}
+  },
+  "request_id": "7f1c1a52-0c1e-4d6c-9a54-2d7f3d6a0020"
+}

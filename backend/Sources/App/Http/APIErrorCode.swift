@@ -38,6 +38,13 @@ enum APIErrorCode: String, CaseIterable, Sendable {
     case orderStateChanged = "ORDER_STATE_CHANGED"
     case statusTransitionInvalid = "STATUS_TRANSITION_INVALID"
     case cancelReasonRequired = "CANCEL_REASON_REQUIRED"
+    // Owner settings and staff (api/08 section 11).
+    case lastActiveDistrict = "LAST_ACTIVE_DISTRICT"
+    case lastActiveSlot = "LAST_ACTIVE_SLOT"
+    case slotDuplicate = "SLOT_DUPLICATE"
+    case emailTaken = "EMAIL_TAKEN"
+    case staffLimitReached = "STAFF_LIMIT_REACHED"
+    case ownerProtected = "OWNER_PROTECTED"
 
     var status: HTTPResponseStatus {
         switch self {
@@ -47,8 +54,10 @@ enum APIErrorCode: String, CaseIterable, Sendable {
             return .unauthorized
         case .forbidden: return .forbidden
         case .codeResendWait, .codeRequestLimit: return .tooManyRequests
-        case .statusTransitionInvalid, .cancelReasonRequired:
+        case .statusTransitionInvalid, .cancelReasonRequired, .slotDuplicate:
             return .unprocessableEntity
+        case .lastActiveDistrict, .lastActiveSlot, .emailTaken, .staffLimitReached, .ownerProtected:
+            return .conflict
         case .orderNotFound: return .notFound
         case .orderStateChanged: return .conflict
         case .validationFailed, .minQty, .dateLead, .dateHorizon, .districtUnserved, .idempotencyKeyReused:
@@ -86,6 +95,11 @@ enum APIErrorCode: String, CaseIterable, Sendable {
         case .orderStateChanged: return "ERR_ORDER_STATE_CHANGED"
         case .statusTransitionInvalid: return "ERR_ORDER_STATUS_INVALID"
         case .cancelReasonRequired: return "ERR_CANCEL_REASON_REQUIRED"
+        case .lastActiveDistrict: return "ERR_LAST_ACTIVE_DISTRICT"
+        case .lastActiveSlot: return "ERR_LAST_ACTIVE_SLOT"
+        case .slotDuplicate: return "ERR_SLOT_DUPLICATE"
+        case .emailTaken: return "ERR_EMAIL_TAKEN"
+        case .staffLimitReached: return "ERR_STAFF_LIMIT"
         default:
             return Self.genericMessageKey
         }
