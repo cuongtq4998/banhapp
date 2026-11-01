@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 2.4 [v2.4 | 2026-11-01] |
+| Version      | 2.5 [v2.5 | 2026-11-01] |
 | Last updated | 2026-10-31 |
 | Status       | Draft (ADR-0022 and ADR-0027 accepted by the owner 2026-10-31) |
 | Owner        | atlas-architect |
@@ -54,7 +54,7 @@ Defence against a mailbox takeover (Q-24, FR-7, BR-13): when the owner signs in 
 | Code | 6 digits, 10 minutes, one use, newer code voids older; the 5th wrong entry voids the code; no time lock on the address (Q-20) [v2.2 | 2026-10-31] |
 | Access token | 300 s, opaque, checked against the session row on every request (revocation is immediate; the PRD bound of 5 minutes holds even without that check) |
 | Refresh token | 7 days sliding, rotated on each use; previous token tolerated 20 s (lost response); later reuse revokes the session |
-| Sign-out | Revokes this session and clears its push token |
+| Sign-out | Revokes this session and clears its push token and environment [v2.5 | 2026-11-01] |
 | Revocation | "Sign out all other phones" (own account, ends every other phone); deactivating an account revokes all its sessions in one transaction; renewal fails at once, data access ends on the next request |
 | Device identity | Session id; app-generated `installation_id` and model name only (no hardware id) |
 | Storage on device | iOS Keychain (after first unlock, this device only); Android Keystore-wrapped key over app-private storage; cleared at sign-out (BR-7) |
@@ -70,7 +70,7 @@ Enforced on the server: `AdminAuthMiddleware` loads session and account, then `R
 | `/v1/auth/*` | Allowed (rate limited) | Allowed | Allowed | Allowed |
 | `GET /v1/admin/me`, `DELETE /v1/admin/session`, `DELETE /v1/admin/sessions/others` | 401 | Allowed | Allowed | Allowed |
 | `/v1/admin/orders*` | 401 | Allowed | Allowed | Demo rows only |
-| `PUT /v1/admin/push-token` (deferred, push slice) | 401 | Allowed | Allowed | Accepted, never used |
+| `PUT /v1/admin/push-token` (built in B7 [v2.5 | 2026-11-01]) | 401 | Allowed | Allowed | Accepted, never sent to (review accounts get no push) |
 | `/v1/owner/*` (settings, cakes, districts, slots, staff) | 401 | 403 | Allowed | 403 |
 
 Staff cannot edit orders, delete orders or see payment data (BR-1): no such endpoint exists. The database role of the backend has no schema rights and no DELETE on `account`, `order_event`, `security_event`, `settings_change`; migrations use a separate role.
@@ -98,3 +98,4 @@ Staff cannot edit orders, delete orders or see payment data (BR-1): no such endp
 | 2.2 | 2026-10-31 | Aligned with PRD v1.4: no address lock (Q-20), recovery counters separate, new-device notice decided (Q-24, FR-47); AU-Q4 and AU-Q5 closed. |
 | 2.3 | 2026-10-31 | PRD v1.6: owner recovery and backup address removed, device list replaced by "Sign out all other phones", notice to the owner address only, push-token delete removed; ids renumbered. |
 | 2.4 | 2026-11-01 | B1 alignment: `create-owner`, `AUTH_CODE_PEPPER`, `EMAIL_*`; sign-in off when unconfigured; per-session and 401 limits dropped; review account and push-token deferred; one new-device rule. |
+| 2.5 | 2026-11-01 | B7 alignment: `PUT /v1/admin/push-token` is built; `push_apns_environment` cleared with the token (architecture/14). |

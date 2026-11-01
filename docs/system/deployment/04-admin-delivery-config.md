@@ -15,9 +15,9 @@ Part of [deployment.md](../deployment.md) (index, version, change log), sections
 | `EMAIL_API_KEY` | Provider key (live provider, later slice) | Yes with `resend` | Host secret store |
 | `EMAIL_FROM_ADDRESS`, `EMAIL_FROM_NAME` | Sender on the verified domain, for example `no-reply@mail.<SHOP_DOMAIN>` | Yes with `resend` | Host |
 | `EMAIL_MAX_PER_DAY` | Default 80 code requests per UTC day over all addresses, at least 1 [v1.12 | 2026-11-01] | No | Host |
-| `PUSH_PROVIDER` | `live`, `recording` (tests), `off` | Yes (default `off` locally) | Host |
-| `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY`, `APNS_TOPIC` | APNs provider token; topic is the admin bundle id | With `live` | Host secret store |
-| `FCM_PROJECT_ID`, `FCM_SERVICE_ACCOUNT_JSON` | FCM v1 | With `live` | Host secret store |
+| `PUSH_PROVIDER` | `off` (default when unset), `recording` (tests; refused when `APP_ENV=production`), `live` [v1.13 \| 2026-11-01] | Yes (default `off` locally) | Host |
+| `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY`, `APNS_TOPIC` | APNs provider token; topic is the admin bundle id; the PEM key may be one line with `\n` for line breaks | With `live` | Host secret store |
+| `FCM_PROJECT_ID`, `FCM_SERVICE_ACCOUNT_JSON` | FCM v1. All six APNs and FCM values are needed together for `live`; one missing, an unreadable key or JSON, an unknown `PUSH_PROVIDER`, or any of them set without `PUSH_PROVIDER` stops the start [v1.13 \| 2026-11-01] | With `live` | Host secret store |
 | `RATE_LIMIT_ADMIN_PER_MINUTE` | DROPPED (no per-session limit, architecture/10) | No | Host |
 | `RATE_LIMIT_CODE_REQUEST_PER_HOUR_IP` | Fixed in code at 20 in slice B1, not configurable [v1.12 | 2026-11-01] | No | Host |
 | `RATE_LIMIT_AUTH_PER_HOUR_IP` | Fixed in code at 60 in slice B1, not configurable [v1.12 | 2026-11-01] | No | Host |

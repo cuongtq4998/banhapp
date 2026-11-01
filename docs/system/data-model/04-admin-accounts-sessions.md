@@ -85,7 +85,7 @@ Counters are derived, not stored in a second table [v1.8 | 2026-10-31] (BR-4, Q-
 
 ## 3.14 (merged into 3.11) [v1.8 | 2026-10-31]
 
-`push_token` is two columns of `device_session` (one token per device was always the rule). Sending reads `device_session` rows with `push_token IS NOT NULL`, `revoked_at IS NULL`, an active account and `kind <> 'review'`. Sign-out, sign out other phones and deactivation set the column to null in the same statement that sets `revoked_at`. FR-25; ADR-0024.
+`push_token` is two columns of `device_session` (one token per device was always the rule). Sending reads `device_session` rows with `push_token IS NOT NULL`, `revoked_at IS NULL`, an active account and `kind <> 'review'`. Sign-out, sign out other phones, refresh reuse, replacement by a new sign-in and deactivation set `push_token` and `push_apns_environment` to null in the same statement that sets `revoked_at` [v1.13 | 2026-11-01]. `PUT /v1/admin/push-token` writes both columns and clears them on any other session holding the same token; a token the provider calls dead is cleared by value. Sending also requires `refresh_expires_at` in the future. FR-25; ADR-0024.
 
 ## 3.15 security_event (audit of access, not of orders)
 
@@ -102,7 +102,7 @@ Created by `0004_admin_settings.sql`, not by 0002 [v1.11 | 2026-11-01]. Append-o
 | account.email, display_name | personal | Backend; owner sees all accounts, staff see their own | While the account exists (accounts are not deleted); operator erases on request |
 | auth_code.email, code_hmac, wrong_count | personal / secret hash | Backend only | 24 h after expiry |
 | device_session.*_hash, device_name | secret hash / operational | Backend only | Revoked or expired rows removed 30 days later |
-| device_session.push_token | operational (identifies a device to Apple or Google) | Backend | Null at sign-out, sign-out of other phones, deactivation; row removed 30 days later |
+| device_session.push_token | operational (identifies a device to Apple or Google) | Backend | Null (with `push_apns_environment`) at sign-out, sign-out of other phones, refresh reuse, deactivation; row removed 30 days later |
 | security_event | operational | Operator | 180 days |
 | E-mail addresses | Never in logs, error bodies, URLs or analytics (NFR, BR-15); log lines carry the request id and a code only |
 

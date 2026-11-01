@@ -22,7 +22,7 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 | Item | Decision | Reason |
 | ---- | -------- | ------ |
 | Purge task (codes, sessions, security events) | NOT BUILT. It was planned for B2 and is not in B2 or B3 (no maintenance code under `backend/Sources`). Go-live gate item: it must exist and be verified before any real staff e-mail address is stored | `auth_code` rows hold addresses; harmless on the free staging host with fake data only (architecture/10 26.2, data-model/05 section 14) |
-| Push to phones, `PUT /v1/admin/push-token` | Deferred to the push slice | FR-25, FR-26 |
+| Push to phones, `PUT /v1/admin/push-token` | Built in slice B7 (architecture/14) [v1.18 | 2026-11-01] | FR-25, FR-26 |
 | Review-account sign-in and `review-account on/off` | Deferred to the launch slice A6 | Store submission waits for the money approvals; demo rows exist in the schema only |
 
 ## 27.3 Other document and code differences found (B1 to B3)

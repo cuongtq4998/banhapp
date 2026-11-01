@@ -29,7 +29,7 @@ Part of [api.md](../api.md) (index, version, change log), sections 9 and 10.1 to
 | GET | /v1/admin/me | owner, staff | Account, role, server date | FR-3, FR-20 |
 | DELETE | /v1/admin/session | owner, staff | Sign out this phone | FR-2 |
 | DELETE | /v1/admin/sessions/others | owner, staff | Sign out all other phones of this account | FR-4, BR-5 |
-| PUT | /v1/admin/push-token | owner, staff | Register this phone's push token (DEFERRED to the push slice, not in B1) | FR-25 |
+| PUT | /v1/admin/push-token | owner, staff | Register this phone's push token (built in B7 [v1.21 | 2026-11-01]) | FR-25 |
 | GET | /v1/admin/orders | owner, staff | List, one status, one date, search, badge count | FR-9 to FR-13, BR-9, BR-10 |
 | GET | /v1/admin/orders/{order_code} | owner, staff | Detail with "last changed by" | FR-14, FR-26 |
 | POST | /v1/admin/orders/{order_code}/status | owner, staff | Confirm, complete, cancel | FR-16 to FR-19, BR-2, BR-8 |

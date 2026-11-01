@@ -1,6 +1,6 @@
 # API Specification: Admin session, sign out other phones, push token, orders
 
-Part of [api.md](../api.md) (index, version, change log), sections 10.6 to 10.12. Aligned with built slices B2 and B3 in v1.18 [v1.18 | 2026-11-01]. New in v1.13 [v1.13 | 2026-10-31]; Unfinished view and push token columns in v1.15 [v1.15 | 2026-10-31]; simplified in v1.16: device list, Unfinished view, filters and history removed, sign out other phones added [v1.16 | 2026-10-31]. Auth: Bearer access token, roles owner and staff unless stated (api/05 section 9). All responses `no-store`.
+Part of [api.md](../api.md) (index, version, change log), sections 10.6 to 10.12. Aligned with built slices B2 and B3 in v1.18 [v1.18 | 2026-11-01]; push token and payload aligned with slice B7 in v1.21 [v1.21 | 2026-11-01]. New in v1.13 [v1.13 | 2026-10-31]; Unfinished view and push token columns in v1.15 [v1.15 | 2026-10-31]; simplified in v1.16: device list, Unfinished view, filters and history removed, sign out other phones added [v1.16 | 2026-10-31]. Auth: Bearer access token, roles owner and staff unless stated (api/05 section 9). All responses `no-store`.
 
 ### 10.6 GET /v1/admin/me, DELETE /v1/admin/session, DELETE /v1/admin/sessions/others
 
@@ -12,9 +12,19 @@ Part of [api.md](../api.md) (index, version, change log), sections 10.6 to 10.12
 
 The device list and per-device revoke (`GET /v1/admin/devices`, `DELETE /v1/admin/devices/{device_id}`) and the error `DEVICE_NOT_FOUND` are gone (P-2). Number kept so references stay valid.
 
-### 10.8 PUT /v1/admin/push-token (DEFERRED: not built in slice B1, comes with the push slice [v1.17 | 2026-11-01])
+### 10.8 PUT /v1/admin/push-token (built in slice B7 [v1.21 | 2026-11-01])
 
-`PUT` body `{ "platform": "ios"|"android", "token": string (1 to 512), "apns_environment": "production"|"sandbox" (required for ios) }`; 204. Writes `device_session.push_token` of the calling phone and moves a token seen on another session to this one. Errors: 422 `VALIDATION_FAILED`. Rate limit: shared. FR-25 (the app does not call `PUT` when the phone's permission is denied). `DELETE /v1/admin/push-token` was removed in v1.16: sign-out, sign-out of other phones and deactivation clear the token on the server [v1.16 | 2026-10-31].
+`PUT` body `{ "platform": "ios"|"android", "token": string (1 to 512), "apns_environment": "production"|"sandbox" (required for ios; ignored and not stored for android) }`; 204 without body. Opened with `adminGroup()` (owner and staff). Writes `device_session.push_token` and `push_apns_environment` of the calling session and, in the same transaction, clears both on any other session that holds the same token, so one token has one owner. A repeat with the same values is 204. Errors: 401 as for any admin route; 422 `VALIDATION_FAILED` with one entry in `fields[]` (the first bad field only, checked in this order) [v1.21 | 2026-11-01]:
+
+| Field | Code | When |
+| ----- | ---- | ---- |
+| (key) | `UNKNOWN_FIELD` | A key other than `platform`, `token`, `apns_environment` |
+| `platform` | `PLATFORM_INVALID` | Missing, not a string, or not `ios` or `android` |
+| `token` | `TOKEN_INVALID` | Missing, not a string, empty, over 512 characters, or holds a space or a control character |
+| `apns_environment` | `APNS_ENVIRONMENT_INVALID` | Not `production` or `sandbox`; also missing or null when `platform` is `ios` |
+| `platform` | `PLATFORM_MISMATCH` | The body platform differs from the platform the phone signed in with (`device_session.platform`) |
+
+A body that is not a JSON object is 422 `VALIDATION_FAILED` without `fields[]`. Rate limit: shared. FR-25 (the app does not call `PUT` when the phone's permission is denied). There is no `DELETE`: sign-out, sign-out of other phones, refresh reuse and deactivation clear the token and its environment on the server (`DELETE /v1/admin/push-token` was removed in v1.16) [v1.16 | 2026-10-31]. The sender is off, recording or live (`PUSH_PROVIDER`, deployment/04); the route works in every mode.
 
 ### 10.9 GET /v1/admin/orders
 
@@ -58,4 +68,4 @@ Side effects (one transaction): status and `cancel_reason` set; `order_event` wi
 
 ### 10.12 Push notification payload (for the clients)
 
-Not an endpoint. APNs alert `title-loc-key` `PUSH_NEW_ORDER_TITLE`, `loc-key` `PUSH_NEW_ORDER_BODY`, `loc-args` `[order_code, cakes, "dd/MM/yyyy"]`; custom field `order_code`; FCM `notification.title_loc_key`, `body_loc_key`, `body_loc_args` and `data.order_code`; Android channel id `new_orders`. No name, phone, address, note (FR-26). Delivery settings (importance, priority, expiry one hour, interruption level): ADR-0024 v1.1 [v1.14 | 2026-10-31]. Tap opens `GET /v1/admin/orders/{order_code}` after sign-in if needed (FR-26).
+Not an endpoint. APNs alert `title-loc-key` `PUSH_NEW_ORDER_TITLE`, `loc-key` `PUSH_NEW_ORDER_BODY`, `loc-args` `[order_code, cakes, "dd/MM/yyyy"]`; custom field `order_code`; FCM HTTP v1 `message.android.notification.title_loc_key`, `body_loc_key`, `body_loc_args` (same three values) and `message.data.order_code` [v1.21 | 2026-11-01]; Android channel id `new_orders`. The payload holds only the order code, the cake count and the delivery date as `dd/MM/yyyy`; no name, phone, address, note (FR-26) [v1.21 | 2026-11-01]. The same alert settings go to both services: priority high, expiry 3,600 s, APNs thread id `new_orders`. Delivery settings (importance, priority, expiry one hour, interruption level): ADR-0024 v1.1 [v1.14 | 2026-10-31]. Tap opens `GET /v1/admin/orders/{order_code}` after sign-in if needed (FR-26).
