@@ -1,6 +1,6 @@
 # Admin Orders: Overview and Scope (sections 1 to 4)
 
-Part of [Admin Orders](../admin-orders.md) (PRD v1.5). Holds: how a day works, Summary, Background, Goals G-1 to G-4, Non-goals, Users, decisions D-1 and D-2. Rewritten in v1.5 (simplification, owner directive 2026-10-31); every line below is new or changed in v1.5 [v1.5 | 2026-10-31].
+Part of [Admin Orders](../admin-orders.md) (PRD v1.7). Holds: how a day works, Summary, Background, Goals G-1 to G-4, Non-goals, Users, decisions D-1 and D-2. Rewritten in v1.5 (simplification, owner directive 2026-10-31); every line below is new or changed in v1.5 [v1.5 | 2026-10-31].
 
 ## 0. How a day works (plain language) [v1.5 | 2026-10-31]
 
@@ -21,7 +21,7 @@ Does everything a staff member does, plus: [v1.5 | 2026-10-31]
 
 1. Settings has five plain entries: Cakes (add with a photo, change a price, hide, remove), Ordering (daily limit, days of notice, minimum cakes), Delivery (districts with fee, time slots), Shop info (name, greeting, phone, Zalo), Staff (add an e-mail, switch a person off or on). [v1.5 | 2026-10-31]
 2. A change applies to new orders only; orders already placed never change. [v1.5 | 2026-10-31]
-3. Lost phone: sign in on the new phone with one code, then tap "Sign out all other phones". If the owner can no longer open the owner mailbox, the operator helps outside the app (decided P-1, Q-25, owner 2026-10-31). [v1.6 | 2026-10-31]
+3. Lost phone: sign in on the new phone with one code, then tap "Sign out all other phones". If the owner can no longer open the owner mailbox, the operator helps outside the app (Q-25, owner 2026-10-31). [v1.7 | 2026-11-01]
 
 ### Customer
 

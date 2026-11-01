@@ -2,14 +2,14 @@
 
 | Field        | Value                                                                 |
 | ------------ | --------------------------------------------------------------------- |
-| Version      | 1.6 [v1.6 | 2026-10-31]                                               |
-| Last updated | 2026-10-31                                                            |
-| Status       | Approved v1.6. The owner accepted the simplification proposals P-1 to P-4 (Q-25 to Q-28) on 2026-10-31. Earlier: v1.2 approved by the owner; v1.3 and v1.4 recorded owner decisions; v1.5 simplified the rules. No open business question. [v1.6 | 2026-10-31] |
+| Version      | 1.7 [v1.7 | 2026-11-01]                                               |
+| Last updated | 2026-11-01                                                            |
+| Status       | Approved. The owner accepted the simplification proposals P-1 to P-4 (Q-25 to Q-28) on 2026-10-31 (v1.6). v1.7 only clarifies wording to match the built system (new-device notice, labels). One non-blocking business question is open: Q-29 (free delivery). [v1.7 | 2026-11-01] |
 | Owner        | scribe-requirements                                                   |
 | Based on     | docs/pipeline/admin-orders/00-request.md (2026-10-31); docs/product/place-order.md v1.6 |
 | Related      | docs/system/order-lifecycle.md; docs/system/auth.md; docs/system/data-model.md; docs/design/reference/screens/ (A1 to A4, reference only) |
 
-This document is split into parts of at most 200 lines each. Cite ids (FR-n, BR-n, AC-n, Q-n) as written in v1.6 (same as v1.5). Ids of v1.0 to v1.4 are mapped to v1.5 in [08-deferred-and-id-mapping.md](admin-orders/08-deferred-and-id-mapping.md) section 15, so designs, system documents and tests written against v1.4 can follow. Lines changed in v1.5 end with [v1.5 | 2026-10-31]. [v1.5 | 2026-10-31]
+This document is split into parts of at most 200 lines each. Cite ids (FR-n, BR-n, AC-n, Q-n) as written in v1.7 (same as v1.5; v1.7 adds only Q-29). [v1.7 | 2026-11-01] Ids of v1.0 to v1.4 are mapped to v1.5 in [08-deferred-and-id-mapping.md](admin-orders/08-deferred-and-id-mapping.md) section 15, so designs, system documents and tests written against v1.4 can follow. Lines changed in v1.5 end with [v1.5 | 2026-10-31]. [v1.5 | 2026-10-31]
 
 ## Parts
 
@@ -21,7 +21,7 @@ This document is split into parts of at most 200 lines each. Cite ids (FR-n, BR-
 | [04-acceptance-criteria-sign-in-orders.md](admin-orders/04-acceptance-criteria-sign-in-orders.md) | 7 Acceptance Criteria: sign-in, list, detail | AC-1 to AC-31 [v1.5 | 2026-10-31] |
 | [05-acceptance-criteria-settings-notifications.md](admin-orders/05-acceptance-criteria-settings-notifications.md) | 7 Acceptance Criteria: settings, notifications, privacy, cross-feature | AC-32 to AC-48 [v1.5 | 2026-10-31] |
 | [06-nfr-dependencies-assumptions-sources.md](admin-orders/06-nfr-dependencies-assumptions-sources.md) | 8 Non-functional, 9 Impact, 10 Assumptions, 11 Sources | A-1 to A-11, S-2 to S-6 |
-| [07-open-questions.md](admin-orders/07-open-questions.md) | 12 Open Questions, 13 Change log | Q-1 to Q-28, TQ-1 to TQ-13 [v1.5 | 2026-10-31] |
+| [07-open-questions.md](admin-orders/07-open-questions.md) | 12 Open Questions, 13 Change log | Q-1 to Q-29, TQ-1 to TQ-13 [v1.7 | 2026-11-01] |
 | [08-deferred-and-id-mapping.md](admin-orders/08-deferred-and-id-mapping.md) | 14 Deferred, 15 Mapping of v1.4 ids to v1.5 ids | P-1 to P-4, D-3 to D-8 [v1.5 | 2026-10-31] |
 
 ## Summary of v1.5

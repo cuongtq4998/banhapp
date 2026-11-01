@@ -1,6 +1,6 @@
 # Admin Orders: Acceptance Criteria, settings, notifications, cross-feature (section 7, part 2)
 
-Part of [Admin Orders](../admin-orders.md) (PRD v1.5). Holds: AC-32 to AC-48 (old ids in [08-deferred-and-id-mapping.md](08-deferred-and-id-mapping.md)). Sample data is fake as in part 1; new cake "Banh Mau". Every line is new or changed in v1.5 [v1.5 | 2026-10-31].
+Part of [Admin Orders](../admin-orders.md) (PRD v1.7). Holds: AC-32 to AC-48 (old ids in [08-deferred-and-id-mapping.md](08-deferred-and-id-mapping.md)). Sample data is fake as in part 1; new cake "Banh Mau". Every line is new or changed in v1.5 [v1.5 | 2026-10-31].
 
 ## 7. Acceptance Criteria (continued)
 
@@ -16,7 +16,7 @@ Part of [Admin Orders](../admin-orders.md) (PRD v1.5). Holds: AC-32 to AC-48 (ol
 | AC-37 | FR-23, BR-11 | Given district "Quan Mau" with fee 25 000 is added, customers can choose it and new totals use 25 000; changing it to 30 000 changes new orders only. Switching it off removes it from the customer choices and from new orders, earlier orders still show it; the last active district cannot be switched off. [v1.5 | 2026-10-31] |
 | AC-38 | FR-23, BR-11 | Given slots 08:00 to 10:00 and 10:00 to 12:00, when 14:00 to 16:00 is added, customers can choose it. Switching off 08:00 to 10:00 removes it for new orders only. A slot with end before start, a duplicate, or switching off the last active slot is refused with a message. [v1.5 | 2026-10-31] |
 | AC-39 | FR-24, BR-11 | Given a new greeting and Zalo contact are saved, the customer app shows them at its next refresh. Contact phone "0900 000 010", "+84900000010" and "84900000010" are accepted; "090000001" and "abc" are refused; Zalo account name "banh.mau.zalo" is accepted, "ab" refused. [v1.5 | 2026-10-31] |
-| AC-40 | BR-11 | Given price 0, fee 0, limit 0, limit 10 000, an empty shop name or a 301-character greeting, when saved, each is refused with a message naming the field and nothing of that form is stored. [v1.5 | 2026-10-31] |
+| AC-40 | BR-11 | Given price 0, fee 0, limit 0, limit 10 000, an empty shop name or a 301-character greeting, when saved, each is refused with a message naming the field and nothing of that form is stored. The fee-0 case holds until Q-29 is answered. [v1.7 | 2026-11-01] |
 | AC-41 | BR-11 | Given a stored order of 2 cakes at 120 000 with fee 20 000 (total 260 000), when the price becomes 130 000 and the fee 25 000, the order still shows 120 000, 20 000 and 260 000. [v1.5 | 2026-10-31] |
 
 ### 7.5 Notifications, privacy, record, cross-feature
