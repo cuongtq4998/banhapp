@@ -76,6 +76,7 @@ Part of the split UI specification; index: [admin-orders-ui.md](../admin-orders-
 | `A_DATE_TODAY` | Hôm nay |
 | `A_DATE_TOMORROW` | Ngày mai |
 | `A_DATE_ONE` | Chọn một ngày… |
+| `A_DATE_PICK_OK` | Chọn |
 | `A_DUE_TODAY` | Giao hôm nay [v1.1 | 2026-10-31] |
 | `A_OVERDUE` | Quá hạn {n} ngày [v1.1 | 2026-10-31] |
 | `A_ROW_HINT_A11Y` | Mở chi tiết đơn |

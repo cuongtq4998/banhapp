@@ -66,5 +66,6 @@ Assumptions: A-D1 search combines with the status and date filters. A-D2 setting
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.2 | 2026-11-01 | Findings from the built part-1 apps: S-A5 large detent and expanded sheet with pinned buttons; per-platform test ids (new section 9.2) and the ids the apps added; search limit 50; S-A13 always shows the e-mail (`GET /v1/admin/me` field `email`); date picker in the shop time zone Asia/Ho_Chi_Minh; new copy key `A_DATE_PICK_OK`. |
 | 1.1 | 2026-10-31 | Simplified to match PRD v1.6 (27 FR, 14 BR, 48 AC): 20 screens to 13. Removed recovery, devices, backup e-mail, date sheet, history, Unfinished view and chip, banner, notification hint and priming card. Added "Sign out all other phones", one "To do" list with tab badge and red due marks, single status and date filter, four cancel reasons, Settings of five entries, "how a day works" flows. Voided code shares the expired-code text. Design system part 7 v1.6. |
 | 1.0 | 2026-10-31 | First version, based on PRD v1.2 (Approved). 20 screens. |

@@ -2,8 +2,8 @@
 
 | Field        | Value                                                                 |
 | ------------ | --------------------------------------------------------------------- |
-| Version      | 1.1 [v1.1 | 2026-10-31]                                              |
-| Last updated | 2026-10-31                                                            |
+| Version      | 1.2 [v1.2 | 2026-11-01]                                              |
+| Last updated | 2026-11-01                                                            |
 | Status       | Draft                                                                 |
 | Owner        | canvas-ui                                                             |
 | Based on     | product/admin-orders.md v1.6 (simplified text of v1.5, approved by the owner 2026-10-31) [v1.1 | 2026-10-31] |
@@ -35,5 +35,6 @@ Ready gate status: every FR and AC of the PRD with UI impact is traced (part 11)
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.2 | 2026-11-01 | Built-app findings: S-A5 height, per-platform test ids (part 10, 9.2), search 50 characters, S-A13 e-mail, date picker time zone, `A_DATE_PICK_OK`. See part 11. |
 | 1.1 | 2026-10-31 | Simplified to PRD v1.6: 13 screens (was 20), flows per user type, deleted unused copy keys and test identifiers. See part 11. |
 | 1.0 | 2026-10-31 | First version: 20 screens for the Admin app on iOS and Android, based on PRD v1.2. |
