@@ -54,3 +54,6 @@ Owner settings and staff (docs/system/api/07; admin-orders slices B4 and B5), in
 | `owner-staff-list.json`, `owner-staff-created.json`, `owner-staff-deactivated.json` | `/v1/owner/staff` | `{ accounts: [...] }` (owner first), 201 account, 200 account |
 | `error-settings-validation`, `-staff-validation` | settings and staff writes | 422 with every problem in `fields[]` (`ERR_FIELD_*` keys) |
 | `error-last-active-district`, `-last-active-slot`, `-slot-duplicate`, `-email-taken`, `-staff-limit-reached`, `-owner-protected` | districts, slots, staff | 409 and 422 envelopes |
+| `owner-cake-created.json`, `owner-cake-updated.json` | `POST /v1/owner/cakes` (multipart), `PATCH /v1/owner/cakes/{id}` | 201 and 200 cake; `image_url` of an uploaded cake is `/assets/cakes/<id>?v=<8 hex>`; `DELETE` answers 204 |
+| `error-cake-validation`, `-cake-name-taken` | `POST /v1/owner/cakes` | 422 with the `image` codes and `NAME_TAKEN` in `fields[]` |
+| `error-cake-limit-reached`, `-last-active-cake`, `-image-too-large` | cakes | 409 (13th cake, last active cake) and 413 envelopes |

@@ -35,7 +35,7 @@ extension CatalogService {
     /// placeholder), but the operator must hear about it. Only the path is
     /// logged; it is shop data, not customer data.
     fileprivate func warnAboutMissingImages(in products: [ProductRecord]) {
-        for product in products where !assets.hasVersion(forPath: product.imagePath) {
+        for product in products where product.uploadVersion == nil && !assets.hasVersion(forPath: product.imagePath) {
             logger.warning("Product image file not found", metadata: ["image_path": .string(product.imagePath)])
         }
     }
@@ -49,7 +49,7 @@ extension ProductRecord {
             name: name,
             description: description,
             priceVND: priceVND,
-            imageURL: assets.imageURL(forPath: imagePath)
+            imageURL: assets.imageURL(forPath: imagePath, uploadVersion: uploadVersion)
         )
     }
 }

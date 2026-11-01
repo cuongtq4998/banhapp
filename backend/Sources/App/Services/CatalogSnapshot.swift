@@ -30,6 +30,10 @@ struct ProductRecord: Equatable, Sendable {
     let name: String
     let description: String
     let priceVND: Int
-    /// Relative to the assets directory, for example `images/banana.png`.
+    /// Relative to the assets directory, for example `images/banana.png`, or
+    /// `cakes/<id>` for an uploaded picture.
     let imagePath: String
+    /// First 8 characters of the stored hash of an uploaded picture; nil for a
+    /// picture that is a file (ADR-0025).
+    var uploadVersion: String?
 }

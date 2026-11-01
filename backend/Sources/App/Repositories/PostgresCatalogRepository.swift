@@ -46,9 +46,11 @@ struct PostgresCatalogRepository: CatalogRepository {
     // stable order, and therefore a stable ETag.
     private static func fetchProducts(_ shopID: UUID, on sql: any SQLDatabase) async throws -> [ProductRecord] {
         try await sql.raw("""
-            SELECT id, slug, name, description, price_vnd, image_path FROM product
-            WHERE shop_id = \(bind: shopID) AND is_active
-            ORDER BY sort_order, id
+            SELECT p.id, p.slug, p.name, p.description, p.price_vnd,
+                   coalesce(p.image_path, 'cakes/' || p.id::text) AS image_path, left(i.sha256, 8) AS upload_version
+            FROM product p LEFT JOIN product_image i ON i.product_id = p.id
+            WHERE p.shop_id = \(bind: shopID) AND p.is_active AND p.removed_at IS NULL
+            ORDER BY p.sort_order, p.id
             """).all(decoding: ProductRow.self).map { $0.toDomain() }
     }
 
@@ -117,15 +119,18 @@ private struct ProductRow: Decodable {
     let description: String
     let priceVND: Int
     let imagePath: String
+    let uploadVersion: String?
 
     private enum CodingKeys: String, CodingKey {
         case id, slug, name, description
         case priceVND = "price_vnd"
         case imagePath = "image_path"
+        case uploadVersion = "upload_version"
     }
 
     func toDomain() -> ProductRecord {
-        ProductRecord(id: id, slug: slug, name: name, description: description, priceVND: priceVND, imagePath: imagePath)
+        ProductRecord(id: id, slug: slug, name: name, description: description, priceVND: priceVND, imagePath: imagePath,
+                      uploadVersion: uploadVersion)
     }
 }
 

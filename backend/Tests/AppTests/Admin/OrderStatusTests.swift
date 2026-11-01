@@ -122,7 +122,13 @@ final class OrderStatusTests: AdminOrderTestCase {
         let opened = try await detail(staff, orderCode)
         XCTAssertEqual(opened.status, .notFound)
         let repeated = try await change(staff, orderCode, move("Confirmed", "Completed"))
-        XCTAssertEqual(repeated.status, .notFound)
+        XCTAssertEqual(repeated.status, .ok, "FR-19: the repeat of the closing change is a replay, not an error")
+        XCTAssertEqual(repeated.headers.first(name: "Idempotent-Replay"), "true")
+        XCTAssertEqual(repeated.string("status"), "Completed")
+        let other = try await change(staff, orderCode, move("New", "Cancelled", reason: "cannot_deliver"))
+        XCTAssertEqual(other.errorCode, "ORDER_NOT_FOUND", "any other call on an order outside the window stays 404")
+        let bad = try await change(staff, orderCode, #"{"nonsense":true}"#)
+        XCTAssertEqual(bad.errorCode, "ORDER_NOT_FOUND")
     }
 
     func testAnOldCancelledOrderWithNoCapacityRowCancelsWithoutError() async throws {

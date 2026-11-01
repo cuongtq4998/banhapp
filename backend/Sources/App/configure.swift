@@ -46,6 +46,8 @@ private func registerRoutes(_ app: Application, config: AppConfig) throws {
     try app.register(collection: AdminRoutes())
     try app.register(collection: AdminOrderRoutes(shopID: config.shopID))
     try app.register(collection: OwnerSettingsRoutes(shopID: config.shopID, assets: assets))
+    try app.register(collection: OwnerCakeRoutes(shopID: config.shopID, assets: assets))
+    try app.register(collection: CakeImageRoutes(shopID: config.shopID))
     try app.register(collection: OwnerStaffRoutes(shopID: config.shopID))
 }
 

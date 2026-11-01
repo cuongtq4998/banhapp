@@ -1,0 +1,25 @@
+{
+  "error": {
+    "code": "VALIDATION_FAILED",
+    "message_key": "ERR_SERVER",
+    "fields": [
+      {
+        "field": "name",
+        "code": "NAME_REQUIRED",
+        "message_key": "ERR_FIELD_REQUIRED"
+      },
+      {
+        "field": "price_vnd",
+        "code": "PRICE_VND_OUT_OF_RANGE",
+        "message_key": "ERR_FIELD_OUT_OF_RANGE"
+      },
+      {
+        "field": "image",
+        "code": "IMAGE_TYPE_UNSUPPORTED",
+        "message_key": "ERR_FIELD_TYPE_UNSUPPORTED"
+      }
+    ],
+    "details": {}
+  },
+  "request_id": "7f1c1a52-0c1e-4d6c-9a54-2d7f3d6a0020"
+}

@@ -57,6 +57,15 @@ struct AdminOrderQueries: Sendable {
             .first(decoding: OrderFoundRow.self)
     }
 
+    /// An order of this shop and kind (demo or real) whatever its age: only the
+    /// repeat rule of the status route may use it (FR-19).
+    func findIgnoringAge(code: String, window: OrderWindow) async throws -> OrderFoundRow? {
+        try await sql.raw("""
+            SELECT id, status FROM customer_order
+            WHERE order_code = \(bind: code) AND shop_id = \(bind: window.shopID) AND is_demo = \(bind: window.demoOnly)
+            """).first(decoding: OrderFoundRow.self)
+    }
+
     /// The detail of an order id, with no window: used for the reply of a change
     /// that was just made or refused in the same transaction.
     func detail(id: UUID) async throws -> OrderDetail? {
