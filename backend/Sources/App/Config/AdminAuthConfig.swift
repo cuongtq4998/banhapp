@@ -20,18 +20,27 @@ struct AdminAuthConfig: Equatable, Sendable {
     let emailProvider: EmailProvider
     /// Code requests (registered or not) per UTC day (auth.md section 4.2).
     let emailMaxPerDay: Int
+    /// The store-review account of ADR-0027; nil leaves it off.
+    let review: ReviewAccountConfig?
 
-    init(pepper: String, emailProvider: EmailProvider, emailMaxPerDay: Int = defaultEmailMaxPerDay) {
+    init(pepper: String, emailProvider: EmailProvider, emailMaxPerDay: Int = defaultEmailMaxPerDay, review: ReviewAccountConfig? = nil) {
         self.pepper = pepper
         self.emailProvider = emailProvider
         self.emailMaxPerDay = emailMaxPerDay
+        self.review = review
     }
 
     init?(environment: EnvironmentVariables, stage: AppConfig.Stage) throws {
         typealias Key = AppConfig.Key
         let pepper = environment.value(Key.authCodePepper)
         let provider = environment.value(Key.emailProvider)
-        if pepper == nil && provider == nil { return nil }
+        // Half-set review variables stop the start even when sign-in is off.
+        let review = try ReviewAccountConfig(environment: environment)
+        if pepper == nil && provider == nil {
+            // A review account without sign-in cannot work; do not start silently without it.
+            if review != nil { throw AppConfig.Failure.missing(Key.authCodePepper) }
+            return nil
+        }
         guard let pepper else { throw AppConfig.Failure.missing(Key.authCodePepper) }
         guard let provider else { throw AppConfig.Failure.missing(Key.emailProvider) }
         guard pepper.utf8.count >= Self.minPepperLength else { throw AppConfig.Failure.invalid(Key.authCodePepper) }
@@ -43,6 +52,6 @@ struct AdminAuthConfig: Equatable, Sendable {
             guard let parsed = Int(text), parsed >= 1 else { throw AppConfig.Failure.invalid(Key.emailMaxPerDay) }
             maxPerDay = parsed
         }
-        self.init(pepper: pepper, emailProvider: kind, emailMaxPerDay: maxPerDay)
+        self.init(pepper: pepper, emailProvider: kind, emailMaxPerDay: maxPerDay, review: review)
     }
 }

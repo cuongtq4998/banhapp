@@ -44,7 +44,7 @@ struct AuthRoutes: RouteCollection {
         guard let email = EmailAddress(body.email) else { throw Self.invalid("email", "EMAIL_INVALID") }
         let service = CodeRequestService(
             store: context.store, clock: context.services.clock, codes: SignInCodes(pepper: context.config.pepper),
-            shopID: context.shopID, maxPerDay: context.config.emailMaxPerDay
+            shopID: context.shopID, maxPerDay: context.config.emailMaxPerDay, review: context.config.review
         )
         if let mail = try await service.requestCode(email) {
             let store = AuthStore(database: req.application.db), clock = context.services.clock
@@ -74,7 +74,8 @@ struct AuthRoutes: RouteCollection {
             throw Self.invalid("device_name", "DEVICE_NAME_INVALID")
         }
         let service = SignInVerifyService(
-            store: context.store, clock: context.services.clock, codes: SignInCodes(pepper: context.config.pepper)
+            store: context.store, clock: context.services.clock, codes: SignInCodes(pepper: context.config.pepper),
+            review: context.config.review
         )
         let result = try await service.verify(SignInAttempt(
             email: email, code: body.code, installationID: installationID, platform: client.platform, deviceName: name

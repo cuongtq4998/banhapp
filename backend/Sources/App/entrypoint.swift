@@ -30,6 +30,10 @@ enum Entrypoint {
             let config = try OwnerCommandConfig(variables: variables)
             loops = migrationLoopCount
             setUp = { try configureOwnerCommand($0, config: config) }
+        } else if command == reviewAccountCommandName {
+            let config = try ReviewCommandConfig(variables: variables)
+            loops = migrationLoopCount
+            setUp = { try configureReviewCommand($0, config: config) }
         } else {
             let config = try AppConfig(variables: variables)
             loops = DatabasePoolSizing.eventLoopCount(poolMax: config.databasePoolMax, coreCount: System.coreCount)

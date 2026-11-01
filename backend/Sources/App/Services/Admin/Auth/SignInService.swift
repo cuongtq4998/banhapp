@@ -15,6 +15,8 @@ struct CodeRequestService: Sendable {
     let shopID: UUID
     /// Requests per UTC day, registered or not (auth.md 4.2 "Global mail cap").
     let maxPerDay: Int
+    /// The store-review account (ADR-0027); nil while it is off.
+    var review: ReviewAccountConfig?
 
     private static var utc: Calendar {
         var calendar = Calendar(identifier: .gregorian)
@@ -30,6 +32,8 @@ struct CodeRequestService: Sendable {
         let realHash = codes.hmac(email: email, code: code)
         let expires = now.addingTimeInterval(AuthPolicy.codeLifetime)
         let utc = Self.utc
+        let review = review
+        let fixedHash = review.map { codes.hmac(email: email, code: $0.code) }
         let dayStart = utc.startOfDay(for: now)
         let nextDay = utc.date(byAdding: .day, value: 1, to: dayStart) ?? now.addingTimeInterval(86_400)
 
@@ -46,14 +50,24 @@ struct CodeRequestService: Sendable {
             if try await tx.codeCount(since: dayStart) >= maxPerDay {
                 throw APIError.waiting(.codeRequestLimit, seconds: Int(nextDay.timeIntervalSince(now).rounded(.up)))
             }
+            // A review account is a registered address only while the switch is on.
             let account = try await tx.activeAccount(shopID: shopID, email: email.value)
+                .flatMap { $0.isReview && !(review?.isReviewAddress(email) ?? false) ? nil : $0 }
             let id = UUID()
             try await tx.consumeOpenCodes(email: email.value, at: now)
             try await tx.insertCode(
                 id: id, email: email.value, accountID: account?.id,
-                hmac: account == nil ? SignInCodes.phantomHash() : realHash, createdAt: now, expiresAt: expires
+                hmac: hash(for: account, real: realHash, fixed: fixedHash), createdAt: now, expiresAt: expires
             )
-            return account.map { _ in CodeMail(codeID: id, to: email.value, code: code) }
+            // The review address gets the same answer and limits, but no mail: its code is fixed.
+            return account.flatMap { $0.isReview ? nil : CodeMail(codeID: id, to: email.value, code: code) }
         }
+    }
+
+    /// Registered normal account: the hash of the mailed code. Review account:
+    /// the hash of the fixed code. Unregistered: a random hash that never matches.
+    private func hash(for account: AccountRecord?, real: Data, fixed: Data?) -> Data {
+        guard let account else { return SignInCodes.phantomHash() }
+        return account.isReview ? (fixed ?? SignInCodes.phantomHash()) : real
     }
 }

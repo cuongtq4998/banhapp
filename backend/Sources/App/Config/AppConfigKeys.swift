@@ -26,6 +26,8 @@ extension AppConfig {
         static let apnsTopic = "APNS_TOPIC"
         static let fcmProjectID = "FCM_PROJECT_ID"
         static let fcmServiceAccountJSON = "FCM_SERVICE_ACCOUNT_JSON"
+        static let reviewAccountEmail = "REVIEW_ACCOUNT_EMAIL"
+        static let reviewAccountCode = "REVIEW_ACCOUNT_CODE"
     }
 
     enum Default {

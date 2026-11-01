@@ -46,12 +46,17 @@ APP_ENV=local PORT=8080 swift run App serve        # GET http://localhost:8080/h
 docker compose up -d db                             # local PostgreSQL
 APP_ENV=local DATABASE_MIGRATION_URL=<url> swift run App migrate --yes   # needs only APP_ENV and DATABASE_MIGRATION_URL
 APP_ENV=local DATABASE_URL=<url> SHOP_ID=<uuid> swift run App create-owner --email <address>   # first owner (after migrate and seed)
+APP_ENV=local DATABASE_URL=<url> SHOP_ID=<uuid> REVIEW_ACCOUNT_EMAIL=<address> REVIEW_ACCOUNT_CODE=<6 digits> swift run App review-account on   # store review (ADR-0027); `off` needs no review variables
 psql "<url>" -f db/seed/sample.sql                  # sample data, local and staging only
 docker build --platform linux/amd64 -f backend/Dockerfile .   # from the repository root
 ```
 
 Database URLs use the standard PostgreSQL URI form with the scheme `postgres`, then user, password, host, port and database name; take the local values from `docker-compose.yml`. Never commit real URLs.
 
-Configuration per command: `serve` needs `APP_ENV`, `PORT` and (outside local) `DATABASE_URL` and `SHOP_ID`; `migrate` needs only `APP_ENV` and `DATABASE_MIGRATION_URL`; `create-owner` needs `APP_ENV`, `DATABASE_URL` and `SHOP_ID`. The command is the first argument that does not start with `-`, as in Vapor, so `App --yes migrate` and `App --env staging migrate` select `migrate`. Values are trimmed of whitespace and newlines.
+Configuration per command: `serve` needs `APP_ENV`, `PORT` and (outside local) `DATABASE_URL` and `SHOP_ID`; `migrate` needs only `APP_ENV` and `DATABASE_MIGRATION_URL`; `create-owner` needs `APP_ENV`, `DATABASE_URL` and `SHOP_ID`; `review-account on|off` needs the same, and `on` also both `REVIEW_ACCOUNT_*` variables. The command is the first argument that does not start with `-`, as in Vapor, so `App --yes migrate` and `App --env staging migrate` select `migrate`. Values are trimmed of whitespace and newlines.
 
 Migration files: the SQL splitter understands standard and `E'...'` strings, quoted identifiers, dollar quoting (opened only where PostgreSQL lexes it, not inside an identifier such as `a$b$c`) and nested comments. Anything else that holds a `;` inside a single statement is not supported.
+
+Store-review account (ADR-0027, BR-14): `Services/Admin/Auth/ReviewAccountCommand.swift`, SQL in `Repositories/Admin/ReviewAccountStore.swift`, config in `Config/ReviewAccountConfig.swift`. The server needs both `REVIEW_ACCOUNT_EMAIL` and `REVIEW_ACCOUNT_CODE` (one alone stops the start); `review-account on` creates the staff account of kind `review` and exactly three demo orders (`is_demo`), `off` removes the demo orders, their history and the account's sessions and switches the account off (the row stays: the append-only `security_event` refers to it). Sign-in: the review address requests a code like anyone (same answer, same limits, no mail) and enters the fixed code; no other address accepts it.
+
+Logs: `Http/RedactingLogHandler.swift` wraps the application logger (`configure`). Events of other modules (PostgreSQL driver, Fluent, Vapor, NIO) are dropped below `info` and keep only `database-id`, `psql_connection_id` and `request-id` at `info` and above, so `LOG_LEVEL=debug` or `trace` never writes queries with bound values, rows, the `Authorization` header or query strings.

@@ -31,6 +31,10 @@ class AdminDatabaseTestCase: XCTestCase {
     var mail = RecordingEmailSender()
     var clock = MutableClock(Date())
     let pepper = String(repeating: "t", count: 32)
+    /// A logger installed before `configure`, for tests that read the log.
+    var testLogger: Logger? { nil }
+    /// Set by tests of the store-review account (ADR-0027); off by default.
+    var reviewConfig: ReviewAccountConfig? { nil }
 
     override func setUp() async throws {
         let url = ProcessInfo.processInfo.environment[AppConfig.Key.databaseMigrationURL] ?? ""
@@ -40,7 +44,8 @@ class AdminDatabaseTestCase: XCTestCase {
         let day = Int.random(in: 0..<20_000)
         clock = MutableClock(Date(timeIntervalSince1970: 1_924_995_600 + TimeInterval(day) * 86_400))
         app = try await Application.make(.testing)
-        let admin = AdminAuthConfig(pepper: pepper, emailProvider: .recording, emailMaxPerDay: 1_000_000)
+        if let testLogger { app.logger = testLogger }
+        let admin = AdminAuthConfig(pepper: pepper, emailProvider: .recording, emailMaxPerDay: 1_000_000, review: reviewConfig)
         try await configure(app, config: AppConfig(stage: .local, port: 8080, databaseURL: url, shopID: shopID, admin: admin))
         for file in try MigrationFiles.load(from: TestPaths.migrations) { app.migrations.add(file) }
         try await app.autoMigrate()
