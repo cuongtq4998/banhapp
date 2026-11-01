@@ -4,7 +4,9 @@ import java.io.IOException
 import java.io.InterruptedIOException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -48,7 +50,9 @@ class ApiClient(private val http: OkHttpClient, private val baseUrl: HttpUrl, va
         } catch (e: IOException) {
             throw if (e is InterruptedIOException) ApiException.Timeout(e) else ApiException.Network(e)
         }
-        return response.use { read(it) }
+        // `await` resumes on the caller's thread (the main thread for a view model); a body that has not fully arrived is read from the
+        // socket here, which Android forbids on the main thread (NetworkOnMainThreadException found by the live operating flow).
+        return withContext(Dispatchers.IO) { response.use { read(it) } }
     }
 
     private fun read(response: Response): ApiResponse {

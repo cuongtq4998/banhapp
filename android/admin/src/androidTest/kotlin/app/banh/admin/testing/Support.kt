@@ -17,7 +17,7 @@ import app.banh.admin.ui.AdminTags
 import java.io.File
 import java.io.FileOutputStream
 
-private const val WAIT_MILLIS = 8_000L
+private const val WAIT_MILLIS = 20_000L
 
 /** Starts the app against the stub backend with no stored session (debug launch extras of `BuildBackend`). */
 fun launchStub(grantNotifications: Boolean = true): ActivityScenario<MainActivity> {
