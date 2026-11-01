@@ -76,7 +76,7 @@ private fun Empty(state: OrderListState, dispatch: (OrderListIntent) -> Unit) {
     }
     Column(Modifier.fillMaxWidth().testTag(AdminTags.ORDERS_EMPTY), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
         Text(stringResource(text), style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
-        if (state.hasFilters) SecondaryButton(stringResource(R.string.a_clear_filters), { dispatch(OrderListIntent.ClearFilters) })
+        if (state.hasFilters) SecondaryButton(stringResource(R.string.a_clear_filters), { dispatch(OrderListIntent.ClearFilters) }, Modifier.testTag(AdminTags.ORDERS_CLEAR_FILTERS))
     }
 }
 

@@ -35,7 +35,7 @@ fun OrderListScreen(
         Spacer(Modifier.height(Spacing.sm))
         SearchField(state.queryText, state.searchTooShort, { dispatch(OrderListIntent.QueryChanged(it)) }, { dispatch(OrderListIntent.SubmitSearch) })
         Spacer(Modifier.height(Spacing.sm))
-        FilterBar(state.filter, state.date, { dispatch(OrderListIntent.SelectFilter(it)) }, { dispatch(OrderListIntent.SelectDate(it)) })
+        FilterBar(state.filter, state.date, state.serverDate, { dispatch(OrderListIntent.SelectFilter(it)) }, { dispatch(OrderListIntent.SelectDate(it)) })
         OrderListBody(state, dispatch, onOpen, contentPadding, Modifier.weight(1f))
     }
 }

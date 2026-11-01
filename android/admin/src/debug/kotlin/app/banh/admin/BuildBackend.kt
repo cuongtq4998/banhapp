@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import app.banh.admin.stub.StubBackend
 import app.banh.admin.stub.StubInterceptor
+import app.banh.admin.stub.StubPhotoChooser
+import app.banh.admin.stub.StubTokenProvider
 import java.io.File
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
@@ -26,7 +28,7 @@ object BuildBackend {
         val mode = preferences(context).getString(KEY_BACKEND, LOCAL)
         if (mode != STUB) return BackendConfig(configuredBaseUrl())
         val fixtures = StubBackend.Fixtures { name -> context.assets.open("admin-fixtures/$name.json").bufferedReader().use { it.readText() } }
-        return BackendConfig("http://stub.invalid/".toHttpUrl(), listOf(StubInterceptor(StubBackend(fixtures))))
+        return BackendConfig("http://stub.invalid/".toHttpUrl(), listOf(StubInterceptor(StubBackend(fixtures))), photos = StubPhotoChooser(context), tokens = StubTokenProvider)
     }
 
     fun handleLaunch(activity: Activity, intent: Intent?, firstLaunch: Boolean) {

@@ -30,8 +30,9 @@ class ShopDatesTest {
 
     @Test
     fun dateAndInstantAreShownInShopTime() {
-        assertEquals("02/11/2026", formatDate("2026-11-02"))
-        assertEquals("10:15 31/10/2026", formatInstant("2026-10-31T03:15:09Z"))
-        assertEquals("Thứ Hai, 02/11/2026", formatWeekdayDate("2026-11-02"))
+        assertEquals("02/11", formatDate("2026-11-02", "2026-11-05"))
+        assertEquals("02/11/2025", formatDate("2025-11-02", "2026-11-05"))
+        assertEquals("10:15 31/10", formatInstant("2026-10-31T03:15:09Z", "2026-11-02"))
+        assertEquals("Thứ Hai, 02/11", formatWeekdayDate("2026-11-02", "2026-11-02"))
     }
 }

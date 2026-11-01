@@ -10,6 +10,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 /** Container for grouped content: translucent over the blurred background, opaque where blur is unavailable. */
 @Composable
@@ -25,7 +26,7 @@ fun GlassCard(
     } else {
         Color(ColorTokens.SURFACE_SOLID).copy(alpha = AlphaTokens.SOLID_FALLBACK)
     }
-    val border = if (glass) BorderStroke(Sizes.hairline, Color(ColorTokens.SURFACE_STROKE).copy(alpha = AlphaTokens.STROKE)) else null
+    val border = BorderStroke(Sizes.hairline, Color(ColorTokens.SURFACE_STROKE).copy(alpha = if (glass) AlphaTokens.STROKE else AlphaTokens.SOLID_FALLBACK))
     val body: @Composable () -> Unit = { Column(modifier = Modifier.padding(Spacing.lg), content = content) }
     // The container colour is not a theme colour, so the text colour is stated instead of derived.
     val contentColor = MaterialTheme.colorScheme.onSurface
@@ -35,7 +36,8 @@ fun GlassCard(
             shape = shape,
             color = container,
             contentColor = contentColor,
-            shadowElevation = Sizes.cardShadow,
+            // No elevation shadow: under a translucent colour it shows through as a lighter rectangle that ignores the rounded corners.
+            shadowElevation = 0.dp,
             border = border,
             content = body,
         )
@@ -46,7 +48,8 @@ fun GlassCard(
             shape = shape,
             color = container,
             contentColor = contentColor,
-            shadowElevation = Sizes.cardShadow,
+            // No elevation shadow: under a translucent colour it shows through as a lighter rectangle that ignores the rounded corners.
+            shadowElevation = 0.dp,
             border = border,
             content = body,
         )
