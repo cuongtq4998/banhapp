@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.14 |
+| Version      | 1.15 |
 | Last updated | 2026-11-01 |
 | Status       | Draft |
 | Owner        | forge-dev (orchestrator wrote the first version) |
