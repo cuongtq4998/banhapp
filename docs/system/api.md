@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.19 [v1.19 | 2026-11-01] |
+| Version      | 1.20 [v1.20 | 2026-11-01] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -60,3 +60,4 @@ This file is the index of the API specification. The body lives in the folder `a
 | 1.17 | 2026-11-01 | Aligned with built slice B1: sign-in off (503) when not configured; field codes `EMAIL_INVALID`, `CODE_FORMAT`, `INSTALLATION_ID_INVALID`, `DEVICE_NAME_INVALID`; `device_id` upper-case vs lower-case in tokens; malformed or unknown refresh token is `SESSION_REVOKED`; grace anchored to the first rotation; `Retry-After` at most 3600; 240 and 401 limits dropped; push-token deferred; replay of a close beyond the window answers 200 (R-1). |
 | 1.18 | 2026-11-01 | Aligned with built slices B2 and B3 (architecture/11): `q` is 3 to 50 characters (was 2), opaque cursor and `CURSOR_INVALID`, field codes of the list and status change in api/08 section 11.1, status body field codes, items order, open defect D-1 (replay after the window). |
 | 1.19 | 2026-11-01 | Aligned with built slices B4 and B5 (architecture/12): staff list body, review accounts hidden, ordering `GET` without `over_limit`, field codes `BODY_EMPTY`, `FIELD_UNKNOWN`, `NAME_TAKEN` (districts), slot time codes, no-op staff `PATCH`, slot renumbering. |
+| 1.20 | 2026-11-01 | Aligned with built slice B6 (architecture/13): cake create error table (image codes and keys, `IMAGE_INVALID`, two 413 codes, 503 gate, repeated field `<FIELD>_INVALID`), `GET /assets/cakes/{id}` delivery, cakes list filter, `PATCH` rules; api/06 replay beyond the window now built (D-1). |

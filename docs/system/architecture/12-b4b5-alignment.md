@@ -37,4 +37,4 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 
 ## 28.4 Open defects
 
-None found that break the PRD (27 FR, 14 BR); the only open point is the cakes filter (28.2), which belongs to B6. Defects D-1 and D-2 of architecture/11 27.4 are not touched by B4 and B5 and stay open. Query for the requirements agent: none. Query for forge-dev: D-1, D-2.
+None found that break the PRD (27 FR, 14 BR); the only open point is the cakes filter (28.2), which belongs to B6. Defects D-1 and D-2 of architecture/11 27.4 were not touched by B4 and B5; both are fixed in B6 (architecture/13) [v1.17 | 2026-11-01]. Query for the requirements agent: none. Query for forge-dev: D-1, D-2.

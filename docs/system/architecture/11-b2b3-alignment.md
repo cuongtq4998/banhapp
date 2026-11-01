@@ -35,11 +35,12 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 | B1 documents | Aligned in architecture/10. This round re-read only what B2 and B3 touch (role gate on the order routes, rate limits, error envelope); no further differences found there | None |
 | Dev guide | The paragraph for B2 and B3 matches the code; it is owned by forge-dev and was not edited | None |
 
-## 27.4 Open defects for forge-dev (code differs from the documents; the documents are the contract)
+## 27.4 Defects for forge-dev (code differed from the documents; the documents are the contract). Both fixed in B6 [v1.17 | 2026-11-01], see [13-b6-alignment.md](13-b6-alignment.md) section 29.2
 
 | ID | Defect | Expected | Evidence |
 | -- | ------ | -------- | -------- |
+| | Status | | Both D-1 and D-2: fixed in B6 (migration `0005`, `changeStatus`). The rows below are the original findings |
 | D-1 | `POST /v1/admin/orders/{code}/status` looks the order up through the window before the replay test. An exact repeat (same account, same move) of the change that closed an order placed more than 90 days ago answers 404 `ORDER_NOT_FOUND` | 200 with `Idempotent-Replay: true` and the current detail (FR-19: a repeat is not an error; ADR-0028 v1.3, R-1; test cases TC-B68, C23, C38). Any other call on an order outside the window stays 404, and 409 `details.order` is never built for it | `AdminOrderService.changeStatus` calls `find(code:window:)` first; `OrderStatusTests.testAnOldOpenOrderCanBeClosedAndThenLeavesTheWindow` asserts 404 for the repeat and must change |
 | D-2 | The trigger `customer_order_release_capacity` subtracts cakes for a cancelled order even when `is_demo` is true, although demo rows are excluded from `day_load` | Skip the `day_load` update when `OLD.is_demo` (new migration, forward-only). Matters once the review account (slice A6) can cancel a demo order; no effect before | `0003_admin_orders.sql` trigger body; data-model/05 `is_demo` row |
 
-Neither defect changes the PRD. Query for the requirements agent: none. Query for forge-dev: D-1 and D-2.
+Neither defect changes the PRD. Query for the requirements agent: none. Query for forge-dev: none left (D-1 and D-2 fixed in B6).
