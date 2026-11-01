@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.22 [v1.22 | 2026-11-01] |
+| Version      | 1.23 [v1.23 | 2026-11-01] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -63,3 +63,4 @@ This file is the index of the API specification. The body lives in the folder `a
 | 1.20 | 2026-11-01 | Aligned with built slice B6 (architecture/13): cake create error table (image codes and keys, `IMAGE_INVALID`, two 413 codes, 503 gate, repeated field `<FIELD>_INVALID`), `GET /assets/cakes/{id}` delivery, cakes list filter, `PATCH` rules; api/06 replay beyond the window now built (D-1). |
 | 1.21 | 2026-11-01 | Aligned with built slice B7 (architecture/14): 10.8 push token built (field codes `PLATFORM_MISMATCH`, `PLATFORM_INVALID`, `TOKEN_INVALID`, `APNS_ENVIRONMENT_INVALID`, `UNKNOWN_FIELD`); 10.12 FCM field path `android.notification.title_loc_key`; payload content. |
 | 1.22 | 2026-11-01 | `GET /v1/admin/me` also returns the caller's own `email` (own address only, never logged, `no-store`): api/05 index row, api/06 10.6; fixture `admin/me.json` and the backend to follow (architecture/15). |
+| 1.23 | 2026-11-01 | Review account and log redaction as built (architecture/16): api/05 section 9 logging row; api/06 10.11 cancel: 500 `INTERNAL_ERROR` with `details.reason = DAY_LOAD_INCONSISTENT`. No new route. |

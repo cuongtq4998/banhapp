@@ -22,9 +22,9 @@ Part of [deployment.md](../deployment.md) (index, version, change log), sections
 | `RATE_LIMIT_CODE_REQUEST_PER_HOUR_IP` | Fixed in code at 20 in slice B1, not configurable [v1.12 | 2026-11-01] | No | Host |
 | `RATE_LIMIT_AUTH_PER_HOUR_IP` | Fixed in code at 60 in slice B1, not configurable [v1.12 | 2026-11-01] | No | Host |
 | `IMAGE_MAX_BYTES` | Default 5242880; the cake upload route body limit is this plus 65536 [v1.11 | 2026-10-31] | No | Host |
-| `REVIEW_ACCOUNT_EMAIL`, `REVIEW_ACCOUNT_CODE` | Only while ADR-0027 is enabled | No | Host secret store, removed after review |
+| `REVIEW_ACCOUNT_EMAIL`, `REVIEW_ACCOUNT_CODE` | Built [v1.14 | 2026-11-01]. Both or none (one alone stops the start); the code is exactly 6 digits; sign-in with it also needs `AUTH_CODE_PEPPER`. Allowed in production by design (the review runs on the shipped build). See the runbook note below | No | Host secret store |
 
-`.env.example` lists the names with empty values. Startup checks (fail fast): `AUTH_FIXED_CODE`, `console` mail or `recording` providers with `APP_ENV=production`; `AUTH_CODE_PEPPER` shorter than 32 bytes; exactly one of `AUTH_CODE_PEPPER` and `EMAIL_PROVIDER` set [v1.12 | 2026-11-01]. Operator command (run with the application role; needs `APP_ENV`, `DATABASE_URL`, `SHOP_ID`): `create-owner --email <EMAIL> [--name <NAME>]`; it refuses when an owner exists. `review-account on|off` is deferred with ADR-0027 (architecture/10).
+`.env.example` lists the names with empty values. Startup checks (fail fast): `AUTH_FIXED_CODE`, `console` mail or `recording` providers with `APP_ENV=production`; `AUTH_CODE_PEPPER` shorter than 32 bytes; exactly one of `AUTH_CODE_PEPPER` and `EMAIL_PROVIDER` set [v1.12 | 2026-11-01]. Operator command (run with the application role; needs `APP_ENV`, `DATABASE_URL`, `SHOP_ID`): `create-owner --email <EMAIL> [--name <NAME>]`; it refuses when an owner exists. `review-account on|off` is built [v1.14 | 2026-11-01]: `on` needs both review variables and creates or switches on the account and exactly three demo orders; `off` needs only the three above. Runbook: the variables only enable sign-in, they do not end sessions. Removing them after approval makes new sign-ins fail, but review sessions already open stay valid until their 7 days end. After the review always run `review-account off` (deletes demo orders and review sessions, voids open codes, deactivates the account), then remove the variables (ADR-0027 v1.3, architecture/16).
 
 Mobile build settings: `API_BASE_URL` per configuration as for the customer apps; iOS capability Push Notifications (entitlement `aps-environment`); Android `POST_NOTIFICATIONS` permission (Android 13 and later), notification channel `new_orders` importance HIGH (ADR-0024 v1.1), `allowBackup=false` and data-extraction rules, `FLAG_SECURE` on order screens (architecture/08 24.2), `google-services` configuration kept out of the repository or with only non-secret ids (unverified: confirm the file holds no secret before committing).
 
@@ -66,7 +66,7 @@ Images and all admin tables are in the same dump. The restore test (section 6) a
 
 ## 16. Observability and alerts (addition)
 
-Log fields stay as section 7; the admin routes add role but never e-mail address, token, code or customer data. Alerts (each owner: operator):
+Log fields stay as section 7; the admin routes add role but never e-mail address, token, code or customer data. Redaction is by origin, not by field [v1.14 | 2026-11-01]: lines written by the application pass as they are (they follow this rule); lines of other modules (PostgreSQL driver, Fluent, Vapor) are dropped below `info` and keep only `database-id`, `psql_connection_id` and `request-id` from `info` up. A level of `debug` or `trace` therefore adds our own lines only. Alerts (each owner: operator):
 
 | Alert | Threshold | Action |
 | ----- | --------- | ------ |

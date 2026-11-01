@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.13 [v1.13 | 2026-11-01] |
+| Version      | 1.14 [v1.14 | 2026-11-01] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect (design), forge-dev (keeps it true) |
@@ -54,3 +54,4 @@ This file is the index of the deployment document. The body lives in the folder 
 | 1.11 | 2026-10-31 | Owner decision: free tier only (DP-Q4 updated). deployment/04: `EmailSender` selection, new variable `RATE_LIMIT_AUTH_PER_HOUR_IP`, upload body limit, free-tier mode and go-live gate (section 18), launch checklist marked blocked. |
 | 1.12 | 2026-11-01 | Variable names `EMAIL_PROVIDER`, `EMAIL_MAX_PER_DAY`, `AUTH_CODE_PEPPER`; command `create-owner`; sign-in off when both secrets unset, start refused when only one is; admin limit variables dropped or fixed in code. |
 | 1.13 | 2026-11-01 | B7 alignment: `PUSH_PROVIDER` values `off`, `recording`, `live`; the six `live` values go together, a half-set configuration stops the start, `recording` refused in production (deployment/04, architecture/14). |
+| 1.14 | 2026-11-01 | Review account built (architecture/16): `review-account on|off`, both variables or none, production allowed, runbook note (sessions outlive the variables until `off`); `LOG_LEVEL` `debug`/`trace` safe because of `RedactingLogHandler` (deployment/01, deployment/04 sections 11 and 16). |

@@ -54,3 +54,8 @@ Residual risk: a person photographing the screen, or screenshots on iOS. Not red
 | Sign-in valid for 7 days | Boundaries from the PRD v1.3 rules; test with an injected clock | None |
 
 Open boundary rules (R-5: minute 10:00 of a code, exactly 90 days) are for the requirements agent; until stated, the build uses "valid while `now < expires_at`" for codes and sessions, and `created_at >= now() - 90 days` for the window (ADR-0029).
+
+## 24.5 Where each admin-orders PRD technical question is answered [v1.20 | 2026-11-01]
+
+TQ-1 ADR-0023 (not final: Proposed). TQ-2 ADR-0026 (decided, unverified). TQ-3 ADR-0024 (decided, live delivery unverified). TQ-5 ADR-0028 and ADR-0029; TQ-6 ADR-0025; TQ-7 ADR-0029; TQ-8 ADR-0030; TQ-11, TQ-12 (superseded), TQ-13: architecture/09 section 25.1. Table with status and gaps: architecture/16 section 32.4. TQ-D1 to TQ-D7 (design questions) stay in 24.1.
+

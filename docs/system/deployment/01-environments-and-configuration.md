@@ -39,7 +39,7 @@ Backend variables (names only; `.env.example` lists the same names with empty va
 | `RATE_LIMIT_ORDER_PER_HOUR` | Default 10 | No | Host |
 | `ORDER_MAX_PER_PHONE_PER_DAY` | Default 5 | No | Host |
 | `PUBLIC_ASSET_BASE_URL` | Prefix placed before `/assets/<image_path>` in `image_url` if assets move to another host (no trailing slash); empty by default, so `image_url` is relative to the API host. Image files live in `backend/assets/images/` and must be inside the image build context [v1.6 \| 2026-10-26] | No | Host |
-| `LOG_LEVEL` | `info` default | No | Host |
+| `LOG_LEVEL` | `info` default. `debug` and `trace` are safe to use: `RedactingLogHandler` drops events of libraries below `info` and strips their metadata at `info` and above, so SQL, bound values, rows, query strings and the `Authorization` header are never written (architecture/16) [v1.14 | 2026-11-01] | No | Host |
 
 Mobile build settings (per build configuration, not secrets): `API_BASE_URL` (staging, production). Android `usesCleartextTraffic=false`; iOS keeps App Transport Security defaults.
 

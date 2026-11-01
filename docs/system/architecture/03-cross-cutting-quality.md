@@ -5,7 +5,7 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 ## 7. Cross-cutting Concerns
 
 - Security and customer data: HTTPS only; no accounts; server computes all money; rate limits; personal data only in the order table and the device draft; no personal data in logs (auth.md, data-model.md section 7).
-- Observability: structured JSON logs with a request id, `/healthz`, uptime check and alerts (deployment.md section 7).
+- Observability: structured JSON logs with a request id, `/healthz`, uptime check and alerts (deployment.md section 7). Library log events are filtered by `RedactingLogHandler`, so no level exposes SQL, customer data or tokens (architecture/16) [v1.20 | 2026-11-01].
 - Error handling: machine-readable error codes mapped to Vietnamese message keys by the apps (api.md section 5). Entered data is never lost on error (FR-17).
 - Configuration: all shop parameters in database tables (ADR-0013); runtime settings in environment variables (deployment.md section 3).
 - Localization: Vietnamese only; strings in resource files keyed as in the UI document; server sends keys, not text (FR-14).

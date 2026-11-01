@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.13 [v1.13 | 2026-11-01] |
+| Version      | 1.14 [v1.14 | 2026-11-01] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -52,3 +52,4 @@ This file is the index of the data model. The body lives in the folder `data-mod
 | 1.11 | 2026-11-01 | Aligned with built slices B4 and B5 (architecture/12): `settings_change` and the BR-11 CHECKs are in `0004_admin_settings.sql` (not 0002); case-insensitive district name, slot renumbering, review accounts outside staff lists. |
 | 1.12 | 2026-11-01 | Aligned with built slice B6 (architecture/13): migration `0005_admin_cakes.sql` (section 12 and the D-2 trigger fix), cap trigger also fires on `UPDATE OF removed_at` when a cake is brought back, `product_image` checks, removal deletes the image. |
 | 1.13 | 2026-11-01 | Aligned with built slice B7 (architecture/14): `push_apns_environment` cleared with the token at every revoke; sending also needs a live refresh expiry. No migration. |
+| 1.14 | 2026-11-01 | Migration `0006_review_account.sql` (order_event rows of `is_demo` orders may be deleted); `DAY_LOAD_INCONSISTENT` rule of the cancel; `is_demo` rows skipped by the per-phone count (data-model/05 sections 11 and 15, architecture/16). |

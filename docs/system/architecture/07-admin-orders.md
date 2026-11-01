@@ -45,7 +45,7 @@ flowchart LR
 | Android shared modules | Same, as Gradle modules with convention plugins | `:core:design`, `:core:common`, `:core:network`, `:core:model`, `build-logic/` (ADR-0021) | `android/core/`, `android/build-logic/` | `:app`, `:admin` |
 | Backend admin code | Sign-in and sessions, order queries and status changes, settings, cakes and images, staff, push and mail dispatch | Same Swift target; feature folders `Routes/Admin/`, `Services/Admin/{Auth,Orders,Settings,Mail,Push}/`, `Repositories/Admin/`; outbound clients in `Http/Outbound/` (no new top-level folder, ADR-0018) | `backend/Sources/App/` | PostgreSQL, mail provider, APNs, FCM |
 | Maintenance task (DEFERRED, NOT built after B1 to B3; go-live gate) | Daily purge of expired codes, sessions, security events | In-process scheduled task (`Services/Admin/Auth/Maintenance`) | `backend/Sources/App/` | PostgreSQL |
-| Operator commands | `create-owner` (built in B1); `review-account on/off` (deferred to the launch slice) | Vapor commands in `CommandName.swift` | `backend/Sources/App/` | PostgreSQL |
+| Operator commands | `create-owner` (built in B1); `review-account on|off` (built after B7, architecture/16) | Vapor commands in `CommandName.swift` | `backend/Sources/App/` | PostgreSQL |
 | Admin contract fixtures | Requests, responses and error cases shared by backend and both admin apps | JSON | `contracts/fixtures/admin/` | All admin test suites |
 | Admin CI | Builds and tests the admin apps; package paths also trigger the customer workflows | `admin-ios.yml`, `admin-android.yml` | `.github/workflows/` | Repository |
 

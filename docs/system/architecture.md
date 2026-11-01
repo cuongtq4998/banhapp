@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.19 [v1.19 | 2026-11-01] |
+| Version      | 1.20 [v1.20 | 2026-11-01] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -31,6 +31,7 @@ This file is the index of the architecture document. The body lives in the folde
 | 29 | Slice B6 alignment: image codes, upload limits and gate, image delivery, cap trigger, D-1 and D-2 fixed [v1.17 | 2026-11-01] | [architecture/13-b6-alignment.md](architecture/13-b6-alignment.md) |
 | 30 | Slice B7 alignment: push token route, dispatch, `PUSH_PROVIDER`, APNs and FCM clients (unverified), `swift-crypto` dependency [v1.18 | 2026-11-01] | [architecture/14-b7-alignment.md](architecture/14-b7-alignment.md) |
 | 31 | Client part 1 alignment: `me` returns own e-mail, shared code as built, session handling differences and defects [v1.19 | 2026-11-01] | [architecture/15-client-part1-alignment.md](architecture/15-client-part1-alignment.md) |
+| 32 | Review account, D-3 and D-4 as built; migration 0006; log redaction; status of the PRD technical questions; open recommendations [v1.20 | 2026-11-01] | [architecture/16-review-account-final-alignment.md](architecture/16-review-account-final-alignment.md) |
 | 25 | Admin simplification, answers to TQ-11 to TQ-13, list of what the PRD v1.6 simplification deleted [v1.13 \| 2026-10-31] | [architecture/09-admin-simplification.md](architecture/09-admin-simplification.md) |
 
 ## Change log
@@ -57,3 +58,4 @@ This file is the index of the architecture document. The body lives in the folde
 | 1.17 | 2026-11-01 | New file architecture/13 (section 29): alignment with built slice B6; defects D-1 and D-2 fixed; no open defect for forge. |
 | 1.18 | 2026-11-01 | New file architecture/14 (section 30): alignment with built slice B7; push token route built; `PUSH_PROVIDER` values `off`, `recording`, `live`; dispatch rules; `swift-crypto` direct dependency; defects for forge. |
 | 1.19 | 2026-11-01 | New file architecture/15 (section 31): alignment with the built iOS and Android admin apps part 1; `GET /v1/admin/me` returns own `email`; ADR-0021 v1.1 as built, iOS duplication recorded; section 15.1; session handling differences. |
+| 1.20 | 2026-11-01 | New file architecture/16 (section 32): review account built (stale "deferred" text fixed in auth, architecture/07, 10 to 14, deployment/04, ADR-0027 v1.3); migration 0006; `DAY_LOAD_INCONSISTENT`; log redaction; status of TQ-1 to TQ-13; two open recommendations. |

@@ -38,4 +38,4 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 
 ## 29.4 Open defects
 
-None for forge-dev from B6. The QA package has two known failing tests (dev guide), neither caused by B5 or B6. Query for the requirements agent: none. Still open from earlier: purge task, push token route, review-account sign-in (architecture/11 27.2).
+None for forge-dev from B6. The QA package has two known failing tests (dev guide), neither caused by B5 or B6. Query for the requirements agent: none. Still open from earlier: purge task, push token route (built in B7), review-account sign-in (built, architecture/16) [v1.20 | 2026-11-01].
