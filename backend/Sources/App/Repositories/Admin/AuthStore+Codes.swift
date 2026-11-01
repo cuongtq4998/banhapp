@@ -18,8 +18,9 @@ struct AccountRecord: Decodable, Sendable {
     let role: AccountRole
     let displayName: String
     let email: String
+    let isReview: Bool
 
-    private enum CodingKeys: String, CodingKey { case id, role, displayName = "display_name", email }
+    private enum CodingKeys: String, CodingKey { case id, role, displayName = "display_name", email, isReview = "is_review" }
 }
 
 private struct TimeRow: Decodable { let at: Date }
@@ -55,13 +56,13 @@ extension AuthTransaction {
 
     func activeAccount(shopID: UUID, email: String) async throws -> AccountRecord? {
         try await sql.raw("""
-            SELECT id, role, display_name, email FROM account
+            SELECT id, role, display_name, email, (kind = 'review') AS is_review FROM account
              WHERE shop_id = \(bind: shopID) AND email = \(bind: email) AND is_active
             """).first(decoding: AccountRecord.self)
     }
 
     func activeAccount(id: UUID) async throws -> AccountRecord? {
-        try await sql.raw("SELECT id, role, display_name, email FROM account WHERE id = \(bind: id) AND is_active")
+        try await sql.raw("SELECT id, role, display_name, email, (kind = 'review') AS is_review FROM account WHERE id = \(bind: id) AND is_active")
             .first(decoding: AccountRecord.self)
     }
 

@@ -1,6 +1,7 @@
 import Foundation
 import Fluent
 import FluentSQL
+import PostgresNIO
 
 /// Entry point of the admin order SQL: plain reads and one-transaction writes.
 struct AdminOrderStore: Sendable {
@@ -39,10 +40,21 @@ struct AdminOrderWriter: Sendable {
         try await sql.raw("SELECT set_config('app.actor_type', \(bind: actor.type), true)").run()
         try await sql.raw("SELECT set_config('app.actor_id', \(bind: actor.id.uuidString), true)").run()
         try await sql.raw("SELECT set_config('app.actor_name', \(bind: actor.name), true)").run()
-        let rows = try await sql.raw("""
-            UPDATE customer_order SET status = \(bind: target.rawValue), cancel_reason = \(bind: reason?.rawValue)::text, updated_at = now()
-            WHERE id = \(bind: id) AND status = \(bind: expected.rawValue) RETURNING id
-            """).all()
-        return !rows.isEmpty
+        do {
+            let rows = try await sql.raw("""
+                UPDATE customer_order SET status = \(bind: target.rawValue), cancel_reason = \(bind: reason?.rawValue)::text, updated_at = now()
+                WHERE id = \(bind: id) AND status = \(bind: expected.rawValue) RETURNING id
+                """).all()
+            return !rows.isEmpty
+        } catch let error as PSQLError where error.serverInfo?[.constraintName] == Self.dayLoadConstraint {
+            // The cancel would take `day_load` below zero: the counter holds fewer cakes
+            // than the order (only manual SQL gets there; ADR-0030 keeps no silent floor).
+            // The surrounding transaction rolls back, so the order stays as it was.
+            throw APIError(.internalError, details: ["reason": .string(Self.dayLoadInconsistent)])
+        }
     }
+
+    static let dayLoadConstraint = "day_load_within_limit"
+    /// Detail of the 500 answer and the log line when the counter is wrong.
+    static let dayLoadInconsistent = "DAY_LOAD_INCONSISTENT"
 }

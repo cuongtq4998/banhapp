@@ -14,6 +14,9 @@ private let assetsDirectory = "assets/"
 /// process environment; nothing here reads it directly so tests can inject
 /// values.
 func configure(_ app: Application, config: AppConfig) async throws {
+    // First, so everything below (database, server, outbound clients) logs through the filter.
+    app.logger = app.logger.redacting()
+    app.http.server.configuration.logger = app.logger
     app.http.server.configuration.hostname = listenHostname
     app.http.server.configuration.port = config.port
     app.routes.defaultMaxBodySize = RequestLimits.maxBodySize
@@ -74,6 +77,15 @@ func configureOwnerCommand(_ app: Application, config: OwnerCommandConfig) throw
         as: .psql
     )
     app.asyncCommands.use(CreateOwnerCommand(shopID: config.shopID), as: createOwnerCommandName)
+}
+
+/// Builds the application for `review-account`: the database and the command.
+func configureReviewCommand(_ app: Application, config: ReviewCommandConfig) throws {
+    app.databases.use(
+        try .postgres(url: config.databaseURL, maxConnectionsPerEventLoop: MigrationConfig.poolSize),
+        as: .psql
+    )
+    app.asyncCommands.use(ReviewAccountCommand(config: config), as: reviewAccountCommandName)
 }
 
 /// Builds the application for `migrate`: the migration role's database and the

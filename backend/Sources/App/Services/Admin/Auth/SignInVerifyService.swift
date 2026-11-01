@@ -30,6 +30,8 @@ struct SignInVerifyService: Sendable {
     let store: AuthStore
     let clock: any WallClock
     let codes: SignInCodes
+    /// The store-review account (ADR-0027); nil while it is off.
+    var review: ReviewAccountConfig?
 
     private enum Outcome: Sendable {
         case signedIn(SignInResult)
@@ -38,7 +40,7 @@ struct SignInVerifyService: Sendable {
     }
 
     func verify(_ attempt: SignInAttempt) async throws -> SignInResult {
-        let now = clock.now(), codes = codes
+        let now = clock.now(), codes = codes, review = review
         let serverDate = ShopCalendar(clock: clock).today().description
         let outcome = try await store.transaction { tx -> Outcome in
             // Unknown and unregistered addresses have phantom rows, so they take this path too.
@@ -51,7 +53,8 @@ struct SignInVerifyService: Sendable {
                 let count = try await tx.addWrongEntry(codeID: stored.id)
                 return AuthRules.isVoid(wrongCount: count) ? .expired : .invalid
             }
-            guard let accountID = stored.accountID, let account = try await tx.activeAccount(id: accountID) else {
+            guard let accountID = stored.accountID, let account = try await tx.activeAccount(id: accountID),
+                  !account.isReview || (review?.isReviewAddress(attempt.email) ?? false) else {
                 return .invalid
             }
             try await tx.consumeCode(id: stored.id, at: now)
@@ -68,9 +71,10 @@ struct SignInVerifyService: Sendable {
             try await tx.insertSession(NewSession(
                 id: sessionID, accountID: account.id, installationID: attempt.installationID,
                 platform: attempt.platform, deviceName: attempt.deviceName,
-                accessHash: access.hash, refreshHash: refresh.hash, now: now
+                accessHash: access.hash, refreshHash: refresh.hash, now: now,
+                method: account.isReview ? "review" : "code"
             ))
-            try await tx.insertEvent(.signIn, accountID: account.id, sessionID: sessionID, platform: attempt.platform, at: now)
+            try await tx.insertEvent(account.isReview ? .signInReview : .signIn, accountID: account.id, sessionID: sessionID, platform: attempt.platform, at: now)
             return .signedIn(SignInResult(
                 access: access, refresh: refresh, sessionID: sessionID, accountName: account.displayName,
                 role: account.role, serverDate: serverDate,

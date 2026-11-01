@@ -47,7 +47,7 @@ struct PostgresOrderRepository: OrderRepository {
         return try await translatingDatabaseErrors {
             let row = try await sql.raw("""
                 SELECT count(*)::int AS total FROM customer_order
-                WHERE shop_id = \(bind: shopID) AND customer_phone = \(bind: phone)
+                WHERE shop_id = \(bind: shopID) AND NOT is_demo AND customer_phone = \(bind: phone)
                   AND created_at >= \(bind: PostgresTimestamp.text(since))::timestamptz
                   AND (status <> 'Cancelled' OR cancel_reason = 'fake_spam')
                 """).first(decoding: CountRow.self)

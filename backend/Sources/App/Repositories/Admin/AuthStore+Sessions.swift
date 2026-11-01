@@ -10,6 +10,8 @@ struct NewSession: Sendable {
     let accessHash: Data
     let refreshHash: Data
     let now: Date
+    /// The review account signs in with `review` (ADR-0027), everyone else with `code`.
+    var method = "code"
 }
 
 /// A session row read for renewal, with the account state.
@@ -32,6 +34,7 @@ struct LockedSession: Decodable, Sendable {
 
 enum SecurityEventType: String, Sendable {
     case signIn = "sign_in"
+    case signInReview = "sign_in_review"
     case signOut = "sign_out"
     case signOutOthers = "sign_out_others"
     case refreshReuseDetected = "refresh_reuse_detected"
@@ -70,7 +73,7 @@ extension AuthTransaction {
             INSERT INTO device_session (id, account_id, installation_id, platform, device_name, sign_in_method,
                 access_token_hash, access_expires_at, refresh_token_hash, refresh_expires_at, last_used_at, created_at)
             VALUES (\(bind: session.id), \(bind: session.accountID), \(bind: session.installationID),
-                \(bind: session.platform), \(bind: session.deviceName), 'code',
+                \(bind: session.platform), \(bind: session.deviceName), \(bind: session.method),
                 \(bind: session.accessHash), \(timestamp(accessExpires)), \(bind: session.refreshHash),
                 \(timestamp(refreshExpires)), \(timestamp(session.now)), \(timestamp(session.now)))
             """).run()
