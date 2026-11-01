@@ -31,10 +31,10 @@ All limits apply to registered and unregistered addresses alike. None relies on 
 | Codes per address | 3 per rolling hour (`CODE_REQUEST_LIMIT`); one purpose, sign-in [v2.3 | 2026-10-31] |
 | Wrong codes | 5 wrong entries void the current code (counted on the code, `auth_code.wrong_count`); the right digits of a void code are refused (`CODE_EXPIRED`, request a new one); no time lock on the address; a stranger gets at most 15 guesses an hour per address (Q-20, BR-4) [v2.3 | 2026-10-31] |
 | Code requests per client address | 20 per hour (in memory, resets on restart; extra only) [v2.3 | 2026-10-31] |
-| Other `/v1/auth` routes per client address | 60 per hour for sessions and refresh together (`RATE_LIMIT_AUTH_PER_HOUR_IP`); unauthenticated requests to `/v1/admin` and `/v1/owner` that answer 401 count 60 per minute per client address (stops token guessing). In memory, extra only (R-6) [v2.1 \| 2026-10-31] |
-| Global mail cap | `MAIL_MAX_PER_DAY` default 80 per UTC day; above it requests answer as `CODE_REQUEST_LIMIT` and no mail is sent (protects the provider quota; it can be used to block sign-in for a day, risk R-AO-2) |
+| Other `/v1/auth` routes per client address | 60 per hour for sessions and refresh together (`RATE_LIMIT_AUTH_PER_HOUR_IP`); the 401 limit of 60 a minute is DROPPED [v2.4 | 2026-11-01] (tokens carry a 256-bit secret, guessing is not feasible). Fixed in code, in memory, extra only (R-6) [v2.1 \| 2026-10-31] |
+| Global mail cap | `EMAIL_MAX_PER_DAY` default 80 per UTC day; above it requests answer as `CODE_REQUEST_LIMIT` with `Retry-After` at most 3600 (api/05 10.1) and no mail is sent. Sign-in is off (503) when `AUTH_CODE_PEPPER` and `EMAIL_PROVIDER` are both unset [v2.4 | 2026-11-01] (protects the provider quota; it can be used to block sign-in for a day, risk R-AO-2) |
 | Refresh | Shared admin limit; reuse detection of auth.md section 2 |
-| Signed-in routes | 240 requests per minute per device session |
+| Signed-in routes | No per-session limit (dropped [v2.4 | 2026-11-01], architecture/10); the global body limit and the token secret length are the protection |
 | Cake upload | Owner only; 5 MB; 30 uploads per hour per account |
 | Notices | An owner sign-in on a new phone sends one notice to the owner address (no code); not counted in the daily cap (ADR-0022) [v2.3 | 2026-10-31] |
 
@@ -53,7 +53,8 @@ Names only; values live in the host's secret store and local `.env` files (not c
 | Container image on GHCR | Public package target; contains no secrets or data (ADR-0003 v1.3) | Registry |
 | `RENDER_DEPLOY_HOOK_STAGING`, `RENDER_DEPLOY_HOOK_PRODUCTION` | Anyone with the URL can trigger a deploy | CI secret store |
 | `AUTH_CODE_PEPPER` | Keyed hash of sign-in codes; rotate only with all open codes expiring (10 minutes) [v2.0 \| 2026-10-31] | Host secret store |
-| `MAIL_API_KEY` | Mail provider (ADR-0023) | Host secret store |
+| `AUTH_CODE_PEPPER` | HMAC key of codes (at least 32 characters) | Host secret store |
+| `EMAIL_API_KEY` | Mail provider (ADR-0023, live provider later) | Host secret store |
 | `APNS_PRIVATE_KEY`, `APNS_KEY_ID`, `APNS_TEAM_ID` | Apple push (ADR-0024) | Host secret store |
 | `FCM_SERVICE_ACCOUNT_JSON` | Google push (ADR-0024) | Host secret store |
 | `REVIEW_ACCOUNT_CODE` | Store review account, set only during review (ADR-0027) | Host secret store |

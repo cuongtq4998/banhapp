@@ -12,7 +12,7 @@ Part of [api.md](../api.md) (index, version, change log), sections 10.6 to 10.12
 
 The device list and per-device revoke (`GET /v1/admin/devices`, `DELETE /v1/admin/devices/{device_id}`) and the error `DEVICE_NOT_FOUND` are gone (P-2). Number kept so references stay valid.
 
-### 10.8 PUT /v1/admin/push-token
+### 10.8 PUT /v1/admin/push-token (DEFERRED: not built in slice B1, comes with the push slice [v1.17 | 2026-11-01])
 
 `PUT` body `{ "platform": "ios"|"android", "token": string (1 to 512), "apns_environment": "production"|"sandbox" (required for ios) }`; 204. Writes `device_session.push_token` of the calling phone and moves a token seen on another session to this one. Errors: 422 `VALIDATION_FAILED`. Rate limit: shared. FR-25 (the app does not call `PUT` when the phone's permission is denied). `DELETE /v1/admin/push-token` was removed in v1.16: sign-out, sign-out of other phones and deactivation clear the token on the server [v1.16 | 2026-10-31].
 
@@ -48,7 +48,7 @@ Request: `expected_status` (the status the client shows), `to_status`, `cancel_r
 | Status | Code | Body |
 | ------ | ---- | ---- |
 | 200 | | The order detail of 10.10 after the change; header `Idempotent-Replay: true` when the repeat rule of ADR-0028 applied |
-| 404 | `ORDER_NOT_FOUND` | Unknown or outside the window (the window of 10.10 applies; the reply of a change that moves an old order out of the window is still built in the same transaction, a later repeat answers 404 and the app refreshes, ADR-0028) |
+| 404 | `ORDER_NOT_FOUND` | Unknown, or outside the window and not a replay. The lookup of this route ignores the window; an order outside it answers 404 unless the call is an exact repeat of the change that closed it, which answers 200 with `Idempotent-Replay: true` (FR-19, ADR-0028 v1.3) [v1.17 | 2026-11-01] |
 | 409 | `ORDER_STATE_CHANGED` | `details.order` is the current detail of 10.10; the client shows the current status (FR-19) |
 | 422 | `STATUS_TRANSITION_INVALID` | The pair is not allowed (for example New to Completed, or from a final state); `details.status` is `expected_status` |
 | 422 | `CANCEL_REASON_REQUIRED` | Cancelled without a valid reason |

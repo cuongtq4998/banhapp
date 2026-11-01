@@ -6,25 +6,25 @@ Part of [deployment.md](../deployment.md) (index, version, change log), sections
 
 | Name | Meaning | Required | Where set |
 | ---- | ------- | -------- | --------- |
-| `AUTH_CODE_PEPPER` | Secret for HMAC of codes (32 random bytes, base64) | Yes in staging and production | Host secret store |
+| `AUTH_CODE_PEPPER` | Secret for HMAC of codes, at least 32 characters (32 random bytes, base64). Set together with `EMAIL_PROVIDER`: when both are unset admin sign-in is OFF (every `/v1/auth` route answers 503 `SERVICE_UNAVAILABLE`, the customer API is unaffected, so existing deployments keep working); when only one is set the application refuses to start. Production sign-in needs both [v1.12 | 2026-11-01] | Yes, to switch sign-in on | Host secret store |
 | `ACCESS_TOKEN_TTL_SECONDS` | Default 300 | No | Host |
 | `REFRESH_TOKEN_TTL_DAYS` | Default 7 | No | Host |
 | `REFRESH_GRACE_SECONDS` | Default 20 | No | Host |
 | `AUTH_FIXED_CODE` | Fixed code for tests; refused at start when `APP_ENV=production` | No (local, staging) | Local and staging only |
-| `MAIL_PROVIDER` | Selects the `EmailSender` implementation: `recording` (tests), `console` (local only), `resend` (live, needs domain; ADR-0023). Code above the sender is the same for all [v1.11 | 2026-10-31] | Yes | Host |
-| `MAIL_API_KEY` | Provider key | Yes with `resend` | Host secret store |
-| `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` | Sender on the verified domain, for example `no-reply@mail.<SHOP_DOMAIN>` | Yes with `resend` | Host |
-| `MAIL_MAX_PER_DAY` | Default 80 | No | Host |
+| `EMAIL_PROVIDER` | Selects the `EmailSender`: `recording` (tests) or `console` (prints the mail, local and staging only); both are refused when `APP_ENV=production`. `resend` (live, needs a domain, ADR-0023) arrives with the go-live approval and is not built in slice B1 [v1.12 | 2026-11-01] | Yes, with `AUTH_CODE_PEPPER` | Host |
+| `EMAIL_API_KEY` | Provider key (live provider, later slice) | Yes with `resend` | Host secret store |
+| `EMAIL_FROM_ADDRESS`, `EMAIL_FROM_NAME` | Sender on the verified domain, for example `no-reply@mail.<SHOP_DOMAIN>` | Yes with `resend` | Host |
+| `EMAIL_MAX_PER_DAY` | Default 80 code requests per UTC day over all addresses, at least 1 [v1.12 | 2026-11-01] | No | Host |
 | `PUSH_PROVIDER` | `live`, `recording` (tests), `off` | Yes (default `off` locally) | Host |
 | `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY`, `APNS_TOPIC` | APNs provider token; topic is the admin bundle id | With `live` | Host secret store |
 | `FCM_PROJECT_ID`, `FCM_SERVICE_ACCOUNT_JSON` | FCM v1 | With `live` | Host secret store |
-| `RATE_LIMIT_ADMIN_PER_MINUTE` | Default 240 per device session | No | Host |
-| `RATE_LIMIT_CODE_REQUEST_PER_HOUR_IP` | Default 20 | No | Host |
-| `RATE_LIMIT_AUTH_PER_HOUR_IP` | Default 60 (sessions and refresh per client address) [v1.11 | 2026-10-31] | No | Host |
+| `RATE_LIMIT_ADMIN_PER_MINUTE` | DROPPED (no per-session limit, architecture/10) | No | Host |
+| `RATE_LIMIT_CODE_REQUEST_PER_HOUR_IP` | Fixed in code at 20 in slice B1, not configurable [v1.12 | 2026-11-01] | No | Host |
+| `RATE_LIMIT_AUTH_PER_HOUR_IP` | Fixed in code at 60 in slice B1, not configurable [v1.12 | 2026-11-01] | No | Host |
 | `IMAGE_MAX_BYTES` | Default 5242880; the cake upload route body limit is this plus 65536 [v1.11 | 2026-10-31] | No | Host |
 | `REVIEW_ACCOUNT_EMAIL`, `REVIEW_ACCOUNT_CODE` | Only while ADR-0027 is enabled | No | Host secret store, removed after review |
 
-`.env.example` lists the names with empty values. Startup checks (fail fast): `AUTH_FIXED_CODE`, `console` mail or `recording` providers with `APP_ENV=production`; `AUTH_CODE_PEPPER` shorter than 32 bytes. Operator commands (run with the application role): `bootstrap-owner --email <EMAIL> --name <NAME>`, `review-account on|off`.
+`.env.example` lists the names with empty values. Startup checks (fail fast): `AUTH_FIXED_CODE`, `console` mail or `recording` providers with `APP_ENV=production`; `AUTH_CODE_PEPPER` shorter than 32 bytes; exactly one of `AUTH_CODE_PEPPER` and `EMAIL_PROVIDER` set [v1.12 | 2026-11-01]. Operator command (run with the application role; needs `APP_ENV`, `DATABASE_URL`, `SHOP_ID`): `create-owner --email <EMAIL> [--name <NAME>]`; it refuses when an owner exists. `review-account on|off` is deferred with ADR-0027 (architecture/10).
 
 Mobile build settings: `API_BASE_URL` per configuration as for the customer apps; iOS capability Push Notifications (entitlement `aps-environment`); Android `POST_NOTIFICATIONS` permission (Android 13 and later), notification channel `new_orders` importance HIGH (ADR-0024 v1.1), `allowBackup=false` and data-extraction rules, `FLAG_SECURE` on order screens (architecture/08 24.2), `google-services` configuration kept out of the repository or with only non-secret ids (unverified: confirm the file holds no secret before committing).
 
@@ -32,7 +32,7 @@ Mobile build settings: `API_BASE_URL` per configuration as for the customer apps
 
 | Environment | Admin specifics |
 | ----------- | --------------- |
-| local | (free, no accounts) `MAIL_PROVIDER=console` prints the code on stdout; `PUSH_PROVIDER=off`; owner created with `bootstrap-owner` against the local container |
+| local | (free, no accounts) `EMAIL_PROVIDER=console` prints the code on stdout; `PUSH_PROVIDER=off`; owner created with `create-owner` against the local container |
 | staging | Free host. Recording or console senders by default; a real mail provider only to the operator's own mailbox if it works without a domain (ADR-0023, unverified) [v1.11 | 2026-10-31]; `AUTH_FIXED_CODE` allowed for automated UI tests; push with the APNs sandbox environment and an FCM test project; fake orders only; store review builds point here only if the review account cannot be used (ADR-0027 option C is not chosen) |
 | production | Real provider, real push, no fixed code; the owner account created by the operator at launch |
 
@@ -88,7 +88,7 @@ Log fields stay as section 7; the admin routes add role but never e-mail address
 | Store fees | Already planned for the customer app (USD 99 a year, USD 25 once, unverified); no second fee for the admin app | ADR-0026 |
 | Hosting | USD 0 on trial; about USD 7 per month API plus USD 15 to 20 database for real use | ADR-0003 |
 
-Money items needing owner approval, all NOT approved on 2026-10-31 (free tier only): domain, paid hosting, store accounts, mail provider account. Admin launch checklist (every line from "ADR-0023" on is blocked until DP-Q4 is approved) [v1.11 | 2026-10-31]: ADR-0022, 0023, 0026, 0027 decided; domain bought and DNS verified, test code mail received at two mailbox providers; APNs key and FCM project created; paid hosting active; owner created by `bootstrap-owner` and backup address confirmed; staff added; device test of push on both platforms; privacy page staff section published; review account disabled after approval; restore test with the admin tables done.
+Money items needing owner approval, all NOT approved on 2026-10-31 (free tier only): domain, paid hosting, store accounts, mail provider account. Admin launch checklist (every line from "ADR-0023" on is blocked until DP-Q4 is approved) [v1.11 | 2026-10-31]: ADR-0022, 0023, 0026, 0027 decided; domain bought and DNS verified, test code mail received at two mailbox providers; APNs key and FCM project created; paid hosting active; owner created by `create-owner` and backup address confirmed; staff added; device test of push on both platforms; privacy page staff section published; review account disabled after approval; restore test with the admin tables done.
 
 ## 18. Free-tier development mode and go-live gate [v1.11 | 2026-10-31]
 
@@ -104,4 +104,4 @@ Owner decision 2026-10-31 (DP-Q4): free tier only for now. What that means for t
 | Push to real devices | Android with an FCM test project may work free (unverified); recording sender in tests | Apple Developer Program for APNs and iOS push (unverified that a free account cannot) |
 | Store records, review submission, unlisted request | No | Apple USD 99 a year, Google USD 25 once (unverified); identifiers stay changeable until the first upload (ADR-0026) |
 
-Go-live gate: the system is "ready for staff" only when DP-Q4 is approved and the launch checklist of section 17 is complete. Until then the apps, API and tests are complete against fakes and must not be announced to staff. Code does not change at go-live: the operator sets `MAIL_PROVIDER`, the provider variables, the push keys and the hosting plan.
+Go-live gate: the system is "ready for staff" only when DP-Q4 is approved and the launch checklist of section 17 is complete. Until then the apps, API and tests are complete against fakes and must not be announced to staff. Code does not change at go-live: the operator sets `EMAIL_PROVIDER`, the provider variables, the push keys and the hosting plan.

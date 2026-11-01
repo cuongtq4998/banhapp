@@ -8,7 +8,7 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 | -- | ------ | ---------- |
 | TQ-11 | Attempts are counted on the code (`auth_code.wrong_count`); 5th wrong entry voids it; no address lock; limits are per address; BR-4 boundaries hold as written (`now < expires_at`, 30 s allowed at exactly 30, hourly look-back 60 minutes, 7 days exactly needs a code, 90 days exactly still shown) | ADR-0022 v1.3; data-model/04 3.12; api/05 |
 | TQ-12 | SUPERSEDED in v1.13 [v1.13 \| 2026-10-31]. There is no Unfinished view, no `view` parameter and no banner. One list endpoint; the default "To do" list holds all New and Confirmed orders of any age. One window predicate everywhere: open orders always, finished orders 90 days after they were placed. `unfinished_count` (badge) stays on the list response; one tiny partial index; no cache or counter table | ADR-0029 v1.3; api/06 10.9 |
-| TQ-13 | New = no unrevoked, unexpired session of the owner with the same `installation_id` at the moment the code is accepted. Notice to the owner address only, sent after the response by the existing mail task, one retry, failure logged and ignored, no table | ADR-0022 v1.3; session-lifecycle.md section 3 |
+| TQ-13 | New = no unrevoked, unexpired session of the owner with the same `installation_id` at the moment the code is accepted. Sign out then in on the same phone does send a notice (one rule, R-12, [v1.2 | 2026-11-01]). Notice to the owner address only, sent after the response by the existing mail task, one retry, failure logged and ignored, no table | ADR-0022 v1.3; session-lifecycle.md section 3 |
 
 ## 25.2 What was simplified
 

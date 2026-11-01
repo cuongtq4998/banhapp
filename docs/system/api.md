@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.16 [v1.16 | 2026-10-31] |
+| Version      | 1.17 [v1.17 | 2026-11-01] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -57,3 +57,4 @@ This file is the index of the API specification. The body lives in the folder `a
 | 1.14 | 2026-10-31 | Owner decisions and technical answers: one image route with its own exact body limit (5,308,416 bytes), per-client-address limits on all `/v1/auth` routes, device name format, ordering save returns `over_limit`, last write wins for settings, list paging consistency, offline sign-out, push delivery settings pointer. No new endpoint. |
 | 1.15 | 2026-10-31 | PRD v1.4: `CODE_LOCKED` removed (no address lock, a void code answers `CODE_EXPIRED`), recovery counted separately, new-device notice after sign-in; order list gains `view=unfinished` and `unfinished_count`; old unfinished orders reachable for detail and status change. No new endpoint. |
 | 1.16 | 2026-10-31 | PRD v1.6 simplification (27 FR, 14 BR). Removed: recovery endpoints, backup e-mail endpoints, device list and revoke, `DELETE /v1/admin/push-token`, `view=unfinished`, `date_from`, `date_to`, repeated `status`, response fields `new_count`, `server_time`, `has_backup_email`, `offer_device_list`, `order_window_days`, detail `history`, error `DEVICE_NOT_FOUND`, cancel reason `day_full`. Added: `DELETE /v1/admin/sessions/others`, list parameter `delivery_date`, status value `todo`, detail field `last_change`. One window rule: open orders of any age, finished orders 90 days (ADR-0029 v1.3). FR and BR ids of the admin files follow PRD v1.6. |
+| 1.17 | 2026-11-01 | Aligned with built slice B1: sign-in off (503) when not configured; field codes `EMAIL_INVALID`, `CODE_FORMAT`, `INSTALLATION_ID_INVALID`, `DEVICE_NAME_INVALID`; `device_id` upper-case vs lower-case in tokens; malformed or unknown refresh token is `SESSION_REVOKED`; grace anchored to the first rotation; `Retry-After` at most 3600; 240 and 401 limits dropped; push-token deferred; replay of a close beyond the window answers 200 (R-1). |

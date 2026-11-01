@@ -44,8 +44,8 @@ flowchart LR
 | iOS shared packages | Design tokens and components; money and date formatting, `Load`, HTTP client with error envelope, repository protocols | Local SwiftPM packages `BanhDesign`, `BanhCore` (ADR-0021) | `ios/Packages/` | Both iOS apps |
 | Android shared modules | Same, as Gradle modules with convention plugins | `:core:design`, `:core:common`, `:core:network`, `:core:model`, `build-logic/` (ADR-0021) | `android/core/`, `android/build-logic/` | `:app`, `:admin` |
 | Backend admin code | Sign-in and sessions, order queries and status changes, settings, cakes and images, staff, push and mail dispatch | Same Swift target; feature folders `Routes/Admin/`, `Services/Admin/{Auth,Orders,Settings,Mail,Push}/`, `Repositories/Admin/`; outbound clients in `Http/Outbound/` (no new top-level folder, ADR-0018) | `backend/Sources/App/` | PostgreSQL, mail provider, APNs, FCM |
-| Maintenance task | Daily purge of expired codes, sessions, security events | In-process scheduled task (`Services/Admin/Auth/Maintenance`) | `backend/Sources/App/` | PostgreSQL |
-| Operator commands | `bootstrap-owner`, `review-account on/off` | Vapor commands in `CommandName.swift` | `backend/Sources/App/` | PostgreSQL |
+| Maintenance task (DEFERRED, not in B1) | Daily purge of expired codes, sessions, security events | In-process scheduled task (`Services/Admin/Auth/Maintenance`) | `backend/Sources/App/` | PostgreSQL |
+| Operator commands | `create-owner` (built in B1); `review-account on/off` (deferred to the launch slice) | Vapor commands in `CommandName.swift` | `backend/Sources/App/` | PostgreSQL |
 | Admin contract fixtures | Requests, responses and error cases shared by backend and both admin apps | JSON | `contracts/fixtures/admin/` | All admin test suites |
 | Admin CI | Builds and tests the admin apps; package paths also trigger the customer workflows | `admin-ios.yml`, `admin-android.yml` | `.github/workflows/` | Repository |
 
@@ -70,7 +70,7 @@ sequenceDiagram
 
 | Service | Purpose | Auth mechanism | Failure behaviour |
 | ------- | ------- | -------------- | ----------------- |
-| Mail provider (HTTPS API, ADR-0023) | Sign-in codes, new-device notice | API key `MAIL_API_KEY` | Send happens after the response, one retry after 5 s; failure logged without the address; the person asks for a new code; daily cap protects the quota; sign-in is unavailable while the provider is down (staff already signed in keep working) |
+| Mail provider (HTTPS API, ADR-0023) | Sign-in codes, new-device notice | API key `EMAIL_API_KEY` | Send happens after the response, one retry after 5 s; failure logged without the address; the person asks for a new code; daily cap protects the quota; sign-in is unavailable while the provider is down (staff already signed in keep working) |
 | Apple push service (APNs, ADR-0024) | New-order alerts to iOS | Provider token from a `.p8` key | Retries 1, 5, 20 s; invalid token deleted; the order and the list are unaffected; no outbox (BR-9) |
 | Google FCM v1 (ADR-0024) | New-order alerts to Android | Service-account OAuth2 token | Same |
 | Apple App Store, Google Play | Admin distribution (ADR-0026) | Developer accounts (owner) | Review delay does not affect installed apps |
@@ -115,7 +115,7 @@ Contract first; backend and both apps start together from `contracts/fixtures/ad
 
 | # | Slice | Contract | FR covered | Done when |
 | - | ----- | -------- | ---------- | --------- |
-| A0 | Package extraction, admin project skeletons, CI, migration `0002`, `bootstrap-owner`, mail and push protocols with recording fakes | data-model/04, api/05 | Enabler | Customer apps unchanged and green; empty admin apps build |
+| A0 | Package extraction, admin project skeletons, CI, migration `0002`, `create-owner`, mail and push protocols with recording fakes | data-model/04, api/05 | Enabler | Customer apps unchanged and green; empty admin apps build |
 | A1 | Sign-in, refresh, sign-out, sign out other phones, roles | api/05, api/06 10.6 | FR-1 to FR-8 | Acceptance criteria of FR-1 to FR-8 pass |
 | A2 | Order list, detail, status change, cancel reasons, per-phone rule | api/06 10.9 to 10.11, migration `0003` | FR-9 to FR-19, FR-27 | Acceptance criteria of FR-9 to FR-19 and FR-27 |
 | A3 | Push registration and dispatch | api/06 10.8, 10.12 | FR-25, FR-26 | Acceptance criteria of FR-25, FR-26 with recording senders; the real-device part waits for the Apple Developer Program and an FCM project (DP-Q4) [v1.11 | 2026-10-31] |

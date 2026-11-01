@@ -52,7 +52,7 @@ Purpose: one signed-in device and its credential family. One row per signed-in p
 | previous_refresh_hash | bytea | yes | null | length 32 | The one before; used for the 20 s grace and for reuse detection |
 | refresh_rotated_at | timestamptz | yes | null | | Time of the last rotation |
 | refresh_expires_at | timestamptz | no | | | Restarted to now + 7 days on each refresh (BR-5) |
-| last_used_at | timestamptz | no | now() | | Written at most once per 5 minutes |
+| last_used_at | timestamptz | no | now() | | Set at creation only; the periodic write is DROPPED (2026-11-01): nothing reads it (expiry uses `refresh_expires_at`) |
 | revoked_at | timestamptz | yes | null | | Set once |
 | revoked_reason | text | yes | null | CHECK `signed_out`, `signed_out_others`, `account_deactivated`, `reuse_detected`, `replaced`, `expired_cleanup` (`revoked_by_owner` replaced by `signed_out_others` [v1.9 | 2026-10-31]) | CHECK `(revoked_at IS NULL) = (revoked_reason IS NULL)` |
 | created_at | timestamptz | no | now() | | |

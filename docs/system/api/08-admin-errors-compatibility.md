@@ -27,9 +27,9 @@ Part of [api.md](../api.md) (index, version, change log), sections 11 to 13. New
 | SLOT_DUPLICATE | 422 | `ERR_SLOT_DUPLICATE` | Same start and end as another slot | Message on the form |
 | IMAGE_TOO_LARGE | 413 | `ERR_IMAGE_TOO_LARGE` | Image over 5 MB | Message on the image field |
 
-Field-level codes in `fields[]` (`NAME_TAKEN`, `IMAGE_REQUIRED`, `IMAGE_TYPE_UNSUPPORTED`, `IMAGE_DIMENSIONS_INVALID`, `EMAIL_INVALID`, `*_REQUIRED`, `*_OUT_OF_RANGE`) follow the rule of section 5: the client reads `fields[].message_key`. Existing codes reused: `VALIDATION_FAILED`, `RATE_LIMITED` (signed-in routes), `PAYLOAD_TOO_LARGE`, `HEADER_INVALID`, `NOT_FOUND`, `SERVICE_UNAVAILABLE`, `INTERNAL_ERROR`.
+Field-level codes in `fields[]` (`NAME_TAKEN`, `IMAGE_REQUIRED`, `IMAGE_TYPE_UNSUPPORTED`, `IMAGE_DIMENSIONS_INVALID`, `EMAIL_INVALID`, `CODE_FORMAT`, `INSTALLATION_ID_INVALID`, `DEVICE_NAME_INVALID` (sign-in, api/05 10.2), `*_REQUIRED`, `*_OUT_OF_RANGE`) follow the rule of section 5: the client reads `fields[].message_key`. Existing codes reused: `VALIDATION_FAILED`, `RATE_LIMITED` (signed-in routes), `PAYLOAD_TOO_LARGE`, `HEADER_INVALID`, `NOT_FOUND`, `SERVICE_UNAVAILABLE`, `INTERNAL_ERROR`.
 
-Rules: 401 and 403 bodies never say whether an account exists. `CODE_*` errors are the same for registered and unknown addresses. Limit messages carry `Retry-After` and `details.retry_after_seconds`.
+Rules: 401 and 403 bodies never say whether an account exists. `CODE_*` errors are the same for registered and unknown addresses. Limit messages carry `Retry-After` and `details.retry_after_seconds`, at most 3600 (api/05 10.1) [v1.17 | 2026-11-01]. A refresh token that is malformed or unknown answers `SESSION_REVOKED`.
 
 ## 12. Compatibility
 
