@@ -1,6 +1,6 @@
 # Data Model: Admin accounts, sessions, codes, security events
 
-Part of [data-model.md](../data-model.md) (index, version, change log), sections 3.10 to 3.16. New in v1.6 [v1.6 | 2026-10-31]. Simplified in v1.8: two tables fewer (`auth_email_state`, `push_token`), see sections 3.12 to 3.14 [v1.8 | 2026-10-31]. Simplified again in v1.9 for PRD v1.6: backup e-mail, recovery codes, device list and per-device revoke removed (columns listed in section 3.17); FR and BR ids are those of PRD v1.6 [v1.9 | 2026-10-31]. Migration `backend/db/migrations/0002_admin_auth.sql`. Conventions of section 1 apply (snake_case, UUID keys, UTC `timestamptz`, `created_at`/`updated_at`). Decisions: ADR-0022, ADR-0024, ADR-0027.
+Part of [data-model.md](../data-model.md) (index, version, change log), sections 3.10 to 3.16. New in v1.6 [v1.6 | 2026-10-31]. Simplified in v1.8: two tables fewer (`auth_email_state`, `push_token`), see sections 3.12 to 3.14 [v1.8 | 2026-10-31]. Simplified again in v1.9 for PRD v1.6: backup e-mail, recovery codes, device list and per-device revoke removed (columns listed in section 3.17); FR and BR ids are those of PRD v1.6 [v1.9 | 2026-10-31]. Migration `backend/db/migrations/0002_admin_auth.sql` (tables 3.10 to 3.15); `settings_change` (3.16) is created by `0004_admin_settings.sql` [v1.11 | 2026-11-01]. Conventions of section 1 apply (snake_case, UUID keys, UTC `timestamptz`, `created_at`/`updated_at`). Decisions: ADR-0022, ADR-0024, ADR-0027.
 
 ## 2.1 ER diagram (additions)
 
@@ -93,7 +93,7 @@ Append-only (trigger rejects UPDATE and DELETE). Columns: `id` bigint identity P
 
 ## 3.16 settings_change (FR-20 to FR-24; BR-3)
 
-Append-only. Columns: `id` bigint identity PK; `batch_id` uuid (one save of one form); `shop_id`; `actor_account_id` FK account; `actor_name` text (snapshot); `entity_type` CHECK `shop`, `ordering`, `district`, `slot`, `cake`, `account`; `entity_id` uuid null; `field` text; `old_value` text null; `new_value` text null; `changed_at` timestamptz default now(). Money and numbers are stored as decimal text. Account rows record only `is_active`, never the address. Retention: kept with the shop (no personal data).
+Created by `0004_admin_settings.sql`, not by 0002 [v1.11 | 2026-11-01]. Append-only (trigger `settings_change_append_only` raises on UPDATE and DELETE). A staff e-mail address is stored trimmed, NFC and lower case in `account.email`, and never appears here or in any log. Columns: `id` bigint identity PK; `batch_id` uuid (one save of one form); `shop_id`; `actor_account_id` FK account; `actor_name` text (snapshot); `entity_type` CHECK `shop`, `ordering`, `district`, `slot`, `cake`, `account`; `entity_id` uuid null; `field` text; `old_value` text null; `new_value` text null; `changed_at` timestamptz default now(). Money and numbers are stored as decimal text. Account rows record only `is_active`, never the address. Retention: kept with the shop (no personal data).
 
 ## Sensitive data added
 

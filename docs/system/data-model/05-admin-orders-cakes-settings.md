@@ -1,6 +1,6 @@
 # Data Model: Changes to orders, events, cakes and settings for admin-orders
 
-Part of [data-model.md](../data-model.md) (index, version, change log), sections 11 to 16. New in v1.6 [v1.6 | 2026-10-31]. Aligned with PRD v1.6 in v1.9: four cancel reasons, one window rule, ids renumbered [v1.9 | 2026-10-31]. Migration `backend/db/migrations/0003_admin_orders.sql` (after `0002_admin_auth.sql`; built in slices B2 and B3, covers section 11 only; sections 12 and 13 come in a later file [v1.10 | 2026-11-01]). Decisions: ADR-0025, ADR-0028 to ADR-0031.
+Part of [data-model.md](../data-model.md) (index, version, change log), sections 11 to 16. New in v1.6 [v1.6 | 2026-10-31]. Aligned with PRD v1.6 in v1.9: four cancel reasons, one window rule, ids renumbered [v1.9 | 2026-10-31]. Migrations `backend/db/migrations/0003_admin_orders.sql` and `0004_admin_settings.sql` (after `0002_admin_auth.sql`; built in slices B2 and B3, covers section 11 only; sections 12 and 13 come in a later file [v1.10 | 2026-11-01]). Decisions: ADR-0025, ADR-0028 to ADR-0031.
 
 ## 11. customer_order and order_event (FR-14, FR-18, FR-27; BR-3, BR-8, BR-9; TQ-8) [v1.9 | 2026-10-31]
 
@@ -57,7 +57,7 @@ Removal deletes the `product_image` row. Image absence for an active uploaded ca
 
 ## 13. shop_setting, district, delivery_slot (FR-22 to FR-24; BR-11) [v1.9 | 2026-10-31]
 
-New CHECKs on `shop_setting`: `daily_limit <= 9999`, `lead_days <= 14`, `min_qty <= 20`, `min_qty <= daily_limit`. On `district`: `delivery_fee_vnd <= 10000000` (lower bound 1 by the service). Existing unique indexes already stop duplicate district names and slots; `end_time > start_time` exists. Existing `max_days_ahead >= lead_days` stays (30 against 14). Every change writes `settings_change` rows (section 3.16) in the same transaction.
+New CHECKs on `shop_setting`: `daily_limit <= 9999`, `lead_days <= 14`, `min_qty <= 20`, `min_qty <= daily_limit`. On `district`: `delivery_fee_vnd <= 10000000` (lower bound 1 by the service). Built in `0004_admin_settings.sql` (B5) [v1.11 | 2026-11-01]. The service also checks the lower bounds and answers 422 before the CHECK can fire. A district name is unique ignoring letter case (checked in the service under the `shop_setting` row lock; field `name`, code `NAME_TAKEN`). Slot `sort_order` is renumbered by clock time (start, then end) after every add or move; a new district gets `max(sort_order) + 1`. Existing unique indexes already stop duplicate district names and slots; `end_time > start_time` exists. Existing `max_days_ahead >= lead_days` stays (30 against 14). Every change writes `settings_change` rows (section 3.16) in the same transaction.
 
 ### day_load and the daily limit [v1.6 | 2026-10-31]
 
@@ -75,8 +75,9 @@ DEFERRED: the task is NOT built (checked after slices B1, B2 and B3: no maintena
 
 | File | Content |
 | ---- | ------- |
-| `0002_admin_auth.sql` | Tables `account`, `device_session`, `auth_code`, `security_event`, `settings_change` (sections 3.10 to 3.16), triggers, indexes |
-| `0003_admin_orders.sql` (built, B2 and B3) | Section 11 changes: `cancel_reason`, `is_demo`, `order_event.reason` and `actor_name`, the actor foreign key, two indexes, `search_fold()` on `unaccent` when the host allows it, replaced trigger functions; stops with an error if a `Cancelled` row exists. Sections 12 and 13 (cakes, settings CHECKs) are not in it and come in a later migration [v1.10 | 2026-11-01] |
+| `0002_admin_auth.sql` | Tables `account`, `device_session`, `auth_code`, `security_event` (sections 3.10 to 3.15), triggers, indexes. It does NOT hold `settings_change`; earlier text said it did [v1.11 | 2026-11-01] |
+| `0003_admin_orders.sql` (built, B2 and B3) | Section 11 changes: `cancel_reason`, `is_demo`, `order_event.reason` and `actor_name`, the actor foreign key, two indexes, `search_fold()` on `unaccent` when the host allows it, replaced trigger functions; stops with an error if a `Cancelled` row exists. Section 12 (cakes) is not in it; the settings part is `0004` [v1.11 | 2026-11-01] |
+| `0004_admin_settings.sql` (built, B4 and B5) | Table `settings_change` (section 3.16: append-only trigger, index `(shop_id, changed_at)`); CHECKs `shop_setting_daily_limit_max` (<= 9999), `_lead_days_max` (<= 14), `_min_qty_max` (<= 20), `_min_qty_within_limit` (`min_qty <= daily_limit`); `district_delivery_fee_max` (<= 10000000). Forward-only; the cake changes (section 12) wait for slice B6 and a later file [v1.11 | 2026-11-01] |
 
 Both are forward-only and additive: the previous backend release still runs against them (the new columns have defaults or are nullable; the replaced triggers write the same event shape plus nulls). The first owner row comes from the `bootstrap-owner` command, not from a migration. Sample seed gets no accounts.
 

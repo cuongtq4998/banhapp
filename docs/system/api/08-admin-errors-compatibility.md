@@ -27,7 +27,7 @@ Part of [api.md](../api.md) (index, version, change log), sections 11 to 13. Sec
 | SLOT_DUPLICATE | 422 | `ERR_SLOT_DUPLICATE` | Same start and end as another slot | Message on the form |
 | IMAGE_TOO_LARGE | 413 | `ERR_IMAGE_TOO_LARGE` | Image over 5 MB | Message on the image field |
 
-Field-level codes in `fields[]` (`NAME_TAKEN`, `IMAGE_REQUIRED`, `IMAGE_TYPE_UNSUPPORTED`, `IMAGE_DIMENSIONS_INVALID`, `EMAIL_INVALID`, `CODE_FORMAT`, `INSTALLATION_ID_INVALID`, `DEVICE_NAME_INVALID` (sign-in, api/05 10.2), `*_REQUIRED`, `*_OUT_OF_RANGE`) follow the rule of section 5: the client reads `fields[].message_key`. Existing codes reused: `VALIDATION_FAILED`, `RATE_LIMITED` (signed-in routes), `PAYLOAD_TOO_LARGE`, `HEADER_INVALID`, `NOT_FOUND`, `SERVICE_UNAVAILABLE`, `INTERNAL_ERROR`.
+Field-level codes in `fields[]` (owner routes, v1.19: `BODY_EMPTY` on field `body`, `FIELD_UNKNOWN`, `START_INVALID`, `END_INVALID`, `END_OUT_OF_RANGE`, `NAME_TAKEN` also for districts; `message_key` `ERR_FIELD_*`) and (`NAME_TAKEN`, `IMAGE_REQUIRED`, `IMAGE_TYPE_UNSUPPORTED`, `IMAGE_DIMENSIONS_INVALID`, `EMAIL_INVALID`, `CODE_FORMAT`, `INSTALLATION_ID_INVALID`, `DEVICE_NAME_INVALID` (sign-in, api/05 10.2), `*_REQUIRED`, `*_OUT_OF_RANGE`) follow the rule of section 5: the client reads `fields[].message_key`. Existing codes reused: `VALIDATION_FAILED`, `RATE_LIMITED` (signed-in routes), `PAYLOAD_TOO_LARGE`, `HEADER_INVALID`, `NOT_FOUND`, `SERVICE_UNAVAILABLE`, `INTERNAL_ERROR`.
 
 ### 11.1 Field codes of the order list and the status change [v1.18 | 2026-11-01]
 

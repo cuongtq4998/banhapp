@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0030 |
-| Version  | 1.2 [v1.2 | 2026-11-01] (built in slice B3; file name and capacity text corrected; earlier: four reasons, PRD v1.6 BR-8) |
+| Version  | 1.3 [v1.3 | 2026-11-01] (migration names after B5) ; 1.2 [v1.2 | 2026-11-01] (built in slice B3; file name and capacity text corrected; earlier: four reasons, PRD v1.6 BR-8) |
 | Status   | Accepted (implements the owner decisions Q-9 and Q-12; no money) |
 | Date     | 2026-10-31 |
 | Decider  | atlas-architect |
@@ -38,7 +38,7 @@ Per-phone rule: the count counts a stored order when `status <> 'Cancelled' OR c
 | `backend/Sources/App/Repositories/PostgresOrderRepository.swift` (`countOrders`, line 45) | Add `AND (status <> 'Cancelled' OR cancel_reason = 'fake_spam')` to the SQL |
 | `backend/Sources/App/Repositories/OrderRepository.swift` (protocol doc) and `Services/OrderPlacementService.swift` (call at line 50) | Comment and naming only: "counted orders" instead of "orders of any status" |
 | `backend/Tests/**` order-limit tests and fixtures | New cases AC-46; the old "cancelled orders count" test changes |
-| `backend/db/migrations/0003_admin_orders.sql` (the cake and settings part of the planned `_catalog` file waits for its slice) | New column, CHECK, triggers, indexes, `search_fold` [v1.2 | 2026-11-01] |
+| `backend/db/migrations/0003_admin_orders.sql` (the settings part is `0004_admin_settings.sql`, built in B5; the cake part waits for slice B6) | New column, CHECK, triggers, indexes, `search_fold` [v1.2 | 2026-11-01] |
 | `docs/system/api/03-orders.md` step 7 and `docs/system/api.md`/`api/01` rate-limit row | Wording: counted orders; done in this version |
 | `docs/system/auth.md` section 4 (customer abuse table) and `docs/system/data-model/02-orders-and-events.md` text on the per-phone count | Done in this version |
 | `docs/decisions/adr-0014-abuse-protection.md` | Amendment v1.3, done |
