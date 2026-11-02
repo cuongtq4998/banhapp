@@ -13,9 +13,11 @@ struct OrderFilterBar: View {
 
     private static let chips: [(OrderQuery.StatusFilter, LocalizedStringResource, String)] = [
         (.todo, AStrings.filterTodo, AdminID.filterTodo),
-        (.received, AStrings.statusNew, AdminID.filterNew),
-        (.processing, AStrings.statusConfirmed, AdminID.filterConfirmed),
-        (.finished, AStrings.statusCompleted, AdminID.filterCompleted),
+        (.received, AStrings.statusReceived, AdminID.filterReceived),
+        (.processing, AStrings.statusProcessing, AdminID.filterProcessing),
+        (.scheduled, AStrings.statusScheduled, AdminID.filterScheduled),
+        (.started, AStrings.statusDelivering, AdminID.filterDelivering),
+        (.finished, AStrings.statusFinished, AdminID.filterFinished),
         (.cancelled, AStrings.statusCancelled, AdminID.filterCancelled),
         (.all, AStrings.filterAll, AdminID.filterAll),
     ]

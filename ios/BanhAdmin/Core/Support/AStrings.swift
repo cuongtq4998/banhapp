@@ -26,9 +26,6 @@ enum AStrings {
     static let roleStaff = LocalizedStringResource("A_ROLE_STAFF")
     static let settingsTitle = LocalizedStringResource("A_SETTINGS_TITLE")
 
-    static let statusNew = LocalizedStringResource("A_STATUS_NEW")
-    static let statusConfirmed = LocalizedStringResource("A_STATUS_CONFIRMED")
-    static let statusCompleted = LocalizedStringResource("A_STATUS_COMPLETED")
     static let statusCancelled = LocalizedStringResource("A_STATUS_CANCELLED")
 
     static let signInTitle = LocalizedStringResource("A_SIGNIN_TITLE")
@@ -75,11 +72,7 @@ enum AStrings {
     static let total = LocalizedStringResource("A_TOTAL")
     static let zalo = LocalizedStringResource("A_ZALO")
     static let zaloUnavailable = LocalizedStringResource("A_ZALO_UNAVAILABLE")
-    static let confirmOrder = LocalizedStringResource("A_CONFIRM_ORDER")
-    static let completeOrder = LocalizedStringResource("A_COMPLETE_ORDER")
     static let cancelOrder = LocalizedStringResource("A_CANCEL_ORDER")
-    static let completeBody = LocalizedStringResource("A_COMPLETE_BODY")
-    static let completeYes = LocalizedStringResource("A_COMPLETE_YES")
     static let statusChanged = LocalizedStringResource("A_STATUS_CHANGED")
     static let orderGone = LocalizedStringResource("A_ORDER_GONE")
     static let backToList = LocalizedStringResource("A_BACK_TO_LIST")

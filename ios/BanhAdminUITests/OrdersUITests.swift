@@ -16,7 +16,7 @@ final class OrdersUITests: AdminUITestCase {
     func testStatusChipsAndDateMenu() {
         let app = launch(AdminLaunch.modeStaff)
         waitFor(app, AdminID.row("BT-7K3M9Q"))
-        tap(app, AdminID.filterCompleted)
+        tap(app, AdminID.filterFinished)
         waitFor(app, AdminID.row("BT-6F3J8M"))
         XCTAssertFalse(element(app, AdminID.row("BT-7K3M9Q")).exists)
         shot("S-A3-filter-completed")
@@ -53,7 +53,7 @@ final class OrdersUITests: AdminUITestCase {
         let app = launch(AdminLaunch.modeEmpty)
         waitFor(app, AdminID.ordersEmpty)
         shot("S-A3-empty-todo")
-        tap(app, AdminID.filterNew)
+        tap(app, AdminID.filterReceived)
         waitFor(app, AdminID.ordersClearFilters)
         shot("S-A3-empty-filtered")
         tap(app, AdminID.ordersClearFilters)

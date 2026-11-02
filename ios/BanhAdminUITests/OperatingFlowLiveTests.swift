@@ -75,7 +75,7 @@ final class OperatingFlowLiveTests: LiveCase {
         XCTAssertTrue(waitForLabel(app, AdminID.detailStatus, contains: "Đã hoàn thành"), label(app, AdminID.detailStatus))
         evidence("order1-completed", app: app)
         backToList(app)
-        tapChip(app, AdminID.filterCompleted)
+        tapChip(app, AdminID.filterFinished)
         waitFor(app, AdminID.row(first.code))
         evidence("completed-list", app: app)
         tapChip(app, AdminID.filterTodo)

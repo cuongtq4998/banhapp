@@ -8,9 +8,9 @@ struct FieldRulesTests {
     @Test func numbersAreGroupedWithDotsAndParsedFromDigitsOnly() {
         #expect(FieldRules.grouped("1500000") == "1.500.000")
         #expect(FieldRules.number("1.500.000 đ") == 1_500_000)
-        #expect(FieldRules.integer("0", AStrings.fFee, range: 1...10) != nil)
-        #expect(FieldRules.integer("5", AStrings.fFee, range: 1...10) == nil)
-        #expect(FieldRules.integer("", AStrings.fFee, range: 1...10) == AStrings.errRequired(AStrings.fFee))
+        #expect(FieldRules.integer("0", AStrings.fFeeEstimate, range: 1...10) != nil)
+        #expect(FieldRules.integer("5", AStrings.fFeeEstimate, range: 1...10) == nil)
+        #expect(FieldRules.integer("", AStrings.fFeeEstimate, range: 1...10) == AStrings.errRequired(AStrings.fFeeEstimate))
     }
 
     @Test func vietnamesePhonesBecomeE164() {

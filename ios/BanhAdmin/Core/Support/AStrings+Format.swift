@@ -22,19 +22,10 @@ extension AStrings {
         fill(LocalizedStringResource("A_LAST_CHANGED"), [name, datetime])
     }
     static func conflict(status: String) -> String { fill(LocalizedStringResource("A_CONFLICT"), [status]) }
-    static func completeTitle(code: String) -> String { fill(LocalizedStringResource("A_COMPLETE_TITLE"), [code]) }
+    static func finishTitle(code: String) -> String { fill(LocalizedStringResource("A_FINISH_TITLE"), [code]) }
+    static func rowExpected(date: String) -> String { fill(LocalizedStringResource("A_ROW_EXPECTED"), [date]) }
     static func cancelBody(code: String) -> String { fill(LocalizedStringResource("A_CANCEL_BODY"), [code]) }
     static func cancelConfirm(code: String) -> String { fill(LocalizedStringResource("A_CANCEL_CONFIRM"), [code]) }
-
-    static func status(_ status: OrderStatus) -> LocalizedStringResource {
-        switch status {
-        case .received: statusNew
-        case .processing, .deliveryDateScheduled, .deliveryStarted: statusConfirmed
-        case .finished: statusCompleted
-        case .cancelled: statusCancelled
-        case .unknown: statusNew
-        }
-    }
 
     static func reason(_ reason: CancelReason) -> LocalizedStringResource {
         switch reason {

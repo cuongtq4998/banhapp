@@ -171,6 +171,16 @@
         }
       }
     },
+    "A_CAKES_TOTAL": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiền bánh"
+          }
+        }
+      }
+    },
     "A_CAKE_ACTIVE": {
       "localizations": {
         "vi": {
@@ -251,6 +261,16 @@
         }
       }
     },
+    "A_CANCEL_BLOCKED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không thể hủy đơn từ bước đã hẹn ngày giao vì bánh có thể không có người nhận."
+          }
+        }
+      }
+    },
     "A_CANCEL_BODY": {
       "localizations": {
         "vi": {
@@ -297,6 +317,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dừng tải lên"
+          }
+        }
+      }
+    },
+    "A_CHANGE_DATE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đổi ngày giao"
           }
         }
       }
@@ -371,56 +401,6 @@
         }
       }
     },
-    "A_COMPLETE_BODY": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đơn đã hoàn thành thì không mở lại được."
-          }
-        }
-      }
-    },
-    "A_COMPLETE_ORDER": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hoàn thành"
-          }
-        }
-      }
-    },
-    "A_COMPLETE_TITLE": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hoàn thành đơn %@?"
-          }
-        }
-      }
-    },
-    "A_COMPLETE_YES": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hoàn thành"
-          }
-        }
-      }
-    },
-    "A_CONFIRM_ORDER": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Xác nhận đơn"
-          }
-        }
-      }
-    },
     "A_CONFLICT": {
       "localizations": {
         "vi": {
@@ -441,6 +421,16 @@
         }
       }
     },
+    "A_DATE_LIMIT_HELP": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chỉ chọn được từ %@ đến %@ (tối đa 7 ngày kể từ hôm nay)."
+          }
+        }
+      }
+    },
     "A_DATE_ONE": {
       "localizations": {
         "vi": {
@@ -457,6 +447,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Chọn"
+          }
+        }
+      }
+    },
+    "A_DATE_SAVED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã lưu ngày giao dự kiến."
           }
         }
       }
@@ -591,6 +591,26 @@
         }
       }
     },
+    "A_ERR_DATE_PAST": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngày giao không được là ngày đã qua. Vui lòng chọn lại."
+          }
+        }
+      }
+    },
+    "A_ERR_DATE_TOO_FAR": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngày giao chỉ được hẹn trong vòng 7 ngày kể từ hôm nay."
+          }
+        }
+      }
+    },
     "A_ERR_DISTRICT_DUP": {
       "localizations": {
         "vi": {
@@ -617,6 +637,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Email này đã được dùng cho một tài khoản khác."
+          }
+        }
+      }
+    },
+    "A_ERR_FEE_RANGE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phí giao hàng là số nguyên từ 0 đến 10.000.000 đồng."
+          }
+        }
+      }
+    },
+    "A_ERR_FEE_REQUIRED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vui lòng nhập phí giao hàng (nhập 0 nếu miễn phí)."
+          }
+        }
+      }
+    },
+    "A_ERR_FEE_SAME": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phí mới trùng phí hiện tại."
           }
         }
       }
@@ -841,6 +891,16 @@
         }
       }
     },
+    "A_EXPECTED_DATE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dự kiến giao"
+          }
+        }
+      }
+    },
     "A_FEE": {
       "localizations": {
         "vi": {
@@ -851,12 +911,152 @@
         }
       }
     },
-    "A_FEE_EFFECT": {
+    "A_FEE_BODY": {
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phí mới chỉ áp dụng cho đơn đặt sau khi lưu."
+            "value": "Nhập phí giao hàng thực tế. Nhập 0 nếu miễn phí."
+          }
+        }
+      }
+    },
+    "A_FEE_CHANGE_LINE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ thành %@"
+          }
+        }
+      }
+    },
+    "A_FEE_CONFLICT": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phí đã được người khác sửa thành %@. Vui lòng xem lại."
+          }
+        }
+      }
+    },
+    "A_FEE_CORRECT": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sửa phí"
+          }
+        }
+      }
+    },
+    "A_FEE_CORRECTED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã sửa phí giao hàng."
+          }
+        }
+      }
+    },
+    "A_FEE_CORRECT_SAVE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lưu phí mới"
+          }
+        }
+      }
+    },
+    "A_FEE_CORRECT_TITLE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sửa phí giao đơn %@"
+          }
+        }
+      }
+    },
+    "A_FEE_EFFECT_ESTIMATE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khách chỉ thấy đây là phí dự kiến. Phí thật nhập khi bắt đầu giao."
+          }
+        }
+      }
+    },
+    "A_FEE_ESTIMATE_LINE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phí dự kiến theo quận: %@"
+          }
+        }
+      }
+    },
+    "A_FEE_ESTIMATE_TAG": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dự kiến"
+          }
+        }
+      }
+    },
+    "A_FEE_FREE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Miễn phí giao hàng"
+          }
+        }
+      }
+    },
+    "A_FEE_HISTORY": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lịch sử sửa phí"
+          }
+        }
+      }
+    },
+    "A_FEE_PENDING": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Báo khi giao"
+          }
+        }
+      }
+    },
+    "A_FEE_PREVIOUS": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phí hiện tại"
+          }
+        }
+      }
+    },
+    "A_FEE_TITLE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bắt đầu giao đơn %@"
           }
         }
       }
@@ -887,6 +1087,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cần làm"
+          }
+        }
+      }
+    },
+    "A_FINISH_BODY": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đơn đã kết thúc thì không mở lại được."
+          }
+        }
+      }
+    },
+    "A_FINISH_ORDER": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kết thúc"
+          }
+        }
+      }
+    },
+    "A_FINISH_TITLE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kết thúc đơn %@?"
+          }
+        }
+      }
+    },
+    "A_FINISH_YES": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kết thúc"
           }
         }
       }
@@ -931,12 +1171,12 @@
         }
       }
     },
-    "A_F_FEE": {
+    "A_F_FEE_ESTIMATE": {
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phí giao hàng (đồng)"
+            "value": "Phí dự kiến (đồng)"
           }
         }
       }
@@ -997,6 +1237,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Giá (đồng)"
+          }
+        }
+      }
+    },
+    "A_F_REAL_FEE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phí giao hàng thực tế (đồng)"
           }
         }
       }
@@ -1271,6 +1521,16 @@
         }
       }
     },
+    "A_PROCESS_ORDER": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bắt đầu xử lý"
+          }
+        }
+      }
+    },
     "A_REACTIVATE": {
       "localizations": {
         "vi": {
@@ -1367,6 +1627,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Xóa bánh"
+          }
+        }
+      }
+    },
+    "A_REQUESTED_DATE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khách chọn"
+          }
+        }
+      }
+    },
+    "A_RESCHEDULE_SAVE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lưu ngày mới"
+          }
+        }
+      }
+    },
+    "A_RESCHEDULE_TITLE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đổi ngày giao đơn %@"
           }
         }
       }
@@ -1471,6 +1761,16 @@
         }
       }
     },
+    "A_ROW_EXPECTED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dự kiến %@"
+          }
+        }
+      }
+    },
     "A_ROW_HINT_A11Y": {
       "localizations": {
         "vi": {
@@ -1567,6 +1867,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vẫn lưu"
+          }
+        }
+      }
+    },
+    "A_SCHEDULE_DATE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hẹn ngày giao"
+          }
+        }
+      }
+    },
+    "A_SCHEDULE_HELP": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngày này chỉ là dự kiến, có thể đổi lại."
+          }
+        }
+      }
+    },
+    "A_SCHEDULE_SAVE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hẹn ngày giao"
+          }
+        }
+      }
+    },
+    "A_SCHEDULE_TITLE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hẹn ngày giao đơn %@"
           }
         }
       }
@@ -1901,6 +2241,26 @@
         }
       }
     },
+    "A_START_DELIVERY": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bắt đầu giao"
+          }
+        }
+      }
+    },
+    "A_START_DELIVERY_CONFIRM": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bắt đầu giao đơn %@"
+          }
+        }
+      }
+    },
     "A_STATUS_CANCELLED": {
       "localizations": {
         "vi": {
@@ -1921,7 +2281,17 @@
         }
       }
     },
-    "A_STATUS_COMPLETED": {
+    "A_STATUS_DELIVERING": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang giao"
+          }
+        }
+      }
+    },
+    "A_STATUS_FINISHED": {
       "localizations": {
         "vi": {
           "stringUnit": {
@@ -1931,22 +2301,72 @@
         }
       }
     },
-    "A_STATUS_CONFIRMED": {
+    "A_STATUS_PROCESSING": {
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Đã xác nhận"
+            "value": "Đang xử lý"
           }
         }
       }
     },
-    "A_STATUS_NEW": {
+    "A_STATUS_RECEIVED": {
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mới"
+            "value": "Đã nhận đơn"
+          }
+        }
+      }
+    },
+    "A_STATUS_SCHEDULED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã hẹn ngày giao"
+          }
+        }
+      }
+    },
+    "A_STEP_A11Y": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bước %@ trên 5: %@, %@"
+          }
+        }
+      }
+    },
+    "A_STEP_CURRENT": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiện tại"
+          }
+        }
+      }
+    },
+    "A_STEP_DONE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "đã xong"
+          }
+        }
+      }
+    },
+    "A_STEP_NEXT": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sắp tới"
           }
         }
       }
@@ -1977,6 +2397,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tổng cộng"
+          }
+        }
+      }
+    },
+    "A_TOTAL_COLLECT": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cần thu khi giao"
           }
         }
       }

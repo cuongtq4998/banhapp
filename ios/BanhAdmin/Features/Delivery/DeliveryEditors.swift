@@ -34,7 +34,7 @@ final class DistrictEditorModel: Identifiable {
     func validate() -> Bool {
         var found: [String: String] = [:]
         if let text = FieldRules.text(name, AStrings.fDistrict, max: 100) { found["name"] = text }
-        if let text = FieldRules.integer(fee, AStrings.fFee, range: 1...10_000_000) { found["delivery_fee_vnd"] = text }
+        if let text = FieldRules.integer(fee, AStrings.fFeeEstimate, range: 1...10_000_000) { found["delivery_fee_vnd"] = text }
         errors = found
         focusRequest = found["name"] != nil ? AdminOwnerID.districtName : (found["delivery_fee_vnd"] != nil ? AdminOwnerID.districtFee : nil)
         return found.isEmpty
@@ -71,7 +71,7 @@ final class DistrictEditorModel: Identifiable {
             switch (problem.field, problem.code) {
             case ("name", "NAME_TAKEN"): found["name"] = String(localized: AStrings.errDistrictDup)
             case ("name", _): found["name"] = FieldRules.server(problem, AStrings.fDistrict, max: 100)
-            case ("delivery_fee_vnd", _): found["delivery_fee_vnd"] = FieldRules.server(problem, AStrings.fFee, range: 1...10_000_000)
+            case ("delivery_fee_vnd", _): found["delivery_fee_vnd"] = FieldRules.server(problem, AStrings.fFeeEstimate, range: 1...10_000_000)
             default: banner = String(localized: AStrings.errGeneric)
             }
         }

@@ -20,14 +20,14 @@ struct OrderDetailView: View {
             .sensoryFeedback(.error, trigger: model.failureCount)
             .sheet(isPresented: $model.showsCancelSheet) { CancelSheet(model: model) }
             .alert(
-                AStrings.completeTitle(code: model.code), isPresented: $model.showsFinishDialog
+                AStrings.finishTitle(code: model.code), isPresented: $model.showsFinishDialog
             ) {
                 Button(String(localized: AStrings.back), role: .cancel) {}
                     .accessibilityIdentifier(AdminID.detailCompleteBack)
-                Button(String(localized: AStrings.completeYes)) { Task { await model.finish() } }
+                Button(String(localized: AStrings.finishYes)) { Task { await model.finish() } }
                     .accessibilityIdentifier(AdminID.detailCompleteYes)
             } message: {
-                Text(AStrings.completeBody)
+                Text(AStrings.finishBody)
             }
     }
 
@@ -112,14 +112,14 @@ private struct ActionBar: View {
                         .accessibilityIdentifier(AdminID.detailCancel)
                 }
                 if detail.allows(.process) {
-                    ActionButton(title: AStrings.confirmOrder, showsProgress: model.running == .process) {
+                    ActionButton(title: AStrings.processOrder, showsProgress: model.running == .process) {
                         Task { await model.process() }
                     }
                     .disabled(model.isBusy)
                     .accessibilityIdentifier(AdminID.detailConfirm)
                 }
                 if detail.allows(.finish) {
-                    ActionButton(title: AStrings.completeOrder, showsProgress: model.running == .finish) {
+                    ActionButton(title: AStrings.finishOrder, showsProgress: model.running == .finish) {
                         model.showsFinishDialog = true
                     }
                     .disabled(model.isBusy)

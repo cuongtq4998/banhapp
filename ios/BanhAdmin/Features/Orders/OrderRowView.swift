@@ -18,7 +18,7 @@ struct OrderRowView: View {
                 }
                 Text(verbatim: order.customerName).textStyle(Typography.cardTitle).foregroundStyle(Palette.textPrimary)
                 AdaptiveStack(spacing: Spacing.sm) {
-                    Text(verbatim: AStrings.rowDelivery(date: AdminFormatting.shortDate(order.deliveryDate), slot: order.slot.text))
+                    Text(verbatim: order.rowDateText)
                         .textStyle(Typography.body).foregroundStyle(Palette.textSecondary)
                     if let due { DueMark(text: due.text).accessibilityIdentifier(AdminID.due(order.orderCode)) }
                 }
@@ -46,6 +46,14 @@ extension OrderStatus {
         case .finished: .completed
         case .cancelled: .cancelled
         }
+    }
+}
+
+extension OrderSummary {
+    /// The list date: the expected date once staff set it, else the requested date and slot.
+    var rowDateText: String {
+        if let expected = expectedDeliveryDate { return AStrings.rowExpected(date: AdminFormatting.shortDate(expected)) }
+        return AStrings.rowDelivery(date: AdminFormatting.shortDate(deliveryDate), slot: slot.text)
     }
 }
 

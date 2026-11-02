@@ -111,10 +111,10 @@ struct DistrictSheet: View {
                     errorIdentifier: AdminOwnerID.districtErrorName, focus: $focus
                 )
                 NumberField(
-                    label: AStrings.fFee, text: $model.fee, identifier: AdminOwnerID.districtFee, error: model.errors["delivery_fee_vnd"],
+                    label: AStrings.fFeeEstimate, text: $model.fee, identifier: AdminOwnerID.districtFee, error: model.errors["delivery_fee_vnd"],
                     errorIdentifier: AdminOwnerID.districtErrorFee, suffix: "đ", focus: $focus
                 )
-                Text(AStrings.feeEffect).textStyle(Typography.caption).foregroundStyle(Palette.textSecondary)
+                Text(AStrings.feeEffectEstimate).textStyle(Typography.caption).foregroundStyle(Palette.textSecondary)
                 ActionButton(title: AStrings.save, showsProgress: model.isBusy) {
                     focus = nil
                     Task { await model.save() }

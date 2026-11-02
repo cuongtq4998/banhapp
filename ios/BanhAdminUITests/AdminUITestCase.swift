@@ -37,7 +37,7 @@ class AdminUITestCase: XCTestCase {
         let screen = app.windows.firstMatch.frame
         var attempts = 0
         while !screen.contains(chip.frame) && attempts < 4 {
-            let row = element(app, AdminID.filterCompleted)
+            let row = element(app, AdminID.filterFinished)
             if chip.frame.maxX > screen.maxX { row.swipeLeft() } else { row.swipeRight() }
             attempts += 1
         }
