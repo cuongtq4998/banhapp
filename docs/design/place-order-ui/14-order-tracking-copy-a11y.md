@@ -1,6 +1,6 @@
 # Place Order UI, part 14: Order tracking, copy, accessibility, test ids
 
-Part of the split UI specification; index: [place-order-ui.md](../place-order-ui.md). Screens: [part 13](13-order-tracking.md). Version 1.0 [v1.0 | 2026-11-02]. Owner approved 2026-11-02; based on `product/place-order.md` v1.10. One locale (Vietnamese, copy keys in code resources); the English column is the meaning for reviewers; the wording is a draft for the native review.
+Part of the split UI specification; index: [place-order-ui.md](../place-order-ui.md). Screens: [part 13](13-order-tracking.md). Version 1.1 [v1.1 | 2026-11-02] (change log: v1.1 adds `T_FEE_REAL_AT_DELIVERY`, `T_TOTAL_PENDING`, rewords the meaning of `T_FEE_ESTIMATE_LINE` and `T_TOTAL_COLLECT`, adds test ids `.fee.note` and `.total.pending`, per api/10 v1.3; v1.0 initial). Owner approved 2026-11-02; based on `product/place-order.md` v1.10. One locale (Vietnamese, copy keys in code resources); the English column is the meaning for reviewers; the wording is a draft for the native review.
 
 ## Copy keys
 
@@ -31,10 +31,12 @@ Part of the split UI specification; index: [place-order-ui.md](../place-order-ui
 | `T_CAKE_LINE` | {name} x {quantity} | [v1.0 | 2026-11-02] Cake name and quantity line |
 | `T_OLDER_MAY_HIDDEN` | Đơn cũ hơn có thể không còn hiển thị. Vui lòng liên hệ cửa hàng nếu cần. | [v1.0 | 2026-11-02] Neutral line, no number of days |
 | `T_CAKES_TOTAL` | Tiền bánh | Cakes total |
-| `T_FEE_ESTIMATE_LINE` | Phí giao dự kiến: {amount} | Estimate until real fee |
+| `T_FEE_ESTIMATE_LINE` | Phí giao dự kiến: {amount} | Reworded meaning [v1.1 | 2026-11-02]: estimated fee, shown as an estimate only, never part of a total (text unchanged) |
+| `T_FEE_REAL_AT_DELIVERY` | Phí giao thực tế sẽ được báo khi giao hàng. | [v1.1 | 2026-11-02] New: real fee is told at delivery |
+| `T_TOTAL_PENDING` | Tổng tiền sẽ được xác nhận khi có phí giao hàng. | [v1.1 | 2026-11-02] New: "the fee will be confirmed" shown instead of a total while the fee is unknown |
 | `T_FEE_FINAL` | Phí giao hàng | Real fee |
 | `T_FEE_FREE` | Miễn phí giao hàng | Fee 0 |
-| `T_TOTAL_COLLECT` | Cần thanh toán khi nhận | Amount to collect |
+| `T_TOTAL_COLLECT` | Cần thanh toán khi nhận | Amount to collect; shown only when the server amount is not null [v1.1 | 2026-11-02] |
 | `T_STATUS_CANCELLED` | Đã hủy | Cancelled |
 | `T_CANCELLED_CONTACT` | Vui lòng liên hệ cửa hàng nếu cần hỗ trợ. | Cancelled, no reason |
 | `T_CALL_SHOP` | Gọi cửa hàng | Call |
@@ -49,14 +51,14 @@ Part of the split UI specification; index: [place-order-ui.md](../place-order-ui
 
 ## Accessibility
 
-- Order card is one grouped element read as: code, cake names with quantities [v1.0 | 2026-11-02], step name and state, expected date with the note, fee or estimate, amount to collect. Stepper rows use the same pattern as the admin `A_STEP_A11Y` (step n of 5, name, done, current, next); status never by colour only.
+- Order card is one grouped element read as: code, cake names with quantities [v1.0 | 2026-11-02], step name and state, expected date with the note, fee or estimate, amount to collect. [v1.1 | 2026-11-02] Fee unknown: the label reads "Phí giao dự kiến, ước tính, {amount}. Phí thực tế sẽ được báo khi giao hàng. Tổng tiền sẽ được xác nhận khi có phí giao hàng." and never an amount to collect; fee 0 reads "Miễn phí giao hàng" then the amount to collect. A change from state 1 to 2 after refresh is announced politely once. Stepper rows use the same pattern as the admin `A_STEP_A11Y` (step n of 5, name, done, current, next); status never by colour only.
 - Empty and rate-limit messages are announced politely; the countdown announces only at start and when it ends, not every second. Pull to refresh has an accessible "refresh" action on the list.
 - Phone field: label, numeric keyboard hint, error linked to the field; masked phone is read digit by digit with "ẩn" for the stars (`T_RESULT_FOR` a11y value built from the digits).
 - Call and Zalo are buttons of at least 48 x 48 dp. Dynamic type to 200 percent: cards wrap, stepper rows wrap to two lines, nothing truncated. Reduce motion: fade only.
 
 ## Test identifiers (customer prefix `order.track.`; deviations per part 09b)
 
-`order.track.entry`; `order.track.phone`, `.submit`, `.error`; `order.track.list`, `.row.<n>`, `.row.<n>.code`, `.row.<n>.cakes` [v1.0 | 2026-11-02], `.row.<n>.stepper`, `.row.<n>.expected`, `.row.<n>.fee`, `.row.<n>.total`; `.empty`, `.rateLimit`, `.offline`, `.loadMore`, `.retry`, `.cancelledContact`; `order.confirm.follow` on S-9.
+`order.track.entry`; `order.track.phone`, `.submit`, `.error`; `order.track.list`, `.row.<n>`, `.row.<n>.code`, `.row.<n>.cakes` [v1.0 | 2026-11-02], `.row.<n>.stepper`, `.row.<n>.expected`, `.row.<n>.fee`, `.row.<n>.fee.note` [v1.1 | 2026-11-02] (`T_FEE_REAL_AT_DELIVERY`), `.row.<n>.total` (`T_TOTAL_COLLECT`, absent while the fee is unknown), `.row.<n>.total.pending` [v1.1 | 2026-11-02] (`T_TOTAL_PENDING`, present only while the fee is unknown); `.empty`, `.rateLimit`, `.offline`, `.loadMore`, `.retry`, `.cancelledContact`; `order.confirm.follow` on S-9.
 
 ## Traceability [v1.0 | 2026-11-02]
 
