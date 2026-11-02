@@ -45,6 +45,7 @@ object AdminTags {
     fun orderRow(code: String) = "admin.orders.row.$code"
 
     fun orderDue(code: String) = "admin.orders.due.$code"
+    fun orderExpected(code: String) = "admin.orders.row.expected.$code"
 
     const val DETAIL_CODE = "admin.detail.code"
     const val DETAIL_STATUS = "admin.detail.status"

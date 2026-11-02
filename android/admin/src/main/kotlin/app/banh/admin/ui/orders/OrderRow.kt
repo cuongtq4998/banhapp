@@ -55,7 +55,12 @@ fun OrderRow(order: OrderSummary, serverDate: String?, onClick: () -> Unit, modi
         Text(order.customerName, style = MaterialTheme.typography.titleMedium)
         // The mark moves under the date when the line is too narrow (large text).
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs), itemVerticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.a_row_delivery, formatDate(order.deliveryDate, serverDate), "${order.slot.start} – ${order.slot.end}"), style = MaterialTheme.typography.bodyMedium)
+            val expected = order.expectedDeliveryDate
+            if (expected != null) {
+                Text(stringResource(R.string.a_row_expected, formatDate(expected, serverDate)), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.testTag(AdminTags.orderExpected(order.orderCode)))
+            } else {
+                Text(stringResource(R.string.a_row_delivery, formatDate(order.deliveryDate, serverDate), "${order.slot.start} – ${order.slot.end}"), style = MaterialTheme.typography.bodyMedium)
+            }
             if (due != null) DueMarkChip(due.text(context), painterResource(R.drawable.ic_clock), Modifier.testTag(AdminTags.orderDue(order.orderCode)))
         }
         Text(

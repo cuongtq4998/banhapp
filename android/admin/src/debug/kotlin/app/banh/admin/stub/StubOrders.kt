@@ -33,11 +33,11 @@ internal class StubOrders(template: OrderDetail, private val serverDate: String)
     fun list(query: Map<String, String>): OrdersPage {
         val status = query["status"] ?: "todo"
         val matching = orders.values.filter { matches(it, status, query) }
-            .sortedWith(compareBy({ it.deliveryDate }, { it.slot.start }, { it.createdAt }, { it.orderCode }))
+            .sortedWith(compareBy({ it.listDate ?: it.deliveryDate }, { it.slot.start }, { it.createdAt }, { it.orderCode }))
         val offset = query["cursor"]?.toIntOrNull() ?: 0
         val page = matching.drop(offset).take(PAGE_SIZE)
         val next = (offset + PAGE_SIZE).takeIf { it < matching.size }?.toString()
-        val unfinished = orders.values.count { it.status.isOpen && it.deliveryDate <= serverDate }
+        val unfinished = orders.values.count { it.status.isOpen && (it.listDate ?: it.deliveryDate) <= serverDate }
         return OrdersPage(page.map(::summary), next, unfinished, serverDate)
     }
 
