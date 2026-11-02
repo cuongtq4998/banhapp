@@ -135,6 +135,7 @@ object AdminTags {
     const val SLOT_END = "admin.delivery.slot.end"
     const val SLOT_SAVE = "admin.delivery.slot.save"
     const val DELIVERY_ERROR = "admin.delivery.error"
+    const val DELIVERY_LIST = "admin.delivery.list"
     const val DISTRICT_NAME_ERROR = "admin.delivery.district.error.name"
     const val DISTRICT_FEE_ERROR = "admin.delivery.district.error.fee"
 

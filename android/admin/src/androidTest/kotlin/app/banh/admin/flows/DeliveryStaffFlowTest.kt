@@ -1,7 +1,10 @@
 package app.banh.admin.flows
 
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import app.banh.admin.testing.has
 import app.banh.admin.testing.openArea
 import app.banh.admin.testing.signInOwner
@@ -63,7 +66,9 @@ class DeliveryStaffFlowTest {
         rule.tap(AdminTags.districtToggle(DISTRICT))
         rule.waitForTag(AdminTags.TOAST)
         rule.waitUntilGone(AdminTags.TOAST)
-        rule.tap(AdminTags.slotToggle(SLOT), scroll = false)
+        // Lazy rows below the districts are not composed until the list scrolls to them.
+        rule.onNodeWithTag(AdminTags.DELIVERY_LIST).performScrollToNode(hasTestTag(AdminTags.slotToggle(SLOT)))
+        rule.tap(AdminTags.slotToggle(SLOT))
         rule.waitForTag(AdminTags.TOAST)
     }
 

@@ -59,6 +59,7 @@ fun DeliveryRoute(container: AdminContainer, store: SettingsViewModel, onBack: (
             topBar = { BanhInlineTopBar(stringResource(R.string.a_row_delivery_set), BackControl(painterResource(R.drawable.ic_arrow_back), stringResource(R.string.a_back), AdminTags.NAV_BACK), onBack) },
         ) { padding ->
             LazyColumn(
+                modifier = Modifier.testTag(AdminTags.DELIVERY_LIST),
                 contentPadding = PaddingValues(start = Spacing.screenMargin, end = Spacing.screenMargin, top = padding.calculateTopPadding() + Spacing.sm, bottom = Spacing.xxl),
                 verticalArrangement = Arrangement.spacedBy(Spacing.md),
             ) {
