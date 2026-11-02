@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0034 |
-| Version  | 1.1 [v1.1 | 2026-11-02] (clarifications, Decision 7; v1.0: first version) |
+| Version  | 1.2 [v1.2 | 2026-11-02] (order code and cake lines, Decision 8, retention days not sent; v1.1: clarifications, Decision 7; v1.0: first version) |
 | Status   | Accepted as the owner's decision of 2026-11-02 (C); it affects customer data, so the residual risk in Consequences must be seen by the owner |
 | Date     | 2026-11-02 |
 | Decider  | owner (business choice); atlas-architect (mitigations) |
@@ -17,13 +17,14 @@ The customer must follow an order without signing in and without push. The PRD d
 
 `POST /v1/orders/lookup` (api/10) takes a normalised phone and returns that phone's orders, newest first, paged. Mitigations are part of the decision, not options:
 
-1. Minimum data: phone masked, district only (no street address, no note, no customer name), no cancel reason, no staff names, no internal records.
+1. Minimum data: order code and cake names with quantities (and unit prices) [v1.2 | 2026-11-02], phone masked, district only (no street address, no note, no customer name), no cancel reason, no staff names, no internal records.
 2. Same answer shape for a phone with orders and one without (200, `orders: []`); constant-ish timing by a minimum response time; no existence signal in headers, errors or limits.
 3. Rate limits per phone and per client address (and per installation if sent), counted whether or not orders exist; 429 identical for both cases.
 4. Page size 10, at most 5 pages (50 orders) per phone and window; opaque cursor bound to the phone.
 5. No personal data in logs; the phone is never in a URL (POST body), responses `no-store`.
-6. Window: open orders at any age; `Finished` and `Cancelled` 30 days after `status_changed_at` (assumption of the owner, Q-O8).
+6. Window: open orders at any age; `Finished` and `Cancelled` 30 days after `status_changed_at` (assumption of the owner, Q-O8). The count of days is an internal rule: the client is never sent it and no text names it [v1.2 | 2026-11-02].
 7. Clarifications [v1.1 | 2026-11-02]: a request with a valid cursor does not count against the per-phone limit (the first page did), it counts against address and installation limits; the client address comes only from the platform proxy header named in `CLIENT_ADDRESS_HEADER` with `TRUSTED_PROXY_HOPS`, never from a client-supplied header; the response floor must exceed the p99 of the one shared indexed query and an alert fires when it is exceeded; `as_of` is enough for the offline line; the app's 9 to 11 digit check is a hint only (api/10 10.14.5, 10.14.7).
+8. Content of the list [v1.2 | 2026-11-02]: owner decision of 2026-11-02: each order shows its code and its cake lines (name, quantity, unit price). Items come from `customer_order_item` in the same SQL statement as the page (lateral aggregate, no second round trip, no schema change; api/10 10.14.3).
 
 ## Rejected alternatives
 
@@ -35,7 +36,7 @@ The customer must follow an order without signing in and without push. The PRD d
 
 ## Consequences
 
-Residual risk (owner to see): the phone number is the only secret. Anyone who knows or guesses a number can see that phone's cakes, dates, district, fees and masked phone for the window. Per-address limits do not stop a distributed guesser; per-phone limits let an attacker block a victim's lookups for the rest of the window (the victim sees the wait message, can phone the shop). Neighbours and relatives who know the number see orders (possible surprise gift privacy). Upgrade path with no data change: require the order code as a second field (add `order_code` to the body; wrong pair gives the same empty answer), or an SMS code if the owner accepts the cost. Recommendation: accept phone-only for launch, watch 429 counts (deployment alert), and decide on the code requirement if abuse appears.
+Residual risk (owner to see): the phone number is the only secret. Anyone who knows or guesses a number can see that phone's cakes (names and quantities, added in v1.2: the purchase content is visible to anyone who knows the number, accepted by the owner on 2026-11-02, with the order codes, which are no secret from this route on), dates, district, fees and masked phone for the window. Per-address limits do not stop a distributed guesser; per-phone limits let an attacker block a victim's lookups for the rest of the window (the victim sees the wait message, can phone the shop). Neighbours and relatives who know the number see orders (possible surprise gift privacy). Upgrade path with no data change: require the order code as a second field (add `order_code` to the body; wrong pair gives the same empty answer), or an SMS code if the owner accepts the cost. Recommendation: accept phone-only for launch, watch 429 counts (deployment alert), and decide on the code requirement if abuse appears.
 
 Follow-up: tests of equal shape and timing band, limiter keys, log scan for phones, cursor reuse with another phone.
 
