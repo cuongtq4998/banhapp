@@ -32,7 +32,7 @@ Part of [api.md](../api.md) (index, version, change log), sections 9 and 10.1 to
 | PUT | /v1/admin/push-token | owner, staff | Register this phone's push token (built in B7 [v1.21 | 2026-11-01]) | FR-25 |
 | GET | /v1/admin/orders | owner, staff | List, one status, one date, search, badge count | FR-9 to FR-13, BR-9, BR-10 |
 | GET | /v1/admin/orders/{order_code} | owner, staff | Detail with "last changed by" | FR-14, FR-26 |
-| POST | /v1/admin/orders/{order_code}/status | owner, staff | Confirm, complete, cancel | FR-16 to FR-19, BR-2, BR-8 |
+| POST | /v1/admin/orders/{order_code}/status | owner, staff | Change status (six-status model, api/09 10.13.7) [v1.29 \| 2026-11-02] | FR-16 to FR-19, BR-2, BR-8 |
 | GET | /v1/owner/settings | owner | All settings, cakes, districts, slots | FR-20 to FR-24 |
 | PUT | /v1/owner/settings/shop | owner | Shop name, greeting, contacts | FR-24, BR-11 |
 | GET, PUT | /v1/owner/settings/ordering (+ `/impact`) | owner | Daily limit, lead days, minimum cakes; preview | FR-22, BR-11 |

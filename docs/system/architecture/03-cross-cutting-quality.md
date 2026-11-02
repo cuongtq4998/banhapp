@@ -41,7 +41,7 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 | Later feature | Prepared by |
 | ------------- | ----------- |
 | Staff and owner login | Reserved `/v1/staff` prefix; `order_event.actor_type/actor_id`; auth.md placeholder |
-| Order list and statuses New, Confirmed, Completed, Cancelled | `customer_order.status`, transition trigger, indexes by shop and status |
+| Order list and the six statuses (order-process.md section 2) [v1.29 | 2026-11-02] | `customer_order.status`, transition trigger, indexes by shop and status |
 | Owner configuration of products, prices, districts, fees, limit, slots, shop info | Tables in data-model.md read at request time; `is_active`, `sort_order`; the same read path |
 | Payment | `customer_order.payment_status` placeholder, not exposed |
 | Push notifications | Not prepared beyond staff identity; needs a new ADR |
