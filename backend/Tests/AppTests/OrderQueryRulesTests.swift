@@ -70,16 +70,16 @@ final class OrderQueryRulesTests: XCTestCase {
         func body(_ json: String) throws -> [String: JSONValue] {
             try JSONDecoder().decode([String: JSONValue].self, from: Data(json.utf8))
         }
-        let ok = try StatusRequest.parse(body(#"{"expected_status":"New","to_status":"Cancelled","cancel_reason":"fake_spam"}"#))
+        let ok = try StatusRequest.parse(body(#"{"expected_status":"Received","to_status":"Cancelled","cancel_reason":"fake_spam"}"#))
         XCTAssertEqual(ok, StatusRequest(expected: .received, target: .cancelled, reason: .fakeSpam))
         let cases: [(String, APIErrorCode)] = [
-            (#"{"expected_status":"New","to_status":"Cancelled"}"#, .cancelReasonRequired),
-            (#"{"expected_status":"New","to_status":"Cancelled","cancel_reason":"day_full"}"#, .cancelReasonRequired),
-            (#"{"expected_status":"New","to_status":"Confirmed","cancel_reason":"fake_spam"}"#, .validationFailed),
-            (#"{"expected_status":"New","to_status":"Completed"}"#, .statusTransitionInvalid),
-            (#"{"expected_status":"Completed","to_status":"Cancelled","cancel_reason":"fake_spam"}"#, .statusTransitionInvalid),
-            (#"{"expected_status":"New","to_status":"Confirmed","x":1}"#, .validationFailed),
-            (#"{"expected_status":"Nope","to_status":"Confirmed"}"#, .validationFailed)
+            (#"{"expected_status":"Received","to_status":"Cancelled"}"#, .cancelReasonRequired),
+            (#"{"expected_status":"Received","to_status":"Cancelled","cancel_reason":"day_full"}"#, .cancelReasonRequired),
+            (#"{"expected_status":"Received","to_status":"Processing","cancel_reason":"fake_spam"}"#, .validationFailed),
+            (#"{"expected_status":"Received","to_status":"Finished"}"#, .statusTransitionInvalid),
+            (#"{"expected_status":"Finished","to_status":"Cancelled","cancel_reason":"fake_spam"}"#, .statusTransitionInvalid),
+            (#"{"expected_status":"Received","to_status":"Processing","x":1}"#, .validationFailed),
+            (#"{"expected_status":"Nope","to_status":"Processing"}"#, .validationFailed)
         ]
         for (json, code) in cases {
             XCTAssertThrowsError(try StatusRequest.parse(body(json)), json) { XCTAssertEqual(($0 as? APIError)?.code, code, json) }

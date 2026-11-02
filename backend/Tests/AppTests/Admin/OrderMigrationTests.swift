@@ -24,7 +24,7 @@ final class OrderMigrationTests: AdminOrderTestCase {
         try await rejected("UPDATE customer_order SET status = 'Cancelled', cancel_reason = 'day_full' WHERE order_code = \(bind: open)", "removed value")
         try await rejected("UPDATE customer_order SET status = 'Cancelled', cancel_reason = '' WHERE order_code = \(bind: open)", "empty")
         let still = try await status(of: open)
-        XCTAssertEqual(still, "New")
+        XCTAssertEqual(still, "Received")
         try await rejected("UPDATE customer_order SET cancel_reason = 'customer_asked' WHERE order_code = \(bind: cancelled)", "reason cannot change")
         try await rejected("UPDATE customer_order SET cancel_reason = NULL WHERE order_code = \(bind: cancelled)", "reason cannot be cleared")
     }
@@ -45,15 +45,15 @@ final class OrderMigrationTests: AdminOrderTestCase {
             WHERE o.order_code = \(bind: orderCode) AND e.reason = 'cannot_deliver' AND e.actor_name = 'Nhan Vien A' AND e.actor_id = \(bind: account.id)
             """)
         XCTAssertEqual(recorded, 1)
-        try await rejected("INSERT INTO order_event (order_id, event_type, to_status, actor_type, reason) SELECT id, 'status_changed', 'Confirmed', 'staff', 'fake_spam' FROM customer_order WHERE order_code = \(bind: orderCode)", "reason on non-cancel")
-        try await rejected("INSERT INTO order_event (order_id, event_type, to_status, actor_type, actor_id) SELECT id, 'status_changed', 'Confirmed', 'staff', gen_random_uuid() FROM customer_order WHERE order_code = \(bind: orderCode)", "unknown actor")
+        try await rejected("INSERT INTO order_event (order_id, event_type, to_status, actor_type, reason) SELECT id, 'status_changed', 'Processing', 'staff', 'fake_spam' FROM customer_order WHERE order_code = \(bind: orderCode)", "reason on non-cancel")
+        try await rejected("INSERT INTO order_event (order_id, event_type, to_status, actor_type, actor_id) SELECT id, 'status_changed', 'Processing', 'staff', gen_random_uuid() FROM customer_order WHERE order_code = \(bind: orderCode)", "unknown actor")
         try await rejected("UPDATE order_event SET actor_name = 'Someone Else'", "append only")
     }
 
     func testDirectSqlCannotMakeAnInvalidMove() async throws {
-        let done = try await place(.init(status: "Completed"))
+        let done = try await place(.init(status: "Finished"))
         try await rejected("UPDATE customer_order SET status = 'Cancelled', cancel_reason = 'fake_spam' WHERE order_code = \(bind: done)", "from final state")
-        try await rejected("UPDATE customer_order SET status = 'Completed' WHERE order_code = \(bind: try await place())", "New to Completed")
+        try await rejected("UPDATE customer_order SET status = 'Finished' WHERE order_code = \(bind: try await place())", "New to Completed")
     }
 
     func testSearchFoldIgnoresCaseAndAccentsIncludingDecomposedForms() async throws {

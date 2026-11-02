@@ -19,10 +19,10 @@ final class ReviewAccountDataTests: ReviewAccountTestCase {
         XCTAssertEqual(hidden.errorCode, "ORDER_NOT_FOUND")
         let search = try await listCodes(reviewer, "q=Tran&status=all")
         XCTAssertEqual(search, [], "a real customer's name finds nothing")
-        let changed = try await change(reviewer, real, move("New", "Confirmed"))
+        let changed = try await change(reviewer, real, move("Received", "Processing"))
         XCTAssertEqual(changed.errorCode, "ORDER_NOT_FOUND")
         let stored = try await status(of: real)
-        XCTAssertEqual(stored, "New")
+        XCTAssertEqual(stored, "Received")
     }
 
     func testDemoOrdersAreInvisibleToRealStaffAndOwner() async throws {
@@ -62,7 +62,7 @@ final class ReviewAccountDataTests: ReviewAccountTestCase {
         XCTAssertEqual(rows, 1)
         let reviewer = try await reviewPhone()
         for orderCode in try await demoCodes() {
-            let reply = try await change(reviewer, orderCode, move("New", "Cancelled", reason: "customer_asked"))
+            let reply = try await change(reviewer, orderCode, move("Received", "Cancelled", reason: "customer_asked"))
             XCTAssertTrue([.ok, .conflict].contains(reply.status), "\(reply.status)")
         }
         let after = try await loaded(date)
