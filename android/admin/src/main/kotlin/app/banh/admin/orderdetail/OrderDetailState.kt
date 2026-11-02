@@ -19,6 +19,9 @@ sealed interface DetailBanner {
     /** The order changed under the person (FR-19): shows what it is now. */
     data class Conflict(val status: OrderStatus) : DetailBanner
 
+    /** A fee correction lost a race while the order is still on the delivery step: names the fee now stored. */
+    data class FeeConflict(val feeVnd: Long) : DetailBanner
+
     data class Rule(val error: OrderRuleError) : DetailBanner
 
     data object ActionError : DetailBanner

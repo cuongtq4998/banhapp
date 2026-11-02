@@ -60,4 +60,30 @@ object AdminOrderTags {
     fun orderStep(n: Int) = "admin.order.step.$n"
 
     fun feeHistoryRow(n: Int) = "admin.order.feeHistory.row.$n"
+
+    const val ORDER_EXPECTED_DATE = "admin.order.expectedDate"
+    const val ORDER_REQUESTED_DATE = "admin.order.requestedDate"
+    const val ORDER_FEE_CONFLICT = "admin.order.feeConflict"
+
+    const val SCHEDULE_SHEET = "admin.schedule.sheet"
+    const val SCHEDULE_PICKER = "admin.schedule.picker"
+    const val SCHEDULE_SAVE = "admin.schedule.save"
+    const val SCHEDULE_BACK = "admin.schedule.back"
+    const val SCHEDULE_LIMIT = "admin.schedule.limit"
+    const val SCHEDULE_ERROR = "admin.schedule.error"
+
+    const val FEE_SHEET = "admin.fee.sheet"
+    const val FEE_FIELD = "admin.fee.field"
+    const val FEE_ERROR = "admin.fee.error"
+    const val FEE_TOTAL = "admin.fee.total"
+    const val FEE_CONFIRM = "admin.fee.confirm"
+    const val FEE_BACK = "admin.fee.back"
+
+    const val FEE_FIX_SHEET = "admin.feeFix.sheet"
+    const val FEE_FIX_PREVIOUS = "admin.feeFix.previous"
+    const val FEE_FIX_FIELD = "admin.feeFix.field"
+    const val FEE_FIX_ERROR = "admin.feeFix.error"
+    const val FEE_FIX_TOTAL = "admin.feeFix.total"
+    const val FEE_FIX_SAVE = "admin.feeFix.save"
+    const val FEE_FIX_BACK = "admin.feeFix.back"
 }

@@ -11,9 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -25,14 +23,10 @@ import app.banh.admin.orderdetail.amountToCollectOf
 import app.banh.admin.orderdetail.feeRowOf
 import app.banh.core.model.OrderAction
 import app.banh.admin.ui.AdminOrderTags
-import app.banh.admin.ui.text
 import app.banh.admin.ui.textRes
-import app.banh.core.common.dueMarkOf
 import app.banh.core.common.formatInstant
 import app.banh.core.common.formatVnd
-import app.banh.core.common.formatWeekdayDate
 import app.banh.core.design.ContactButton
-import app.banh.core.design.DueMarkChip
 import app.banh.core.design.GlassCard
 import app.banh.core.design.Spacing
 import app.banh.core.model.OrderDetail
@@ -53,22 +47,6 @@ fun CustomerCard(order: OrderDetail, onCall: () -> Unit, onZalo: () -> Unit) {
             ContactButton(stringResource(R.string.a_call, order.customerPhone), painterResource(R.drawable.ic_call), onCall, Modifier.testTag(AdminOrderTags.DETAIL_CALL))
             ContactButton(stringResource(R.string.a_zalo), painterResource(R.drawable.ic_chat), onZalo, Modifier.testTag(AdminOrderTags.DETAIL_ZALO))
         }
-    }
-}
-
-/** Weekday, date and slot with the red mark when due; address and district. */
-@Composable
-fun DeliveryCard(order: OrderDetail, serverDate: String?) {
-    val context = LocalContext.current
-    val due = serverDate?.let { dueMarkOf(order.status, order.listDate ?: order.deliveryDate, it) }
-    GlassCard(Modifier.fillMaxWidth().testTag(AdminOrderTags.DETAIL_DELIVERY)) {
-        SectionLabel(R.string.a_sec_delivery)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs), itemVerticalAlignment = Alignment.CenterVertically) {
-            Text("${formatWeekdayDate(order.deliveryDate, serverDate)} · ${order.slot.start} – ${order.slot.end}", style = MaterialTheme.typography.titleMedium)
-            if (due != null) DueMarkChip(due.text(context), painterResource(R.drawable.ic_clock), Modifier.testTag(AdminOrderTags.DETAIL_DUE))
-        }
-        Text(order.customerAddress, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.testTag(AdminOrderTags.DETAIL_ADDRESS))
-        Text(order.districtName, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

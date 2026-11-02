@@ -17,7 +17,8 @@ fun OrderStatus.textRes(): Int = when (this) {
     is OrderStatus.Unknown -> R.string.a_status_unknown
 }
 
-// Tones: the screens slice may add dedicated ones; the existing four keep the badge colours meaningful meanwhile.
+// The design adds no colour, so the rule is: untouched is NEW, any open step
+// after it is CONFIRMED (the word and the stepper tell the steps apart).
 fun OrderStatus.tone(): BadgeTone = when (this) {
     OrderStatus.Received -> BadgeTone.NEW
     OrderStatus.Processing, OrderStatus.DeliveryDateScheduled, OrderStatus.DeliveryStarted -> BadgeTone.CONFIRMED

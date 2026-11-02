@@ -78,12 +78,7 @@
     <string name="a_call">Gọi %1$s</string>
     <string name="a_zalo">Nhắn Zalo</string>
     <string name="a_zalo_unavailable">Không mở được Zalo trên máy này.</string>
-    <string name="a_confirm_order">Xác nhận đơn</string>
-    <string name="a_complete_order">Hoàn thành</string>
     <string name="a_cancel_order">Hủy đơn</string>
-    <string name="a_complete_title">Hoàn thành đơn %1$s?</string>
-    <string name="a_complete_body">Đơn đã hoàn thành thì không mở lại được.</string>
-    <string name="a_complete_yes">Hoàn thành</string>
     <string name="a_status_changed">Đã cập nhật trạng thái đơn.</string>
     <string name="a_conflict">Đơn này vừa được người khác thay đổi. Trạng thái hiện tại: %1$s.</string>
     <string name="a_order_gone">Không tìm thấy đơn, hoặc đơn đã quá 90 ngày.</string>

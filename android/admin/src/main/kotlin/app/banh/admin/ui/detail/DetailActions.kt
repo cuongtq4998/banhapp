@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import app.banh.admin.R
+import app.banh.core.common.formatVnd
 import app.banh.admin.orderdetail.BusyAction
 import app.banh.admin.orderdetail.barActionsOf
 import app.banh.admin.orderdetail.cancelBlocked
@@ -99,6 +100,8 @@ fun DetailBannerView(banner: DetailBanner?, modifier: Modifier = Modifier) {
     when (banner) {
         is DetailBanner.Conflict ->
             WarningMessageView(stringResource(R.string.a_conflict, stringResource(banner.status.textRes())), icon, modifier.testTag(AdminOrderTags.DETAIL_CONFLICT))
+        is DetailBanner.FeeConflict ->
+            WarningMessageView(stringResource(R.string.a_fee_conflict, formatVnd(banner.feeVnd)), icon, modifier.testTag(AdminOrderTags.ORDER_FEE_CONFLICT))
         is DetailBanner.Rule, DetailBanner.ActionError -> ErrorMessageView(stringResource(R.string.a_err_status), icon, modifier.testTag(AdminOrderTags.DETAIL_ERROR))
         DetailBanner.ActionOffline -> ErrorMessageView(stringResource(R.string.a_offline_save), icon, modifier.testTag(AdminOrderTags.DETAIL_ERROR))
         null -> Unit

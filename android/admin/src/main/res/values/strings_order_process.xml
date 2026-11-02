@@ -54,4 +54,8 @@
     <string name="a_step_done">đã xong</string>
     <string name="a_step_next">sắp tới</string>
     <string name="a_status_unknown">Trạng thái khác</string>
+    <string name="a_err_date_same">Ngày mới trùng ngày giao dự kiến hiện tại.</string>
+    <string name="a_err_fee_not_allowed">Không thể sửa phí ở bước này.</string>
+    <string name="a_fee_new">Phí mới</string>
+    <string name="a_fee_dash">-</string>
 </resources>

@@ -3,6 +3,7 @@ package app.banh.admin.orderdetail
 import app.banh.admin.orders.OrderRuleError
 import app.banh.core.model.OrderAction
 import app.banh.core.model.OrderDetail
+import app.banh.core.model.OrderStatus
 
 /** Pure transitions of the detail screen and its sheets (FR-16 to FR-19, FR-28 to FR-30). */
 fun reduceOrderDetail(state: OrderDetailState, intent: OrderDetailIntent): OrderDetailState = when (intent) {
@@ -22,7 +23,7 @@ fun reduceOrderDetail(state: OrderDetailState, intent: OrderDetailIntent): Order
     OrderDetailIntent.SheetBack -> if (state.busy == null) state.copy(sheet = null) else state
     is OrderDetailIntent.Changed -> settled(state, intent.detail).copy(toast = true)
     // Open sheets close and the current order shows with a warning (FR-19).
-    is OrderDetailIntent.Conflicted -> settled(state, intent.current).copy(banner = DetailBanner.Conflict(intent.current.status))
+    is OrderDetailIntent.Conflicted -> settled(state, intent.current).copy(banner = conflictBanner(state, intent.current))
     is OrderDetailIntent.Refused -> refused(state, intent.error)
     is OrderDetailIntent.ChangeFailed -> state.copy(busy = null, banner = intent.banner)
     OrderDetailIntent.Gone -> state.copy(phase = DetailPhase.GONE, detail = null, busy = null, sheet = null)
@@ -80,3 +81,10 @@ private fun OrderDetail.withRange(error: OrderRuleError): OrderDetail {
 
 private fun settled(state: OrderDetailState, detail: OrderDetail): OrderDetailState =
     state.copy(phase = DetailPhase.READY, detail = detail, busy = null, sheet = null, banner = null)
+
+// A lost fee correction names the new fee; any other race names the new status.
+private fun conflictBanner(before: OrderDetailState, current: OrderDetail): DetailBanner {
+    val fee = current.deliveryFeeFinalVnd
+    val wasCorrecting = before.sheet is DetailSheet.FeeCorrection && current.status == OrderStatus.DeliveryStarted
+    return if (wasCorrecting && fee != null) DetailBanner.FeeConflict(fee) else DetailBanner.Conflict(current.status)
+}

@@ -75,6 +75,9 @@ fun OrderDetailScreen(
     }
     if (state.sheet == DetailSheet.FinishDialog) CompleteDialog(state.orderCode, dispatch)
     if (state.sheet is DetailSheet.Cancel) CancelSheet(state, dispatch)
+    if (state.sheet is DetailSheet.Date) DateSheet(state, serverDate, dispatch)
+    if (state.sheet is DetailSheet.Fee) FeeSheet(state, dispatch)
+    if (state.sheet is DetailSheet.FeeCorrection) CorrectionSheet(state, dispatch)
 }
 
 @Composable
@@ -104,7 +107,7 @@ private fun Body(
         ) {
             OrderStepper(detail, serverDate)
             CustomerCard(detail, onCall = { onCall(detail.customerPhone) }, onZalo = { onZalo(detail.customerPhone) })
-            DeliveryCard(detail, serverDate)
+            DeliveryCard(detail, serverDate, canChangeDate = state.allows(OrderAction.CHANGE_DATE), onChangeDate = { dispatch(OrderDetailIntent.Tap(OrderAction.CHANGE_DATE)) })
             CakesCard(detail, dispatch, canCorrectFee = state.allows(OrderAction.CORRECT_FEE))
             FeeHistoryCard(detail, serverDate)
             detail.note?.takeIf { it.isNotBlank() }?.let { NoteCard(it) }
