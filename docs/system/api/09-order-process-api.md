@@ -1,6 +1,6 @@
 # API Specification: order process, expected date, final fee
 
-Part of [api.md](../api.md), section 10.13 (new). Version 1.2 [v1.2 | 2026-11-02]. Traces: FR-9, FR-13, FR-14, FR-16 to FR-19, FR-28 to FR-30, AC-26 to AC-29, AC-49 to AC-52; ADR-0033; order-process.md. Auth, rate limit, `no-store`: api/05. Status identifiers: `Received`, `Processing`, `DeliveryDateScheduled`, `DeliveryStarted`, `Finished`, `Cancelled`.
+Part of [api.md](../api.md), section 10.13 (new). Version 1.3 [v1.3 | 2026-11-02]. Traces: FR-9, FR-13, FR-14, FR-16 to FR-19, FR-28 to FR-30, AC-26 to AC-29, AC-49 to AC-52; ADR-0033; order-process.md. Auth, rate limit, `no-store`: api/05. Status identifiers: `Received`, `Processing`, `DeliveryDateScheduled`, `DeliveryStarted`, `Finished`, `Cancelled`.
 
 ## 10.13.1 POST /v1/admin/orders/{order_code}/status (changed)
 
@@ -46,6 +46,22 @@ Check order [v1.2 | 2026-11-02]: session, role, body fields, `expected_status`, 
 
 A second staff correcting from a stale view gets 409 and must re-read; no overwrite. Fixtures: `order-detail-fee-corrected.json` (two `fee_corrections`), `error-validation-fee-invalid.json`, `error-fee-correction-not-allowed.json`, `error-order-state-changed-fee.json`, `error-validation-expected-date-too-far.json`.
 
+## 10.13.7 `allowed_actions` and the action to endpoint map [v1.3 | 2026-11-02]
+
+Computed from the status for owner and staff alike (the same roles as every status change, api/05); `Finished` and `Cancelled` get `[]`. Names are API identifiers; the order of the array is the table order. The UI bar (design/admin-orders/12, 5.12) shows exactly these: left action, right action.
+
+| Status | `allowed_actions` | Action | Endpoint and body |
+| ------ | ----------------- | ------ | ----------------- |
+| Received | `cancel`, `process` | `process` | POST status `{expected_status:"Received", to_status:"Processing"}` |
+| Processing | `cancel`, `schedule_delivery` | `schedule_delivery` | POST status `to_status:"DeliveryDateScheduled"`, `expected_delivery_date` |
+| DeliveryDateScheduled | `change_date`, `start_delivery` | `start_delivery` | POST status `to_status:"DeliveryStarted"`, `delivery_fee_vnd` |
+| DeliveryStarted | `correct_fee`, `finish` | `finish` | POST status `to_status:"Finished"` |
+| Received, Processing | (see above) | `cancel` | POST status `to_status:"Cancelled"`, `cancel_reason` |
+| DeliveryDateScheduled | | `change_date` | PUT `/expected-delivery-date` (10.13.2) |
+| DeliveryStarted | | `correct_fee` | PUT `/delivery-fee` (10.13.6) |
+
+`to_status` to transition: Processing = `process`, DeliveryDateScheduled = `schedule_delivery`, DeliveryStarted = `start_delivery`, Finished = `finish`, Cancelled = `cancel`. The old names `confirm` and `complete` are gone. An action not in the list is refused as in the sections above. Replays and repeats: order-process.md 4.1.
+
 ## 10.13.4 Fixtures to add in `contracts/fixtures/admin/` (forge-dev, outside atlas paths)
 
 `order-detail-received.json`, `order-detail-delivery-date-scheduled.json` (with two `date_changes`), `order-detail-delivery-started.json` (fee 25 000, to collect), `order-detail-delivery-started-free.json` (fee 0), `error-status-transition-invalid-cancel.json`, `error-validation-expected-date-past.json`, `error-validation-fee-required.json`, `error-order-state-changed-date.json`; update every existing status example from `New`/`Confirmed`/`Completed`.
@@ -54,6 +70,7 @@ A second staff correcting from a stale view gets 409 and must re-read; no overwr
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.3 | 2026-11-02 | Section 10.13.7: `allowed_actions` vocabulary, action to endpoint map, `to_status` to action. |
 | 1.2 | 2026-11-02 | 409 body, `expected_date_range` (server owns the window), FEE_UNCHANGED order, status-route fee refusal, clock source. |
 | 1.1 | 2026-11-02 | Date range today to today + 7 (`EXPECTED_DATE_TOO_FAR`); fee correction endpoint 10.13.6 and `fee_corrections[]`. |
 | 1.0 | 2026-11-02 | First version. |

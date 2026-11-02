@@ -2,7 +2,7 @@
 
 | Field | Value |
 | ----- | ----- |
-| Version | 1.2 [v1.2 | 2026-11-02] |
+| Version | 1.4 [v1.4 | 2026-11-02] |
 | Status | Draft |
 | Owner | atlas-architect |
 | Based on | product/admin-orders.md v1.10 (BR-2, BR-9, BR-11, BR-15, FR-13, FR-16 to FR-19, FR-28, FR-29); ADR-0033 |
@@ -59,13 +59,20 @@ COALESCE(expected_delivery_date, delivery_date) AS list_date
 status IN ('Received','Processing','DeliveryDateScheduled','DeliveryStarted')
 -- badge and red mark
 open AND COALESCE(expected_delivery_date, delivery_date) <= :today
--- window (ADR-0029, unchanged shape)
-open OR (status IN ('Finished','Cancelled') AND created_at >= :today_start - 90 days)
+-- window [v1.4 | 2026-11-02]: one instant rule, not a day boundary (section 4.1)
+open OR (status IN ('Finished','Cancelled') AND created_at >= :now - interval '90 days')
 -- sort
 ORDER BY list_date, slot_start, created_at, id
 ```
 
 Cursor note: the sort key now changes when a date moves, so a page can repeat or skip a row across pages; the apps refresh from page 1 after any status or date change (R-14 stays: list is the truth). Index: partial `customer_order_open_list_idx ON (shop_id, (COALESCE(expected_delivery_date, delivery_date)), slot_start_time, created_at, id) WHERE status IN (open four)` replaces the use of `customer_order_shop_date_status_idx` for the open view.
+
+### 4.1 The 90-day window and replay beyond it [v1.4 | 2026-11-02]
+
+- Rule (decided; ADR-0029 and ADR-0033 Decision 13 say the same): `:now` is the request instant from the injectable server clock; a `Finished` or `Cancelled` order is in the window when `created_at >= :now - 90 x 24 hours`. Open orders are always in. Exactly 90 days is shown (BR-9); 90 days and one second is not. Not `:today_start`: the shop day boundary would show an order for 90 to 91 days depending on the hour it was placed. Code: `OrderWindow` (`finalDays = 90`).
+- One function serves the list, the badge (open orders only, so the window never changes it), search, detail by code (404 `ORDER_NOT_FOUND` outside), the status route, and the date and fee routes. A hidden order never returns its detail or a 409 `details.order`.
+- Replay beyond the window (ADR-0028 v1.6, unchanged in rule for `Finished` and `Cancelled`): the status route looks the order up without the window; the exact repeat of the change that closed it (same account, current status equals `to_status`, last `status_changed` event `from_status` equals `expected_status`, and the same extra field values, below) answers 200 `Idempotent-Replay: true` with the detail, even when the order is now outside the window. Any other call on an order outside the window is 404 `ORDER_NOT_FOUND`, never 409 or 422.
+- Repeats: `start_delivery` again with the same fee is a replay (the stored fee must equal the body fee; a different fee is 409 `ORDER_STATE_CHANGED`, nothing changes). `schedule_delivery` again with the same date is a replay (stored expected date equals the body date; another date is 409). The date and fee routes replay as in ADR-0033 Decisions 2 and 10 (same account, latest change row `old = previous`, stored value equals the requested value), but only while the order is still `DeliveryDateScheduled` or `DeliveryStarted`; after it moved on the answer is 409 inside the window and 404 outside. A repeat by another account is always 409.
 
 Filter values of `GET /v1/admin/orders?status=`: `todo` (the four open steps, default), each of the six names, `all` (api/09).
 
@@ -84,6 +91,7 @@ Filter values of `GET /v1/admin/orders?status=`: `todo` (the four open steps, de
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.4 | 2026-11-02 | Section 4.1: one window rule (now minus 90 x 24 hours from placed time), use on every read and write path, replay beyond the window, repeats of schedule, start and fee correction. Header corrected (was 1.2). |
 | 1.3 | 2026-11-02 | FEE_UNCHANGED before 409; shop today from the injectable server clock (api/09). |
 | 1.2 | 2026-11-02 | Date range today to today + 7; fee correction rules (ADR-0033 Decisions 9 and 10). |
 | 1.1 | 2026-11-02 | Section 5 answers; `order_event` history is kept, not remapped. |

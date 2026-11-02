@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0028 |
-| Version  | 1.5 [v1.5 | 2026-11-01] (deviation D-1 fixed in slice B6; earlier: built in B3, replay beyond the window, R-1) |
+| Version  | 1.6 [v1.6 | 2026-11-02] (replay rule confirmed for Finished and Cancelled under the six steps, with extra-field match; earlier: v1.5 deviation D-1 fixed in slice B6; earlier: built in B3, replay beyond the window, R-1) |
 | Status   | Accepted; the allowed pairs and the compare key are superseded in part by ADR-0033 [v1.6 | 2026-11-02]; Accepted (no money, no new customer data) |
 | Date     | 2026-10-31 |
 | Decider  | atlas-architect |
@@ -32,6 +32,8 @@ Two staff may open the same order. The second action from an out-of-date view mu
 Option A. Body `{ "expected_status", "to_status", "cancel_reason" }`. Order of checks: session and role; order found inside the 90-day window (else 404 `ORDER_NOT_FOUND`); fields valid (`CANCEL_REASON_REQUIRED` for `Cancelled` without a reason, a reason with any other target is `VALIDATION_FAILED`); `(expected_status, to_status)` is an allowed pair (else 422 `STATUS_TRANSITION_INVALID`, no write); then one transaction sets `app.actor_type`, `app.actor_id`, `app.actor_name` with `set_config(..., true)` and runs `UPDATE customer_order SET status, cancel_reason, updated_at WHERE id AND status = expected_status`. Zero rows updated means someone else moved the order: 409 `ORDER_STATE_CHANGED` with the current order detail in `details.order`, nothing changed. The triggers write the event and release capacity in the same transaction.
 
 Window note [v1.2 | 2026-10-31]: the order lookup uses the window function of ADR-0029 v1.3: an open order of any age can be changed; a repeat after the change is a replay while the order is inside the window (finished orders stay 90 days after they were placed). An order placed more than 90 days ago and closed today leaves the window; v1.3 [v1.3 | 2026-11-01] (R-1): the status route finds the order by code without the window and applies the window only after the replay test. Rule: (1) order not found: 404; (2) the replay test below passes: 200 with `Idempotent-Replay: true`, even if the order is now outside the window (the owner who lost the reply of a close sees no error, FR-19); (3) otherwise an order outside the window answers 404 (no detail of a hidden order is ever returned, so 409 `details.order` is never built for it); (4) otherwise the normal checks. A replay is only an exact repeat by the same account of the last change, so it reveals nothing new. Retry rule: if zero rows are updated, the current status equals `to_status`, and the latest `status_changed` event came from the same account with `from_status = expected_status`, the call returns 200 with `Idempotent-Replay: true` and the current detail (a repeated tap or a lost response). Any other combination stays 409, including a different person reaching the same target (AC-29 keeps the refusal for a different action; the same target by another person is also 409 so that history is never misattributed).
+
+Six-step model [v1.6 | 2026-11-02]: the replay rule is unchanged for `Finished` and `Cancelled`. A replay of `schedule_delivery` or `start_delivery` also needs the stored expected date or fee to equal the body value (else 409). Detail: order-process.md 4.1, ADR-0033 Decision 14.
 
 ## Consequences
 
