@@ -1,5 +1,7 @@
 # Data Model: Order entities, events, enumerations
 
+> Status values changed by migration 0008 [v1.8 | 2026-11-02]: `customer_order.status` is now Received, Processing, DeliveryDateScheduled, DeliveryStarted, Finished, Cancelled (data-model/06). `order_event` keeps the old words in old rows; new rows use the new words. The text below describes the pre-0008 values.
+
 Part of [data-model.md](../data-model.md) (index, version, change log), sections 3.7 to 3.9, 4. Moved from data-model.md v1.3 with the wording unchanged unless a line carries a newer label [v1.4 | 2026-10-27].
 
 ## 3. Entities (continued)

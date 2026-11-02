@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.23 [v1.23 | 2026-11-01] |
+| Version      | 1.24 [v1.24 | 2026-11-02] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -28,6 +28,7 @@ This file is the index of the API specification. The body lives in the folder `a
 | 9, endpoint index (admin), 10.1 to 10.5 | Admin conventions, sign-in, refresh [v1.16 \| 2026-10-31] | [api/05-admin-conventions-auth.md](api/05-admin-conventions-auth.md) |
 | 10.6 to 10.12 | Session, sign out other phones, push token, order list, detail, status change, push payload [v1.16 \| 2026-10-31] | [api/06-admin-orders-devices.md](api/06-admin-orders-devices.md) |
 | 10.13 to 10.19 | Owner settings, ordering rules, districts, slots, cakes, staff [v1.16 \| 2026-10-31] | [api/07-owner-settings-cakes-staff.md](api/07-owner-settings-cakes-staff.md) |
+| 10.13 | Order process of six steps, expected delivery date, final fee [v1.24 \| 2026-11-02] | [api/09-order-process-api.md](api/09-order-process-api.md) |
 | 11 to 13 | Admin error catalogue, compatibility, traceability [v1.13 \| 2026-10-31] | [api/08-admin-errors-compatibility.md](api/08-admin-errors-compatibility.md) |
 | 8 | Open questions and change log | this file |
 
@@ -64,3 +65,4 @@ This file is the index of the API specification. The body lives in the folder `a
 | 1.21 | 2026-11-01 | Aligned with built slice B7 (architecture/14): 10.8 push token built (field codes `PLATFORM_MISMATCH`, `PLATFORM_INVALID`, `TOKEN_INVALID`, `APNS_ENVIRONMENT_INVALID`, `UNKNOWN_FIELD`); 10.12 FCM field path `android.notification.title_loc_key`; payload content. |
 | 1.22 | 2026-11-01 | `GET /v1/admin/me` also returns the caller's own `email` (own address only, never logged, `no-store`): api/05 index row, api/06 10.6; fixture `admin/me.json` and the backend to follow (architecture/15). |
 | 1.23 | 2026-11-01 | Review account and log redaction as built (architecture/16): api/05 section 9 logging row; api/06 10.11 cancel: 500 `INTERNAL_ERROR` with `details.reason = DAY_LOAD_INCONSISTENT`. No new route. |
+| 1.24 | 2026-11-02 | Order process of six steps (ADR-0033, api/09 section 10.13): status filter values, badge, detail fields in api/06 10.9 and 10.10, new field codes in api/08 11.1; `order_event` history keeps legacy words, mapped on read. |

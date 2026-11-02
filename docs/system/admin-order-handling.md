@@ -1,8 +1,10 @@
 # Admin Order Handling
 
+> Superseded in part [v1.2 | 2026-11-02]: the statuses are now Received, Processing, DeliveryDateScheduled, DeliveryStarted, Finished, Cancelled (order-process.md, ADR-0033). The words New, Confirmed, Completed below are the pre-0008 names (New = Received, Confirmed = Processing, Completed = Finished); the transition table of order-process.md section 2 wins.
+
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.1 [v1.1 | 2026-10-31] |
+| Version      | 1.2 [v1.2 | 2026-11-02] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -111,3 +113,4 @@ Cancelled orders stop counting toward 5 per phone per 24 hours unless `fake_spam
 | ------- | ---- | ------ |
 | 1.0 | 2026-10-31 | First version. |
 | 1.1 | 2026-10-31 | PRD v1.6: four cancel reasons, one window rule (open orders always), no push hint, sign out other phones; ids renumbered; acceptance-criteria references dropped. |
+| 1.2 | 2026-11-02 | Notice: six-step statuses supersede the four-step names (order-process.md, ADR-0033). |

@@ -45,6 +45,9 @@ All of these arrive as 422 `VALIDATION_FAILED` with the defect in `fields[]` (`f
 | SEARCH_INVALID | `q` | After trimming, under 3 or over 50 characters; contains a control character (including NUL); looks like a phone number (only digits, spaces and `+-().`) with under 3 digits. An empty `q=` is invalid, an absent `q` is no search |
 | CURSOR_INVALID | `cursor` | Not a cursor issued by the server (altered, truncated or from another API). The cursor is opaque: the client passes `next_cursor` back unchanged and, on this error, drops the cursor and reloads page 1 |
 | UNKNOWN_FIELD | the body key | Status change body has a key other than `expected_status`, `to_status`, `cancel_reason` |
+| EXPECTED_DATE_REQUIRED, EXPECTED_DATE_INVALID, EXPECTED_DATE_PAST, EXPECTED_DATE_UNCHANGED | `expected_delivery_date` | Missing, not a calendar date, before the shop's today, or equal to the stored date (order-process.md; api/09) [v1.24 | 2026-11-02] |
+| FEE_REQUIRED, FEE_INVALID | `delivery_fee_vnd` | Missing at DeliveryStarted; not a whole number 0 to 10 000 000 [v1.24 | 2026-11-02] |
+| FIELD_NOT_ALLOWED | the extra key | Date, fee or reason sent with a target that does not take it [v1.24 | 2026-11-02] |
 | REASON_NOT_ALLOWED | `cancel_reason` | Reason sent with a target other than `Cancelled` |
 
 Checks run in this order for the list: unknown or repeated names, `status`, preset against date, preset, date, `q`, `cursor`. Order data, `q` and the cursor are never logged (they can hold a name or a phone number).

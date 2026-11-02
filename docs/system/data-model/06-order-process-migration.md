@@ -1,6 +1,6 @@
 # Data Model: order process columns and migration 0008
 
-Part of [data-model.md](../data-model.md). Version 1.0 [v1.0 | 2026-11-02]. Traces: BR-2, BR-9, BR-11, BR-15, FR-28, FR-29, AC-49 to AC-52; ADR-0033.
+Part of [data-model.md](../data-model.md). Version 1.1 [v1.1 | 2026-11-02]. Traces: BR-2, BR-9, BR-11, BR-15, FR-28, FR-29, AC-49 to AC-52; ADR-0033.
 
 ## 1. New columns on `customer_order` [v1.0 | 2026-11-02]
 
@@ -36,7 +36,7 @@ Steps, one transaction:
 
 1. Drop triggers `customer_order_status_guard` and `customer_order_release_capacity` (also stops `order_event` writes during the remap).
 2. Drop the `status` CHECK.
-3. Remap `customer_order.status`: New to Received, Confirmed to Processing, Completed to Finished, Cancelled unchanged. Remap `order_event.from_status` and `to_status` the same way (disable the event protection trigger inside the transaction if one exists; forge-dev checks 0001 to 0003).
+3. Remap `customer_order.status` only: New to Received, Confirmed to Processing, Completed to Finished, Cancelled unchanged. `order_event` is NOT touched [v1.1 | 2026-11-02]: no UPDATE, no trigger disabled (section 5).
 4. Backfill `delivery_fee_final_vnd = delivery_fee_vnd` and `delivery_fee_set_at = status_changed_at` for rows now `Finished` (the fee fixed at order time was the fee paid). Open rows get nothing.
 5. Add the three columns, the new CHECKs, table and index of section 2, the open-list index of order-process.md section 4.
 6. Recreate the guard (pairs of order-process.md section 2), the capacity release (releases on `Cancelled`, event writes as before) and the immutable function.
@@ -44,8 +44,26 @@ Steps, one transaction:
 
 Compatibility: not additive; stop the old backend, apply, start the new backend (ADR-0033, Old clients). Sample seed (`backend/db/seed`) statuses are updated by forge-dev in the same change.
 
-## 4. Change log
+## 4. Rows that drive the migration check [v1.1 | 2026-11-02]
+
+Step 7 counts `customer_order` only. Step 1 stops writing events during the remap: the remap is a plain UPDATE of `status`, and the recreated guard is not fired for it because it is dropped. No `order_event` row is written for the remap (no real transition happened).
+
+## 5. `order_event` after 0008: exactly what is touched [v1.1 | 2026-11-02]
+
+| Object | Action in 0008 |
+| ------ | -------------- |
+| Rows of `order_event` | Untouched. Old rows keep `New`, `Confirmed`, `Completed`, `Cancelled` forever; new rows use the six new words |
+| Trigger `order_event_append_only` (0001, replaced in 0006) | Untouched |
+| `order_event` CHECKs | No CHECK names status words (0001 has only `event_type` and `actor_type`; 0003 has `reason` values and `reason only when to_status = 'Cancelled'`), so none is dropped or added. `event_type` stays `created`, `status_changed` |
+| Trigger `customer_order_status_guard` | Dropped, recreated with the new pairs (no event write inside it) |
+| Trigger `customer_order_release_capacity` | Dropped, recreated; the event insert it makes uses the new words |
+| `customer_order` status CHECK | Replaced by the six values |
+
+Legacy mapping on read (one shared function, API side, and the apps for unknown words): `New` to Received, `Confirmed` to Processing, `Completed` to Finished; `Cancelled` and the new words as they are. The history in the order detail shows the mapped label; the stored word is never changed. Date moves are rows of `order_expected_date_change`, not `order_event` rows; the history is the merge of both by time. A fee entry is part of the `DeliveryDateScheduled` to `DeliveryStarted` event (the fee is stored on the order with `delivery_fee_set_at`).
+
+## 6. Change log
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.1 | 2026-11-02 | `order_event` is not remapped (append-only kept); legacy words mapped on read; sections 4 and 5. |
 | 1.0 | 2026-11-02 | First version. |

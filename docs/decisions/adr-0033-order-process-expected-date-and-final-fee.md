@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0033 |
-| Version  | 1.0 [v1.0 | 2026-11-02] |
+| Version  | 1.1 [v1.1 | 2026-11-02] (event history kept, cutover decision) |
 | Status   | Accepted (the owner approved the PRD change on 2026-11-02; no money, no new customer data) |
 | Date     | 2026-11-02 |
 | Decider  | atlas-architect |
@@ -16,7 +16,7 @@ The order process grows from four statuses to six. Two new facts are stored: an 
 
 ## Decision
 
-1. Statuses (text, English identifiers): `Received`, `Processing`, `DeliveryDateScheduled`, `DeliveryStarted`, `Finished`, `Cancelled`. Transition table and side effects: order-process.md. Old rows: New to Received, Confirmed to Processing, Completed to Finished (assumption Q-35); Cancelled stays.
+1. Statuses (text, English identifiers): `Received`, `Processing`, `DeliveryDateScheduled`, `DeliveryStarted`, `Finished`, `Cancelled`. Transition table and side effects: order-process.md. Old rows: `customer_order.status` is remapped New to Received, Confirmed to Processing, Completed to Finished (assumption Q-35); Cancelled stays. `order_event` is NOT rewritten [v1.1 | 2026-11-02]: it is append-only (0006) and an audit record; old events keep the words New, Confirmed, Completed, Cancelled forever, the API and apps map them when reading history, new events use the new words. No `order_event` CHECK names status words, so none changes; the protection trigger stays untouched (data-model/06 section 5).
 2. Compare-and-set key. Status changes keep `UPDATE ... WHERE status = :expected_status`. A date move has no status change, so its key is the pair `(status = 'DeliveryDateScheduled', expected_delivery_date = :previous_expected_delivery_date)`. Zero rows updated means 409 `ORDER_STATE_CHANGED` with the current detail. Replay rule: zero rows, the current date equals the requested date, and the latest date-change record has the same account and `old_date = previous` returns 200 with `Idempotent-Replay: true`.
 3. The customer-chosen `delivery_date` stays untouched and alone holds `day_load` (BR-15). Only `Cancelled` releases capacity, as today. The expected date is never checked against limit, lead days or slots; only "not before the shop's today" and a valid date.
 4. District fee: `customer_order.delivery_fee_vnd` and `total_vnd` stay as the stored estimate (immutable, BR-6) so the customer API and old customer apps do not change (`expected_total_vnd` still equals cakes plus estimate). The real fee is a new nullable column; amount to collect = `items_subtotal_vnd + delivery_fee_final_vnd`, computed by the API, null until the fee is entered. Rejected: overwriting `delivery_fee_vnd` (breaks the immutability trigger and the total CHECK).
@@ -27,7 +27,7 @@ The order process grows from four statuses to six. Two new facts are stored: an 
 
 ## Old clients
 
-Admin apps decode the status string; an unknown value (`Received`) breaks old builds. `APP_UPDATE_REQUIRED` is not defined (api/08 section 12). Customer apps never read the status and the `POST /v1/orders` contract does not change. Plan: ship backend, iOS and Android admin apps together; both admin apps are in limited distribution (ADR-0026), so the operator updates the few devices before the cutover. Query for forge-dev: apps must treat an unknown status as a neutral label, not a crash.
+Admin apps decode the status string; an unknown value (`Received`) breaks old builds. `APP_UPDATE_REQUIRED` is not defined (api/08 section 12). Customer apps never read the status and the `POST /v1/orders` contract does not change. Plan: ship backend, iOS and Android admin apps together; both admin apps are in limited distribution (ADR-0026), so the operator updates the few devices before the cutover. Query for forge-dev: apps must treat an unknown status as a neutral label, not a crash. [v1.1 | 2026-11-02] Hard cutover decision: no `APP_UPDATE_REQUIRED` is built. Reason: old builds cannot be given new behaviour after the fact, and the status field is the only break; backend, iOS and Android admin apps ship together and the few devices are updated before the cutover (ADR-0026). An old build that still connects shows its generic error state for unknown words; staff must update. New builds map unknown words to a neutral label and legacy event words per data-model/06 section 5. Revisit only if the operator cannot reach every device.
 
 ## Consequences
 

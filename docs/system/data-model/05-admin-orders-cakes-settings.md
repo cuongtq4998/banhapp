@@ -1,5 +1,7 @@
 # Data Model: Changes to orders, events, cakes and settings for admin-orders
 
+> Status words below are pre-0008 [v1.8 | 2026-11-02]; see data-model/06 for the six statuses, the new columns, and why `order_event` is not rewritten.
+
 Part of [data-model.md](../data-model.md) (index, version, change log), sections 11 to 16. New in v1.6 [v1.6 | 2026-10-31]. Aligned with PRD v1.6 in v1.9: four cancel reasons, one window rule, ids renumbered [v1.9 | 2026-10-31]. Migrations `backend/db/migrations/0003_admin_orders.sql` and `0004_admin_settings.sql` and `0005_admin_cakes.sql` (after `0002_admin_auth.sql`; `0003` built in B2 and B3, section 11 only; `0004` is section 13; `0005` is section 12 and the D-2 fix, built in B6 [v1.20 | 2026-11-01]). Decisions: ADR-0025, ADR-0028 to ADR-0032.
 
 ## 11. customer_order and order_event (FR-14, FR-18, FR-27; BR-3, BR-8, BR-9; TQ-8) [v1.9 | 2026-10-31]
