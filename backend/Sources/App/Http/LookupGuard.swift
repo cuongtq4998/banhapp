@@ -1,4 +1,5 @@
 import Foundation
+import Logging
 import NIOConcurrencyHelpers
 
 /// The three lookup limits and the floor counter (api/10 10.14.5).
@@ -24,9 +25,16 @@ final class LookupGuard: Sendable {
     }
 }
 
-/// Counter without any phone in it.
+/// Warning line and test-only count; no phone, cursor or key.
 final class LookupMetrics: Sendable {
+    static let eventMessage = "lookup_floor_exceeded"
     private let exceeded = NIOLockedValueBox(0)
+    /// Read by tests only; no route exposes it.
     var floorExceededCount: Int { exceeded.withLockedValue { $0 } }
-    func recordFloorExceeded() { exceeded.withLockedValue { $0 += 1 } }
+
+    func recordFloorExceeded(durationMilliseconds: Int, floorMilliseconds: Int, logger: Logger) {
+        exceeded.withLockedValue { $0 += 1 }
+        logger.warning("\(Self.eventMessage)", metadata: [
+            "duration_ms": "\(durationMilliseconds)", "floor_ms": "\(floorMilliseconds)"])
+    }
 }

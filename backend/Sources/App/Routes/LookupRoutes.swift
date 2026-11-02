@@ -39,7 +39,7 @@ struct LookupRoutes: RouteCollection {
         do { answer = try await service.page(phone: phone, cursorText: body.cursor) } catch LookupError.cursorInvalid {
             throw Self.invalid(Self.cursorField, "CURSOR_INVALID")
         }
-        try await Self.waitForFloor(since: started, policy: policy, services: services)
+        try await Self.waitForFloor(since: started, policy: policy, services: services, logger: req.logger)
         let response = Response(status: .ok)
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
@@ -66,9 +66,13 @@ struct LookupRoutes: RouteCollection {
     }
 
     /// Same duration for empty and full answers; a slow one is counted.
-    private static func waitForFloor(since started: ContinuousClock.Instant, policy: LookupPolicy, services: AppServices) async throws {
+    private static func waitForFloor(since started: ContinuousClock.Instant, policy: LookupPolicy, services: AppServices, logger: Logger) async throws {
         let floor = Duration.milliseconds(policy.floorMilliseconds)
         let elapsed = ContinuousClock.now - started
-        if elapsed < floor { try await Task.sleep(for: floor - elapsed) } else { services.lookupMetrics.recordFloorExceeded() }
+        if elapsed < floor { try await Task.sleep(for: floor - elapsed) } else {
+            services.lookupMetrics.recordFloorExceeded(
+                durationMilliseconds: Int(elapsed.components.seconds * 1000 + elapsed.components.attoseconds / 1_000_000_000_000_000),
+                floorMilliseconds: policy.floorMilliseconds, logger: logger)
+        }
     }
 }
