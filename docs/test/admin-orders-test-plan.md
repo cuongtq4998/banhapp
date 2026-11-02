@@ -2,9 +2,9 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 2.1 |
+| Version      | 2.2 |
 | Last updated | 2026-11-02 |
-| Status       | Early mode for PRD v1.10 (parts 13 to 16, not run) [v2.1 | 2026-11-02]; round 1 executed on commit 6852302; verdict conditional (part 09) |
+| Status       | Early mode for PRD v1.12 (parts 13 to 19, not run) [v2.2 | 2026-11-02]; round 1 executed on commit 6852302; verdict conditional (part 09) |
 | Owner        | probe-qa |
 | Based on     | product/admin-orders.md v1.10 (Approved 2026-11-02; parts 13 to 16), place-order v1.7; earlier parts product/admin-orders.md v1.6 (Approved; ids as v1.5) and parts 01 to 08; design/admin-orders-ui.md v1.3; system/api 05 to 08 (api v1.22), architecture 07 to 10, data-model 04 and 05, auth.md, ADR-0022 to ADR-0031; the code of feature/admin-orders at 6852302 |
 | Related      | process/standards/11-test.md; test/admin-orders-defects.md; test/place-order-tests.md; backend/Tests/qa/Tests/QATests/Admin/ |
@@ -31,6 +31,9 @@ Execute mode. The plan is split into parts of at most 200 lines (project file si
 | [14-fee-date-capacity.md](admin-orders-test-plan/14-fee-date-capacity.md) | 4.20 to 4.22 Real fee, expected date, capacity [v2.1 \| 2026-11-02] | TC-B301 to TC-B365, TC-C301 to TC-C314 |
 | [15-list-migration-settings.md](admin-orders-test-plan/15-list-migration-settings.md) | 4.23 to 4.25 List and badge, migration, estimated fee settings [v2.1 \| 2026-11-02] | TC-B401 to TC-B458, TC-C401 to TC-C416 |
 | [16-trace-questions-v2-1.md](admin-orders-test-plan/16-trace-questions-v2-1.md) | 4.26 to 4.28 Changed ids to tests, superseded cases, questions Q-P1 to Q-P8, DOC-1 to DOC-5 [v2.1 \| 2026-11-02] | none |
+| [17-date-range-fee-correction.md](admin-orders-test-plan/17-date-range-fee-correction.md) | 4.29 Expected date range, 4.30 Fee correction [v2.2 \| 2026-11-02] | TC-B501 to TC-B548, TC-C501 to TC-C525 |
+| [18-customer-lookup.md](admin-orders-test-plan/18-customer-lookup.md) | 4.31 Customer order lookup API and security [v2.2 \| 2026-11-02] | TC-B601 to TC-B639 |
+| [19-migration-0008-ops-questions.md](admin-orders-test-plan/19-migration-0008-ops-questions.md) | 4.32 Migration 0008, 4.33 Backup rehearsal, 4.34 Trace and questions Q-P9 to Q-P14, DOC-6 to DOC-8 [v2.2 \| 2026-11-02] | TC-B701 to TC-B710, TC-O701 to TC-O706 |
 
 ## Totals (round 1, 6852302)
 
@@ -44,3 +47,4 @@ Planned: 204 cases (145 backend, 51 client x 2 platforms, 8 fixture). Executed e
 | 1.1 | 2026-10-31 | Reworked for the simplified PRD v1.5. |
 | 2.0 | 2026-11-01 | Execute mode, round 1: see [part 09](admin-orders-test-plan/09-rounds-questions-changelog.md). |
 | 2.1 | 2026-11-02 | Early mode for PRD v1.10 and place-order v1.7: parts 13 to 16, transition, cancel and role matrices, fee, date, capacity, list, migration, settings tests; old cases listed as superseded in part 16. All new cases `Not run`. |
+| 2.2 | 2026-11-02 | Early mode for PRD v1.12 (date at most today + 7, fee correction, no cancel after S), api/09 v1.1, api/10 (customer lookup), ADR-0033 v1.2, ADR-0034, data-model/06 v1.2: parts 17 to 19, 103 new cases. All `Not run`. |
