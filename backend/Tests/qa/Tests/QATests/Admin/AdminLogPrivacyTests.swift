@@ -37,8 +37,8 @@ final class AdminLogPrivacyTests: AdminQABase {
             bodies.append(try await client.send("GET", "v1/admin/orders" + (query.isEmpty ? "" : "?" + query), token: phoneSession.access).text.replacingOccurrences(of: name, with: "").replacingOccurrences(of: phone, with: "").replacingOccurrences(of: "+84900000099", with: ""))
         }
         _ = try await client.send("GET", "v1/admin/orders/\(orderCode)", token: phoneSession.access)
-        _ = try await changeStatus(phoneSession, orderCode, from: "New", to: "Confirmed")
-        _ = try await changeStatus(phoneSession, orderCode, from: "New", to: "Cancelled", reason: "customer_asked")
+        _ = try await changeStatus(phoneSession, orderCode, from: "Received", to: "Processing")
+        _ = try await changeStatus(phoneSession, orderCode, from: "Received", to: "Cancelled", reason: "customer_asked")
         let form = QAImages.multipart(fields: ["name": "Banh Rieng Tu", "description": "d", "price_vnd": "1"], files: [("x.png", "image/png", QAImages.png(width: 5, height: 5))])
         _ = try await client.send("POST", "v1/owner/cakes", token: phoneSession.access, rawBody: form.body, contentType: form.type)
         _ = try await client.send("GET", "v1/owner/settings", token: phoneSession.access)

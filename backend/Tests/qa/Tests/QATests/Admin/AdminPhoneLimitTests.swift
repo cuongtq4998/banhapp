@@ -23,7 +23,7 @@ final class AdminPhoneLimitTests: AdminQABase {
     private func cancel(_ codes: [String], reasons: [String]) async throws {
         let phone = try await owner()
         for (code, reason) in zip(codes, reasons) {
-            let reply = try await changeStatus(phone, code, from: "New", to: "Cancelled", reason: reason)
+            let reply = try await changeStatus(phone, code, from: "Received", to: "Cancelled", reason: reason)
             XCTAssertEqual(reply.status, 200, "\(reason): \(reply.text)")
         }
     }
@@ -71,7 +71,7 @@ final class AdminPhoneLimitTests: AdminQABase {
         XCTAssertEqual(accepted.status, 201)
         // Now 5 counted again; marking one of the open orders spam changes nothing, a second cancel keeps its first reason.
         let owner = try await self.owner()
-        let again = try await changeStatus(owner, codes[0], from: "New", to: "Cancelled", reason: "fake_spam")
+        let again = try await changeStatus(owner, codes[0], from: "Received", to: "Cancelled", reason: "fake_spam")
         XCTAssertNotEqual(again.status, 500)
         let stillRefused = try await place(phone)
         XCTAssertEqual(stillRefused.status, 429, "the first cancel reason is kept, so the second spam call must not add a counted order")

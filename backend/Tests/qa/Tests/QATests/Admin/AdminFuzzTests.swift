@@ -52,13 +52,13 @@ final class AdminFuzzTests: AdminQABase {
         for type in ["application/x-www-form-urlencoded", ""] {
             let order = try await seedOrder(date: dayOffset(6))
             let reply = try await client.send("POST", "v1/admin/orders/\(order)/status", token: phone.access,
-                                              rawBody: Data("expected_status=New&to_status=Confirmed".utf8), contentType: type.isEmpty ? nil : type)
+                                              rawBody: Data("expected_status=Received&to_status=Processing".utf8), contentType: type.isEmpty ? nil : type)
             XCTAssertLessThan(reply.status, 500, "content type '\(type)' -> \(reply.status)")
             print("QA-OBSERVATION O-4 content type '\(type)' on the status route -> \(reply.status)")
         }
         for type in ["text/plain", "multipart/form-data", "application/xml"] {
             let reply = try await client.send("POST", "v1/admin/orders/\(order)/status", token: phone.access,
-                                              rawBody: Data("expected_status=New&to_status=Confirmed".utf8), contentType: type.isEmpty ? nil : type)
+                                              rawBody: Data("expected_status=Received&to_status=Processing".utf8), contentType: type.isEmpty ? nil : type)
             XCTAssertLessThan(reply.status, 500, "content type '\(type)' -> \(reply.status)")
             XCTAssertGreaterThanOrEqual(reply.status, 400, "a non-JSON body must not confirm an order (type '\(type)')")
         }
@@ -66,7 +66,7 @@ final class AdminFuzzTests: AdminQABase {
             let reply = try await client.send(method, path, token: phone.access)
             XCTAssertTrue([404, 405].contains(reply.status), "\(method) \(path) -> \(reply.status)")
         }
-        let untouched = try await count("SELECT count(*)::int AS n FROM customer_order WHERE order_code = \(bind: order) AND status = 'New'")
+        let untouched = try await count("SELECT count(*)::int AS n FROM customer_order WHERE order_code = \(bind: order) AND status = 'Received'")
         XCTAssertEqual(untouched, 1, "refused content types and verbs change nothing")
     }
 }

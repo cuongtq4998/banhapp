@@ -8,7 +8,7 @@ import FluentSQL
 final class AdminCancelRaceTests: AdminQABase {
 
     private func openCakes(_ date: String) async throws -> Int {
-        try await count("SELECT coalesce(sum(total_cakes), 0)::int AS n FROM customer_order WHERE shop_id = \(bind: shopID) AND delivery_date = \(bind: date)::date AND status IN ('New','Confirmed')")
+        try await count("SELECT coalesce(sum(total_cakes), 0)::int AS n FROM customer_order WHERE shop_id = \(bind: shopID) AND delivery_date = \(bind: date)::date AND status IN ('Received','Processing')")
     }
 
     /// TC-B84: a cancel freeing cakes races customers who want them at the capacity edge. Ten rounds.
@@ -23,7 +23,7 @@ final class AdminCancelRaceTests: AdminQABase {
             let results: [Int] = await withTaskGroup(of: Int.self) { group in
                 group.addTask {
                     let r = try? await client.send("POST", "v1/admin/orders/\(big)/status", token: access,
-                        json: ["expected_status": "New", "to_status": "Cancelled", "cancel_reason": "customer_asked"])
+                        json: ["expected_status": "Received", "to_status": "Cancelled", "cancel_reason": "customer_asked"])
                     return r?.status ?? -1
                 }
                 for index in 0..<6 {
@@ -57,7 +57,7 @@ final class AdminCancelRaceTests: AdminQABase {
             for index in 0..<8 {
                 group.addTask {
                     try? await client.send("POST", "v1/admin/orders/\(target)/status", token: access,
-                        json: ["expected_status": "New", "to_status": "Cancelled", "cancel_reason": index % 2 == 0 ? "customer_asked" : "fake_spam"])
+                        json: ["expected_status": "Received", "to_status": "Cancelled", "cancel_reason": index % 2 == 0 ? "customer_asked" : "fake_spam"])
                 }
             }
             var all: [QAReply] = []
@@ -75,7 +75,7 @@ final class AdminCancelRaceTests: AdminQABase {
         // A later repeat of the exact same move is a 200 replay and changes nothing.
         let first = try await client.send("GET", "v1/admin/orders/\(target)", token: ownerPhone.access)
         let reason = first.json["cancel_reason"] as? String ?? ""
-        let again = try await changeStatus(ownerPhone, target, from: "New", to: "Cancelled", reason: reason)
+        let again = try await changeStatus(ownerPhone, target, from: "Received", to: "Cancelled", reason: reason)
         XCTAssertEqual(again.status, 200)
         XCTAssertEqual(again.header("Idempotent-Replay"), "true")
         let final = try await loaded(date)
@@ -87,18 +87,18 @@ final class AdminCancelRaceTests: AdminQABase {
         let ownerPhone = try await owner()
         let past = dayOffset(-75)
         let old = try await seedOrder(cakes: 3, date: past, placed: clock.now().addingTimeInterval(-100 * 86_400), load: false)
-        let missing = try await changeStatus(ownerPhone, old, from: "New", to: "Cancelled", reason: "cannot_deliver")
+        let missing = try await changeStatus(ownerPhone, old, from: "Received", to: "Cancelled", reason: "cannot_deliver")
         XCTAssertEqual(missing.status, 200, "no day_load row: cancel must succeed (\(missing.text))")
         let date = dayOffset(6)
         let short = try await seedOrder(cakes: 4, date: date, load: false)
         try await addLoad(date, 1)  // row says 1 cake but the order has 4: inconsistent, reachable only by manual SQL
-        let negative = try await changeStatus(ownerPhone, short, from: "New", to: "Cancelled", reason: "cannot_deliver")
+        let negative = try await changeStatus(ownerPhone, short, from: "Received", to: "Cancelled", reason: "cannot_deliver")
         let value = try await loaded(date)
         XCTAssertTrue(value >= 0, "day_load went negative: \(value) (status \(negative.status))")
         // Observed (defect D-3, low): the CHECK on day_load refuses the negative value and the answer is 500.
         // The safe outcome is what matters here: nothing is half done.
         if negative.status >= 500 {
-            let stored = try await count("SELECT count(*)::int AS n FROM customer_order WHERE order_code = \(bind: short) AND status = 'New'")
+            let stored = try await count("SELECT count(*)::int AS n FROM customer_order WHERE order_code = \(bind: short) AND status = 'Received'")
             XCTAssertEqual(stored, 1, "a refused cancel must leave the order New")
             XCTAssertEqual(value, 1, "and day_load unchanged")
         }

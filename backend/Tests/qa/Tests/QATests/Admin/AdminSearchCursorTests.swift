@@ -85,8 +85,8 @@ final class AdminSearchCursorTests: AdminQABase {
         let table: [(String, [String])] = [
             ("view=unfinished", ["UNKNOWN_PARAMETER"]), ("date_from=2026-11-01", ["UNKNOWN_PARAMETER"]), ("date_to=2026-11-01", ["UNKNOWN_PARAMETER"]),
             ("page_size=10", ["UNKNOWN_PARAMETER"]), ("limit=0", ["UNKNOWN_PARAMETER"]),
-            ("status=New&status=Cancelled", ["REPEATED_PARAMETER"]), ("q=abc&q=def", ["REPEATED_PARAMETER"]),
-            ("status=New,Cancelled", ["STATUS_INVALID"]), ("status=banana", ["STATUS_INVALID"]), ("status=", ["STATUS_INVALID"]), ("status=NEW", ["STATUS_INVALID"]),
+            ("status=Received&status=Cancelled", ["REPEATED_PARAMETER"]), ("q=abc&q=def", ["REPEATED_PARAMETER"]),
+            ("status=Received,Cancelled", ["STATUS_INVALID"]), ("status=banana", ["STATUS_INVALID"]), ("status=", ["STATUS_INVALID"]), ("status=NEW", ["STATUS_INVALID"]),
             ("delivery_date=2026-02-31", ["DATE_INVALID"]), ("delivery_date=11/02/2026", ["DATE_INVALID"]), ("delivery_date=", ["DATE_INVALID"]),
             ("date_preset=yesterday", ["DATE_PRESET_INVALID"]), ("date_preset=today&delivery_date=2026-11-05", ["DATE_FILTER_CONFLICT"]),
             ("cursor=abc", ["CURSOR_INVALID"]), ("cursor=", ["CURSOR_INVALID"]),
@@ -107,10 +107,10 @@ final class AdminSearchCursorTests: AdminQABase {
         // Status change body field codes.
         let order = try await seedOrder(date: dayOffset(4))
         let bodies: [([String: Any], String)] = [
-            (["expected_status": "New", "to_status": "Confirmed", "extra": 1], "UNKNOWN_FIELD"),
-            (["expected_status": "New", "to_status": "Confirmed", "cancel_reason": "fake_spam"], "REASON_NOT_ALLOWED"),
-            (["expected_status": "Bogus", "to_status": "Confirmed"], "STATUS_INVALID"),
-            (["to_status": "Confirmed"], "STATUS_INVALID")
+            (["expected_status": "Received", "to_status": "Processing", "extra": 1], "UNKNOWN_FIELD"),
+            (["expected_status": "Received", "to_status": "Processing", "cancel_reason": "fake_spam"], "FIELD_NOT_ALLOWED"),
+            (["expected_status": "Bogus", "to_status": "Processing"], "STATUS_INVALID"),
+            (["to_status": "Processing"], "STATUS_INVALID")
         ]
         for (body, code) in bodies {
             let reply = try await client.send("POST", "v1/admin/orders/\(order)/status", token: phone.access, json: body)
@@ -135,7 +135,8 @@ final class AdminSearchCursorTests: AdminQABase {
         XCTAssertEqual(seen.count, 120)
         XCTAssertEqual(Set(seen).count, 120, "no duplicate, no gap")
         // Tampering: every altered form is CURSOR_INVALID, never a 500, never rows.
-        let flipped = String(firstCursor.dropLast()) + (firstCursor.last == "A" ? "B" : "A")
+        // The cursor is unsigned (ADR-0029), so a changed last character can still be a valid id; break the version prefix instead.
+        let flipped = (firstCursor.first == "A" ? "B" : "A") + String(firstCursor.dropFirst())
         let forged: [String] = [flipped, String(firstCursor.dropLast(3)), firstCursor + firstCursor, "AAAA", "null", "0", "-1", "{}", "'; DROP TABLE customer_order;--",
                                 Data("{\"d\":\"2026-01-01\",\"id\":\"x\"}".utf8).base64EncodedString(), String(repeating: "A", count: 20_000), "../../etc/passwd", "%00"]
         for bad in forged.prefix(12) {
@@ -145,7 +146,7 @@ final class AdminSearchCursorTests: AdminQABase {
             XCTAssertTrue(codes(reply).isEmpty)
         }
         // A real cursor with a different filter must not crash and must not leak other rows.
-        let crossed = try await list("status=Completed&cursor=" + encode(firstCursor))
+        let crossed = try await list("status=Finished&cursor=" + encode(firstCursor))
         XCTAssertLessThan(crossed.status, 500, crossed.text.prefix(200).description)
         // A staff phone with the owner's cursor.
         let member = try await staff()
