@@ -1,30 +1,62 @@
 import Foundation
 
-/// The four order states (order-lifecycle.md section 6).
+/// The six order steps (order-process.md section 1).
 enum OrderStatus: String, Codable, Sendable, CaseIterable {
-    case new = "New"
-    case confirmed = "Confirmed"
-    case completed = "Completed"
+    case received = "Received"
+    case processing = "Processing"
+    case deliveryDateScheduled = "DeliveryDateScheduled"
+    case deliveryStarted = "DeliveryStarted"
+    case finished = "Finished"
     case cancelled = "Cancelled"
 
-    var isOpen: Bool { self == .new || self == .confirmed }
+    /// The four steps still being worked, in process order.
+    static let open: [OrderStatus] = [.received, .processing, .deliveryDateScheduled, .deliveryStarted]
+    /// The two final steps.
+    static let final: [OrderStatus] = [.finished, .cancelled]
 
-    /// BR-2: the only four moves. The database trigger enforces the same table.
-    func canMove(to target: OrderStatus) -> Bool {
-        switch (self, target) {
-        case (.new, .confirmed), (.new, .cancelled), (.confirmed, .completed), (.confirmed, .cancelled): return true
-        default: return false
-        }
-    }
+    var isOpen: Bool { Self.open.contains(self) }
 
-    /// Buttons the app may show (api/06 10.10); empty for final states.
-    var allowedActions: [String] {
+    /// The next step on the happy path; nil for the final steps.
+    private var nextStep: OrderStatus? {
         switch self {
-        case .new: return ["confirm", "cancel"]
-        case .confirmed: return ["complete", "cancel"]
-        case .completed, .cancelled: return []
+        case .received: return .processing
+        case .processing: return .deliveryDateScheduled
+        case .deliveryDateScheduled: return .deliveryStarted
+        case .deliveryStarted: return .finished
+        case .finished, .cancelled: return nil
         }
     }
+
+    /// Steps from which the order may still be cancelled.
+    private var canCancel: Bool { self == .received || self == .processing }
+
+    /// Whether the pair is allowed; the database trigger holds the same pairs.
+    func canMove(to target: OrderStatus) -> Bool {
+        if target == .cancelled { return canCancel }
+        return nextStep == target
+    }
+
+    /// Actions the apps may offer, by status (all for owner and staff).
+    var allowedActions: [OrderAction] {
+        switch self {
+        case .received: return [.process, .cancel]
+        case .processing: return [.scheduleDelivery, .cancel]
+        case .deliveryDateScheduled: return [.startDelivery, .changeDate]
+        case .deliveryStarted: return [.finish, .correctFee]
+        case .finished, .cancelled: return []
+        }
+    }
+}
+
+/// Buttons of the order detail; every role that may change an order may use them.
+enum OrderAction: String, Codable, Sendable, CaseIterable {
+    case process
+    case scheduleDelivery = "schedule_delivery"
+    case startDelivery = "start_delivery"
+    case finish
+    case cancel
+    case changeDate = "change_date"
+    case correctFee = "correct_fee"
 }
 
 /// BR-8: exactly four reasons.

@@ -17,7 +17,7 @@ final class OrderQueryRulesTests: XCTestCase {
         XCTAssertNil(query.deliveryDate)
         XCTAssertNil(query.search)
         XCTAssertNil(query.cursor)
-        XCTAssertEqual(query.status.statuses, [.new, .confirmed])
+        XCTAssertEqual(query.status.statuses, OrderStatus.open)
         XCTAssertNil(OrderListQuery.StatusFilter.all.statuses)
     }
 
@@ -71,7 +71,7 @@ final class OrderQueryRulesTests: XCTestCase {
             try JSONDecoder().decode([String: JSONValue].self, from: Data(json.utf8))
         }
         let ok = try StatusRequest.parse(body(#"{"expected_status":"New","to_status":"Cancelled","cancel_reason":"fake_spam"}"#))
-        XCTAssertEqual(ok, StatusRequest(expected: .new, target: .cancelled, reason: .fakeSpam))
+        XCTAssertEqual(ok, StatusRequest(expected: .received, target: .cancelled, reason: .fakeSpam))
         let cases: [(String, APIErrorCode)] = [
             (#"{"expected_status":"New","to_status":"Cancelled"}"#, .cancelReasonRequired),
             (#"{"expected_status":"New","to_status":"Cancelled","cancel_reason":"day_full"}"#, .cancelReasonRequired),
@@ -89,8 +89,8 @@ final class OrderQueryRulesTests: XCTestCase {
     func testTransitionTableMatchesBR2() {
         var allowed = 0
         for from in OrderStatus.allCases { for to in OrderStatus.allCases where from.canMove(to: to) { allowed += 1 } }
-        XCTAssertEqual(allowed, 4)
+        XCTAssertEqual(allowed, 6)
         XCTAssertEqual(CancelReason.allCases.count, 4)
-        XCTAssertTrue(OrderStatus.completed.allowedActions.isEmpty && OrderStatus.cancelled.allowedActions.isEmpty)
+        XCTAssertTrue(OrderStatus.finished.allowedActions.isEmpty && OrderStatus.cancelled.allowedActions.isEmpty)
     }
 }

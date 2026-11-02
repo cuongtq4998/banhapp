@@ -80,13 +80,13 @@ struct AdminOrderQueries: Sendable {
             WHERE order_id = \(bind: id) ORDER BY product_name, product_id
             """).all(decoding: OrderLineRow.self)
         let last = try await lastEvent(id: id)
-        let status = OrderStatus(rawValue: summary.status)
+        let status = OrderStatus.fromStored(summary.status)
         return OrderDetail(
             summary: summary.summary, customerPhone: more.customerPhone, customerAddress: more.customerAddress,
             note: more.note,
             items: lines.map { OrderLine(productName: $0.productName, quantity: $0.quantity, unitPriceVND: $0.unitPriceVND, lineTotalVND: $0.lineTotalVND) },
             itemsSubtotalVND: more.itemsSubtotalVND, deliveryFeeVND: more.deliveryFeeVND, cancelReason: more.cancelReason,
-            allowedActions: status?.allowedActions ?? [],
+            allowedActions: status?.allowedActions.map(\.rawValue) ?? [],
             lastChange: OrderLastChange(actorName: last?.actorName, at: last?.at ?? summary.createdAt)
         )
     }
