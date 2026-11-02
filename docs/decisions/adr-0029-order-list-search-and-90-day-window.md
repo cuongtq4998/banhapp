@@ -4,7 +4,7 @@
 | -------- | ----- |
 | ADR      | 0029 |
 | Version  | 1.5 [v1.5 | 2026-11-01] (search minimum 3, opaque cursor and field codes as built; earlier: v1.3 simplified for PRD v1.6: one list, one window rule; Unfinished view, banner, `new_count`, multi-status and date-range filters removed) |
-| Status   | Accepted (no money; the window follows the owner decision Q-13; retention remains an owner question). The TQ-12 exception of v1.2 (unfinished orders reachable for detail only) is superseded by v1.3: open orders are always in the window. Unfinished view, `view=unfinished`, banner and `new_count` are removed [v1.3 | 2026-10-31] |
+| Status   | Accepted (no money; the window follows the owner decision Q-13; retention remains an owner question). The TQ-12 exception of v1.2 (unfinished orders reachable for detail only) is superseded by v1.3: open orders are always in the window. Unfinished view, `view=unfinished`, banner and `new_count` are removed [v1.3 | 2026-10-31] | [v1.6 | 2026-11-02] Superseded in part by ADR-0033: the unfinished definition and the list sort key (list date = expected date when set, else requested date); the 90-day window and search stay.
 | Date     | 2026-10-31 |
 | Decider  | atlas-architect |
 | Based on | PRD admin-orders v1.6 FR-9 to FR-14, FR-19, FR-13, BR-9, BR-10, AC-13 to AC-22; TQ-5, TQ-7, TQ-12 (superseded); data-model 3.7 (ids as in product/admin-orders/08, section 15) [v1.3 | 2026-10-31] |
