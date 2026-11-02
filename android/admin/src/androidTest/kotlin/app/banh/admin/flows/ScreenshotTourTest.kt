@@ -7,7 +7,9 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import app.banh.admin.testing.Shots
 import app.banh.admin.testing.launchStub
+import app.banh.admin.testing.scheduleOnDay
 import app.banh.admin.testing.signIn
+import app.banh.admin.testing.startWithFee
 import app.banh.admin.testing.waitForTag
 import app.banh.admin.ui.AdminOrderTags
 import app.banh.admin.ui.AdminTags
@@ -62,7 +64,9 @@ class ScreenshotTourTest {
         rule.onNodeWithTag(AdminOrderTags.CANCEL_BACK).performClick()
         rule.waitForTag(AdminOrderTags.ORDER_PROCESS)
         rule.onNodeWithTag(AdminOrderTags.ORDER_PROCESS).performClick()
-        rule.waitForTag(AdminTags.TOAST); settle(); Shots.take("23-detail-confirmed-toast")
+        rule.waitForTag(AdminTags.TOAST); settle(); Shots.take("23-detail-processing-toast")
+        rule.scheduleOnDay(null); settle(); Shots.take("23b-detail-scheduled")
+        rule.startWithFee("20000"); settle(); Shots.take("23c-detail-delivering")
         rule.onNodeWithTag(AdminOrderTags.ORDER_FINISH).performClick()
         rule.waitForTag(AdminOrderTags.DETAIL_COMPLETE_YES); settle(); Shots.take("24-complete-dialog")
         rule.onNodeWithTag(AdminOrderTags.DETAIL_COMPLETE_YES).performClick()

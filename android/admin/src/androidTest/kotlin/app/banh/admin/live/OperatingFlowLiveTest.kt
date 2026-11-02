@@ -4,6 +4,8 @@ import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeUp
 import app.banh.admin.testing.has
+import app.banh.admin.testing.scheduleOnDay
+import app.banh.admin.testing.startWithFee
 import app.banh.admin.testing.tap
 import app.banh.admin.testing.typeInto
 import app.banh.admin.testing.waitForTag
@@ -21,6 +23,7 @@ import org.junit.runners.MethodSorters
 
 private const val CUSTOMER_NAME = "Nguyễn Văn An"
 private const val CUSTOMER_ADDRESS = "12 Đường Hoa Sen, phường 5"
+private const val LIVE_FEE = "20000"
 private const val OWNER = "owner.and@example.com"
 private const val STAFF = "staff.and@example.com"
 
@@ -61,20 +64,20 @@ class OperatingFlowLiveTest {
     }
 
     @Test
-    fun step2b_ownerChecksOrder1AgainstWhatTheCustomerTypedAndConfirmsIt() {
+    fun step2b_ownerChecksOrder1AgainstWhatTheCustomerTypedAndProcessesIt() {
         launchLive().use {
             rule.openOrder(code1)
             rule.snap("11-admin-order1-detail")
             rule.assertOrderDetailIs(CUSTOMER_NAME, LiveSupport.state("phone"), CUSTOMER_ADDRESS, LiveSupport.state("total1"))
             rule.tap(AdminOrderTags.ORDER_PROCESS)
             rule.waitForTag(AdminTags.TOAST)
-            rule.waitForTag(AdminOrderTags.ORDER_FINISH)
-            rule.snap("12-admin-order1-confirmed")
+            rule.waitForTag(AdminOrderTags.ORDER_SCHEDULE)
+            rule.snap("12-admin-order1-processing")
             rule.tap(AdminTags.NAV_BACK)
             rule.tap(AdminTags.FILTER_CONFIRMED)
             rule.waitForTag(AdminOrderTags.orderRow(code1))
             assertFalse(rule.has(AdminOrderTags.orderRow(code2)))
-            rule.snap("13-admin-chip-confirmed-lists-order1")
+            rule.snap("13-admin-chip-processing-lists-order1")
         }
     }
 
@@ -95,12 +98,13 @@ class OperatingFlowLiveTest {
     }
 
     @Test
-    fun step4_ownerCompletesOrder1() {
+    fun step4_ownerSchedulesStartsAndFinishesOrder1() {
         launchLive().use {
             rule.tap(AdminTags.FILTER_CONFIRMED)
             rule.openOrder(code1)
+            rule.scheduleOnDay(null)
+            rule.startWithFee(LIVE_FEE)
             rule.tap(AdminOrderTags.ORDER_FINISH)
-            rule.snap("17-admin-complete-question")
             rule.tap(AdminOrderTags.DETAIL_COMPLETE_YES)
             rule.waitUntilGone(AdminOrderTags.ORDER_FINISH)
             rule.tap(AdminTags.NAV_BACK)

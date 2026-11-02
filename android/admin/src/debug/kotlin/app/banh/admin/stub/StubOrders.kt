@@ -1,15 +1,20 @@
 package app.banh.admin.stub
 
 import app.banh.core.model.CancelReason
+import app.banh.core.model.DateChangeRequest
+import app.banh.core.model.DeliveryFeeEntry
+import app.banh.core.model.FeeChangeRequest
 import app.banh.core.model.LastChange
-import app.banh.core.model.OrderAction
 import app.banh.core.model.OrderDetail
 import app.banh.core.model.OrderStatus
 import app.banh.core.model.OrderSummary
 import app.banh.core.model.OrdersPage
+import app.banh.core.model.StatusChangeRequest
 import java.time.LocalDate
 
 internal const val CONFLICT_CODE = "BT-9C5D3F"
+internal const val SCHEDULED_CODE = "BT-3S5T9U"
+internal const val STARTED_CODE = "BT-5D1L6V"
 private const val PAGE_SIZE = 50
 
 /** In-memory orders for the stub: the fixture order plus a few that show every list state. Changes survive until the process ends. */
@@ -21,10 +26,12 @@ internal class StubOrders(template: OrderDetail, private val serverDate: String)
         val actor = LastChange("Nhan Vien A", "2026-11-01T04:00:00Z", "status")
         listOf(
             template,
-            template.copy(orderCode = "BT-2H4N8R", status = OrderStatus.Processing, customerName = "Le Van C", deliveryDate = "2026-11-01", districtName = "Quan Binh Thanh", allowedActions = actions(OrderStatus.Processing), lastChange = actor),
-            template.copy(orderCode = CONFLICT_CODE, customerName = "Pham Thi D", deliveryDate = "2026-11-04", note = null),
-            template.copy(orderCode = "BT-6P2W7X", status = OrderStatus.Finished, customerName = "Nguyen Van E", deliveryDate = "2026-10-30", allowedActions = emptyList(), lastChange = actor),
-            template.copy(orderCode = "BT-4M8K2J", status = OrderStatus.Cancelled, customerName = "Do Thi F", deliveryDate = "2026-10-29", cancelReason = CancelReason.CUSTOMER_ASKED, allowedActions = emptyList(), lastChange = actor),
+            template.copy(orderCode = "BT-2H4N8R", status = OrderStatus.Processing, customerName = "Le Van C", deliveryDate = "2026-11-01", requestedDeliveryDate = "2026-11-01", listDate = "2026-11-01", districtName = "Quan Binh Thanh", allowedActions = actions(OrderStatus.Processing), lastChange = actor),
+            template.copy(orderCode = CONFLICT_CODE, customerName = "Pham Thi D", deliveryDate = "2026-11-04", requestedDeliveryDate = "2026-11-04", listDate = "2026-11-04", note = null),
+            template.copy(orderCode = "BT-6P2W7X", status = OrderStatus.Finished, customerName = "Nguyen Van E", deliveryDate = "2026-10-30", requestedDeliveryDate = "2026-10-30", listDate = "2026-10-30", allowedActions = emptyList(), lastChange = actor),
+            template.copy(orderCode = "BT-4M8K2J", status = OrderStatus.Cancelled, customerName = "Do Thi F", deliveryDate = "2026-10-29", requestedDeliveryDate = "2026-10-29", listDate = "2026-10-29", cancelReason = CancelReason.CUSTOMER_ASKED, allowedActions = emptyList(), lastChange = actor),
+            template.copy(orderCode = SCHEDULED_CODE, status = OrderStatus.DeliveryDateScheduled, customerName = "Vo Van G", deliveryDate = "2026-11-05", requestedDeliveryDate = "2026-11-05", expectedDeliveryDate = "2026-11-04", listDate = "2026-11-04", allowedActions = actions(OrderStatus.DeliveryDateScheduled), lastChange = actor),
+            template.copy(orderCode = STARTED_CODE, status = OrderStatus.DeliveryStarted, customerName = "Bui Thi H", deliveryDate = "2026-11-05", requestedDeliveryDate = "2026-11-05", expectedDeliveryDate = "2026-11-05", listDate = "2026-11-05", deliveryFeeFinalVnd = 25_000, deliveryFeeVnd = 25_000, amountToCollectVnd = 125_000, deliveryFeeEntry = DeliveryFeeEntry("Nhan Vien A", "2026-11-01T04:00:00Z"), allowedActions = actions(OrderStatus.DeliveryStarted), lastChange = actor),
         ).forEach { orders[it.orderCode] = it }
     }
 
@@ -42,24 +49,48 @@ internal class StubOrders(template: OrderDetail, private val serverDate: String)
     }
 
     /** `expected` is what the phone shows. A planned second person changes the conflict order first (FR-19). */
-    fun change(code: String, expected: OrderStatus, to: OrderStatus, reason: CancelReason?, actorName: String): Change {
+    fun change(code: String, request: StatusChangeRequest, actorName: String): Change {
         var current = orders[code] ?: return Change.NotFound
         if (code == CONFLICT_CODE && conflictPlanned) {
             conflictPlanned = false
-            current = settle(current, OrderStatus.Processing, null, "Nhan Vien A").also { orders[code] = it }
+            current = settle(current, StatusChangeRequest(OrderStatus.Received, OrderStatus.Processing), "Nhan Vien A").also { orders[code] = it }
         }
-        if (current.status != expected) return Change.Conflict(current)
-        if (to !in allowedTargets(current.status)) return Change.Invalid(current.status)
-        if (to == OrderStatus.Cancelled && reason == null) return Change.ReasonRequired
-        return Change.Done(settle(current, to, reason, actorName).also { orders[code] = it })
+        if (current.status != request.expectedStatus) return Change.Conflict(current)
+        if (request.toStatus !in allowedTargets(current.status)) return Change.Refused("error-status-transition-invalid", TRANSITION_STATUS)
+        refusalOf(request, serverDate)?.let { return Change.Refused(it, VALIDATION_STATUS) }
+        return Change.Done(settle(current, request, actorName).also { orders[code] = it })
     }
 
-    private fun settle(order: OrderDetail, to: OrderStatus, reason: CancelReason?, actor: String) = order.copy(
-        status = to,
-        cancelReason = reason,
-        allowedActions = actions(to),
-        lastChange = LastChange(actor, "2026-11-02T04:00:00Z", "status"),
-    )
+    fun changeDate(code: String, request: DateChangeRequest, actorName: String): Change {
+        val current = orders[code] ?: return Change.NotFound
+        if (request.expectedStatus != OrderStatus.DeliveryDateScheduled) return Change.Refused("error-validation-expected-date-past", VALIDATION_STATUS)
+        dateRefusal(request.expectedDeliveryDate, serverDate)?.let { return Change.Refused(it, VALIDATION_STATUS) }
+        if (current.status != request.expectedStatus || current.expectedDeliveryDate != request.previousExpectedDeliveryDate) return Change.Conflict(current)
+        return Change.Done(current.withDate(request.expectedDeliveryDate, actorName).also { orders[code] = it })
+    }
+
+    fun changeFee(code: String, request: FeeChangeRequest, actorName: String): Change {
+        val current = orders[code] ?: return Change.NotFound
+        if (request.expectedStatus != OrderStatus.DeliveryStarted) return Change.Refused("error-fee-correction-not-allowed", VALIDATION_STATUS)
+        feeRefusal(request.deliveryFeeVnd)?.let { return Change.Refused(it, VALIDATION_STATUS) }
+        if (request.deliveryFeeVnd == request.previousDeliveryFeeVnd) return Change.Refused("error-validation-fee-invalid", VALIDATION_STATUS)
+        if (current.status != request.expectedStatus || current.deliveryFeeFinalVnd != request.previousDeliveryFeeVnd) return Change.Conflict(current)
+        return Change.Done(current.withFee(request.deliveryFeeVnd, actorName).also { orders[code] = it })
+    }
+
+    private fun settle(order: OrderDetail, request: StatusChangeRequest, actor: String): OrderDetail {
+        val moved = order.copy(
+            status = request.toStatus,
+            cancelReason = request.cancelReason,
+            allowedActions = actions(request.toStatus),
+            lastChange = LastChange(actor, STUB_NOW, "status"),
+        )
+        return when (request.toStatus) {
+            OrderStatus.DeliveryDateScheduled -> moved.copy(expectedDeliveryDate = request.expectedDeliveryDate, listDate = request.expectedDeliveryDate)
+            OrderStatus.DeliveryStarted -> moved.withEnteredFee(request.deliveryFeeVnd ?: 0, actor)
+            else -> moved
+        }
+    }
 
     private fun matches(order: OrderDetail, status: String, query: Map<String, String>): Boolean {
         val statusOk = when (status) {
@@ -88,20 +119,7 @@ internal class StubOrders(template: OrderDetail, private val serverDate: String)
 
         data class Conflict(val current: OrderDetail) : Change
 
-        data class Invalid(val status: OrderStatus) : Change
-
-        data object ReasonRequired : Change
+        /** [fixture] is the error body the server would send, with [status]. */
+        data class Refused(val fixture: String, val status: Int) : Change
     }
-}
-
-private fun allowedTargets(status: OrderStatus): List<OrderStatus> = when (status) {
-    OrderStatus.Received -> listOf(OrderStatus.Processing, OrderStatus.Cancelled)
-    OrderStatus.Processing -> listOf(OrderStatus.Finished, OrderStatus.Cancelled)
-    else -> emptyList()
-}
-
-private fun actions(status: OrderStatus): List<OrderAction> = when (status) {
-    OrderStatus.Received -> listOf(OrderAction.CANCEL, OrderAction.PROCESS)
-    OrderStatus.Processing -> listOf(OrderAction.CANCEL, OrderAction.FINISH)
-    else -> emptyList()
 }

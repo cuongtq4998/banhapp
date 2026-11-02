@@ -1,6 +1,8 @@
 package app.banh.admin.stub
 
 import app.banh.core.model.Account
+import app.banh.core.model.DateChangeRequest
+import app.banh.core.model.FeeChangeRequest
 import app.banh.core.model.Me
 import app.banh.core.model.OrderDetail
 import app.banh.core.model.Role
@@ -118,18 +120,19 @@ class StubBackend(private val fixtures: Fixtures, serverDate: String = "2026-11-
             return store.detail(code)?.let { ok(json.encodeToString(OrderDetail.serializer(), it)) } ?: error("error-order-not-found", 404)
         }
         if (request.method == "POST" && parts.getOrNull(1) == "status") return changeStatus(code, request)
+        if (request.method == "PUT" && parts.getOrNull(1) == "expected-delivery-date") return answer(store.changeDate(code, json.decodeFromString(DateChangeRequest.serializer(), request.body.orEmpty()), account.name))
+        if (request.method == "PUT" && parts.getOrNull(1) == "delivery-fee") return answer(store.changeFee(code, json.decodeFromString(FeeChangeRequest.serializer(), request.body.orEmpty()), account.name))
         return error("error-order-not-found", 404)
     }
 
-    private fun changeStatus(code: String, request: StubRequest): StubResponse {
-        val sent = json.decodeFromString(StatusChangeRequest.serializer(), request.body.orEmpty())
-        return when (val result = store.change(code, sent.expectedStatus, sent.toStatus, sent.cancelReason, account.name)) {
-            StubOrders.Change.NotFound -> error("error-order-not-found", 404)
-            is StubOrders.Change.Done -> ok(json.encodeToString(OrderDetail.serializer(), result.detail))
-            is StubOrders.Change.Conflict -> conflict(result.current)
-            is StubOrders.Change.Invalid -> error("error-status-transition-invalid", 422)
-            StubOrders.Change.ReasonRequired -> error("error-cancel-reason-required", 422)
-        }
+    private fun changeStatus(code: String, request: StubRequest): StubResponse =
+        answer(store.change(code, json.decodeFromString(StatusChangeRequest.serializer(), request.body.orEmpty()), account.name))
+
+    private fun answer(result: StubOrders.Change): StubResponse = when (result) {
+        StubOrders.Change.NotFound -> error("error-order-not-found", 404)
+        is StubOrders.Change.Done -> ok(json.encodeToString(OrderDetail.serializer(), result.detail))
+        is StubOrders.Change.Conflict -> conflict(result.current)
+        is StubOrders.Change.Refused -> error(result.fixture, result.status)
     }
 
     // `details.order` carries the order as it is now (api/06 10.11).

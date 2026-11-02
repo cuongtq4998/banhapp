@@ -39,22 +39,22 @@ class OrderFlowTest {
     }
 
     @Test
-    fun confirmIsOneTapAndUpdatesInPlaceWithAToast() {
+    fun processIsOneTapAndUpdatesInPlaceWithAToast() {
         launchStub().use {
             rule.signIn()
             open("BT-7K3M9Q")
             rule.onNodeWithTag(AdminOrderTags.ORDER_PROCESS).performClick()
             rule.waitForTag(AdminTags.TOAST)
-            rule.waitForTag(AdminOrderTags.ORDER_FINISH)
+            rule.waitForTag(AdminOrderTags.ORDER_SCHEDULE)
             assertFalse(rule.has(AdminOrderTags.ORDER_PROCESS))
         }
     }
 
     @Test
-    fun completeAsksOnceThenFinishesTheOrderAndRemovesTheBar() {
+    fun finishAsksOnceThenFinishesTheOrderAndRemovesTheBar() {
         launchStub().use {
             rule.signIn()
-            open("BT-2H4N8R")
+            open("BT-5D1L6V")
             rule.onNodeWithTag(AdminOrderTags.ORDER_FINISH).performClick()
             rule.waitForTag(AdminOrderTags.DETAIL_COMPLETE_BACK).performClick()
             rule.waitUntilGone(AdminOrderTags.DETAIL_COMPLETE_YES)
@@ -86,7 +86,7 @@ class OrderFlowTest {
             open("BT-9C5D3F")
             rule.onNodeWithTag(AdminOrderTags.ORDER_PROCESS).performClick()
             rule.waitForTag(AdminOrderTags.DETAIL_CONFLICT)
-            rule.waitForTag(AdminOrderTags.ORDER_FINISH)
+            rule.waitForTag(AdminOrderTags.ORDER_SCHEDULE)
         }
     }
 
@@ -96,7 +96,7 @@ class OrderFlowTest {
             rule.signIn()
             open("BT-7K3M9Q")
             rule.onNodeWithTag(AdminOrderTags.ORDER_PROCESS).performClick()
-            rule.waitForTag(AdminOrderTags.ORDER_FINISH)
+            rule.waitForTag(AdminOrderTags.ORDER_SCHEDULE)
             rule.onNodeWithTag(AdminTags.NAV_BACK).performClick()
             rule.waitForTag(AdminTags.ORDERS_LIST)
             rule.waitForTag(AdminOrderTags.orderRow("BT-7K3M9Q"))
@@ -110,7 +110,7 @@ class OrderFlowTest {
             rule.onNodeWithTag(AdminTags.FILTER_COMPLETED).performScrollTo().performClick()
             rule.waitForTag(AdminOrderTags.orderRow("BT-6P2W7X"))
             assertFalse(rule.has(AdminOrderTags.orderRow("BT-7K3M9Q")))
-            rule.onNodeWithTag(AdminTags.FILTER_TODO).performClick()
+            rule.onNodeWithTag(AdminTags.FILTER_TODO).performScrollTo().performClick()
             rule.waitForTag(AdminOrderTags.orderRow("BT-7K3M9Q"))
 
             rule.onNodeWithTag(AdminTags.FILTER_DATE).performScrollTo().performClick()
