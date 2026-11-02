@@ -17,6 +17,7 @@ import app.banh.admin.testing.signIn
 import app.banh.admin.testing.tap
 import app.banh.admin.testing.waitForTag
 import app.banh.admin.testing.withStub
+import app.banh.admin.ui.AdminOrderTags
 import app.banh.admin.ui.AdminTags
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -48,7 +49,7 @@ class PushFlowTest {
         push.deliver(PushMessage(ORDER, "2", "03/11/2026"))
         rule.waitForTag(AdminTags.TOAST).assertTextContains(ORDER, substring = true)
         rule.onNodeWithTag(AdminTags.TOAST).performClick()
-        rule.waitForTag(AdminTags.DETAIL_CODE).assertTextContains(ORDER)
+        rule.waitForTag(AdminOrderTags.DETAIL_CODE).assertTextContains(ORDER)
         rule.tap(AdminTags.NAV_BACK)
         rule.waitForTag(AdminTags.ORDERS_LIST)
     }
@@ -57,7 +58,7 @@ class PushFlowTest {
     fun aTapOnANotificationOpensTheOrderAndBackReturnsToTheList() = withStub {
         rule.signIn()
         push.requestOrder(ORDER)
-        rule.waitForTag(AdminTags.DETAIL_CODE).assertTextContains(ORDER)
+        rule.waitForTag(AdminOrderTags.DETAIL_CODE).assertTextContains(ORDER)
         rule.tap(AdminTags.NAV_BACK)
         rule.waitForTag(AdminTags.ORDERS_LIST)
     }
@@ -69,14 +70,14 @@ class PushFlowTest {
         rule.onNodeWithTag(AdminTags.SIGNIN_SEND).performClick()
         rule.waitForTag(AdminTags.CODE_FIELD).performTextInput("123456")
         rule.onNodeWithTag(AdminTags.CODE_SUBMIT).performClick()
-        rule.waitForTag(AdminTags.DETAIL_CODE).assertTextContains(ORDER)
+        rule.waitForTag(AdminOrderTags.DETAIL_CODE).assertTextContains(ORDER)
     }
 
     @Test
     fun anUnknownOrderShowsTheGoneMessage() = withStub {
         rule.signIn()
         push.requestOrder("BT-000000")
-        rule.waitForTag(AdminTags.DETAIL_GONE)
+        rule.waitForTag(AdminOrderTags.DETAIL_GONE)
     }
 
     @Test

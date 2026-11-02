@@ -9,6 +9,7 @@ import app.banh.admin.testing.Shots
 import app.banh.admin.testing.launchStub
 import app.banh.admin.testing.signIn
 import app.banh.admin.testing.waitForTag
+import app.banh.admin.ui.AdminOrderTags
 import app.banh.admin.ui.AdminTags
 import org.junit.Rule
 import org.junit.Test
@@ -30,7 +31,7 @@ class ScreenshotTourTest {
         rule.onNodeWithTag(AdminTags.CODE_FIELD).performTextInput("123456")
         settle(); Shots.take("03-code-filled")
         rule.onNodeWithTag(AdminTags.CODE_SUBMIT).performClick()
-        rule.waitForTag(AdminTags.orderDue("BT-7K3M9Q")); settle(); Shots.take("04-list-todo-staff")
+        rule.waitForTag(AdminOrderTags.orderDue("BT-7K3M9Q")); settle(); Shots.take("04-list-todo-staff")
         rule.onNodeWithTag(AdminTags.FILTER_DATE).performScrollTo().performClick()
         rule.waitForTag(AdminTags.DATE_TODAY); settle(); Shots.take("05-list-date-menu")
         rule.onNodeWithTag(AdminTags.DATE_TODAY).performClick()
@@ -52,24 +53,24 @@ class ScreenshotTourTest {
     @Test
     fun detailTour() = launchStub().use {
         rule.signIn()
-        rule.waitForTag(AdminTags.orderRow("BT-7K3M9Q")).performClick()
-        rule.waitForTag(AdminTags.DETAIL_CONFIRM); settle(); Shots.take("20-detail-new")
-        rule.onNodeWithTag(AdminTags.DETAIL_CANCEL).performClick()
-        rule.waitForTag(AdminTags.CANCEL_CONFIRM); settle(); Shots.take("21-cancel-sheet-empty")
-        rule.onNodeWithTag(AdminTags.REASON_NO_CONTACT).performClick()
+        rule.waitForTag(AdminOrderTags.orderRow("BT-7K3M9Q")).performClick()
+        rule.waitForTag(AdminOrderTags.ORDER_PROCESS); settle(); Shots.take("20-detail-new")
+        rule.onNodeWithTag(AdminOrderTags.DETAIL_CANCEL).performClick()
+        rule.waitForTag(AdminOrderTags.CANCEL_CONFIRM); settle(); Shots.take("21-cancel-sheet-empty")
+        rule.onNodeWithTag(AdminOrderTags.REASON_NO_CONTACT).performClick()
         settle(); Shots.take("22-cancel-sheet-selected")
-        rule.onNodeWithTag(AdminTags.CANCEL_BACK).performClick()
-        rule.waitForTag(AdminTags.DETAIL_CONFIRM)
-        rule.onNodeWithTag(AdminTags.DETAIL_CONFIRM).performClick()
+        rule.onNodeWithTag(AdminOrderTags.CANCEL_BACK).performClick()
+        rule.waitForTag(AdminOrderTags.ORDER_PROCESS)
+        rule.onNodeWithTag(AdminOrderTags.ORDER_PROCESS).performClick()
         rule.waitForTag(AdminTags.TOAST); settle(); Shots.take("23-detail-confirmed-toast")
-        rule.onNodeWithTag(AdminTags.DETAIL_COMPLETE).performClick()
-        rule.waitForTag(AdminTags.DETAIL_COMPLETE_YES); settle(); Shots.take("24-complete-dialog")
-        rule.onNodeWithTag(AdminTags.DETAIL_COMPLETE_YES).performClick()
-        rule.waitForTag(AdminTags.DETAIL_STATUS); Thread.sleep(3500); settle(); Shots.take("25-detail-completed")
+        rule.onNodeWithTag(AdminOrderTags.ORDER_FINISH).performClick()
+        rule.waitForTag(AdminOrderTags.DETAIL_COMPLETE_YES); settle(); Shots.take("24-complete-dialog")
+        rule.onNodeWithTag(AdminOrderTags.DETAIL_COMPLETE_YES).performClick()
+        rule.waitForTag(AdminOrderTags.DETAIL_STATUS); Thread.sleep(3500); settle(); Shots.take("25-detail-completed")
         rule.onNodeWithTag(AdminTags.NAV_BACK).performClick()
-        rule.waitForTag(AdminTags.orderRow("BT-9C5D3F")).performClick()
-        rule.waitForTag(AdminTags.DETAIL_CONFIRM).performClick()
-        rule.waitForTag(AdminTags.DETAIL_CONFLICT); settle(); Shots.take("26-detail-conflict")
+        rule.waitForTag(AdminOrderTags.orderRow("BT-9C5D3F")).performClick()
+        rule.waitForTag(AdminOrderTags.ORDER_PROCESS).performClick()
+        rule.waitForTag(AdminOrderTags.DETAIL_CONFLICT); settle(); Shots.take("26-detail-conflict")
     }
 
     @Test

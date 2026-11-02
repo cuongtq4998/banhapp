@@ -33,10 +33,10 @@ fun CancelReason.textRes(): Int = when (this) {
 }
 
 fun CancelReason.tag(): String = when (this) {
-    CancelReason.CUSTOMER_ASKED -> AdminTags.REASON_CUSTOMER
-    CancelReason.CANNOT_DELIVER -> AdminTags.REASON_CANNOT_DELIVER
-    CancelReason.CANNOT_REACH_CUSTOMER -> AdminTags.REASON_NO_CONTACT
-    CancelReason.FAKE_SPAM -> AdminTags.REASON_SPAM
+    CancelReason.CUSTOMER_ASKED -> AdminOrderTags.REASON_CUSTOMER
+    CancelReason.CANNOT_DELIVER -> AdminOrderTags.REASON_CANNOT_DELIVER
+    CancelReason.CANNOT_REACH_CUSTOMER -> AdminOrderTags.REASON_NO_CONTACT
+    CancelReason.FAKE_SPAM -> AdminOrderTags.REASON_SPAM
 }
 
 fun DueMark.text(context: Context): String = when (this) {

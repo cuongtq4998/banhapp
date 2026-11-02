@@ -8,6 +8,7 @@ import app.banh.admin.testing.tap
 import app.banh.admin.testing.typeInto
 import app.banh.admin.testing.waitForTag
 import app.banh.admin.testing.waitUntilGone
+import app.banh.admin.ui.AdminOrderTags
 import app.banh.admin.ui.AdminTags
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -65,14 +66,14 @@ class OperatingFlowLiveTest {
             rule.openOrder(code1)
             rule.snap("11-admin-order1-detail")
             rule.assertOrderDetailIs(CUSTOMER_NAME, LiveSupport.state("phone"), CUSTOMER_ADDRESS, LiveSupport.state("total1"))
-            rule.tap(AdminTags.DETAIL_CONFIRM)
+            rule.tap(AdminOrderTags.ORDER_PROCESS)
             rule.waitForTag(AdminTags.TOAST)
-            rule.waitForTag(AdminTags.DETAIL_COMPLETE)
+            rule.waitForTag(AdminOrderTags.ORDER_FINISH)
             rule.snap("12-admin-order1-confirmed")
             rule.tap(AdminTags.NAV_BACK)
             rule.tap(AdminTags.FILTER_CONFIRMED)
-            rule.waitForTag(AdminTags.orderRow(code1))
-            assertFalse(rule.has(AdminTags.orderRow(code2)))
+            rule.waitForTag(AdminOrderTags.orderRow(code1))
+            assertFalse(rule.has(AdminOrderTags.orderRow(code2)))
             rule.snap("13-admin-chip-confirmed-lists-order1")
         }
     }
@@ -82,12 +83,12 @@ class OperatingFlowLiveTest {
         launchLive().use {
             rule.tap(AdminTags.FILTER_TODO)
             rule.openOrder(code2)
-            rule.tap(AdminTags.DETAIL_CANCEL)
-            rule.tap(AdminTags.REASON_SPAM)
+            rule.tap(AdminOrderTags.DETAIL_CANCEL)
+            rule.tap(AdminOrderTags.REASON_SPAM)
             rule.snap("14-admin-cancel-sheet-spam")
-            rule.tap(AdminTags.CANCEL_CONFIRM)
-            rule.waitForTag(AdminTags.DETAIL_REASON)
-            assertTrue(rule.textOf(AdminTags.DETAIL_REASON).contains("Đơn giả hoặc spam"))
+            rule.tap(AdminOrderTags.CANCEL_CONFIRM)
+            rule.waitForTag(AdminOrderTags.DETAIL_REASON)
+            assertTrue(rule.textOf(AdminOrderTags.DETAIL_REASON).contains("Đơn giả hoặc spam"))
             rule.snap("15-admin-order2-cancelled-spam")
             LiveSupport.note("16-per-phone-count", LiveHelpers.perPhoneCount())
         }
@@ -98,13 +99,13 @@ class OperatingFlowLiveTest {
         launchLive().use {
             rule.tap(AdminTags.FILTER_CONFIRMED)
             rule.openOrder(code1)
-            rule.tap(AdminTags.DETAIL_COMPLETE)
+            rule.tap(AdminOrderTags.ORDER_FINISH)
             rule.snap("17-admin-complete-question")
-            rule.tap(AdminTags.DETAIL_COMPLETE_YES)
-            rule.waitUntilGone(AdminTags.DETAIL_COMPLETE)
+            rule.tap(AdminOrderTags.DETAIL_COMPLETE_YES)
+            rule.waitUntilGone(AdminOrderTags.ORDER_FINISH)
             rule.tap(AdminTags.NAV_BACK)
             rule.tap(AdminTags.FILTER_COMPLETED)
-            rule.waitForTag(AdminTags.orderRow(code1))
+            rule.waitForTag(AdminOrderTags.orderRow(code1))
             rule.snap("18-admin-completed-lists-order1")
         }
     }

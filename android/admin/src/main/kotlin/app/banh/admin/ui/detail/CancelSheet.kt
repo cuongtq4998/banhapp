@@ -39,7 +39,7 @@ import app.banh.admin.orderdetail.DetailSheet
 import app.banh.admin.orderdetail.DetailBanner
 import app.banh.admin.orderdetail.OrderDetailIntent
 import app.banh.admin.orderdetail.OrderDetailState
-import app.banh.admin.ui.AdminTags
+import app.banh.admin.ui.AdminOrderTags
 import app.banh.admin.ui.tag
 import app.banh.admin.ui.textRes
 import app.banh.core.design.ErrorMessageView
@@ -79,13 +79,13 @@ fun CancelSheet(state: OrderDetailState, dispatch: (OrderDetailIntent) -> Unit) 
                     enabled = (state.sheet as? DetailSheet.Cancel)?.reason != null && state.busy == null,
                     loading = state.busy == BusyAction.CANCEL,
                     destructive = true,
-                    modifier = Modifier.testTag(AdminTags.CANCEL_CONFIRM),
+                    modifier = Modifier.testTag(AdminOrderTags.CANCEL_CONFIRM),
                 )
                 SecondaryButton(
                     text = stringResource(R.string.a_back),
                     onClick = { dispatch(OrderDetailIntent.SheetBack) },
                     enabled = state.busy == null,
-                    modifier = Modifier.testTag(AdminTags.CANCEL_BACK),
+                    modifier = Modifier.testTag(AdminOrderTags.CANCEL_BACK),
                 )
             }
         }
@@ -99,7 +99,7 @@ private fun SheetError(banner: DetailBanner?) {
         DetailBanner.ActionOffline -> R.string.a_offline_save
         else -> return
     }
-    ErrorMessageView(stringResource(text), painterResource(R.drawable.ic_error), Modifier.testTag(AdminTags.CANCEL_ERROR))
+    ErrorMessageView(stringResource(text), painterResource(R.drawable.ic_error), Modifier.testTag(AdminOrderTags.CANCEL_ERROR))
 }
 
 /** A chosen reason is a filled circle with a check plus a tinted row, so the choice never relies on colour alone. */

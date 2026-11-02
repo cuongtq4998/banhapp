@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.banh.admin.R
+import app.banh.admin.ui.AdminOrderTags
 import app.banh.admin.ui.AdminTags
 import app.banh.admin.ui.text
 import app.banh.admin.ui.textRes
@@ -46,7 +47,7 @@ fun OrderRow(order: OrderSummary, serverDate: String?, onClick: () -> Unit, modi
     val due = serverDate?.let { dueMarkOf(order.status, order.listDate, it) }
     GlassCard(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth().testTag(AdminTags.orderRow(order.orderCode)).semantics(mergeDescendants = true) { onClick(label = hint) { false } },
+        modifier = modifier.fillMaxWidth().testTag(AdminOrderTags.orderRow(order.orderCode)).semantics(mergeDescendants = true) { onClick(label = hint) { false } },
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             Text(order.orderCode, fontSize = 15.sp, fontWeight = FontWeight.Bold)
@@ -57,11 +58,11 @@ fun OrderRow(order: OrderSummary, serverDate: String?, onClick: () -> Unit, modi
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs), itemVerticalAlignment = Alignment.CenterVertically) {
             val expected = order.expectedDeliveryDate
             if (expected != null) {
-                Text(stringResource(R.string.a_row_expected, formatDate(expected, serverDate)), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.testTag(AdminTags.orderExpected(order.orderCode)))
+                Text(stringResource(R.string.a_row_expected, formatDate(expected, serverDate)), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.testTag(AdminOrderTags.orderExpected(order.orderCode)))
             } else {
                 Text(stringResource(R.string.a_row_delivery, formatDate(order.deliveryDate, serverDate), "${order.slot.start} – ${order.slot.end}"), style = MaterialTheme.typography.bodyMedium)
             }
-            if (due != null) DueMarkChip(due.text(context), painterResource(R.drawable.ic_clock), Modifier.testTag(AdminTags.orderDue(order.orderCode)))
+            if (due != null) DueMarkChip(due.text(context), painterResource(R.drawable.ic_clock), Modifier.testTag(AdminOrderTags.orderDue(order.orderCode)))
         }
         Text(
             stringResource(R.string.a_row_meta, order.totalCakes, formatVnd(order.totalVnd), order.districtName),

@@ -13,6 +13,7 @@ import app.banh.admin.testing.has
 import app.banh.admin.testing.tap
 import app.banh.admin.testing.typeInto
 import app.banh.admin.testing.waitForTag
+import app.banh.admin.ui.AdminOrderTags
 import app.banh.admin.ui.AdminTags
 
 /** Starts the real app (local backend). [fresh] forgets any stored session first; otherwise the stored session is restored. */
@@ -61,8 +62,8 @@ fun ComposeTestRule.rowOrder(): List<String> =
         .fetchSemanticsNodes().sortedBy { it.boundsInWindow.top }.map { it.config[SemanticsProperties.TestTag].removePrefix("admin.orders.row.") }
 
 fun ComposeTestRule.openOrder(code: String) {
-    tap(AdminTags.orderRow(code))
-    waitForTag(AdminTags.DETAIL_CUSTOMER)
+    tap(AdminOrderTags.orderRow(code))
+    waitForTag(AdminOrderTags.DETAIL_CUSTOMER)
 }
 
 /** Waits until [tag] is visible with text that contains [part]. */
@@ -70,13 +71,13 @@ fun ComposeTestRule.waitText(tag: String, part: String) = waitUntil(20_000) { ha
 
 /** The open detail shows what the customer typed: name, phone (E.164 of the same digits), address, the two cakes and the total (digits only, as shown on the review). */
 fun ComposeTestRule.assertOrderDetailIs(name: String, phone: String, address: String, totalDigits: String) {
-    org.junit.Assert.assertEquals(name, textOf(AdminTags.DETAIL_CUSTOMER))
-    val shown = textOf(AdminTags.DETAIL_PHONE).replace(" ", "")
+    org.junit.Assert.assertEquals(name, textOf(AdminOrderTags.DETAIL_CUSTOMER))
+    val shown = textOf(AdminOrderTags.DETAIL_PHONE).replace(" ", "")
     org.junit.Assert.assertTrue("phone $shown", shown.endsWith(phone.drop(1)))
-    org.junit.Assert.assertTrue(textOf(AdminTags.DETAIL_ADDRESS).contains(address))
-    org.junit.Assert.assertTrue(textOf(AdminTags.detailCake(0)).contains("2 × Bánh chuối"))
-    org.junit.Assert.assertTrue(textOf(AdminTags.detailCake(1)).contains("1 × Bánh đậu xanh nhân mỡ"))
-    org.junit.Assert.assertEquals(totalDigits, textOf(AdminTags.DETAIL_TOTAL).filter { it.isDigit() }.takeLast(totalDigits.length))
+    org.junit.Assert.assertTrue(textOf(AdminOrderTags.DETAIL_ADDRESS).contains(address))
+    org.junit.Assert.assertTrue(textOf(AdminOrderTags.detailCake(0)).contains("2 × Bánh chuối"))
+    org.junit.Assert.assertTrue(textOf(AdminOrderTags.detailCake(1)).contains("1 × Bánh đậu xanh nhân mỡ"))
+    org.junit.Assert.assertEquals(totalDigits, textOf(AdminOrderTags.DETAIL_TOTAL).filter { it.isDigit() }.takeLast(totalDigits.length))
 }
 
 fun ComposeTestRule.fillCakeForm(name: String) {
@@ -87,8 +88,8 @@ fun ComposeTestRule.fillCakeForm(name: String) {
 
 /** To-do lists both orders as its first two rows; the badge is shown exactly when the server counts due orders (see the note written). */
 fun ComposeTestRule.assertTodoShowsBothFirst(code1: String, code2: String) {
-    waitForTag(AdminTags.orderRow(code1))
-    waitForTag(AdminTags.orderRow(code2))
+    waitForTag(AdminOrderTags.orderRow(code1))
+    waitForTag(AdminOrderTags.orderRow(code2))
     // The red badge counts only orders due today or overdue (api 10.9 `unfinished_count`, FR-13); a new order is for a date at least
     // lead_days ahead, so the badge is expected to be absent here. The owner has the tab bar, so it would sit on the Orders tab.
     val unfinished = LiveSupport.call("GET", "/v1/admin/orders", LiveSupport.appToken()).json().getInt("unfinished_count")

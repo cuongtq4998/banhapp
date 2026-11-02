@@ -12,6 +12,7 @@ import app.banh.admin.testing.launchStub
 import app.banh.admin.testing.signIn
 import app.banh.admin.testing.waitForTag
 import app.banh.admin.testing.waitUntilGone
+import app.banh.admin.ui.AdminOrderTags
 import app.banh.admin.ui.AdminTags
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -22,17 +23,17 @@ class OrderFlowTest {
     @get:Rule val rule = createEmptyComposeRule()
 
     private fun open(code: String) {
-        rule.waitForTag(AdminTags.orderRow(code)).performClick()
-        rule.waitForTag(AdminTags.DETAIL_CUSTOMER)
+        rule.waitForTag(AdminOrderTags.orderRow(code)).performClick()
+        rule.waitForTag(AdminOrderTags.DETAIL_CUSTOMER)
     }
 
     @Test
     fun listShowsDueMarksOnlyForOpenOrdersDueByTheServerDate() {
         launchStub().use {
             rule.signIn()
-            rule.waitForTag(AdminTags.orderDue("BT-7K3M9Q"))
-            rule.waitForTag(AdminTags.orderDue("BT-2H4N8R"))
-            assertFalse(rule.has(AdminTags.orderDue("BT-9C5D3F")))
+            rule.waitForTag(AdminOrderTags.orderDue("BT-7K3M9Q"))
+            rule.waitForTag(AdminOrderTags.orderDue("BT-2H4N8R"))
+            assertFalse(rule.has(AdminOrderTags.orderDue("BT-9C5D3F")))
             rule.waitForTag(AdminTags.ORDERS_BADGE)
         }
     }
@@ -42,10 +43,10 @@ class OrderFlowTest {
         launchStub().use {
             rule.signIn()
             open("BT-7K3M9Q")
-            rule.onNodeWithTag(AdminTags.DETAIL_CONFIRM).performClick()
+            rule.onNodeWithTag(AdminOrderTags.ORDER_PROCESS).performClick()
             rule.waitForTag(AdminTags.TOAST)
-            rule.waitForTag(AdminTags.DETAIL_COMPLETE)
-            assertFalse(rule.has(AdminTags.DETAIL_CONFIRM))
+            rule.waitForTag(AdminOrderTags.ORDER_FINISH)
+            assertFalse(rule.has(AdminOrderTags.ORDER_PROCESS))
         }
     }
 
@@ -54,13 +55,13 @@ class OrderFlowTest {
         launchStub().use {
             rule.signIn()
             open("BT-2H4N8R")
-            rule.onNodeWithTag(AdminTags.DETAIL_COMPLETE).performClick()
-            rule.waitForTag(AdminTags.DETAIL_COMPLETE_BACK).performClick()
-            rule.waitUntilGone(AdminTags.DETAIL_COMPLETE_YES)
-            rule.onNodeWithTag(AdminTags.DETAIL_COMPLETE).performClick()
-            rule.waitForTag(AdminTags.DETAIL_COMPLETE_YES).performClick()
-            rule.waitUntilGone(AdminTags.DETAIL_COMPLETE)
-            assertFalse(rule.has(AdminTags.DETAIL_CANCEL))
+            rule.onNodeWithTag(AdminOrderTags.ORDER_FINISH).performClick()
+            rule.waitForTag(AdminOrderTags.DETAIL_COMPLETE_BACK).performClick()
+            rule.waitUntilGone(AdminOrderTags.DETAIL_COMPLETE_YES)
+            rule.onNodeWithTag(AdminOrderTags.ORDER_FINISH).performClick()
+            rule.waitForTag(AdminOrderTags.DETAIL_COMPLETE_YES).performClick()
+            rule.waitUntilGone(AdminOrderTags.ORDER_FINISH)
+            assertFalse(rule.has(AdminOrderTags.DETAIL_CANCEL))
         }
     }
 
@@ -69,12 +70,12 @@ class OrderFlowTest {
         launchStub().use {
             rule.signIn()
             open("BT-7K3M9Q")
-            rule.onNodeWithTag(AdminTags.DETAIL_CANCEL).performClick()
-            rule.waitForTag(AdminTags.CANCEL_CONFIRM).assertIsNotEnabled()
-            rule.onNodeWithTag(AdminTags.REASON_CUSTOMER).performClick()
-            rule.onNodeWithTag(AdminTags.CANCEL_CONFIRM).assertIsEnabled().performClick()
-            rule.waitForTag(AdminTags.DETAIL_REASON)
-            assertFalse(rule.has(AdminTags.DETAIL_CANCEL))
+            rule.onNodeWithTag(AdminOrderTags.DETAIL_CANCEL).performClick()
+            rule.waitForTag(AdminOrderTags.CANCEL_CONFIRM).assertIsNotEnabled()
+            rule.onNodeWithTag(AdminOrderTags.REASON_CUSTOMER).performClick()
+            rule.onNodeWithTag(AdminOrderTags.CANCEL_CONFIRM).assertIsEnabled().performClick()
+            rule.waitForTag(AdminOrderTags.DETAIL_REASON)
+            assertFalse(rule.has(AdminOrderTags.DETAIL_CANCEL))
         }
     }
 
@@ -83,9 +84,9 @@ class OrderFlowTest {
         launchStub().use {
             rule.signIn()
             open("BT-9C5D3F")
-            rule.onNodeWithTag(AdminTags.DETAIL_CONFIRM).performClick()
-            rule.waitForTag(AdminTags.DETAIL_CONFLICT)
-            rule.waitForTag(AdminTags.DETAIL_COMPLETE)
+            rule.onNodeWithTag(AdminOrderTags.ORDER_PROCESS).performClick()
+            rule.waitForTag(AdminOrderTags.DETAIL_CONFLICT)
+            rule.waitForTag(AdminOrderTags.ORDER_FINISH)
         }
     }
 
@@ -94,11 +95,11 @@ class OrderFlowTest {
         launchStub().use {
             rule.signIn()
             open("BT-7K3M9Q")
-            rule.onNodeWithTag(AdminTags.DETAIL_CONFIRM).performClick()
-            rule.waitForTag(AdminTags.DETAIL_COMPLETE)
+            rule.onNodeWithTag(AdminOrderTags.ORDER_PROCESS).performClick()
+            rule.waitForTag(AdminOrderTags.ORDER_FINISH)
             rule.onNodeWithTag(AdminTags.NAV_BACK).performClick()
             rule.waitForTag(AdminTags.ORDERS_LIST)
-            rule.waitForTag(AdminTags.orderRow("BT-7K3M9Q"))
+            rule.waitForTag(AdminOrderTags.orderRow("BT-7K3M9Q"))
         }
     }
 
@@ -107,15 +108,15 @@ class OrderFlowTest {
         launchStub().use {
             rule.signIn()
             rule.onNodeWithTag(AdminTags.FILTER_COMPLETED).performScrollTo().performClick()
-            rule.waitForTag(AdminTags.orderRow("BT-6P2W7X"))
-            assertFalse(rule.has(AdminTags.orderRow("BT-7K3M9Q")))
+            rule.waitForTag(AdminOrderTags.orderRow("BT-6P2W7X"))
+            assertFalse(rule.has(AdminOrderTags.orderRow("BT-7K3M9Q")))
             rule.onNodeWithTag(AdminTags.FILTER_TODO).performClick()
-            rule.waitForTag(AdminTags.orderRow("BT-7K3M9Q"))
+            rule.waitForTag(AdminOrderTags.orderRow("BT-7K3M9Q"))
 
             rule.onNodeWithTag(AdminTags.FILTER_DATE).performScrollTo().performClick()
             rule.waitForTag(AdminTags.DATE_TODAY).performClick()
-            rule.waitUntilGone(AdminTags.orderRow("BT-2H4N8R"))
-            assertTrue(rule.has(AdminTags.orderRow("BT-7K3M9Q")))
+            rule.waitUntilGone(AdminOrderTags.orderRow("BT-2H4N8R"))
+            assertTrue(rule.has(AdminOrderTags.orderRow("BT-7K3M9Q")))
 
             rule.onNodeWithTag(AdminTags.ORDERS_SEARCH).performTextInput("zz")
             rule.waitForTag(AdminTags.ORDERS_SEARCH_MIN)
