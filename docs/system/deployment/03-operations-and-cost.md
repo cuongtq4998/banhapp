@@ -13,6 +13,8 @@ Part of [deployment.md](../deployment.md) (index, version, change log), sections
 | Not allowed | Dumps as workflow artifacts of this public repository (artifacts of public repositories are readable by others, unverified) |
 | Restore test | Required before launch and every 3 months: download one dump, decrypt with the offline private key, restore into a scratch database, run the reconciliation query (`day_load` equals the sum of cakes of non-cancelled orders), record the date in the operations log. A backup counts only after this test succeeds |
 
+Before applying any migration, a full custom-format `pg_dump` is taken and kept outside the repository (database change policy, data-model section 15.1; restore with `pg_restore` into an empty database) [v1.15 | 2026-11-02].
+
 ## 7. Observability
 
 | What | How | Retention |
