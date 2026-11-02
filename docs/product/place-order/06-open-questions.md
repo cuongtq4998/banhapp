@@ -1,6 +1,6 @@
 # Place Order: Open Questions and Launch Data (section 12)
 
-Part of [Place Order](../place-order.md) (PRD v1.6). Holds: Q-1 to Q-15, Q-T1 to Q-T6, section 12.2 (Q-O1 to Q-O5, N-1, N-2), section 12.1 launch data. [v1.6 | 2026-10-31]
+Part of [Place Order](../place-order.md) (PRD v1.12). Holds: Q-1 to Q-15, Q-T1 to Q-T6, section 12.2 (Q-O1 to Q-O12, N-1, N-2), section 12.1 launch data. [v1.12 | 2026-11-02]
 
 ## 12. Open Questions
 
@@ -41,6 +41,13 @@ Nothing in this section takes effect until the owner confirms it. Current behavi
 | Q-O3 | The limit of 5 accepted orders per phone per 24 hours (ADR-0014): do cancelled orders count toward it? | Answered by the owner in Admin Orders Q-12: cancelled orders do not count, except one cancelled with the reason "fake or spam order" (BR-14, AC-35 to AC-37). | No | business | Answered [v1.6 | 2026-10-31] |
 | Q-O4 | How long is customer contact data kept (BR-12)? | No period; no test expected in this slice. Owner decision 2026-10-31: stays open, decide later; the 90-day window of Admin Orders BR-20 is a display rule only, not a retention period. [v1.6 | 2026-10-31] | No | business | Pending owner (decide later) |
 | Q-O5 | If sample data is visible, which wording is allowed? Sample values use the Vietnamese word "mau" in some names (for example shop and district names). | AC-29 (v1.4): no marker word is customer-visible, and "mẫu" / "mau" in the sense of "sample" counts as a marker word, so displayed seed values must not contain it; technical documents may use it. Owner may overrule. | No | business | Pending owner (default applied in v1.4) |
+| Q-O6 | How does the customer find the order? | Customer types the phone number; orders appear, newest first (FR-25). | Yes | business | Answered [v1.12 | 2026-11-02]: explicit owner answer 2026-11-02: phone number only (replaces order code plus phone). Full text in 08-order-tracking.md. |
+| Q-O7 | Must the customer sign in? | No sign-in (FR-25). | Yes | business | Answered [v1.12 | 2026-11-02]: explicit owner answer 2026-11-02: no sign-in. |
+| Q-O8 | How long after Finished or Cancelled is the order shown? | 30 days, 30 x 24 hours after status_changed_at (BR-18); the number of days is not shown to customers. | No | business | Assumed, to confirm (internal rule; not part of the 2026-11-02 approval) [v1.12 | 2026-11-02] |
+| Q-O9 | Is the customer told when the status or date changes? | No push; the customer opens or pulls to refresh; staff keep calling (FR-26). | Yes | business and money | Answered [v1.12 | 2026-11-02]: explicit owner answer 2026-11-02: no push. |
+| Q-O10 | Which personal data is visible, and to whom? | Minimum data: phone masked (last 3 digits), district only, order code and cake names allowed, no cancel reason, no staff names (BR-16, 14.7). | Yes | security | Answered [v1.12 | 2026-11-02]: explicit owner answer 2026-11-02; residual risks accepted. |
+| Q-O11 | What does the customer see for a cancelled order? | "Cancelled" plus shop contact, no reason (FR-27). | No | business | Assumed, to confirm (not asked; not part of the 2026-11-02 approval) [v1.12 | 2026-11-02] |
+| Q-O12 | Should the confirmation screen offer a tracking shortcut? | "Track my order" on the home and confirmation screens (FR-25, AC-45, AC-15 reworded). | No | business | Answered [v1.12 | 2026-11-02]: explicit owner answer 2026-11-02; the list also shows order code and cake names with quantities (BR-16). |
 | N-1 | FR-20 / AC-30: privacy notice before data entry covering name, phone, address, note and the draft on the device. | Today the notice appears on the review step and names name, phone, address only. | No | business | Answered [v1.5 | 2026-10-29]: owner confirmed FR-20 as written, with the full privacy notice shown on S-7 (recipient screen) and a one-sentence reminder with link on S-8 (2026-10-29) |
 | N-2 | FR-21 / AC-31: dates dd/MM/yyyy and money in whole dong with dot thousands separators. | Display format not specified before. | No | business | Answered [v1.5 | 2026-10-29]: owner confirmed FR-21 as written (2026-10-29) |
 
