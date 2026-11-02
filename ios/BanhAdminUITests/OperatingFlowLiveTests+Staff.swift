@@ -76,7 +76,9 @@ extension OperatingFlowLiveTests {
         note("owner deactivated \(Live.staffEmail) through PATCH /v1/owner/staff/{id}: \(off.status)")
         // The next action is a pull-to-refresh; the sign-in screen may take a moment (up to 20 s).
         Thread.sleep(forTimeInterval: 3)
-        app.swipeDown()
+        // A plain swipeDown starts mid-screen and can miss the list's pull zone; drag from the list top.
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2))
+        start.press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8)))
         let ended = element(app, AdminID.signInEmail).waitForExistence(timeout: 20)
         XCTAssertTrue(ended, "the staff app did not return to sign-in after the session was revoked")
         waitFor(app, AdminID.signInBanner)
