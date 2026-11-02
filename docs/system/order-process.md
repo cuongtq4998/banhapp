@@ -47,7 +47,7 @@ Every other pair is refused: 422 `STATUS_TRANSITION_INVALID`, no write (includes
 - Capacity: only the requested `delivery_date` counts; moving the expected date changes no `day_load` row (BR-15).
 - Fee: required only at DeliveryDateScheduled to DeliveryStarted; refused at every other step (`FIELD_NOT_ALLOWED`). Amount to collect = `items_subtotal_vnd + delivery_fee_final_vnd`, shown only after the fee exists; the stored estimate (`delivery_fee_vnd`) is shown to the customer only.
 - The expected date is changeable only in `DeliveryDateScheduled`; unlimited times; no daily limit, lead-day or slot check. Range [v1.2 | 2026-11-02]: shop today (Vietnam calendar, computed at request time by the server) to today + 7, both inclusive, checked on every entry and every move; a replay (ADR-0033 Decision 2) skips the range check. Errors: `EXPECTED_DATE_PAST`, `EXPECTED_DATE_TOO_FAR`.
-- Fee correction [v1.2 | 2026-11-02]: only in `DeliveryStarted`, by owner or staff, unlimited times, compare key and replay in ADR-0033 Decision 10. Check order: session, role, body fields, `expected_status` must be `DeliveryStarted` (else 422 `FEE_CORRECTION_NOT_ALLOWED`, no write), range, same fee (422 `FEE_UNCHANGED`), then the conditional UPDATE. After `Finished` the key fails: 409 `ORDER_STATE_CHANGED`; the trigger refuses any later change of the fee even by direct SQL. The record (account name, time, old, new) is never edited or deleted. No push, no customer message; `amount_to_collect_vnd` follows the latest fee.
+- Fee correction [v1.2 | 2026-11-02]: only in `DeliveryStarted`, by owner or staff, unlimited times, compare key and replay in ADR-0033 Decision 10. Check order: session, role, body fields, `expected_status` must be `DeliveryStarted` (else 422 `FEE_CORRECTION_NOT_ALLOWED`, no write), range, new fee equals `previous` in the body (422 `FEE_UNCHANGED`, wins over 409 [v1.3 | 2026-11-02]), then the conditional UPDATE. After `Finished` the key fails: 409 `ORDER_STATE_CHANGED`; the trigger refuses any later change of the fee even by direct SQL. The record (account name, time, old, new) is never edited or deleted. No push, no customer message; `amount_to_collect_vnd` follows the latest fee.
 - Customer is not messaged on a date move; no new push (ADR-0024 unchanged: push only for new orders).
 
 ## 4. Queries (shop date `:today`)
@@ -84,6 +84,7 @@ Filter values of `GET /v1/admin/orders?status=`: `todo` (the four open steps, de
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.3 | 2026-11-02 | FEE_UNCHANGED before 409; shop today from the injectable server clock (api/09). |
 | 1.2 | 2026-11-02 | Date range today to today + 7; fee correction rules (ADR-0033 Decisions 9 and 10). |
 | 1.1 | 2026-11-02 | Section 5 answers; `order_event` history is kept, not remapped. |
 | 1.0 | 2026-11-02 | First version (ADR-0033). |

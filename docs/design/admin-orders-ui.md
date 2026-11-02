@@ -38,6 +38,7 @@ Ready gate status: every FR and AC of the PRD with UI impact is traced (part 11)
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.5 | 2026-11-02 | Owner decisions: expected date limited to today to today + 7 (part 12, 5.13); fee correction at Delivery started, sheet S-A16, history and 409 conflict (part 12, 5.19); copy and test ids in part 13. Design system part 8 added. Tracking screens (Draft) are in place-order-ui parts 13 and 14. |
 | 1.4 | 2026-11-02 | PRD v1.10 (order process, delivery fee): five steps, cancel only at steps 1 and 2 with the reason shown, new sheets S-A14 (schedule date) and S-A15 (real fee at Start delivery), `OrderStepper`, list labels and chips, fee shown as pending or real, due marks by expected date. New parts 12 and 13; part 3 carries a pointer. |
 | 1.2 | 2026-11-01 | Built-app findings: S-A5 height, per-platform test ids (part 10, 9.2), search 50 characters, S-A13 e-mail, date picker time zone, `A_DATE_PICK_OK`. See part 11. |
 | 1.1 | 2026-10-31 | Simplified to PRD v1.6: 13 screens (was 20), flows per user type, deleted unused copy keys and test identifiers. See part 11. |

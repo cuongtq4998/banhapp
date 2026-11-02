@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0034 |
-| Version  | 1.0 [v1.0 | 2026-11-02] |
+| Version  | 1.1 [v1.1 | 2026-11-02] (clarifications, Decision 7; v1.0: first version) |
 | Status   | Accepted as the owner's decision of 2026-11-02 (C); it affects customer data, so the residual risk in Consequences must be seen by the owner |
 | Date     | 2026-11-02 |
 | Decider  | owner (business choice); atlas-architect (mitigations) |
@@ -23,6 +23,7 @@ The customer must follow an order without signing in and without push. The PRD d
 4. Page size 10, at most 5 pages (50 orders) per phone and window; opaque cursor bound to the phone.
 5. No personal data in logs; the phone is never in a URL (POST body), responses `no-store`.
 6. Window: open orders at any age; `Finished` and `Cancelled` 30 days after `status_changed_at` (assumption of the owner, Q-O8).
+7. Clarifications [v1.1 | 2026-11-02]: a request with a valid cursor does not count against the per-phone limit (the first page did), it counts against address and installation limits; the client address comes only from the platform proxy header named in `CLIENT_ADDRESS_HEADER` with `TRUSTED_PROXY_HOPS`, never from a client-supplied header; the response floor must exceed the p99 of the one shared indexed query and an alert fires when it is exceeded; `as_of` is enough for the offline line; the app's 9 to 11 digit check is a hint only (api/10 10.14.5, 10.14.7).
 
 ## Rejected alternatives
 
