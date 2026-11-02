@@ -4,10 +4,11 @@ import FluentSQL
 @testable import App
 
 /// A scratch database that has migrations 0001 to 0007, so a test can insert
-/// rows in the old statuses and then apply 0008. Skipped without
+/// rows in the old statuses and then apply 0008 and 0009. Skipped without
 /// `DATABASE_MIGRATION_URL`. The database is dropped at the end of each test.
 class OrderProcessMigrationCase: XCTestCase {
-    static let target = "0008_order_process.sql"
+    static let targets: Set<String> = ["0008_order_process.sql", "0009_order_process_records.sql"]
+    static let firstTarget = "0008_order_process.sql"
     private static let scratchID = DatabaseID(string: "order_process_scratch")
 
     var app: Application!
@@ -24,7 +25,7 @@ class OrderProcessMigrationCase: XCTestCase {
         guard var parts = URLComponents(string: url) else { throw Abort(.internalServerError) }
         parts.path = "/" + scratchName
         app.databases.use(try .postgres(url: parts.string ?? url), as: Self.scratchID)
-        try await apply { $0 != Self.target }
+        try await apply { !Self.targets.contains($0) }
         try await seedShop()
     }
 
@@ -44,7 +45,11 @@ class OrderProcessMigrationCase: XCTestCase {
         try await app.autoMigrate()
     }
 
-    func applyTarget() async throws { try await apply { $0 == Self.target } }
+    /// Applies 0008 and 0009, each in its own transaction (Fluent wraps each file).
+    func applyTarget() async throws { try await apply { Self.targets.contains($0) } }
+
+    /// Applies 0008 only: the documented intermediate state.
+    func applyFirstTargetOnly() async throws { try await apply { $0 == Self.firstTarget } }
 
     func run(_ statement: String) async throws { try await sql.raw(SQLQueryString(statement)).run() }
 

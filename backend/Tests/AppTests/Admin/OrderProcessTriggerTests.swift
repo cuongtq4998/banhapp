@@ -2,7 +2,7 @@ import XCTVapor
 import FluentSQL
 @testable import App
 
-/// Migration 0008: the record tables, the immutable rule and the capacity release.
+/// Migration 0009: the record tables, the immutable rule and the capacity release.
 final class OrderProcessTriggerTests: OrderProcessMigrationCase {
     private func orderID(_ code: String) -> String { "(SELECT id FROM customer_order WHERE order_code = 'BT-\(code)')" }
 

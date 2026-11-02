@@ -2,7 +2,7 @@ import XCTVapor
 import FluentSQL
 @testable import App
 
-/// Migration 0008 (data-model/06): the remap of statuses and the new structure.
+/// Migrations 0008 and 0009 (data-model/06): the remap of statuses and the new structure.
 final class OrderProcessMigrationTests: OrderProcessMigrationCase {
     /// One order per old status; the events are written by the 0001 triggers.
     private func seedOldOrders() async throws {
@@ -94,5 +94,20 @@ final class OrderProcessMigrationTests: OrderProcessMigrationCase {
         XCTAssertFalse(definition.contains("Finished") || definition.contains("Cancelled"), definition)
         let stale = try await number("SELECT count(*)::int AS n FROM pg_indexes WHERE indexname = 'customer_order_open_idx'")
         XCTAssertEqual(stale, 0)
+    }
+
+    func testFirstFileAloneLeavesTheGuardAndCapacityTriggersDropped() async throws {
+        try await insertOrder("AAAAAA", status: "New")
+        try await applyFirstTargetOnly()
+        let triggers = try await number("""
+            SELECT count(*) AS n FROM pg_trigger WHERE NOT tgisinternal
+            AND tgname IN ('customer_order_status_guard', 'customer_order_release_capacity')
+            """)
+        XCTAssertEqual(triggers, 0)
+        let mapped = try await status("AAAAAA")
+        XCTAssertEqual(mapped, "Received")
+        try await applyTarget()
+        let after = try await number("SELECT count(*) AS n FROM pg_trigger WHERE tgname = 'customer_order_status_guard'")
+        XCTAssertEqual(after, 1)
     }
 }

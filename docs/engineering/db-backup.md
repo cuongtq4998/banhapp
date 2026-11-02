@@ -1,10 +1,10 @@
 # Database backup before a migration
 
-Version 1.0 [v1.0 | 2026-11-02]. Owner rule: every database change is a numbered, forward-only migration file in `backend/db/migrations/`, and a backup is taken first. Rollback is a restore of that backup; there are no down scripts. Related: data-model/05 section 15 (policy), data-model/06 (migration 0008).
+Version 1.0 [v1.0 | 2026-11-02]. Owner rule: every database change is a numbered, forward-only migration file in `backend/db/migrations/`, and a backup is taken first. Rollback is a restore of that backup; there are no down scripts. Related: data-model/05 section 15 (policy), data-model/06 (migrations 0008 and 0009).
 
 ## 1. Take the dump
 
-Use the migration role's URL (`DATABASE_MIGRATION_URL`, see `.env.example`). Stop the old backend first when the migration is not additive (0008 is not), so no write lands after the dump.
+Use the migration role's URL (`DATABASE_MIGRATION_URL`, see `.env.example`). Stop the old backend first when the migration is not additive (0008 and 0009 are not), so no write lands after the dump.
 
 ```
 pg_dump "$DATABASE_MIGRATION_URL" --format=custom \
