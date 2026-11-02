@@ -5,23 +5,6 @@ import Observation
 /// S-A4 and S-A5: one order and its actions; the buttons come only from `allowed_actions`.
 @Observable
 final class OrderDetailViewModel {
-    enum State: Equatable {
-        case loading
-        case loaded(OrderDetail)
-        /// 404: unknown order, or finished more than 90 days ago (AC-21).
-        case gone
-        case failed(LoadFailure)
-    }
-
-    enum Action: Equatable { case process, scheduleDelivery, startDelivery, finish, cancel, changeDate, correctFee }
-
-    /// The text above the action bar after a refused or failed action.
-    enum ActionMessage: Equatable {
-        case conflict(OrderStatus)
-        case failed
-        case offline
-    }
-
     let code: String
     private(set) var state: State = .loading
     private(set) var running: Action?
@@ -183,16 +166,6 @@ final class OrderDetailViewModel {
             failureCount += 1
         } else {
             actionMessage = .failed
-        }
-    }
-
-    /// The text for `actionMessage`.
-    var messageText: String? {
-        switch actionMessage {
-        case .conflict(let status)?: AStrings.conflict(status: String(localized: AStrings.status(status)))
-        case .failed?: String(localized: AStrings.errStatus)
-        case .offline?: String(localized: AStrings.offlineSave)
-        case nil: nil
         }
     }
 }
