@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.8 |
+| Version      | 1.9 |
 | Last updated | 2026-11-02 |
 | Status       | Draft |
 | Owner        | probe-qa |
@@ -23,6 +23,7 @@ This report was one file of 668 lines (v1.6). Since v1.7 (2026-10-27) it is spli
 | [06-rounds-defects.md](place-order-tests/06-rounds-defects.md) | 6. Rounds, 7. Defects | none | none | D-1 to D-20 (20) |
 | [07-verdict.md](place-order-tests/07-verdict.md) | 8. Verdict | none | none | D-1 to D-20 (19) |
 | [09-order-process-fee-update.md](place-order-tests/09-order-process-fee-update.md) | 4.8 Tests for PRD v1.7 (estimated fee, cake amount, capacity), new in v1.8 [v1.8 \| 2026-11-02] | TC-P101 to TC-P125 (25) | none | none |
+| [10-order-tracking-ui.md](place-order-tests/10-order-tracking-ui.md) | 4.9 Order tracking and lookup on the client, new in v1.9 [v1.9 \| 2026-11-02] | TC-P201 to TC-P232 |
 | [08-questions-changelog.md](place-order-tests/08-questions-changelog.md) | 9. Open Questions / Change log (9.1 to 9.5) and the Change log table | none | none | D-1 to D-20 (9) |
 
 ## Where to find what
@@ -50,3 +51,4 @@ See section 8 in [part 07](place-order-tests/07-verdict.md) and section 4.7 in [
 | ------- | ---- | ------ |
 | 1.7 | 2026-10-27 | Split into this index and eight parts under `place-order-tests/`; full change log in [part 08](place-order-tests/08-questions-changelog.md). No content, id or verdict changed. |
 | 1.8 | 2026-11-02 | Early mode for PRD place-order v1.7 (owner decision 2026-11-02): new [part 09](place-order-tests/09-order-process-fee-update.md), 25 cases TC-P101 to TC-P125 for BR-3, BR-5, BR-9, FR-9, AC-11, AC-14, AC-28; results `Not run`. Older cases of AC-11, AC-14 (TC with fee in the total) are superseded by them; their parts are unchanged. |
+| 1.9 | 2026-11-02 | Early mode for PRD place-order v1.9 (tracking by phone): new [part 10](place-order-tests/10-order-tracking-ui.md), 32 cases TC-P201 to TC-P232 for FR-22 to FR-27, BR-15 to BR-18, AC-38 to AC-48; backend lookup tests in admin-orders part 18. All `Not run`. |
