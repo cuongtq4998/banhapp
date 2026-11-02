@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.19 [v1.19 | 2026-11-02] |
+| Version      | 1.20 [v1.20 | 2026-11-02] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -28,6 +28,7 @@ This file is the index of the data model. The body lives in the folder `data-mod
 | 3.10 to 3.17 | `account`, `device_session` (with the push token), `auth_code` (with the attempt count), `security_event`, `settings_change`; sensitive data added; section 3.17 lists what v1.9 removed [v1.9 \| 2026-10-31] | [data-model/04-admin-accounts-sessions.md](data-model/04-admin-accounts-sessions.md) |
 | 15.1 | Database change policy [v1.17 \| 2026-11-02] | [data-model/05-admin-orders-cakes-settings.md](data-model/05-admin-orders-cakes-settings.md) |
 | 11 to 16 | Changes to `customer_order`, `order_event`, `product`, `product_image`, settings CHECKs, `day_load` and the daily limit, purge jobs, migrations `0002` and `0003`, traceability [v1.6 \| 2026-10-31] | [data-model/05-admin-orders-cakes-settings.md](data-model/05-admin-orders-cakes-settings.md) |
+| 18 | Migrations 0008 and 0009: split, order of application, failure state, checks [v1.20 | 2026-11-02] | [data-model/07-migrations-0008-0009.md](data-model/07-migrations-0008-0009.md) |
 | 17 | Order process columns, `order_expected_date_change`, migration 0008 [v1.18 \| 2026-11-02] | [data-model/06-order-process-migration.md](data-model/06-order-process-migration.md) (v1.2: `order_fee_correction`) |
 | 10 | Open questions and change log | this file |
 
@@ -60,3 +61,4 @@ This file is the index of the data model. The body lives in the folder `data-mod
 | 1.17 | 2026-11-02 | Owner decision: `0007` also creates `security_event_archive` (append-only; the purge moves rows in one statement); new section 15.1 database change policy (numbered migrations, never edit, `pg_dump` before applying); sections 3.15, 14, 15, 15.1 (data-model/04, 05). Go-live gate still open. |
 | 1.18 | 2026-11-02 | Migration `0008_order_process.sql` (data-model/06, ADR-0033): six statuses on `customer_order`, three new columns, table `order_expected_date_change`; `order_event` is not rewritten (append-only), legacy status words in old events are mapped on read; names New, Confirmed, Completed in data-model/02, 03, 05 are the pre-0008 values. |
 | 1.19 | 2026-11-02 | Table `order_fee_correction` in migration 0008, stricter immutable trigger, date range enforced by the API (ADR-0033 v1.2); customer lookup adds no structure (ADR-0034). |
+| 1.20 | 2026-11-02 | Migration 0008 is split into `0008_order_process.sql` and `0009_order_process_records.sql` (200-line rule); new file data-model/07 (order of application, state if 0009 fails, checks). Lookup list reads `customer_order_item` in the same statement; no schema change (ADR-0034 v1.2). |

@@ -1,6 +1,6 @@
 # API Specification: customer order lookup by phone
 
-Part of [api.md](../api.md), section 10.14 (new). Version 1.1 [v1.1 | 2026-11-02]. Traces: FR-22 to FR-27 (place-order 08), BR-16 to BR-18, AC-38 to AC-47, FR-28 to FR-30; ADR-0034, ADR-0017, ADR-0019. No sign-in, no push to customers.
+Part of [api.md](../api.md), section 10.14 (new). Version 1.2 [v1.2 | 2026-11-02]. Traces: FR-22 to FR-27 (place-order 08), BR-16 to BR-18, AC-38 to AC-47, FR-28 to FR-30; ADR-0034, ADR-0017, ADR-0019. No sign-in, no push to customers.
 
 ## 10.14.1 POST /v1/orders/lookup
 
@@ -19,16 +19,19 @@ POST so the phone is never in a URL or an access log. Body (8 KB limit, api/01):
   "next_cursor": null, "as_of": "2026-11-02T03:00:00Z" }
 ```
 
-`status` is one of the six names; the legacy words are never sent. The shop contact comes from the catalog (`phone_contact`, `zalo_contact`), not from this answer. `delivery_fee_final_vnd` and `amount_to_collect_vnd` are null until entered; after a fee correction only the latest value is sent. `expected_delivery_date` is null until set. A `Cancelled` order carries `status` and the fields above only: no reason, no actor, no event or date-change history, no corrections.
+Per order the list carries the order code and the cake lines (`items[]`: `cake_name` as stored at order time, `quantity`, `unit_price_vnd`, sorted by `cake_name` then product id) [v1.2 | 2026-11-02]; nothing else about the customer. `status` is one of the six names; the legacy words are never sent. The shop contact comes from the catalog (`phone_contact`, `zalo_contact`), not from this answer. `delivery_fee_final_vnd` and `amount_to_collect_vnd` are null until entered; after a fee correction only the latest value is sent. `expected_delivery_date` is null until set. A `Cancelled` order carries `status` and the fields above only: no reason, no actor, no event or date-change history, no corrections.
 
 ## 10.14.2 Never sent
 
-Street address, ward, note, customer name, `cancel_reason`, staff names or ids, account data, `day_load`, internal ids (`id`), event rows, date-change and fee-correction rows, `is_sample`, the full phone.
+Street address, ward, note, customer name, product ids and image paths of the items, `cancel_reason`, staff names or ids, account data, `day_load`, internal ids (`id`), event rows, date-change and fee-correction rows, `is_sample`, the full phone.
 
 ## 10.14.3 Masking, window, order, paging
 
+- Personal data in the answer [v1.2 | 2026-11-02]: the order code and the cake names with quantities are new exposure (owner decision of 2026-11-02, ADR-0034 v1.2): anyone who knows the number sees what that phone bought. Not sent: full phone, street address, ward, note, name, cancel reason, staff names. Fields of one order are decided by one mapper `LookupOrderView`; a field not in it cannot leak.
 - Masking: the last 3 digits are replaced by `*` and the digits are grouped (`+84 900 000 ***`); the number is the caller's own input, so nothing new is revealed.
-- Window: status in the open four at any age, or `Finished`, `Cancelled` with `status_changed_at` within 30 days (value is configuration `LOOKUP_RETENTION_DAYS`, default 30). Purged rows never match.
+- Window: status in the open four at any age, or `Finished`, `Cancelled` with `status_changed_at` within 30 x 24 hours (internal rule, configuration `LOOKUP_RETENTION_DAYS`, default 30). Purged rows never match [v1.2 | 2026-11-02].
+- The client is never told the number of days: no field, header, error or text of the answer holds it, and an order past the window is simply absent (same as an unknown order). The apps show no retention sentence (query to canvas-ui: `T_FINISHED_NOTE_30`).
+- Items query [v1.2 | 2026-11-02]: `customer_order_item` (PK `(order_id, product_id)`, so `order_id` is an index prefix) holds `product_name`, `quantity`, `unit_price_vnd`; no new table, column or index. The items come in the same statement as the page, no second round trip: the page query (`LIMIT 11`, index `(customer_phone, created_at)`) does `LEFT JOIN LATERAL (SELECT jsonb_agg(jsonb_build_object('cake_name', product_name, 'quantity', quantity, 'unit_price_vnd', unit_price_vnd) ORDER BY product_name, product_id) FROM customer_order_item WHERE order_id = o.id)`. At most 11 orders x a handful of lines; the same SQL runs for empty and non-empty phones (10.14.4).
 - Order: `placed_at` descending, then `id`. Page size 10 (configuration `LOOKUP_PAGE_SIZE`); at most 5 pages: the fifth page always has `next_cursor` null, so one phone yields at most 50 orders per lookup session.
 - Cursor: opaque, holds the last `(placed_at, id)` and a keyed hash of the normalised phone; used with another phone, malformed or tampered: 422 `VALIDATION_FAILED` field `CURSOR_INVALID`.
 
@@ -65,11 +68,12 @@ Response: `Cache-Control: no-store`, `Content-Type: application/json`, no `ETag`
 
 ## 10.14.8 Fixtures (forge-dev, `contracts/fixtures/customer/`)
 
-`order-lookup-request.json` (fake phone in the `+84900000000` to `+84900000099` range), `order-lookup-answer-open.json`, `order-lookup-answer-cancelled.json`, `order-lookup-answer-empty.json`, `error-lookup-rate-limited.json`, `error-lookup-phone-invalid.json`, `error-lookup-cursor-invalid.json`.
+`order-lookup-request.json` (fake phone in the `+84900000000` to `+84900000099` range), `order-lookup-answer-open.json`, `order-lookup-answer-cancelled.json`, `order-lookup-answer-empty.json` (the open and cancelled answers carry `order_code` and `items[]` with two fake cake lines; the cancelled one keeps its items and still has no reason), `error-lookup-rate-limited.json`, `error-lookup-phone-invalid.json`, `error-lookup-cursor-invalid.json`.
 
 ## 10.14.9 Change log
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.2 | 2026-11-02 | Order code and cake lines in the list (owner decision), items query without extra round trip, retention days never sent to the client, fixtures. |
 | 1.1 | 2026-11-02 | Cursor pages not counted per phone, client address rule, timing floor above p99, as_of, client digit hint. |
 | 1.0 | 2026-11-02 | First version (ADR-0034). |

@@ -80,14 +80,15 @@ Superseded 2026-11-02 [v1.7 | 2026-11-02]: the fee and total rows, here and on S
 
 - Purpose: tell the customer the order is received and give the order code (FR-11, FR-12).
 - Entry/Exit: from S-8 only. Exit to S-2. Back gesture and the Android back button also go to S-2; they never return to S-8 (prevents a second send). No other exit.
-- Layout: no `TopBar`; `StatusMark`; title `CONF_TITLE` (`type.title.large`); `GlassCard` with label `CONF_CODE_LABEL` and `OrderCodeDisplay`; message `CONF_MESSAGE`; row of two `ContactButton` (Zalo, Phone); `BottomActionBar` with `SecondaryButton` `CONF_BTN_HOME`.
-- Data shown: order code (unique per order, AC-16); the received-and-contact message. No tracking, no status, no cancel, no payment information, no order recap (AC-15, AC-25, AC-27).
+- Layout: no `TopBar`; `StatusMark`; title `CONF_TITLE` (`type.title.large`); `GlassCard` with label `CONF_CODE_LABEL` and `OrderCodeDisplay`; message `CONF_MESSAGE`; row of two `ContactButton` (Zalo, Phone); [v1.8 | 2026-11-02] `SecondaryButton` `T_FOLLOW_ORDER` ("Follow this order"); `BottomActionBar` with `SecondaryButton` `CONF_BTN_HOME`.
+- Data shown: order code (unique per order, AC-16); the received-and-contact message. No status, no cancel, no payment information, no order recap (AC-15, AC-25, AC-27). [v1.8 | 2026-11-02] Status is not shown here; the only tracking element is the `T_FOLLOW_ORDER` shortcut to S-10 (part 13).
 - Actions:
 
 | Action | Result | FR |
 | ------ | ------ | -- |
 | Tap Zalo / Phone | Same behaviour as S-2 (AC-17). | FR-12 |
 | Tap `CONF_BTN_HOME` | Clears flow data and goes to S-2. | FR-11 |
+| Tap `T_FOLLOW_ORDER` [v1.8 | 2026-11-02] | Opens S-10 with the order's phone filled (held in memory only, not stored) and runs the lookup at once; back from S-10 goes to S-2, never to S-8. Test id `order.confirm.follow`. | FR-22 |
 | Press and hold the code | Native text selection and copy (no extra copy button). | FR-11 |
 
 - States:
