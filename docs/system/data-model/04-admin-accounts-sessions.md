@@ -89,7 +89,9 @@ Counters are derived, not stored in a second table [v1.8 | 2026-10-31] (BR-4, Q-
 
 ## 3.15 security_event (audit of access, not of orders)
 
-Append-only (trigger rejects UPDATE and DELETE). Columns: `id` bigint identity PK; `at` timestamptz; `event_type` CHECK in `sign_in`, `sign_in_review`, `sign_out`, `sign_out_others`, `refresh_reuse_detected` (`sign_in_recovery`, `device_revoked`, `backup_email_changed` and the column `actor_account_id` removed [v1.9 | 2026-10-31]); `account_id` uuid null; `device_session_id` uuid null (the calling session for `sign_out_others`); `platform` text null. No e-mail address, no code. Account added, deactivated and reactivated are recorded in `settings_change` (entity `account`, section 3.16), not here [v1.8 | 2026-10-31]; code voiding is a log line only. Retention 180 days (purged by the maintenance task).
+Append-only (trigger rejects UPDATE and every DELETE except rows with `at` older than 180 days, from migration `0007`, being built [v1.16 | 2026-11-02]; ADR-0032). Deleted rows are first copied into `security_event_archive` (same migration, below) [v1.17 | 2026-11-02]. Columns: `id` bigint identity PK; `at` timestamptz; `event_type` CHECK in `sign_in`, `sign_in_review`, `sign_out`, `sign_out_others`, `refresh_reuse_detected` (`sign_in_recovery`, `device_revoked`, `backup_email_changed` and the column `actor_account_id` removed [v1.9 | 2026-10-31]); `account_id` uuid null; `device_session_id` uuid null (the calling session for `sign_out_others`); `platform` text null. No e-mail address, no code. Account added, deactivated and reactivated are recorded in `settings_change` (entity `account`, section 3.16), not here [v1.8 | 2026-10-31]; code voiding is a log line only. Retention 180 days in `security_event` (purged by the maintenance task).
+
+`security_event_archive` [v1.17 | 2026-11-02] (migration `0007`, being built; ADR-0032): same columns as `security_event` (`id` is copied, not regenerated) plus `archived_at` timestamptz not null default now(); trigger `security_event_archive_append_only` refuses UPDATE and DELETE. The purge moves rows in one statement (`WITH moved AS (DELETE ... RETURNING *) INSERT INTO security_event_archive`), so no delete happens without a copy. The archive keeps events past 180 days. OPEN: if `security_event` is found to hold personal data, this design changes (ADR-0032).
 
 ## 3.16 settings_change (FR-20 to FR-24; BR-3)
 
@@ -103,7 +105,7 @@ Created by `0004_admin_settings.sql`, not by 0002 [v1.11 | 2026-11-01]. Append-o
 | auth_code.email, code_hmac, wrong_count | personal / secret hash | Backend only | 24 h after expiry |
 | device_session.*_hash, device_name | secret hash / operational | Backend only | Revoked or expired rows removed 30 days later |
 | device_session.push_token | operational (identifies a device to Apple or Google) | Backend | Null (with `push_apns_environment`) at sign-out, sign-out of other phones, refresh reuse, deactivation; row removed 30 days later |
-| security_event | operational | Operator | 180 days |
+| security_event | operational | Operator | 180 days, then moved to `security_event_archive` (kept; open point in ADR-0032) [v1.17 | 2026-11-02] |
 | E-mail addresses | Never in logs, error bodies, URLs or analytics (NFR, BR-15); log lines carry the request id and a code only |
 
 ## 3.17 Removed in v1.9 [v1.9 | 2026-10-31]

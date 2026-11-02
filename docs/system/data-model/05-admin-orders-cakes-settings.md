@@ -1,6 +1,6 @@
 # Data Model: Changes to orders, events, cakes and settings for admin-orders
 
-Part of [data-model.md](../data-model.md) (index, version, change log), sections 11 to 16. New in v1.6 [v1.6 | 2026-10-31]. Aligned with PRD v1.6 in v1.9: four cancel reasons, one window rule, ids renumbered [v1.9 | 2026-10-31]. Migrations `backend/db/migrations/0003_admin_orders.sql` and `0004_admin_settings.sql` and `0005_admin_cakes.sql` (after `0002_admin_auth.sql`; `0003` built in B2 and B3, section 11 only; `0004` is section 13; `0005` is section 12 and the D-2 fix, built in B6 [v1.20 | 2026-11-01]). Decisions: ADR-0025, ADR-0028 to ADR-0031.
+Part of [data-model.md](../data-model.md) (index, version, change log), sections 11 to 16. New in v1.6 [v1.6 | 2026-10-31]. Aligned with PRD v1.6 in v1.9: four cancel reasons, one window rule, ids renumbered [v1.9 | 2026-10-31]. Migrations `backend/db/migrations/0003_admin_orders.sql` and `0004_admin_settings.sql` and `0005_admin_cakes.sql` (after `0002_admin_auth.sql`; `0003` built in B2 and B3, section 11 only; `0004` is section 13; `0005` is section 12 and the D-2 fix, built in B6 [v1.20 | 2026-11-01]). Decisions: ADR-0025, ADR-0028 to ADR-0032.
 
 ## 11. customer_order and order_event (FR-14, FR-18, FR-27; BR-3, BR-8, BR-9; TQ-8) [v1.9 | 2026-10-31]
 
@@ -69,6 +69,8 @@ New CHECKs on `shop_setting`: `daily_limit <= 9999`, `lead_days <= 14`, `min_qty
 
 ## 14. Retention and purge jobs
 
+SECURITY EVENT PURGE BLOCKED UNTIL `0007` [v1.22 | 2026-11-02]: verified on PostgreSQL 16.15, trigger `security_event_append_only()` (`0002`) refuses every DELETE, so the 180-day delete of `security_event` fails today. Migration `0007_security_event_purge.sql` is being built (ADR-0032); only after it is applied does that purge work. The go-live gate below stays open until the database tests pass. The purge also copies each deleted row to `security_event_archive` (section 15) [v1.23 | 2026-11-02].
+
 BUILT [v1.21 | 2026-11-02]: `backend/Sources/App/Services/Admin/Auth/Maintenance/` (`MaintenancePolicy`, `MaintenancePurge`, `MaintenanceScheduler`). The database tests (`MaintenancePurgeTests`) have NOT yet run against PostgreSQL (no database on the dev host) and the session and security-event deletes have no test, so the go-live gate (`auth_code` rows keep addresses; needed before real staff use) stays open until they pass in CI or locally. Not started under `APP_ENV=testing`. Periods as built: `auth_code` 24 h after `expires_at`; `device_session` 30 days after `revoked_at` or `refresh_expires_at`; `security_event` 180 days after `at`; one DELETE per table. Possible later: an index on `auth_code (expires_at)` (the existing index is on `created_at`). Design: a maintenance task inside the backend (once at start-up and then every 24 h; idempotent, safe to run twice) deletes: `auth_code` rows 24 h after expiry; revoked or expired `device_session` rows 30 days later; `security_event` rows older than 180 days. Orders are not purged (retention pending, DM-Q1); the 90-day display window is not retention (ADR-0029).
 
 ## 15. Migrations
@@ -80,6 +82,18 @@ BUILT [v1.21 | 2026-11-02]: `backend/Sources/App/Services/Admin/Auth/Maintenance
 | `0005_admin_cakes.sql` (built, B6) [v1.20 | 2026-11-01] | Section 12: `product.image_path` nullable, `image_source`, `removed_at`, CHECKs `product_image_source_valid`, `product_image_path_for_file`, `product_removed_is_inactive`, `product_price_max`; unique index `product_shop_name_live`; table `product_image`; function and trigger `product_cap_guard`; replaced `customer_order_release_capacity` (D-2). Forward-only; the previous release reads the same columns |
 | `0006_review_account.sql` (built, review account) [v1.14 | 2026-11-01] | Replaces `order_event_append_only()`: an `UPDATE` is still refused, a `DELETE` is allowed only when the event's order has `is_demo = true`. Needed by `review-account off`, which deletes demo orders with their history. Real orders keep an append-only history. Forward-only; the previous release never deletes events |
 | `0004_admin_settings.sql` (built, B4 and B5) | Table `settings_change` (section 3.16: append-only trigger, index `(shop_id, changed_at)`); CHECKs `shop_setting_daily_limit_max` (<= 9999), `_lead_days_max` (<= 14), `_min_qty_max` (<= 20), `_min_qty_within_limit` (`min_qty <= daily_limit`); `district_delivery_fee_max` (<= 10000000). Forward-only; the cake changes (section 12) are in `0005` [v1.12 | 2026-11-01] |
+| `0007_security_event_purge.sql` (being built, ADR-0032) [v1.22 | 2026-11-02] | Replaces `security_event_append_only()`: an `UPDATE` is still refused; a `DELETE` is allowed only for rows with `at` older than 180 days; any other DELETE raises the same append-only error. Also creates `security_event_archive` (same columns plus `archived_at`) with its own append-only trigger; the purge moves rows with one `WITH moved AS (DELETE ... RETURNING *) INSERT` statement [v1.23 | 2026-11-02]. Needed by the purge task. The 180 days live in SQL and in `MaintenancePolicy.securityEventAge`; a test keeps them equal. Forward-only; the previous release never deletes events |
+
+### 15.1 Database change policy [v1.23 | 2026-11-02]
+
+Owner decision 2026-11-02; ADR-0032.
+
+1. Every schema or trigger change is a new numbered file in `backend/db/migrations/` (next free number, forward-only).
+2. An applied migration is never edited; a fix is a new migration.
+3. The documents name the migration version that holds each change.
+4. Before applying migrations to a database, take a `pg_dump` of that database. Save: a full dump in custom format (`pg_dump --format=custom`), connected with `DATABASE_MIGRATION_URL`. Keep it where the operator controls access (encrypted, as in deployment/03 section 6); never in the repository or in CI artifacts of this public repository. Name it with the database, date and the last applied migration number.
+5. Restore: create an empty database and run `pg_restore --no-owner --dbname <empty database>` with the dump file; then run the reconciliation query of deployment/03 section 6. A dump counts only after one such test restore.
+6. The deploy job does not apply migrations until the dump of step 4 exists for that run (operator step in the runbook; automation is a later change).
 
 Both are forward-only and additive: the previous backend release still runs against them (the new columns have defaults or are nullable; the replaced triggers write the same event shape plus nulls). The first owner row comes from the `create-owner` command [v1.14 | 2026-11-01], not from a migration. Sample seed gets no accounts.
 
