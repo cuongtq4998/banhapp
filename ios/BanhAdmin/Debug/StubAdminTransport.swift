@@ -129,6 +129,8 @@ final class StubAdminTransport: HTTPTransport, @unchecked Sendable {
         else { return StubReply.error(404, "ORDER_NOT_FOUND", "ERR_ORDER_NOT_FOUND") }
         if method == "GET", parts.count == 4 { return StubReply.codable(200, orders[index]) }
         if method == "POST", parts.count == 5, parts[4] == "status" { return changeStatus(index, json) }
+        if method == "PUT", parts.count == 5, parts[4] == "expected-delivery-date" { return apply(index, StubOrderProcess.changeDate(orders[index], json)) }
+        if method == "PUT", parts.count == 5, parts[4] == "delivery-fee" { return apply(index, StubOrderProcess.correctFee(orders[index], json)) }
         return StubReply.error(404, "NOT_FOUND", "ERR_NOT_FOUND")
     }
 
@@ -168,14 +170,12 @@ final class StubAdminTransport: HTTPTransport, @unchecked Sendable {
         guard orders[index].status == expected else {
             return StubReply.error(409, "ORDER_STATE_CHANGED", "ERR_ORDER_STATE_CHANGED", details: ["order": StubReply.object(orders[index])])
         }
-        let reason = (json["cancel_reason"] as? String).flatMap(CancelReason.init(rawValue:))
-        let allowed: [OrderStatus: [OrderStatus]] = [.received: [.processing, .cancelled], .processing: [.cancelled]]
-        guard allowed[expected]?.contains(target) == true else {
-            return StubReply.error(422, "STATUS_TRANSITION_INVALID", "ERR_STATUS_TRANSITION_INVALID")
-        }
-        if target == .cancelled, reason == nil { return StubReply.error(422, "CANCEL_REASON_REQUIRED", "ERR_CANCEL_REASON_REQUIRED") }
-        orders[index] = StubOrderData.changed(orders[index], to: target, reason: reason)
-        return StubReply.codable(200, orders[index])
+        return apply(index, StubOrderProcess.changeStatus(orders[index], target: target, json))
+    }
+
+    private func apply(_ index: Int, _ outcome: StubOrderProcess.Outcome) -> (Int, Data) {
+        if let updated = outcome.order { orders[index] = updated }
+        return outcome.reply
     }
 }
 #endif

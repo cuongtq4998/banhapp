@@ -8,6 +8,7 @@ struct DetailCards: View {
     let due: DueState?
     let opener: any URLOpener
     @Binding var toast: String?
+    let model: OrderDetailViewModel
 
     var body: some View {
         VStack(spacing: Spacing.md) {
@@ -20,6 +21,7 @@ struct DetailCards: View {
             if let reason = detail.cancelReason {
                 card(AStrings.secReason, identifier: AdminID.detailReason) { Text(verbatim: reasonText(reason)).textStyle(Typography.body) }
             }
+            FeeHistoryCard(detail: detail)
             footerLines
         }
     }
@@ -49,6 +51,7 @@ struct DetailCards: View {
                 if let due { DueMark(text: due.text).accessibilityIdentifier(AdminID.detailDue) }
             }
             selectable("\(detail.customerAddress), \(detail.districtName)").accessibilityIdentifier(AdminID.detailAddress)
+            DeliveryDates(detail: detail, model: model)
         }
     }
 
@@ -63,8 +66,7 @@ struct DetailCards: View {
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier(AdminID.detailCake(index))
             }
-            line(AStrings.fee, MoneyFormatter.format(detail.deliveryFeeVnd), AdminID.detailFee)
-            line(AStrings.total, MoneyFormatter.format(detail.totalVnd), AdminID.detailTotal, strong: true)
+            FeeRows(detail: detail, model: model)
         }
     }
 

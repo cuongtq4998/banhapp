@@ -19,6 +19,8 @@ struct OrderDetailView: View {
             .sensoryFeedback(.success, trigger: model.successCount)
             .sensoryFeedback(.error, trigger: model.failureCount)
             .sheet(isPresented: $model.showsCancelSheet) { CancelSheet(model: model) }
+            .sheet(isPresented: Binding(get: { model.dateEntry != nil }, set: { if !$0 { model.dateEntry = nil } })) { DateSheet(model: model) }
+            .sheet(isPresented: Binding(get: { model.feeEntry != nil }, set: { if !$0 { model.feeEntry = nil } })) { FeeSheet(model: model) }
             .alert(
                 AStrings.finishTitle(code: model.code), isPresented: $model.showsFinishDialog
             ) {
@@ -55,11 +57,16 @@ struct OrderDetailView: View {
             }
         case .loaded(let detail):
             page {
+                OrderStepper(status: detail.status)
                 if let text = model.messageText { message(text) }
+                if detail.status.blocksCancel && !detail.allows(.cancel) {
+                    InlineMessage(kind: .info, text: String(localized: AStrings.cancelBlocked))
+                        .accessibilityIdentifier(AdminID.orderCancelBlocked)
+                }
                 DetailCards(
                     detail: detail,
                     due: DueState.of(status: detail.status, deliveryDate: detail.deliveryDate, serverDate: serverDate),
-                    opener: opener, toast: $model.toast
+                    opener: opener, toast: $model.toast, model: model
                 )
             }
             .bottomActionBar { ActionBar(model: model, detail: detail) }
@@ -95,37 +102,5 @@ struct OrderDetailView: View {
         let isConflict: Bool = if case .conflict? = model.actionMessage { true } else { false }
         return InlineMessage(kind: isConflict ? .warning : .error, text: text)
             .accessibilityIdentifier(isConflict ? AdminID.detailConflict : AdminID.detailError)
-    }
-}
-
-/// The bottom bar: only the actions the server allows (the sheets for dates and fees are a later slice).
-private struct ActionBar: View {
-    @Bindable var model: OrderDetailViewModel
-    let detail: OrderDetail
-
-    var body: some View {
-        if detail.allows(.cancel) || detail.allows(.process) || detail.allows(.finish) {
-            AdaptiveStack(spacing: Spacing.md) {
-                if detail.allows(.cancel) {
-                    ActionButton(title: AStrings.cancelOrder, emphasis: .destructive) { model.showsCancelSheet = true }
-                        .disabled(model.isBusy)
-                        .accessibilityIdentifier(AdminID.detailCancel)
-                }
-                if detail.allows(.process) {
-                    ActionButton(title: AStrings.processOrder, showsProgress: model.running == .process) {
-                        Task { await model.process() }
-                    }
-                    .disabled(model.isBusy)
-                    .accessibilityIdentifier(AdminID.detailConfirm)
-                }
-                if detail.allows(.finish) {
-                    ActionButton(title: AStrings.finishOrder, showsProgress: model.running == .finish) {
-                        model.showsFinishDialog = true
-                    }
-                    .disabled(model.isBusy)
-                    .accessibilityIdentifier(AdminID.detailComplete)
-                }
-            }
-        }
     }
 }

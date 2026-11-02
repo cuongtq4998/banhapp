@@ -53,7 +53,7 @@ final class OperatingFlowLiveTests: LiveCase {
         for expected in ["+84" + first.phone.dropFirst(), first.address, first.district, productName, "2", first.total] {
             XCTAssertTrue(digitsFold(shown).contains(digitsFold(expected)), "detail lacks '\(expected)' in: \(shown)")
         }
-        tap(app, AdminID.detailConfirm)
+        tap(app, AdminID.orderProcess)
         waitFor(app, AdminID.detailStatus)
         XCTAssertTrue(waitForLabel(app, AdminID.detailStatus, contains: "Đã xác nhận"), label(app, AdminID.detailStatus))
         evidence("order1-confirmed", app: app)
@@ -70,7 +70,7 @@ final class OperatingFlowLiveTests: LiveCase {
         backToList(app)
 
         open(app, first.code)
-        tap(app, AdminID.detailComplete)
+        tap(app, AdminID.orderFinish)
         tap(app, AdminID.detailCompleteYes)
         XCTAssertTrue(waitForLabel(app, AdminID.detailStatus, contains: "Đã hoàn thành"), label(app, AdminID.detailStatus))
         evidence("order1-completed", app: app)

@@ -11,30 +11,20 @@ final class StatusUITests: AdminUITestCase {
         waitFor(app, AdminID.detailZalo)
         waitFor(app, AdminID.detailNote)
         waitFor(app, AdminID.detailLastChanged)
-        waitFor(app, AdminID.detailConfirm)
+        waitFor(app, AdminID.orderProcess)
         shot("S-A4-new")
         app.swipeUp()
         shot("S-A4-new-scrolled")
     }
 
-    func testConfirmThenCompleteWithDialog() {
+    func testProcessMovesTheOrderToTheScheduleStep() {
         let app = launch(AdminLaunch.modeStaff)
         open(app, "BT-9D6R3T")
-        tap(app, AdminID.detailConfirm)
+        tap(app, AdminID.orderProcess)
         waitFor(app, AdminID.toast)
-        waitFor(app, AdminID.detailComplete)
-        absent(app, AdminID.detailConfirm)
+        waitFor(app, AdminID.orderSchedule)
+        absent(app, AdminID.orderProcess)
         shot("S-A4-confirmed-toast")
-        tap(app, AdminID.detailComplete)
-        waitFor(app, AdminID.detailCompleteYes)
-        shot("S-A4-complete-dialog")
-        tap(app, AdminID.detailCompleteBack)
-        waitFor(app, AdminID.detailComplete)
-        tap(app, AdminID.detailComplete)
-        tap(app, AdminID.detailCompleteYes)
-        absent(app, AdminID.detailComplete)
-        XCTAssertFalse(element(app, AdminID.detailCancel).exists, "completed orders have no action bar")
-        shot("S-A4-completed")
     }
 
     func testCancelNeedsAReasonAndShowsItAfterwards() {
@@ -60,9 +50,9 @@ final class StatusUITests: AdminUITestCase {
     func testConflictShowsTheCurrentStatusWithAWarning() {
         let app = launch(AdminLaunch.modeConflict)
         open(app, "BT-7K3M9Q")
-        tap(app, AdminID.detailConfirm)
+        tap(app, AdminID.orderProcess)
         waitFor(app, AdminID.detailConflict)
-        waitFor(app, AdminID.detailComplete)
+        waitFor(app, AdminID.orderSchedule)
         shot("S-A4-conflict")
     }
 

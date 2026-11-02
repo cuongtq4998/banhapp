@@ -1,4 +1,5 @@
 #if DEBUG
+import BanhCore
 import Foundation
 
 /// The fake shop of the UI tests; mirrors `contracts/fixtures/admin/orders-list.json` and `order-detail.json`
@@ -16,6 +17,12 @@ nonisolated enum StubOrderData {
         }
     }
 
+    /// Server today to today + 7, only while a date can still be set or changed.
+    static func range(for status: OrderStatus) -> DateRange? {
+        guard status == .processing || status == .deliveryDateScheduled, let today = ShopDay(serverDate) else { return nil }
+        return DateRange(min: today.wire, max: today.adding(days: 7).wire)
+    }
+
     private static func order(
         _ code: String, _ status: OrderStatus, _ name: String, _ date: String, _ start: String, _ end: String,
         cakes: Int, district: String, phone: String, note: String? = nil, reason: String? = nil
@@ -31,7 +38,7 @@ nonisolated enum StubOrderData {
             createdAt: "2026-10-31T03:15:09Z", customerPhone: phone, customerAddress: "1 Test Street", note: note,
             items: [OrderItem(productName: "Banh Mau", quantity: cakes, unitPriceVnd: unit, lineTotalVnd: line)],
             itemsSubtotalVnd: line, deliveryFeeVnd: fee, deliveryFeeEstimateVnd: fee, deliveryFeeFinalVnd: nil,
-            amountToCollectVnd: nil, deliveryFeeEntry: nil, cancelReason: reason, expectedDateRange: nil,
+            amountToCollectVnd: nil, deliveryFeeEntry: nil, cancelReason: reason, expectedDateRange: range(for: status),
             allowedActions: actions, dateChanges: [], feeCorrections: [],
             lastChange: LastChange(actorName: nil, at: "2026-10-31T03:15:09Z", kind: nil)
         )
@@ -57,18 +64,7 @@ nonisolated enum StubOrderData {
 
     /// The order after a status change by the fake staff member.
     static func changed(_ detail: OrderDetail, to status: OrderStatus, reason: CancelReason?) -> OrderDetail {
-        let actions = allowedActions(for: status)
-        return OrderDetail(
-            orderCode: detail.orderCode, status: status, customerName: detail.customerName, deliveryDate: detail.deliveryDate,
-            requestedDeliveryDate: detail.requestedDeliveryDate, expectedDeliveryDate: detail.expectedDeliveryDate,
-            listDate: detail.listDate, slot: detail.slot, totalCakes: detail.totalCakes, totalVnd: detail.totalVnd, districtName: detail.districtName,
-            createdAt: detail.createdAt, customerPhone: detail.customerPhone, customerAddress: detail.customerAddress,
-            note: detail.note, items: detail.items, itemsSubtotalVnd: detail.itemsSubtotalVnd,
-            deliveryFeeVnd: detail.deliveryFeeVnd, deliveryFeeEstimateVnd: detail.deliveryFeeEstimateVnd,
-            deliveryFeeFinalVnd: nil, amountToCollectVnd: nil, deliveryFeeEntry: nil, cancelReason: reason?.rawValue,
-            expectedDateRange: nil, allowedActions: actions, dateChanges: [], feeCorrections: [],
-            lastChange: LastChange(actorName: "Nhan Vien A", at: "2026-11-02T04:00:00Z", kind: "status")
-        )
+        rebuilt(detail, status: status, reason: reason?.rawValue)
     }
 
     static func summary(_ detail: OrderDetail) -> OrderSummary {
