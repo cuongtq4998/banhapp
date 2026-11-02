@@ -21,7 +21,7 @@ The shop sells traditional Vietnamese sticky-rice cakes (banh tet) on pre-order 
 ### Non-goals
 
 - Online payment and any payment text in the app; payment happens outside the app (Q-9, answered). [v1.1 | 2026-10-25]
-- Cancellation by the customer in the app (Admin Orders BR-16). Superseded 2026-11-02 once approved (Draft, 08): "Order tracking, status display" are now a proposed part of this feature (08). Until the owner approves 08, tracking and status display stay out. [v1.9 | 2026-11-02]
+- Cancellation by the customer in the app (Admin Orders BR-16). Superseded 2026-11-02 once approved (Draft, 08): "Order tracking, status display" are now part of this feature (08, approved by the owner 2026-11-02). Superseded text: "Until the owner approves 08, tracking and status display stay out." [v1.11 | 2026-11-02]
 - Customer accounts, login, order history.
 - Staff and owner features: login by phone with one-time code, order list and statuses (New, Confirmed, Completed, Cancelled), owner configuration of products, prices, districts and fees, daily limit, time slots, shop information, staff; push notifications.
 - Pickup at the shop (only delivery to the door is requested).
