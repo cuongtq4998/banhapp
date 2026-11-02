@@ -9,9 +9,11 @@ import java.time.LocalDate
 /** The status chips (FR-10). Exactly one is selected; the wire value is what `status=` takes (api/06 10.9). */
 enum class StatusFilter(val wire: String) {
     TODO("todo"),
-    NEW("New"),
-    CONFIRMED("Confirmed"),
-    COMPLETED("Completed"),
+    RECEIVED("Received"),
+    PROCESSING("Processing"),
+    SCHEDULED("DeliveryDateScheduled"),
+    DELIVERING("DeliveryStarted"),
+    FINISHED("Finished"),
     CANCELLED("Cancelled"),
     ALL("all"),
 }
@@ -46,5 +48,17 @@ interface OrdersApi {
 
     suspend fun detail(orderCode: String): OrderDetail
 
-    suspend fun changeStatus(orderCode: String, expected: OrderStatus, to: OrderStatus, reason: CancelReason?): StatusChange
+    /** [expectedDate] goes with DeliveryDateScheduled and [feeVnd] with DeliveryStarted; the server refuses extras elsewhere. */
+    suspend fun changeStatus(
+        orderCode: String,
+        expected: OrderStatus,
+        to: OrderStatus,
+        reason: CancelReason? = null,
+        expectedDate: String? = null,
+        feeVnd: Long? = null,
+    ): StatusChange
+
+    suspend fun changeExpectedDate(orderCode: String, previous: String, new: String): StatusChange
+
+    suspend fun correctFee(orderCode: String, previous: Long, new: Long): StatusChange
 }

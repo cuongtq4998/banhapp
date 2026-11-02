@@ -3,11 +3,14 @@ package app.banh.admin.orders
 import app.banh.admin.auth.SessionManager
 import app.banh.admin.auth.bearer
 import app.banh.core.model.CancelReason
+import app.banh.core.model.DateChangeRequest
+import app.banh.core.model.FeeChangeRequest
 import app.banh.core.model.OrderDetail
 import app.banh.core.model.OrderStatus
 import app.banh.core.model.OrdersPage
 import app.banh.core.model.StatusChangeRequest
 import app.banh.core.network.ApiClient
+import app.banh.core.network.ApiJson
 import app.banh.core.network.ApiException
 import app.banh.core.network.ErrorCodes
 
@@ -21,17 +24,41 @@ class HttpOrdersApi(private val client: ApiClient, private val session: SessionM
     override suspend fun detail(orderCode: String): OrderDetail =
         session.authorized { client.get("v1/admin/orders/$orderCode", OrderDetail.serializer(), headers = bearer(it)) }
 
-    override suspend fun changeStatus(orderCode: String, expected: OrderStatus, to: OrderStatus, reason: CancelReason?): StatusChange {
-        val body = StatusChangeRequest(expected, to, reason)
-        return try {
-            StatusChange.Changed(
-                session.authorized {
-                    client.post("v1/admin/orders/$orderCode/status", body, StatusChangeRequest.serializer(), OrderDetail.serializer(), bearer(it))
-                },
-            )
-        } catch (e: ApiException.Http) {
-            if (e.status == CONFLICT && e.code == ErrorCodes.ORDER_STATE_CHANGED) StatusChange.Conflict(currentOrderOf(e, client)) else throw e
+    override suspend fun changeStatus(
+        orderCode: String,
+        expected: OrderStatus,
+        to: OrderStatus,
+        reason: CancelReason?,
+        expectedDate: String?,
+        feeVnd: Long?,
+    ): StatusChange {
+        val body = StatusChangeRequest(expected, to, reason, expectedDate, feeVnd)
+        return conflictAware {
+            session.authorized {
+                client.post("v1/admin/orders/$orderCode/status", body, StatusChangeRequest.serializer(), OrderDetail.serializer(), bearer(it))
+            }
         }
+    }
+
+    override suspend fun changeExpectedDate(orderCode: String, previous: String, new: String): StatusChange {
+        val body = DateChangeRequest(OrderStatus.DeliveryDateScheduled, previous, new)
+        return put("v1/admin/orders/$orderCode/expected-delivery-date", ApiJson.encodeToString(DateChangeRequest.serializer(), body))
+    }
+
+    override suspend fun correctFee(orderCode: String, previous: Long, new: Long): StatusChange {
+        val body = FeeChangeRequest(OrderStatus.DeliveryStarted, previous, new)
+        return put("v1/admin/orders/$orderCode/delivery-fee", ApiJson.encodeToString(FeeChangeRequest.serializer(), body))
+    }
+
+    private suspend fun put(path: String, jsonBody: String): StatusChange = conflictAware {
+        val response = session.authorized { client.execute("PUT", path, jsonBody = jsonBody, headers = bearer(it)) }
+        client.decode(response, OrderDetail.serializer())
+    }
+
+    private suspend fun conflictAware(call: suspend () -> OrderDetail): StatusChange = try {
+        StatusChange.Changed(call())
+    } catch (e: ApiException.Http) {
+        if (e.status == CONFLICT && e.code == ErrorCodes.ORDER_STATE_CHANGED) StatusChange.Conflict(currentOrderOf(e, client)) else throw e
     }
 }
 

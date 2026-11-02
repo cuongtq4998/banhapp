@@ -12,9 +12,6 @@
     <string name="a_offline_save">Không có kết nối mạng. Chưa lưu được.</string>
     <string name="a_offline_signout">Không có mạng. Đã đăng xuất trên máy này.</string>
     <string name="a_session_ended">Phiên đăng nhập đã hết. Vui lòng đăng nhập lại.</string>
-    <string name="a_status_new">Mới</string>
-    <string name="a_status_confirmed">Đã xác nhận</string>
-    <string name="a_status_completed">Đã hoàn thành</string>
     <string name="a_status_cancelled">Đã hủy</string>
     <string name="a_sign_out">Đăng xuất</string>
     <string name="a_signout_title">Đăng xuất?</string>

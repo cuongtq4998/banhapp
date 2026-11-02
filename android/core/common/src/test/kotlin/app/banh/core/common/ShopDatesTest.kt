@@ -8,14 +8,14 @@ import org.junit.Test
 class ShopDatesTest {
     @Test
     fun openOrderDueTodayAndOverdueUseTheServerDate() {
-        assertEquals(DueMark.Today, dueMarkOf(OrderStatus.New, "2026-11-02", "2026-11-02"))
-        assertEquals(DueMark.Overdue(2), dueMarkOf(OrderStatus.Confirmed, "2026-10-31", "2026-11-02"))
-        assertNull(dueMarkOf(OrderStatus.New, "2026-11-03", "2026-11-02"))
+        assertEquals(DueMark.Today, dueMarkOf(OrderStatus.Received, "2026-11-02", "2026-11-02"))
+        assertEquals(DueMark.Overdue(2), dueMarkOf(OrderStatus.Processing, "2026-10-31", "2026-11-02"))
+        assertNull(dueMarkOf(OrderStatus.Received, "2026-11-03", "2026-11-02"))
     }
 
     @Test
     fun finishedOrdersNeverShowAMark() {
-        assertNull(dueMarkOf(OrderStatus.Completed, "2026-10-01", "2026-11-02"))
+        assertNull(dueMarkOf(OrderStatus.Finished, "2026-10-01", "2026-11-02"))
         assertNull(dueMarkOf(OrderStatus.Cancelled, "2026-11-02", "2026-11-02"))
     }
 

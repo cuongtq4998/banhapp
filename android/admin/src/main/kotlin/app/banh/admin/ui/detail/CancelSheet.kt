@@ -35,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import app.banh.admin.R
 import app.banh.admin.orderdetail.BusyAction
+import app.banh.admin.orderdetail.DetailSheet
 import app.banh.admin.orderdetail.DetailBanner
 import app.banh.admin.orderdetail.OrderDetailIntent
 import app.banh.admin.orderdetail.OrderDetailState
@@ -56,7 +57,7 @@ import androidx.compose.ui.res.painterResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CancelSheet(state: OrderDetailState, dispatch: (OrderDetailIntent) -> Unit) {
-    ModalBottomSheet(onDismissRequest = { dispatch(OrderDetailIntent.CancelBack) }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    ModalBottomSheet(onDismissRequest = { dispatch(OrderDetailIntent.SheetBack) }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.fillMaxHeight()) {
             Column(
                 modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Spacing.screenMargin),
@@ -64,7 +65,7 @@ fun CancelSheet(state: OrderDetailState, dispatch: (OrderDetailIntent) -> Unit) 
             ) {
                 Text(stringResource(R.string.a_cancel_title), style = MaterialTheme.typography.titleLarge)
                 Text(stringResource(R.string.a_cancel_body, state.orderCode), style = MaterialTheme.typography.bodyLarge)
-                CancelReason.entries.forEach { ReasonRow(it, it == state.reason, state.busy == null) { dispatch(OrderDetailIntent.SelectReason(it)) } }
+                CancelReason.entries.forEach { ReasonRow(it, it == (state.sheet as? DetailSheet.Cancel)?.reason, state.busy == null) { dispatch(OrderDetailIntent.SelectReason(it)) } }
                 Text(stringResource(R.string.a_reason_internal), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Column(
@@ -74,15 +75,15 @@ fun CancelSheet(state: OrderDetailState, dispatch: (OrderDetailIntent) -> Unit) 
                 SheetError(state.banner)
                 PrimaryButton(
                     text = stringResource(R.string.a_cancel_confirm, state.orderCode),
-                    onClick = { dispatch(OrderDetailIntent.CancelConfirm) },
-                    enabled = state.reason != null && state.busy == null,
+                    onClick = { dispatch(OrderDetailIntent.Submit) },
+                    enabled = (state.sheet as? DetailSheet.Cancel)?.reason != null && state.busy == null,
                     loading = state.busy == BusyAction.CANCEL,
                     destructive = true,
                     modifier = Modifier.testTag(AdminTags.CANCEL_CONFIRM),
                 )
                 SecondaryButton(
                     text = stringResource(R.string.a_back),
-                    onClick = { dispatch(OrderDetailIntent.CancelBack) },
+                    onClick = { dispatch(OrderDetailIntent.SheetBack) },
                     enabled = state.busy == null,
                     modifier = Modifier.testTag(AdminTags.CANCEL_BACK),
                 )

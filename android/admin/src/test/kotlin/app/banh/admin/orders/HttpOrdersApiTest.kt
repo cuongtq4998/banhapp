@@ -38,10 +38,10 @@ class HttpOrdersApiTest {
     @Test
     fun listSendsTheFilterTheSearchAndTheBearerToken() = runTest {
         session.restore()
-        val page = api.list(OrdersQuery(StatusFilter.NEW, DateFilter.One(LocalDate.parse("2026-11-03")), "tran"), cursor = "c1")
+        val page = api.list(OrdersQuery(StatusFilter.RECEIVED, DateFilter.One(LocalDate.parse("2026-11-03")), "tran"), cursor = "c1")
 
         val url = requests.last().url
-        assertEquals("New", url.queryParameter("status"))
+        assertEquals("Received", url.queryParameter("status"))
         assertEquals("2026-11-03", url.queryParameter("delivery_date"))
         assertEquals("tran", url.queryParameter("q"))
         assertEquals("c1", url.queryParameter("cursor"))
@@ -60,10 +60,10 @@ class HttpOrdersApiTest {
         session.restore()
         answer = 409 to Fixtures.text("error-order-state-changed")
 
-        val result = api.changeStatus("BT-7K3M9Q", OrderStatus.New, OrderStatus.Confirmed, null)
+        val result = api.changeStatus("BT-7K3M9Q", OrderStatus.Received, OrderStatus.Processing, null)
 
         assertTrue(result is StatusChange.Conflict)
-        assertEquals(OrderStatus.Confirmed, (result as StatusChange.Conflict).current.status)
+        assertEquals(OrderStatus.Processing, (result as StatusChange.Conflict).current.status)
     }
 
     @Test
@@ -71,12 +71,12 @@ class HttpOrdersApiTest {
         session.restore()
         answer = 200 to Fixtures.body("order-status-change")
 
-        val result = api.changeStatus("BT-7K3M9Q", OrderStatus.New, OrderStatus.Cancelled, CancelReason.CUSTOMER_ASKED)
+        val result = api.changeStatus("BT-7K3M9Q", OrderStatus.Received, OrderStatus.Cancelled, CancelReason.CUSTOMER_ASKED)
 
         val sent = requests.last()
         assertEquals("POST", sent.method)
         val buffer = okio.Buffer().also { sent.body!!.writeTo(it) }.readUtf8()
-        assertTrue(buffer.contains("\"expected_status\":\"New\""))
+        assertTrue(buffer.contains("\"expected_status\":\"Received\""))
         assertTrue(buffer.contains("\"cancel_reason\":\"customer_asked\""))
         assertEquals(OrderStatus.Cancelled, (result as StatusChange.Changed).detail.status)
     }

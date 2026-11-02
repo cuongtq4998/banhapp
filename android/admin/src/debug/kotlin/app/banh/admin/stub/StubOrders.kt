@@ -18,12 +18,12 @@ internal class StubOrders(template: OrderDetail, private val serverDate: String)
     private var conflictPlanned = true
 
     init {
-        val actor = LastChange("Nhan Vien A", "2026-11-01T04:00:00Z")
+        val actor = LastChange("Nhan Vien A", "2026-11-01T04:00:00Z", "status")
         listOf(
             template,
-            template.copy(orderCode = "BT-2H4N8R", status = OrderStatus.Confirmed, customerName = "Le Van C", deliveryDate = "2026-11-01", districtName = "Quan Binh Thanh", allowedActions = actions(OrderStatus.Confirmed), lastChange = actor),
+            template.copy(orderCode = "BT-2H4N8R", status = OrderStatus.Processing, customerName = "Le Van C", deliveryDate = "2026-11-01", districtName = "Quan Binh Thanh", allowedActions = actions(OrderStatus.Processing), lastChange = actor),
             template.copy(orderCode = CONFLICT_CODE, customerName = "Pham Thi D", deliveryDate = "2026-11-04", note = null),
-            template.copy(orderCode = "BT-6P2W7X", status = OrderStatus.Completed, customerName = "Nguyen Van E", deliveryDate = "2026-10-30", allowedActions = emptyList(), lastChange = actor),
+            template.copy(orderCode = "BT-6P2W7X", status = OrderStatus.Finished, customerName = "Nguyen Van E", deliveryDate = "2026-10-30", allowedActions = emptyList(), lastChange = actor),
             template.copy(orderCode = "BT-4M8K2J", status = OrderStatus.Cancelled, customerName = "Do Thi F", deliveryDate = "2026-10-29", cancelReason = CancelReason.CUSTOMER_ASKED, allowedActions = emptyList(), lastChange = actor),
         ).forEach { orders[it.orderCode] = it }
     }
@@ -46,7 +46,7 @@ internal class StubOrders(template: OrderDetail, private val serverDate: String)
         var current = orders[code] ?: return Change.NotFound
         if (code == CONFLICT_CODE && conflictPlanned) {
             conflictPlanned = false
-            current = settle(current, OrderStatus.Confirmed, null, "Nhan Vien A").also { orders[code] = it }
+            current = settle(current, OrderStatus.Processing, null, "Nhan Vien A").also { orders[code] = it }
         }
         if (current.status != expected) return Change.Conflict(current)
         if (to !in allowedTargets(current.status)) return Change.Invalid(current.status)
@@ -58,14 +58,14 @@ internal class StubOrders(template: OrderDetail, private val serverDate: String)
         status = to,
         cancelReason = reason,
         allowedActions = actions(to),
-        lastChange = LastChange(actor, "2026-11-02T04:00:00Z"),
+        lastChange = LastChange(actor, "2026-11-02T04:00:00Z", "status"),
     )
 
     private fun matches(order: OrderDetail, status: String, query: Map<String, String>): Boolean {
         val statusOk = when (status) {
             "todo" -> order.status.isOpen
             "all" -> true
-            else -> order.status.name == status
+            else -> order.status.wire == status
         }
         val date = LocalDate.parse(serverDate)
         val dateOk = when {
@@ -79,7 +79,7 @@ internal class StubOrders(template: OrderDetail, private val serverDate: String)
         return statusOk && dateOk && textOk
     }
 
-    private fun summary(d: OrderDetail) = OrderSummary(d.orderCode, d.status, d.customerName, d.deliveryDate, d.slot, d.totalCakes, d.totalVnd, d.districtName, d.createdAt)
+    private fun summary(d: OrderDetail) = OrderSummary(d.orderCode, d.status, d.customerName, d.deliveryDate, d.expectedDeliveryDate, d.listDate ?: d.deliveryDate, d.slot, d.totalCakes, d.totalVnd, d.districtName, d.createdAt)
 
     sealed interface Change {
         data object NotFound : Change
@@ -95,13 +95,13 @@ internal class StubOrders(template: OrderDetail, private val serverDate: String)
 }
 
 private fun allowedTargets(status: OrderStatus): List<OrderStatus> = when (status) {
-    OrderStatus.New -> listOf(OrderStatus.Confirmed, OrderStatus.Cancelled)
-    OrderStatus.Confirmed -> listOf(OrderStatus.Completed, OrderStatus.Cancelled)
+    OrderStatus.Received -> listOf(OrderStatus.Processing, OrderStatus.Cancelled)
+    OrderStatus.Processing -> listOf(OrderStatus.Finished, OrderStatus.Cancelled)
     else -> emptyList()
 }
 
 private fun actions(status: OrderStatus): List<OrderAction> = when (status) {
-    OrderStatus.New -> listOf(OrderAction.CONFIRM, OrderAction.CANCEL)
-    OrderStatus.Confirmed -> listOf(OrderAction.COMPLETE, OrderAction.CANCEL)
+    OrderStatus.Received -> listOf(OrderAction.CANCEL, OrderAction.PROCESS)
+    OrderStatus.Processing -> listOf(OrderAction.CANCEL, OrderAction.FINISH)
     else -> emptyList()
 }

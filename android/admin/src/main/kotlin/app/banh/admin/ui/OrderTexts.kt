@@ -8,17 +8,21 @@ import app.banh.core.model.CancelReason
 import app.banh.core.model.OrderStatus
 
 fun OrderStatus.textRes(): Int = when (this) {
-    OrderStatus.New -> R.string.a_status_new
-    OrderStatus.Confirmed -> R.string.a_status_confirmed
-    OrderStatus.Completed -> R.string.a_status_completed
+    OrderStatus.Received -> R.string.a_status_received
+    OrderStatus.Processing -> R.string.a_status_processing
+    OrderStatus.DeliveryDateScheduled -> R.string.a_status_scheduled
+    OrderStatus.DeliveryStarted -> R.string.a_status_delivering
+    OrderStatus.Finished -> R.string.a_status_finished
     OrderStatus.Cancelled -> R.string.a_status_cancelled
+    is OrderStatus.Unknown -> R.string.a_status_unknown
 }
 
+// Tones: the screens slice may add dedicated ones; the existing four keep the badge colours meaningful meanwhile.
 fun OrderStatus.tone(): BadgeTone = when (this) {
-    OrderStatus.New -> BadgeTone.NEW
-    OrderStatus.Confirmed -> BadgeTone.CONFIRMED
-    OrderStatus.Completed -> BadgeTone.COMPLETED
-    OrderStatus.Cancelled -> BadgeTone.CANCELLED
+    OrderStatus.Received -> BadgeTone.NEW
+    OrderStatus.Processing, OrderStatus.DeliveryDateScheduled, OrderStatus.DeliveryStarted -> BadgeTone.CONFIRMED
+    OrderStatus.Finished -> BadgeTone.COMPLETED
+    OrderStatus.Cancelled, is OrderStatus.Unknown -> BadgeTone.CANCELLED
 }
 
 fun CancelReason.textRes(): Int = when (this) {

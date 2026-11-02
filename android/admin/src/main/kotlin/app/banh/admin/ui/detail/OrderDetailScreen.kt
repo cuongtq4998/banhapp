@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.banh.admin.R
 import app.banh.admin.orderdetail.DetailPhase
+import app.banh.admin.orderdetail.DetailSheet
 import app.banh.admin.orderdetail.OrderDetailIntent
 import app.banh.admin.orderdetail.OrderDetailState
 import app.banh.admin.ui.AdminTags
@@ -65,13 +66,13 @@ fun OrderDetailScreen(
             Column(Modifier.fillMaxSize().padding(padding)) { Body(state, serverDate, dispatch, onBack, onCall, onZalo) }
         }
         AdminToast(
-            message = if (state.statusToast) stringResource(R.string.a_status_changed) else null,
+            message = if (state.toast) stringResource(R.string.a_status_changed) else null,
             onShown = { dispatch(OrderDetailIntent.ToastShown) },
             haptic = HapticFeedbackType.Confirm,
         )
     }
-    if (state.completeDialog) CompleteDialog(state.orderCode, dispatch)
-    if (state.cancelSheet) CancelSheet(state, dispatch)
+    if (state.sheet == DetailSheet.FinishDialog) CompleteDialog(state.orderCode, dispatch)
+    if (state.sheet is DetailSheet.Cancel) CancelSheet(state, dispatch)
 }
 
 @Composable

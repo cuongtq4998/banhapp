@@ -37,18 +37,22 @@ import app.banh.core.design.Spacing
 
 private fun StatusFilter.labelRes(): Int = when (this) {
     StatusFilter.TODO -> R.string.a_filter_todo
-    StatusFilter.NEW -> R.string.a_status_new
-    StatusFilter.CONFIRMED -> R.string.a_status_confirmed
-    StatusFilter.COMPLETED -> R.string.a_status_completed
+    StatusFilter.RECEIVED -> R.string.a_status_received
+    StatusFilter.PROCESSING -> R.string.a_status_processing
+    StatusFilter.SCHEDULED -> R.string.a_status_scheduled
+    StatusFilter.DELIVERING -> R.string.a_status_delivering
+    StatusFilter.FINISHED -> R.string.a_status_finished
     StatusFilter.CANCELLED -> R.string.a_status_cancelled
     StatusFilter.ALL -> R.string.a_filter_all
 }
 
 private fun StatusFilter.tag(): String = when (this) {
     StatusFilter.TODO -> AdminTags.FILTER_TODO
-    StatusFilter.NEW -> AdminTags.FILTER_NEW
-    StatusFilter.CONFIRMED -> AdminTags.FILTER_CONFIRMED
-    StatusFilter.COMPLETED -> AdminTags.FILTER_COMPLETED
+    StatusFilter.RECEIVED -> AdminTags.FILTER_NEW
+    StatusFilter.PROCESSING -> AdminTags.FILTER_CONFIRMED
+    StatusFilter.SCHEDULED -> AdminTags.FILTER_SCHEDULED
+    StatusFilter.DELIVERING -> AdminTags.FILTER_DELIVERING
+    StatusFilter.FINISHED -> AdminTags.FILTER_COMPLETED
     StatusFilter.CANCELLED -> AdminTags.FILTER_CANCELLED
     StatusFilter.ALL -> AdminTags.FILTER_ALL
 }

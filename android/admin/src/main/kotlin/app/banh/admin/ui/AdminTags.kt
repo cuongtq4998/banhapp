@@ -20,6 +20,8 @@ object AdminTags {
     const val FILTER_NEW = "admin.orders.filter.new"
     const val FILTER_CONFIRMED = "admin.orders.filter.confirmed"
     const val FILTER_COMPLETED = "admin.orders.filter.completed"
+    const val FILTER_SCHEDULED = "admin.orders.filter.scheduled"
+    const val FILTER_DELIVERING = "admin.orders.filter.delivering"
     const val FILTER_CANCELLED = "admin.orders.filter.cancelled"
     const val FILTER_ALL = "admin.orders.filter.all"
     const val FILTER_DATE = "admin.orders.filter.date"

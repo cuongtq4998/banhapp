@@ -7,6 +7,7 @@ import app.banh.admin.orders.StatusChange
 import app.banh.admin.testing.Fixtures
 import app.banh.admin.testing.httpError
 import app.banh.core.model.CancelReason
+import app.banh.core.model.OrderAction
 import app.banh.core.model.OrderDetail
 import app.banh.core.model.OrderStatus
 import app.banh.core.model.OrdersPage
@@ -25,8 +26,8 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class OrderDetailViewModelTest {
-    private val new = Json { ignoreUnknownKeys = true }.decodeFromString<OrderDetail>(Fixtures.body("order-detail"))
-    private var changeResult: () -> StatusChange = { StatusChange.Changed(new.copy(status = OrderStatus.Confirmed)) }
+    private val new = Json { ignoreUnknownKeys = true }.decodeFromString<OrderDetail>(Fixtures.body("order-detail-received"))
+    private var changeResult: () -> StatusChange = { StatusChange.Changed(new.copy(status = OrderStatus.Processing)) }
     private var detailResult: () -> OrderDetail = { new }
     private val calls = mutableListOf<Triple<OrderStatus, OrderStatus, CancelReason?>>()
     private val changes = OrderChanges()
@@ -36,10 +37,21 @@ class OrderDetailViewModelTest {
 
         override suspend fun detail(orderCode: String) = detailResult()
 
-        override suspend fun changeStatus(orderCode: String, expected: OrderStatus, to: OrderStatus, reason: CancelReason?): StatusChange {
+        override suspend fun changeStatus(
+            orderCode: String,
+            expected: OrderStatus,
+            to: OrderStatus,
+            reason: CancelReason?,
+            expectedDate: String?,
+            feeVnd: Long?,
+        ): StatusChange {
             calls += Triple(expected, to, reason)
             return changeResult()
         }
+
+        override suspend fun changeExpectedDate(orderCode: String, previous: String, new: String): StatusChange = changeResult()
+
+        override suspend fun correctFee(orderCode: String, previous: Long, new: Long): StatusChange = changeResult()
     }
 
     @Before fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -49,23 +61,23 @@ class OrderDetailViewModelTest {
     @Test
     fun confirmSendsTheStatusTheScreenShowsAndNotifiesTheList() {
         val model = OrderDetailViewModel(new.orderCode, api, changes)
-        model.dispatch(OrderDetailIntent.TapConfirm)
+        model.dispatch(OrderDetailIntent.Tap(OrderAction.PROCESS))
 
-        assertEquals(listOf(Triple(OrderStatus.New, OrderStatus.Confirmed, null)), calls)
-        assertEquals(OrderStatus.Confirmed, model.state.value.detail?.status)
+        assertEquals(listOf(Triple(OrderStatus.Received, OrderStatus.Processing, null)), calls)
+        assertEquals(OrderStatus.Processing, model.state.value.detail?.status)
         assertEquals(1, changes.version.value)
     }
 
     @Test
     fun conflictShowsTheCurrentStatusAndNotAnError() {
-        changeResult = { StatusChange.Conflict(new.copy(status = OrderStatus.Confirmed)) }
+        changeResult = { StatusChange.Conflict(new.copy(status = OrderStatus.Processing)) }
         val model = OrderDetailViewModel(new.orderCode, api, changes)
-        model.dispatch(OrderDetailIntent.TapCancel)
+        model.dispatch(OrderDetailIntent.Tap(OrderAction.CANCEL))
         model.dispatch(OrderDetailIntent.SelectReason(CancelReason.CUSTOMER_ASKED))
-        model.dispatch(OrderDetailIntent.CancelConfirm)
+        model.dispatch(OrderDetailIntent.Submit)
 
-        assertEquals(DetailBanner.Conflict(OrderStatus.Confirmed), model.state.value.banner)
-        assertEquals(false, model.state.value.cancelSheet)
+        assertEquals(DetailBanner.Conflict(OrderStatus.Processing), model.state.value.banner)
+        assertNull(model.state.value.sheet)
         assertEquals(CancelReason.CUSTOMER_ASKED, calls.single().third)
     }
 
@@ -83,7 +95,7 @@ class OrderDetailViewModelTest {
         detailResult = { new }
         changeResult = { throw app.banh.admin.testing.offline() }
         val model = OrderDetailViewModel(new.orderCode, api, changes)
-        model.dispatch(OrderDetailIntent.TapConfirm)
+        model.dispatch(OrderDetailIntent.Tap(OrderAction.PROCESS))
         assertEquals(DetailBanner.ActionOffline, model.state.value.banner)
         assertNull(model.state.value.busy)
     }

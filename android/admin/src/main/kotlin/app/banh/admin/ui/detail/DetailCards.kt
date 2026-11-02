@@ -53,7 +53,7 @@ fun CustomerCard(order: OrderDetail, onCall: () -> Unit, onZalo: () -> Unit) {
 @Composable
 fun DeliveryCard(order: OrderDetail, serverDate: String?) {
     val context = LocalContext.current
-    val due = serverDate?.let { dueMarkOf(order.status, order.deliveryDate, it) }
+    val due = serverDate?.let { dueMarkOf(order.status, order.listDate ?: order.deliveryDate, it) }
     GlassCard(Modifier.fillMaxWidth().testTag(AdminTags.DETAIL_DELIVERY)) {
         SectionLabel(R.string.a_sec_delivery)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs), itemVerticalAlignment = Alignment.CenterVertically) {

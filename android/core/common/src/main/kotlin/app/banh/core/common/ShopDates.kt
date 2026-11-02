@@ -47,9 +47,9 @@ sealed interface DueMark {
  * Computed from the order's date and the server date of the same answer, never from the device clock (TQ-D8).
  * Completed and Cancelled orders never show a mark (AC-16).
  */
-fun dueMarkOf(status: OrderStatus, deliveryDate: String, serverDate: String): DueMark? {
+fun dueMarkOf(status: OrderStatus, listDate: String, serverDate: String): DueMark? {
     if (!status.isOpen) return null
-    val days = ChronoUnit.DAYS.between(parseShopDate(deliveryDate), parseShopDate(serverDate))
+    val days = ChronoUnit.DAYS.between(parseShopDate(listDate), parseShopDate(serverDate))
     return when {
         days < 0 -> null
         days == 0L -> DueMark.Today

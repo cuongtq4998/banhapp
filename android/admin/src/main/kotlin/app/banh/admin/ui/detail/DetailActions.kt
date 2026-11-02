@@ -13,6 +13,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import app.banh.admin.R
 import app.banh.admin.orderdetail.BusyAction
+import app.banh.admin.orderdetail.DetailSheet
+import app.banh.core.model.OrderAction
 import app.banh.admin.orderdetail.DetailBanner
 import app.banh.admin.orderdetail.OrderDetailIntent
 import app.banh.admin.orderdetail.OrderDetailState
@@ -34,25 +36,25 @@ fun DetailActionBar(state: OrderDetailState, dispatch: (OrderDetailIntent) -> Un
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
             SecondaryButton(
                 text = stringResource(R.string.a_cancel_order),
-                onClick = { dispatch(OrderDetailIntent.TapCancel) },
+                onClick = { dispatch(OrderDetailIntent.Tap(OrderAction.CANCEL)) },
                 enabled = state.busy == null,
                 destructive = true,
                 modifier = Modifier.weight(1f).testTag(AdminTags.DETAIL_CANCEL),
             )
-            if (state.canConfirm) {
+            if (state.allows(OrderAction.PROCESS)) {
                 PrimaryButton(
                     text = stringResource(R.string.a_confirm_order),
-                    onClick = { dispatch(OrderDetailIntent.TapConfirm) },
+                    onClick = { dispatch(OrderDetailIntent.Tap(OrderAction.PROCESS)) },
                     enabled = state.busy == null,
-                    loading = state.busy == BusyAction.CONFIRM,
+                    loading = state.busy == BusyAction.PROCESS,
                     modifier = Modifier.weight(1f).testTag(AdminTags.DETAIL_CONFIRM),
                 )
             } else {
                 PrimaryButton(
                     text = stringResource(R.string.a_complete_order),
-                    onClick = { dispatch(OrderDetailIntent.TapComplete) },
+                    onClick = { dispatch(OrderDetailIntent.Tap(OrderAction.FINISH)) },
                     enabled = state.busy == null,
-                    loading = state.busy == BusyAction.COMPLETE,
+                    loading = state.busy == BusyAction.FINISH,
                     modifier = Modifier.weight(1f).testTag(AdminTags.DETAIL_COMPLETE),
                 )
             }
@@ -67,7 +69,7 @@ fun DetailBannerView(banner: DetailBanner?, modifier: Modifier = Modifier) {
     when (banner) {
         is DetailBanner.Conflict ->
             WarningMessageView(stringResource(R.string.a_conflict, stringResource(banner.status.textRes())), icon, modifier.testTag(AdminTags.DETAIL_CONFLICT))
-        DetailBanner.ActionError -> ErrorMessageView(stringResource(R.string.a_err_status), icon, modifier.testTag(AdminTags.DETAIL_ERROR))
+        is DetailBanner.Rule, DetailBanner.ActionError -> ErrorMessageView(stringResource(R.string.a_err_status), icon, modifier.testTag(AdminTags.DETAIL_ERROR))
         DetailBanner.ActionOffline -> ErrorMessageView(stringResource(R.string.a_offline_save), icon, modifier.testTag(AdminTags.DETAIL_ERROR))
         null -> Unit
     }
@@ -77,14 +79,14 @@ fun DetailBannerView(banner: DetailBanner?, modifier: Modifier = Modifier) {
 @Composable
 fun CompleteDialog(code: String, dispatch: (OrderDetailIntent) -> Unit) {
     AlertDialog(
-        onDismissRequest = { dispatch(OrderDetailIntent.CompleteBack) },
+        onDismissRequest = { dispatch(OrderDetailIntent.SheetBack) },
         title = { Text(stringResource(R.string.a_complete_title, code)) },
         text = { Text(stringResource(R.string.a_complete_body)) },
         confirmButton = {
-            TextButton(onClick = { dispatch(OrderDetailIntent.CompleteYes) }, modifier = Modifier.testTag(AdminTags.DETAIL_COMPLETE_YES)) { Text(stringResource(R.string.a_complete_yes)) }
+            TextButton(onClick = { dispatch(OrderDetailIntent.FinishYes) }, modifier = Modifier.testTag(AdminTags.DETAIL_COMPLETE_YES)) { Text(stringResource(R.string.a_complete_yes)) }
         },
         dismissButton = {
-            TextButton(onClick = { dispatch(OrderDetailIntent.CompleteBack) }, modifier = Modifier.testTag(AdminTags.DETAIL_COMPLETE_BACK)) { Text(stringResource(R.string.a_back)) }
+            TextButton(onClick = { dispatch(OrderDetailIntent.SheetBack) }, modifier = Modifier.testTag(AdminTags.DETAIL_COMPLETE_BACK)) { Text(stringResource(R.string.a_back)) }
         },
     )
 }

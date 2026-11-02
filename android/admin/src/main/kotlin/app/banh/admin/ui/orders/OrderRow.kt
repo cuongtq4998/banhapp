@@ -43,7 +43,7 @@ import app.banh.core.model.OrderSummary
 fun OrderRow(order: OrderSummary, serverDate: String?, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val hint = stringResource(R.string.a_row_hint_a11y)
-    val due = serverDate?.let { dueMarkOf(order.status, order.deliveryDate, it) }
+    val due = serverDate?.let { dueMarkOf(order.status, order.listDate, it) }
     GlassCard(
         onClick = onClick,
         modifier = modifier.fillMaxWidth().testTag(AdminTags.orderRow(order.orderCode)).semantics(mergeDescendants = true) { onClick(label = hint) { false } },

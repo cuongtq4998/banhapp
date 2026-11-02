@@ -12,7 +12,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class OrderListReducerTest {
-    private fun row(code: String) = OrderSummary(code, OrderStatus.New, "A", "2026-11-02", Slot("08:00", "10:00"), 1, 1, "D", "2026-10-31T03:15:09Z")
+    private fun row(code: String) = OrderSummary(code, OrderStatus.Received, "A", "2026-11-02", null, "2026-11-02", Slot("08:00", "10:00"), 1, 1, "D", "2026-10-31T03:15:09Z")
     private fun page(vararg codes: String, next: String? = null, unfinished: Int = 3) = OrdersPage(codes.map(::row), next, unfinished, "2026-11-02")
     private fun run(state: OrderListState = OrderListState(), vararg intents: OrderListIntent) = intents.fold(state, ::reduceOrderList)
 
@@ -43,7 +43,7 @@ class OrderListReducerTest {
 
     @Test
     fun staleAnswersAreIgnored() {
-        val s = run(intents = arrayOf(OrderListIntent.SelectFilter(StatusFilter.NEW)))
+        val s = run(intents = arrayOf(OrderListIntent.SelectFilter(StatusFilter.RECEIVED)))
         val stale = reduceOrderList(s, OrderListIntent.Loaded(seq = s.seq - 1, page = page("BT-1"), append = false))
         assertEquals(s, stale)
     }
