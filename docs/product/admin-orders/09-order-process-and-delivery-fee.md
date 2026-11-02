@@ -1,6 +1,8 @@
 # Admin Orders: Order Process and Delivery Fee Change (section 16)
 
-Part of [Admin Orders](../admin-orders.md) (PRD v1.9). Holds: the owner input of 2026-11-02, the new simple order process, the conflicts with earlier owner decisions, and the impact for other agents. New in v1.9 [v1.9 | 2026-11-02]. No existing FR, BR or AC text was rewritten: the old text stays in force until the owner answers the questions in 12.1 (Q-30 to Q-36). [v1.9 | 2026-11-02]
+Part of [Admin Orders](../admin-orders.md) (PRD v1.10). Holds: the owner input of 2026-11-02, the new simple order process, the conflicts with earlier owner decisions (all closed in v1.10), and the impact for other agents. New in v1.9 [v1.9 | 2026-11-02]. On 2026-11-02 the owner answered Q-30 to Q-34 and the affected FR, BR and AC were rewritten in place (old wording marked "Superseded 2026-11-02"); Q-35 and Q-36 are assumptions to confirm; new Q-37 and Q-38 are open and non-blocking (07). [v1.10 | 2026-11-02]
+
+Status of conflicts [v1.10 | 2026-11-02]: C-1 to C-8 are all Resolved 2026-11-02. C-1 and C-6: customer sees an estimate and the cakes total; real fee at handover (Q-30, Q-31; BR-15, PO BR-3, PO BR-5, PO FR-9, PO AC-11, PO AC-14). C-2 and C-3: district fee is an estimate, real fee per order, 0 allowed (Q-33; BR-11, FR-23, FR-29, AC-37, AC-40, AC-41, AC-50). C-4 and C-5: six steps, cancel only through Processing, Finished only after Delivery started (Q-32, Q-34; BR-2, BR-8, FR-16 to FR-19, AC-26 to AC-29). C-7: the customer date stays as the requested date and holds capacity, the expected date is information only (Q-36 assumed; BR-15, FR-28, AC-49). C-8: all open steps are unfinished (Q-36 assumed; BR-9, FR-13, AC-52). The tables below keep the original wording as history.
 
 ## 16. Owner input of 2026-11-02
 
@@ -31,7 +33,7 @@ Mapping assumed until answered (recommendation, not a decision): Received = New;
 
 ### 16.3 Existing items changed or contradicted
 
-Statuses: New, Confirmed, Completed, Cancelled (BR-2, FR-14, FR-16 to FR-19, PO overview line 26) would grow by three steps. ACs touched: AC-26 to AC-29, AC-37, AC-40, AC-41, AC-48 (Delivery entry), AC-11 and AC-14 (PO). Screens touched: A1 to A4 reference screens (list, detail, status actions, Delivery settings), customer address step, review and confirmation screens. Nothing is changed in the documents above yet. [v1.9 | 2026-11-02]
+Statuses: New, Confirmed, Completed, Cancelled (BR-2, FR-14, FR-16 to FR-19, PO overview line 26) would grow by three steps. ACs touched: AC-26 to AC-29, AC-37, AC-40, AC-41, AC-48 (Delivery entry), AC-11 and AC-14 (PO). Screens touched: A1 to A4 reference screens (list, detail, status actions, Delivery settings), customer address step, review and confirmation screens. All of the above were rewritten in v1.10 [v1.10 | 2026-11-02]; AC-48 (Settings entries) needs no change.
 
 ### 16.4 Impact for other agents (they write their own documents)
 
