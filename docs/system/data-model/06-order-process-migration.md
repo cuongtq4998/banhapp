@@ -1,6 +1,6 @@
 # Data Model: order process columns and migration 0008
 
-Part of [data-model.md](../data-model.md). Version 1.4 [v1.4 | 2026-11-02]. Traces: BR-2, BR-9, BR-11, BR-15, BR-17, FR-28 to FR-30, AC-49 to AC-53; ADR-0033.
+Part of [data-model.md](../data-model.md). Version 1.5 [v1.5 | 2026-11-02]. Traces: BR-2, BR-9, BR-11, BR-15, BR-17, FR-28 to FR-30, AC-49 to AC-53; ADR-0033.
 
 ## 1. New columns on `customer_order` [v1.0 | 2026-11-02]
 
@@ -100,10 +100,15 @@ Confirmed against `backend/db/migrations/0008_order_process.sql` (forge-dev):
 - (e) The immutable function is the binding rule, stricter than section 6 text before v1.3: `delivery_fee_final_vnd` changes only on the status change `DeliveryDateScheduled` to `DeliveryStarted` (first entry) or in `DeliveryStarted` to `DeliveryStarted` when the old fee is not null (correction); any change of fee or expected date when OLD.status is `Finished` or `Cancelled` raises; `cancel_reason` and `pii_purged_at` rules of 0003 stay.
 - Seed: see Compatibility above.
 
+## 9. Indexes after 0008: is a window index still needed? [v1.5 | 2026-11-02]
+
+Question from forge-dev: after 0008 only `customer_order_open_list_idx` remains. Answer: no, a second index remains and none is added (no 0010). 0008 drops only `customer_order_open_idx` (0008 line 21); `customer_order_shop_created_idx ON (shop_id, created_at)` from 0003 line 55 is untouched. Use: the open view, the badge and the red marks read `customer_order_open_list_idx` (partial, four open statuses, list date first); the final orders of the 90-day window (`status IN (Finished, Cancelled)` and `created_at >= now - 90 x 24 hours`, ADR-0029) and every search over that window read `customer_order_shop_created_idx`; the search itself is a `search_fold` scan of the rows that range yields (a few thousand at most, ADR-0029). The test that expected the old `customer_order_open_idx` by name (`OrderMigrationTests`, 0003) must expect `customer_order_shop_created_idx` only; that is a test fix for forge-dev, not a schema change. Rule kept: any later index or column change is a numbered migration with a `pg_dump` backup step first (the database-change rule); none is needed now.
+
 ## 8. Change log
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.5 | 2026-11-02 | Section 9: window index still exists, no migration 0010. |
 | 1.4 | 2026-11-02 | Plan split into 0008 and 0009 (data-model/07); lookup reads items in one statement, no schema change. |
 | 1.3 | 2026-11-02 | Document matches 0008 as written: step order, old open index dropped, status default, insert-only function, stricter immutable rule (section 7). |
 | 1.2 | 2026-11-02 | Table `order_fee_correction`, stricter immutable trigger, date range rule (API only), no new structure for customer lookup. |
