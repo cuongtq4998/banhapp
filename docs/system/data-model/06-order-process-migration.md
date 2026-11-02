@@ -1,6 +1,6 @@
 # Data Model: order process columns and migration 0008
 
-Part of [data-model.md](../data-model.md). Version 1.2 [v1.2 | 2026-11-02]. Traces: BR-2, BR-9, BR-11, BR-15, BR-17, FR-28 to FR-30, AC-49 to AC-53; ADR-0033.
+Part of [data-model.md](../data-model.md). Version 1.3 [v1.3 | 2026-11-02]. Traces: BR-2, BR-9, BR-11, BR-15, BR-17, FR-28 to FR-30, AC-49 to AC-53; ADR-0033.
 
 ## 1. New columns on `customer_order` [v1.0 | 2026-11-02]
 
@@ -32,17 +32,19 @@ Forward-only; 0001 to 0007 are never edited (policy 15.1 in data-model/05).
 
 Before applying (operator, rule 15.1 steps 4 to 6): take `pg_dump --format=custom` with `DATABASE_MIGRATION_URL`, name it with database, date and last migration `0007`, store it encrypted outside the repository, test-restore once. The deploy job does not apply 0008 without it. Rollback is a restore of that dump (no down script).
 
-Steps, one transaction:
+Steps, one transaction, in the order of the file [v1.3 | 2026-11-02]:
 
-1. Drop triggers `customer_order_status_guard` and `customer_order_release_capacity` (also stops `order_event` writes during the remap).
-2. Drop the `status` CHECK.
-3. Remap `customer_order.status` only: New to Received, Confirmed to Processing, Completed to Finished, Cancelled unchanged. `order_event` is NOT touched [v1.1 | 2026-11-02]: no UPDATE, no trigger disabled (section 5).
-4. Backfill `delivery_fee_final_vnd = delivery_fee_vnd` and `delivery_fee_set_at = status_changed_at` for rows now `Finished` (the fee fixed at order time was the fee paid). Open rows get nothing.
-5. Add the three columns, the new CHECKs, table and index of section 2, the open-list index of order-process.md section 4.
-6. Recreate the guard (pairs of order-process.md section 2), the capacity release (releases on `Cancelled`, event writes as before) and the immutable function.
-7. Verify block: `SELECT status, count(*)` before and after equal in total; no row has an old status (migration aborts otherwise).
+1. Count rows for the verify block; drop triggers `customer_order_status_guard` and `customer_order_release_capacity` (also stops `order_event` writes during the remap).
+2. Drop the `status` CHECK and the index `customer_order_open_idx` (0003; its predicate names the old statuses `New`, `Confirmed`; replaced by the open-list index in step 6).
+3. Add the three new columns (before the backfill, which writes one of them).
+4. Remap `customer_order.status` only: New to Received, Confirmed to Processing, Completed to Finished, Cancelled unchanged. `order_event` is NOT touched [v1.1 | 2026-11-02]: no UPDATE, no trigger disabled (section 5).
+5. Backfill `delivery_fee_final_vnd = delivery_fee_vnd` and `delivery_fee_set_at = status_changed_at` for rows now `Finished` (the fee fixed at order time was the fee paid). Open rows get nothing.
+6. Set the `status` column default to `Received` (the old default `New` would violate the new CHECK) [v1.3 | 2026-11-02]; add the new CHECKs, the open-list index `customer_order_open_list_idx` (order-process.md section 4), the tables of sections 2 and 6 with their indexes.
+7. Create the function `order_record_insert_only` and the insert-only triggers (section 7, b).
+8. Recreate the guard (pairs of order-process.md section 2), the capacity release (releases on `Cancelled`, event writes as before) and the immutable function.
+9. Verify block: row count equal to step 1; no row has an old status; both insert-only triggers and the `order_fee_correction` CHECKs exist (migration aborts otherwise).
 
-Compatibility: not additive; stop the old backend, apply, start the new backend (ADR-0033, Old clients). Sample seed (`backend/db/seed`) statuses are updated by forge-dev in the same change.
+Compatibility: not additive; stop the old backend, apply, start the new backend (ADR-0033, Old clients). The sample seed (`backend/db/seed/sample.sql`) still uses the old status words; it changes in slice S2 or later, not in the slice that adds 0008 [v1.3 | 2026-11-02].
 
 ## 4. Rows that drive the migration check [v1.1 | 2026-11-02]
 
@@ -83,12 +85,24 @@ Date range rule: today to today + 7 is enforced by the API only (needs the Vietn
 
 Customer lookup (ADR-0034, api/10): no new table or column. It reads `customer_order` by `customer_phone` with the existing index `(customer_phone, created_at)` and `status_changed_at` for the 30-day window; rows with a purged phone never match.
 
-Step 7 of the migration adds: the table `order_fee_correction` exists with its CHECKs and trigger.
+Step 9 of the migration checks that the table `order_fee_correction` exists with its CHECKs and trigger.
 
-## 7. Change log
+## 7. As written in 0008 [v1.3 | 2026-11-02]
+
+Confirmed against `backend/db/migrations/0008_order_process.sql` (forge-dev):
+
+- (a) `customer_order_open_idx` (0003) is dropped; `customer_order_open_list_idx` on `(shop_id, COALESCE(expected_delivery_date, delivery_date), slot_start_time, created_at, id)` with the four open statuses replaces it.
+- (b) `order_record_insert_only` refuses every DELETE and UPDATE except one: `changed_by_account_id` set to NULL with every other column equal (`to_jsonb` comparison), because `ON DELETE SET NULL` of a removed account is an UPDATE. The name snapshot stays.
+- (c) `status` default becomes `Received`.
+- (d) New columns are added before the Finished backfill.
+- (e) The immutable function is the binding rule, stricter than section 6 text before v1.3: `delivery_fee_final_vnd` changes only on the status change `DeliveryDateScheduled` to `DeliveryStarted` (first entry) or in `DeliveryStarted` to `DeliveryStarted` when the old fee is not null (correction); any change of fee or expected date when OLD.status is `Finished` or `Cancelled` raises; `cancel_reason` and `pii_purged_at` rules of 0003 stay.
+- Seed: see Compatibility above.
+
+## 8. Change log
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.3 | 2026-11-02 | Document matches 0008 as written: step order, old open index dropped, status default, insert-only function, stricter immutable rule (section 7). |
 | 1.2 | 2026-11-02 | Table `order_fee_correction`, stricter immutable trigger, date range rule (API only), no new structure for customer lookup. |
 | 1.1 | 2026-11-02 | `order_event` is not remapped (append-only kept); legacy words mapped on read; sections 4 and 5. |
 | 1.0 | 2026-11-02 | First version. |

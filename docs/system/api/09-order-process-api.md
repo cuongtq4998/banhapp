@@ -1,6 +1,6 @@
 # API Specification: order process, expected date, final fee
 
-Part of [api.md](../api.md), section 10.13 (new). Version 1.1 [v1.1 | 2026-11-02]. Traces: FR-9, FR-13, FR-14, FR-16 to FR-19, FR-28 to FR-30, AC-26 to AC-29, AC-49 to AC-52; ADR-0033; order-process.md. Auth, rate limit, `no-store`: api/05. Status identifiers: `Received`, `Processing`, `DeliveryDateScheduled`, `DeliveryStarted`, `Finished`, `Cancelled`.
+Part of [api.md](../api.md), section 10.13 (new). Version 1.2 [v1.2 | 2026-11-02]. Traces: FR-9, FR-13, FR-14, FR-16 to FR-19, FR-28 to FR-30, AC-26 to AC-29, AC-49 to AC-52; ADR-0033; order-process.md. Auth, rate limit, `no-store`: api/05. Status identifiers: `Received`, `Processing`, `DeliveryDateScheduled`, `DeliveryStarted`, `Finished`, `Cancelled`.
 
 ## 10.13.1 POST /v1/admin/orders/{order_code}/status (changed)
 
@@ -23,6 +23,8 @@ Body `{ "expected_status": "DeliveryDateScheduled", "previous_expected_delivery_
 
 `GET /v1/admin/orders`: `status` accepts `todo` (default, the four open steps), the six names, `all`; items add `expected_delivery_date` (null), `list_date`; `unfinished_count` per order-process.md section 4.
 
+Date window [v1.2 | 2026-11-02]: the server owns "shop today". The order detail and every 409 `details.order` add `expected_date_range` `{ "min": "YYYY-MM-DD", "max": "YYYY-MM-DD" }` (shop today and today + 7, Vietnam calendar, computed at response time); the 422 `EXPECTED_DATE_PAST`/`EXPECTED_DATE_TOO_FAR` answers carry the same object in `details`. The client limits its picker to that object and never computes the window from the device clock; if the detail is older than the day, the server check still decides. "Shop today" is read once per request from an injectable server clock in `Asia/Ho_Chi_Minh` (no DST), the same function for range checks and list queries.
+
 `GET /v1/admin/orders/{order_code}` adds: `requested_delivery_date` (the customer date, existing `delivery_date`), `expected_delivery_date`, `delivery_fee_estimate_vnd`, `delivery_fee_final_vnd` (null before entry), `items_subtotal_vnd`, `amount_to_collect_vnd` (null before entry), and `date_changes[]` (`old_date`, `new_date`, `changed_by_name`, `changed_at`, oldest first), `fee_corrections[]` (`old_fee_vnd`, `new_fee_vnd`, `changed_by_name`, `changed_at`, oldest first) [v1.1 | 2026-11-02].
 
 Customer endpoints: unchanged (no status shown; `POST /v1/orders` still checks `expected_total_vnd` = cakes + estimate). Push: unchanged (new-order push only).
@@ -35,10 +37,12 @@ Owner and staff. Body `{ "expected_status": "DeliveryStarted", "previous_deliver
 | ---- | ------ |
 | `expected_status` is not `DeliveryStarted` | 422 `FEE_CORRECTION_NOT_ALLOWED`, no write |
 | Missing or wrong type field | 422 `VALIDATION_FAILED`: `FEE_REQUIRED`, `PREVIOUS_FEE_REQUIRED`, `FEE_INVALID` (not whole, below 0, above 10 000 000) |
-| New fee equals `previous` and equals stored | 422 `FEE_UNCHANGED` |
-| Status is no longer `DeliveryStarted` (including `Finished`, `Cancelled`) or stored fee differs from `previous` | 409 `ORDER_STATE_CHANGED`, `details.order` current |
+| New fee equals `previous` (body only, no database read) | 422 `FEE_UNCHANGED`, decided after the range check and before the UPDATE, so it wins over 409 [v1.2 | 2026-11-02] |
+| Status is no longer `DeliveryStarted` (including `Finished`, `Cancelled`) or stored fee differs from `previous` | 409 `ORDER_STATE_CHANGED`; `details.order` is the full order detail (10.13.3) with `status`, `delivery_fee_final_vnd`, `amount_to_collect_vnd`, so the client shows the current fee from the answer without a second read [v1.2 | 2026-11-02] |
 | Replay (ADR-0033 Decision 10) | 200 `Idempotent-Replay: true` |
 | 401, 403, 404 `ORDER_NOT_FOUND`, 429 | as api/05 |
+
+Check order [v1.2 | 2026-11-02]: session, role, body fields, `expected_status`, range, `FEE_UNCHANGED`, UPDATE (409 or replay). A fee sent through the status route (10.13.1) as `DeliveryStarted` to `DeliveryStarted` is not a pair: 422 `STATUS_TRANSITION_INVALID`, no write; only this route corrects a fee.
 
 A second staff correcting from a stale view gets 409 and must re-read; no overwrite. Fixtures: `order-detail-fee-corrected.json` (two `fee_corrections`), `error-validation-fee-invalid.json`, `error-fee-correction-not-allowed.json`, `error-order-state-changed-fee.json`, `error-validation-expected-date-too-far.json`.
 
@@ -50,5 +54,6 @@ A second staff correcting from a stale view gets 409 and must re-read; no overwr
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.2 | 2026-11-02 | 409 body, `expected_date_range` (server owns the window), FEE_UNCHANGED order, status-route fee refusal, clock source. |
 | 1.1 | 2026-11-02 | Date range today to today + 7 (`EXPECTED_DATE_TOO_FAR`); fee correction endpoint 10.13.6 and `fee_corrections[]`. |
 | 1.0 | 2026-11-02 | First version. |
