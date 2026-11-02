@@ -1,13 +1,15 @@
 {
-  "description": "GET /v1/admin/orders?status=New&date_preset=today: 200. next_cursor is null on the last page; unfinished_count ignores filters.",
+  "description": "GET /v1/admin/orders?status=todo&date_preset=today: 200. list_date is never null; next_cursor is null on the last page; unfinished_count ignores filters.",
   "status": 200,
   "body": {
     "items": [
       {
         "order_code": "BT-7K3M9Q",
-        "status": "New",
+        "status": "Received",
         "customer_name": "Tran Thi B",
         "delivery_date": "2026-11-02",
+        "expected_delivery_date": null,
+        "list_date": "2026-11-02",
         "slot": {
           "start": "08:00",
           "end": "10:00"

@@ -1,0 +1,20 @@
+{
+  "error": {
+    "code": "VALIDATION_FAILED",
+    "message_key": "ERR_SERVER",
+    "fields": [
+      {
+        "field": "expected_delivery_date",
+        "code": "EXPECTED_DATE_TOO_FAR",
+        "message_key": "ERR_SERVER"
+      }
+    ],
+    "details": {
+      "expected_date_range": {
+        "min": "2026-11-02",
+        "max": "2026-11-09"
+      }
+    }
+  },
+  "request_id": "7f1c1a52-0c1e-4d6c-9a54-2d7f3d6a0038"
+}

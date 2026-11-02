@@ -4,11 +4,11 @@ import FluentSQL
 import Foundation
 @testable import App
 
-/// One row to insert with `AdminOrderTestCase.place`. Defaults: a New order of 2
+/// One row to insert with `AdminOrderTestCase.place`. Defaults: a Received order of 2
 /// cakes for 08:00 to 10:00, placed an hour ago, for a real (not demo) customer.
 struct SeedOrder {
     var number = 0
-    var status = "New"
+    var status = "Received"
     var date: String?
     var slot = "08:00"
     var placed: Date?
@@ -17,6 +17,10 @@ struct SeedOrder {
     var phone = "+84900000010"
     var demo = false
     var reason: String?
+    /// Needed from DeliveryDateScheduled on (database check).
+    var expectedDate: String?
+    /// Allowed from DeliveryStarted on.
+    var finalFee: Int?
 }
 
 /// Shared setup of the order endpoint tests: real routes, a real database, one
@@ -63,15 +67,15 @@ class AdminOrderTestCase: AdminDatabaseTestCase {
                 id, shop_id, order_code, status, cancel_reason, delivery_date, slot_id, slot_start_time, slot_end_time,
                 district_id, district_name, delivery_fee_vnd, items_subtotal_vnd, total_vnd, total_cakes,
                 customer_name, customer_phone, customer_address, note, idempotency_key, request_hash,
-                client_platform, app_version, created_at, is_demo)
+                client_platform, app_version, created_at, is_demo, expected_delivery_date, delivery_fee_final_vnd)
             VALUES (\(bind: id), \(bind: shopID), \(bind: orderCode), \(bind: seed.status), \(bind: seed.reason)::text,
                 \(bind: date)::date, \(bind: slot), \(bind: seed.slot)::time, \(bind: seed.slot)::time + interval '2 hours',
                 \(bind: districtID), 'Quan An Phu', 20000, \(literal: seed.cakes * 50_000), \(literal: seed.cakes * 50_000 + 20_000), \(literal: seed.cakes),
                 \(bind: seed.name), \(bind: seed.phone), '1 Test Street', 'Ít đường', \(bind: UUID()), \(bind: String(repeating: "a", count: 64)),
-                'ios', '1.0.0', \(timestamp(placed)), \(bind: seed.demo))
+                'ios', '1.0.0', \(timestamp(placed)), \(bind: seed.demo), \(bind: seed.expectedDate)::date, \(bind: seed.finalFee)::int)
             """)
         try await run("INSERT INTO customer_order_item (order_id, product_id, product_name, unit_price_vnd, quantity, line_total_vnd) VALUES (\(bind: id), \(bind: productID), 'Banh Mau', 50000, \(literal: seed.cakes), \(literal: seed.cakes * 50_000))")
-        if ["New", "Confirmed"].contains(seed.status) { try await addLoad(date, seed.cakes) }
+        if OrderStatus.open.contains(where: { $0.rawValue == seed.status }) { try await addLoad(date, seed.cakes) }
         return orderCode
     }
 
@@ -140,8 +144,13 @@ class AdminOrderTestCase: AdminDatabaseTestCase {
         return try XCTUnwrap(box.value)
     }
 
-    func move(_ from: String, _ to: String, reason: String? = nil) -> String {
-        "{\"expected_status\":\"\(from)\",\"to_status\":\"\(to)\"" + (reason.map { ",\"cancel_reason\":\"\($0)\"" } ?? "") + "}"
+    /// A status body with the optional extra fields.
+    func move(_ from: String, _ to: String, reason: String? = nil, date: String? = nil, fee: Int? = nil) -> String {
+        var json = "{\"expected_status\":\"\(from)\",\"to_status\":\"\(to)\""
+        if let reason { json += ",\"cancel_reason\":\"\(reason)\"" }
+        if let date { json += ",\"expected_delivery_date\":\"\(date)\"" }
+        if let fee { json += ",\"delivery_fee_vnd\":\(fee)" }
+        return json + "}"
     }
 }
 

@@ -12,6 +12,8 @@ struct OrderSummary: Content, Equatable {
     let status: String
     let customerName: String
     let deliveryDate: String
+    let expectedDeliveryDate: String?
+    let listDate: String
     let slot: OrderSlot
     let totalCakes: Int
     let totalVND: Int
@@ -20,8 +22,25 @@ struct OrderSummary: Content, Equatable {
 
     enum CodingKeys: String, CodingKey {
         case orderCode = "order_code", status, customerName = "customer_name", deliveryDate = "delivery_date"
+        case expectedDeliveryDate = "expected_delivery_date", listDate = "list_date"
         case slot, totalCakes = "total_cakes", totalVND = "total_vnd", districtName = "district_name"
         case createdAt = "created_at"
+    }
+
+    // The expected date key stays present as null: clients read it as "not set".
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(orderCode, forKey: .orderCode)
+        try container.encode(status, forKey: .status)
+        try container.encode(customerName, forKey: .customerName)
+        try container.encode(deliveryDate, forKey: .deliveryDate)
+        try container.encode(expectedDeliveryDate, forKey: .expectedDeliveryDate)
+        try container.encode(listDate, forKey: .listDate)
+        try container.encode(slot, forKey: .slot)
+        try container.encode(totalCakes, forKey: .totalCakes)
+        try container.encode(totalVND, forKey: .totalVND)
+        try container.encode(districtName, forKey: .districtName)
+        try container.encode(createdAt, forKey: .createdAt)
     }
 }
 
@@ -59,15 +78,19 @@ struct OrderLine: Content, Equatable {
 /// The single line "last changed by <name>, <time>" (FR-14). The name is null
 /// when the customer placed the order and nobody changed it.
 struct OrderLastChange: Content, Equatable {
+    enum Kind: String, Codable, Sendable { case status, date, fee }
+
     let actorName: String?
     let at: String
+    let kind: Kind
 
-    enum CodingKeys: String, CodingKey { case actorName = "actor_name", at }
+    enum CodingKeys: String, CodingKey { case actorName = "actor_name", at, kind }
 
     func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(actorName, forKey: .actorName)
         try container.encode(at, forKey: .at)
+        try container.encode(kind, forKey: .kind)
     }
 }
 
@@ -82,6 +105,7 @@ struct OrderDetail: Content, Equatable {
     let cancelReason: String?
     let allowedActions: [String]
     let lastChange: OrderLastChange
+    let process: OrderProcessFields
 
     enum CodingKeys: String, CodingKey {
         case customerPhone = "customer_phone", customerAddress = "customer_address", note, items
@@ -102,6 +126,7 @@ struct OrderDetail: Content, Equatable {
         try container.encode(cancelReason, forKey: .cancelReason)
         try container.encode(allowedActions, forKey: .allowedActions)
         try container.encode(lastChange, forKey: .lastChange)
+        try process.encode(to: encoder)
     }
 
     init(from decoder: any Decoder) throws {
@@ -116,15 +141,17 @@ struct OrderDetail: Content, Equatable {
         cancelReason = try container.decodeIfPresent(String.self, forKey: .cancelReason)
         allowedActions = try container.decode([String].self, forKey: .allowedActions)
         lastChange = try container.decode(OrderLastChange.self, forKey: .lastChange)
+        process = try OrderProcessFields(from: decoder)
     }
 
     init(
         summary: OrderSummary, customerPhone: String, customerAddress: String, note: String?, items: [OrderLine],
-        itemsSubtotalVND: Int, deliveryFeeVND: Int, cancelReason: String?, allowedActions: [String], lastChange: OrderLastChange
+        itemsSubtotalVND: Int, deliveryFeeVND: Int, cancelReason: String?, allowedActions: [String], lastChange: OrderLastChange,
+        process: OrderProcessFields
     ) {
         self.summary = summary; self.customerPhone = customerPhone; self.customerAddress = customerAddress
         self.note = note; self.items = items; self.itemsSubtotalVND = itemsSubtotalVND
         self.deliveryFeeVND = deliveryFeeVND; self.cancelReason = cancelReason
-        self.allowedActions = allowedActions; self.lastChange = lastChange
+        self.allowedActions = allowedActions; self.lastChange = lastChange; self.process = process
     }
 }

@@ -16,7 +16,7 @@ final class PhoneLimitCountTests: AdminOrderTestCase {
     }
 
     func testOpenAndFinishedOrdersCount() async throws {
-        for status in ["New", "Confirmed", "Completed"] { try await place(.init(status: status, phone: number)) }
+        for status in ["Received", "Processing", "Finished"] { try await place(.init(status: status, phone: number)) }
         let total = try await counted()
         XCTAssertEqual(total, 3)
     }
@@ -32,7 +32,7 @@ final class PhoneLimitCountTests: AdminOrderTestCase {
 
     func testMixedFiveOrdersLeaveRoomForTwoMore() async throws {
         try await cancelled("cannot_deliver"); try await cancelled("cannot_deliver"); try await cancelled("fake_spam")
-        try await place(.init(status: "New", phone: number)); try await place(.init(status: "Confirmed", phone: number))
+        try await place(.init(status: "Received", phone: number)); try await place(.init(status: "Processing", phone: number))
         let total = try await counted()
         XCTAssertEqual(total, 3)
     }
@@ -54,16 +54,16 @@ final class PhoneLimitCountTests: AdminOrderTestCase {
     func testCancellingAsSpamLaterCountsTheOrderAtOnceAndTheFirstReasonStays() async throws {
         let orderCode = try await place(.init(phone: number))
         let staff = try await phone(.staff)
-        let reply = try await change(staff, orderCode, move("New", "Cancelled", reason: "customer_asked"))
+        let reply = try await change(staff, orderCode, move("Received", "Cancelled", reason: "customer_asked"))
         XCTAssertEqual(reply.status, .ok)
         let afterCancel = try await counted()
         XCTAssertEqual(afterCancel, 0)
-        let again = try await change(staff, orderCode, move("New", "Cancelled", reason: "fake_spam"))
+        let again = try await change(staff, orderCode, move("Received", "Cancelled", reason: "fake_spam"))
         XCTAssertEqual(again.string("cancel_reason"), "customer_asked")
         let stillFree = try await counted()
         XCTAssertEqual(stillFree, 0)
         let spamCode = try await place(.init(phone: number))
-        _ = try await change(staff, spamCode, move("New", "Cancelled", reason: "fake_spam"))
+        _ = try await change(staff, spamCode, move("Received", "Cancelled", reason: "fake_spam"))
         let nowCounted = try await counted()
         XCTAssertEqual(nowCounted, 1)
     }

@@ -85,9 +85,9 @@ final class OrderPagingTests: AdminOrderTestCase {
     }
 
     func testACursorKeepsWorkingWithFiltersAndOtherAccountsGetTheSameRows() async throws {
-        for index in 0..<55 { try await place(.init(status: index % 2 == 0 ? "New" : "Confirmed", date: day(1 + index))) }
+        for index in 0..<55 { try await place(.init(status: index % 2 == 0 ? "Received" : "Processing", date: day(1 + index))) }
         let staff = try await phone(.staff), owner = try await phone(.owner, "Chu Mau")
-        let pages = try await allPages(staff, "status=New")
+        let pages = try await allPages(staff, "status=Received")
         XCTAssertEqual(pages.map(\.count), [28])
         let first = try await list(staff)
         let cursor = try XCTUnwrap(first.json["next_cursor"] as? String)

@@ -11,6 +11,8 @@ private let isoMicros = "'YYYY-MM-DD\"T\"HH24:MI:SS.US\"Z\"'"
 
 private let summaryColumns: SQLQueryString = """
     id, order_code, status, customer_name, delivery_date::text AS delivery_date, \
+    expected_delivery_date::text AS expected_delivery_date, \
+    (\(unsafeRaw: OrderListDate.sql))::text AS list_date, \
     to_char(slot_start_time, 'HH24:MI') AS slot_start, to_char(slot_end_time, 'HH24:MI') AS slot_end, \
     total_cakes, total_vnd, district_name, \
     to_char(created_at AT TIME ZONE 'UTC', \(unsafeRaw: isoSeconds)) AS created_at, \
@@ -29,16 +31,16 @@ struct AdminOrderQueries: Sendable {
         if let statuses = query.status.statuses {
             text.add(" AND status IN (\(binds: statuses.map(\.rawValue)))")
         }
-        if let date = query.deliveryDate { text.add(" AND delivery_date = \(bind: date.description)::date") }
+        if let date = query.deliveryDate { text.add(" AND \(unsafeRaw: OrderListDate.sql) = \(bind: date.description)::date") }
         if let search = query.search { text.add(" AND \(search.condition)") }
         if let cursor = query.cursor {
             text.add("""
-                 AND (delivery_date, slot_start_time, created_at, id) > \
-                (\(bind: cursor.deliveryDate)::date, \(bind: cursor.slotStart)::time, \
+                 AND (\(unsafeRaw: OrderListDate.sql), slot_start_time, created_at, id) > \
+                (\(bind: cursor.listDate)::date, \(bind: cursor.slotStart)::time, \
                 \(bind: cursor.createdAt)::timestamptz, \(bind: cursor.id)::uuid)
                 """)
         }
-        text.add(" ORDER BY delivery_date, slot_start_time, created_at, id LIMIT \(literal: OrderListQuery.pageSize + 1)")
+        text.add(" ORDER BY \(unsafeRaw: OrderListDate.sql), slot_start_time, created_at, id LIMIT \(literal: OrderListQuery.pageSize + 1)")
         return try await sql.raw(text).all(decoding: OrderSummaryRow.self)
     }
 
@@ -46,7 +48,7 @@ struct AdminOrderQueries: Sendable {
     func unfinishedCount(window: OrderWindow, today: BusinessDate) async throws -> Int {
         let row = try await sql.raw("""
             SELECT count(*)::int AS total FROM customer_order
-            WHERE \(window.predicate) AND status IN ('New', 'Confirmed') AND delivery_date <= \(bind: today.description)::date
+            WHERE \(window.predicate) AND status IN (\(unsafeRaw: OrderStatus.sqlList(OrderStatus.open))) AND \(unsafeRaw: OrderListDate.sql) <= \(bind: today.description)::date
             """).first(decoding: CountResult.self)
         return row?.total ?? 0
     }
@@ -68,26 +70,34 @@ struct AdminOrderQueries: Sendable {
 
     /// The detail of an order id, with no window: used for the reply of a change
     /// that was just made or refused in the same transaction.
-    func detail(id: UUID) async throws -> OrderDetail? {
+    func detail(id: UUID, range: ExpectedDateRange) async throws -> OrderDetail? {
         guard let summary = try await sql.raw("SELECT \(summaryColumns) FROM customer_order WHERE id = \(bind: id)")
             .first(decoding: OrderSummaryRow.self),
             let more = try await sql.raw("""
-                SELECT customer_phone, customer_address, note, items_subtotal_vnd, delivery_fee_vnd, cancel_reason
+                SELECT customer_phone, customer_address, note, items_subtotal_vnd, delivery_fee_vnd, cancel_reason,
+                       expected_delivery_date::text AS expected_delivery_date, delivery_fee_final_vnd
                 FROM customer_order WHERE id = \(bind: id)
                 """).first(decoding: OrderDetailRow.self) else { return nil }
         let lines = try await sql.raw("""
             SELECT product_name, quantity, unit_price_vnd, line_total_vnd FROM customer_order_item
             WHERE order_id = \(bind: id) ORDER BY product_name, product_id
             """).all(decoding: OrderLineRow.self)
-        let last = try await lastEvent(id: id)
-        let status = OrderStatus(rawValue: summary.status)
+        let last = try await lastChange(id: id)
+        let status = OrderStatus.fromStored(summary.status)
         return OrderDetail(
             summary: summary.summary, customerPhone: more.customerPhone, customerAddress: more.customerAddress,
             note: more.note,
             items: lines.map { OrderLine(productName: $0.productName, quantity: $0.quantity, unitPriceVND: $0.unitPriceVND, lineTotalVND: $0.lineTotalVND) },
             itemsSubtotalVND: more.itemsSubtotalVND, deliveryFeeVND: more.deliveryFeeVND, cancelReason: more.cancelReason,
-            allowedActions: status?.allowedActions ?? [],
-            lastChange: OrderLastChange(actorName: last?.actorName, at: last?.at ?? summary.createdAt)
+            allowedActions: status?.allowedActions.map(\.rawValue) ?? [],
+            lastChange: last ?? OrderLastChange(actorName: nil, at: summary.createdAt, kind: .status),
+            process: OrderProcessFields(
+                requestedDeliveryDate: summary.deliveryDate, expectedDeliveryDate: more.expectedDeliveryDate,
+                deliveryFeeEstimateVND: more.deliveryFeeVND, deliveryFeeFinalVND: more.deliveryFeeFinalVND,
+                amountToCollectVND: more.deliveryFeeFinalVND.map { more.itemsSubtotalVND + $0 }, expectedDateRange: range.view,
+                dateChanges: try await dateChanges(id: id), feeCorrections: try await feeCorrections(id: id),
+                deliveryFeeEntry: try await deliveryFeeEntry(id: id)
+            )
         )
     }
 

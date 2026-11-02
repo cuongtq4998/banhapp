@@ -49,7 +49,7 @@ struct PostgresOrderRepository: OrderRepository {
                 SELECT count(*)::int AS total FROM customer_order
                 WHERE shop_id = \(bind: shopID) AND NOT is_demo AND customer_phone = \(bind: phone)
                   AND created_at >= \(bind: PostgresTimestamp.text(since))::timestamptz
-                  AND (status <> 'Cancelled' OR cancel_reason = 'fake_spam')
+                  AND (status <> \(bind: OrderStatus.cancelled.rawValue) OR cancel_reason = 'fake_spam')
                 """).first(decoding: CountRow.self)
             return row?.total ?? 0
         }

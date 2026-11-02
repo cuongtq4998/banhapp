@@ -5,10 +5,10 @@ import XCTVapor
 final class OrderListTests: AdminOrderTestCase {
     func testDefaultListHoldsOpenOrdersOfAnyAgeSortedByDateSlotPlacedTime() async throws {
         let now = clock.now()
-        let a = try await place(.init(status: "New", date: day(2)))
-        let b = try await place(.init(status: "Confirmed", date: day(1), placed: now.addingTimeInterval(-600)))
-        let c = try await place(.init(status: "Completed", date: day(1)))
-        let d = try await place(.init(status: "New", date: day(1), placed: now.addingTimeInterval(-7_200)))
+        let a = try await place(.init(status: "Received", date: day(2)))
+        let b = try await place(.init(status: "Processing", date: day(1), placed: now.addingTimeInterval(-600)))
+        let c = try await place(.init(status: "Finished", date: day(1)))
+        let d = try await place(.init(status: "Received", date: day(1), placed: now.addingTimeInterval(-7_200)))
         let staff = try await phone(.staff)
         let reply = try await list(staff)
         XCTAssertEqual(reply.status, .ok)
@@ -44,7 +44,7 @@ final class OrderListTests: AdminOrderTestCase {
         let staff = try await phone(.staff)
         let reply = try await list(staff)
         let row = try XCTUnwrap((reply.json["items"] as? [[String: Any]])?.first)
-        XCTAssertEqual(Set(row.keys), ["order_code", "status", "customer_name", "delivery_date", "slot", "total_cakes", "total_vnd", "district_name", "created_at"])
+        XCTAssertEqual(Set(row.keys), ["order_code", "status", "customer_name", "delivery_date", "expected_delivery_date", "list_date", "slot", "total_cakes", "total_vnd", "district_name", "created_at"])
         XCTAssertEqual(row["order_code"] as? String, orderCode)
         XCTAssertEqual(row["customer_name"] as? String, "Trần Thị Bé")
         XCTAssertEqual(row["delivery_date"] as? String, "2031-05-04")
@@ -61,12 +61,12 @@ final class OrderListTests: AdminOrderTestCase {
 
     func testEachStatusFilterIsExactAndAllHoldsTheFourStatuses() async throws {
         var byStatus: [String: String] = [:]
-        for status in ["New", "Confirmed", "Completed", "Cancelled"] {
+        for status in ["Received", "Processing", "Finished", "Cancelled"] {
             byStatus[status] = try await place(.init(status: status, reason: status == "Cancelled" ? "customer_asked" : nil))
         }
         let staff = try await phone(.staff)
         let todo = Set(try await listCodes(staff, "status=todo"))
-        XCTAssertEqual(todo, [byStatus["New"]!, byStatus["Confirmed"]!])
+        XCTAssertEqual(todo, [byStatus["Received"]!, byStatus["Processing"]!])
         for status in byStatus.keys {
             try await expectCodes(staff, "status=\(status)", [byStatus[status]!])
         }

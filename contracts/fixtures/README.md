@@ -37,10 +37,23 @@ Admin sign-in and session exchanges (docs/system/api/05, api/06, api/08; admin-o
 | `me.json` | `GET /v1/admin/me` | 200 |
 | `error-unauthenticated`, `-access-token-expired`, `-session-revoked`, `-session-expired`, `-forbidden` | admin routes | 401 and 403 envelopes |
 | `error-code-invalid`, `-code-expired`, `-code-resend-wait`, `-code-request-limit`, `-validation-email` | `/v1/auth` | 422 and 429 envelopes; limits carry `retry_after_seconds` |
-| `orders-list.json` | `GET /v1/admin/orders` | 200 list: `items[]`, `next_cursor` (null at the end), `unfinished_count`, `server_date` |
-| `order-detail.json` | `GET /v1/admin/orders/{order_code}` | 200 detail with `items`, `cancel_reason`, `allowed_actions`, `last_change` |
+| `orders-list.json` | `GET /v1/admin/orders` | 200 list: `items[]` (with `expected_delivery_date`, `list_date`), `next_cursor` (null at the end), `unfinished_count`, `server_date` |
+| `order-detail.json` | `GET /v1/admin/orders/{order_code}` | 200 detail: process fields, `allowed_actions`, `expected_date_range`, fee fields, `date_changes[]`, `fee_corrections[]`, `delivery_fee_entry`, `last_change` |
 | `order-status-change.json` | `POST /v1/admin/orders/{order_code}/status` | Request body and the 200 detail after cancelling |
 | `error-order-not-found`, `-status-transition-invalid`, `-cancel-reason-required`, `-order-state-changed` | status route | 404, 422 and 409 envelopes; the 409 carries `details.order` (the current detail) |
+| `order-detail-received.json` | `GET /v1/admin/orders/{order_code}` | 200 detail of a received order
+| `order-detail-delivery-date-scheduled.json` | `PUT /v1/admin/orders/{order_code}/expected-date` | 200 detail with two `date_changes`
+| `order-detail-delivery-started.json` | `GET /v1/admin/orders/{order_code}` | 200 detail, delivery started, fee 25 000
+| `order-detail-delivery-started-free.json` | `GET /v1/admin/orders/{order_code}` | 200 detail, delivery started, fee 0
+| `order-detail-fee-corrected.json` | `PUT /v1/admin/orders/{order_code}/delivery-fee` | 200 detail with two `fee_corrections`
+| `error-status-transition-invalid-cancel.json` | `POST .../status` | 422 envelope, cancel not allowed from this status
+| `error-order-state-changed-date.json` | `PUT .../expected-date` | 409 envelope; carries `details.order`
+| `error-order-state-changed-fee.json` | `PUT .../delivery-fee` | 409 envelope; carries `details.order`
+| `error-validation-expected-date-past.json` | `PUT .../expected-date` | 422 envelope; carries `details.expected_date_range`
+| `error-validation-expected-date-too-far.json` | `PUT .../expected-date` | 422 envelope; carries `details.expected_date_range`
+| `error-validation-fee-required.json` | `PUT .../delivery-fee` | 422 envelope, fee missing
+| `error-validation-fee-invalid.json` | `PUT .../delivery-fee` | 422 envelope, fee not a valid amount
+| `error-fee-correction-not-allowed.json` | `PUT .../delivery-fee` | 422 envelope, status does not allow a correction
 
 Owner settings and staff (docs/system/api/07; admin-orders slices B4 and B5), in `admin/`. Ids and addresses are placeholders; tests compare key sets and value kinds.
 

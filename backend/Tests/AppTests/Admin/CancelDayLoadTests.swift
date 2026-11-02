@@ -10,26 +10,42 @@ final class CancelDayLoadTests: AdminOrderTestCase {
         let orderCode = try await place(.init(date: date, cakes: 4))
         try await run("UPDATE day_load SET cakes_accepted = 1 WHERE shop_id = \(bind: shopID) AND delivery_date = \(bind: date)::date")
         let staff = try await phone(.staff)
-        let reply = try await change(staff, orderCode, move("New", "Cancelled", reason: "cannot_deliver"))
+        let reply = try await change(staff, orderCode, move("Received", "Cancelled", reason: "cannot_deliver"))
         XCTAssertEqual(reply.status, .internalServerError)
         XCTAssertEqual(reply.errorCode, "INTERNAL_ERROR")
         XCTAssertEqual((reply.json["error"] as? [String: Any])?["details"] as? [String: String], ["reason": "DAY_LOAD_INCONSISTENT"])
         let stored = try await status(of: orderCode)
-        XCTAssertEqual(stored, "New")
+        XCTAssertEqual(stored, "Received")
         let load = try await loaded(date)
         XCTAssertEqual(load, 1, "no floor: the wrong counter stays visible")
         let eventCount = try await events(of: orderCode)
         XCTAssertEqual(eventCount, 0)
         // The same order is still usable.
-        let confirmed = try await change(staff, orderCode, move("New", "Confirmed"))
-        XCTAssertEqual(confirmed.status, .ok)
+        let processed = try await change(staff, orderCode, move("Received", "Processing"))
+        XCTAssertEqual(processed.status, .ok)
     }
 
     func testCancelWithoutADayLoadRowStillWorks() async throws {
-        let orderCode = try await place(.init(status: "New", date: day(7), cakes: 2))
+        let orderCode = try await place(.init(date: day(7), cakes: 2))
         try await run("DELETE FROM day_load WHERE shop_id = \(bind: shopID)")
         let staff = try await phone(.staff)
-        let reply = try await change(staff, orderCode, move("New", "Cancelled", reason: "customer_asked"))
+        let reply = try await change(staff, orderCode, move("Received", "Cancelled", reason: "customer_asked"))
         XCTAssertEqual(reply.status, .ok)
+    }
+}
+
+extension CancelDayLoadTests {
+    func testCancelFromProcessingFreesTheDayLoadAndFinishingFreesNothing() async throws {
+        let staff = try await phone(.staff)
+        let cancelled = try await place(.init(status: "Processing", date: day(6), cakes: 3))
+        let finished = try await place(.init(status: "DeliveryStarted", date: day(7), cakes: 2, expectedDate: day(1), finalFee: 5_000))
+        let freed = try await change(staff, cancelled, move("Processing", "Cancelled", reason: "customer_asked"))
+        XCTAssertEqual(freed.status, .ok)
+        let load = try await loaded(day(6))
+        XCTAssertEqual(load, 0)
+        let done = try await change(staff, finished, move("DeliveryStarted", "Finished"))
+        XCTAssertEqual(done.status, .ok)
+        let kept = try await loaded(day(7))
+        XCTAssertEqual(kept, 2)
     }
 }

@@ -2,7 +2,7 @@
   "description": "POST /v1/admin/orders/BT-7K3M9Q/status: 200 with the detail after the change; header Idempotent-Replay: true on a repeat.",
   "request": {
     "body": {
-      "expected_status": "New",
+      "expected_status": "Received",
       "to_status": "Cancelled",
       "cancel_reason": "customer_asked"
     }
@@ -13,6 +13,9 @@
     "status": "Cancelled",
     "customer_name": "Tran Thi B",
     "delivery_date": "2026-11-02",
+    "requested_delivery_date": "2026-11-02",
+    "expected_delivery_date": null,
+    "list_date": "2026-11-02",
     "slot": {
       "start": "08:00",
       "end": "10:00"
@@ -34,11 +37,22 @@
     ],
     "items_subtotal_vnd": 100000,
     "delivery_fee_vnd": 20000,
+    "delivery_fee_estimate_vnd": 20000,
+    "delivery_fee_final_vnd": null,
+    "amount_to_collect_vnd": null,
+    "delivery_fee_entry": null,
     "cancel_reason": "customer_asked",
+    "expected_date_range": {
+      "min": "2026-11-02",
+      "max": "2026-11-09"
+    },
     "allowed_actions": [],
+    "date_changes": [],
+    "fee_corrections": [],
     "last_change": {
       "actor_name": "Nhan Vien A",
-      "at": "2026-11-01T04:00:00Z"
+      "at": "2026-11-01T04:00:00Z",
+      "kind": "status"
     }
   }
 }

@@ -20,7 +20,7 @@ struct DemoReferences: Sendable {
 struct DemoOrderSeed: Sendable {
     let code: String
     let date: String
-    let confirmed: Bool
+    let status: OrderStatus
     let cakes: Int
     let customerName: String
     let customerPhone: String
@@ -104,9 +104,9 @@ struct ReviewAccountStore: Sendable {
             INSERT INTO customer_order_item (order_id, product_id, product_name, unit_price_vnd, quantity, line_total_vnd)
             VALUES (\(bind: id), \(bind: refs.productID), \(bind: refs.productName), \(bind: refs.priceVND), \(bind: seed.cakes), \(bind: subtotal))
             """).run()
-        try await sql.raw("INSERT INTO order_event (order_id, event_type, from_status, to_status, actor_type) VALUES (\(bind: id), 'created', NULL, 'New', 'system')").run()
-        if seed.confirmed {
-            try await sql.raw("UPDATE customer_order SET status = 'Confirmed' WHERE id = \(bind: id)").run()
+        try await sql.raw("INSERT INTO order_event (order_id, event_type, from_status, to_status, actor_type) VALUES (\(bind: id), 'created', NULL, \(bind: OrderStatus.received.rawValue), 'system')").run()
+        if seed.status != .received {
+            try await sql.raw("UPDATE customer_order SET status = \(bind: seed.status.rawValue) WHERE id = \(bind: id)").run()
         }
         return true
     }

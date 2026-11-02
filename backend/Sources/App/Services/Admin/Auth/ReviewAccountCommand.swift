@@ -63,14 +63,14 @@ struct ReviewAccountCommand: AsyncCommand {
             guard try await store.enableAccount(shopID: shopID, email: review.email) != nil else { throw ReviewAccountError.addressTaken }
             guard let refs = try await store.references(shopID: shopID) else { throw ReviewAccountError.shopNotReady }
             let calendar = ShopCalendar(clock: clock), today = calendar.today()
-            // Two new orders and one confirmed, on the coming days, so every button has something to do.
-            let plan: [(days: Int, confirmed: Bool, cakes: Int)] = [(1, false, 2), (2, false, 3), (1, true, 2)]
+            // Two received orders and one processing, on the coming days, so every button has something to do.
+            let plan: [(days: Int, status: OrderStatus, cakes: Int)] = [(1, .received, 2), (2, .received, 3), (1, .processing, 2)]
             for (index, item) in plan.enumerated() {
                 var placed = false
                 for _ in 0..<10 where !placed {
                     placed = try await store.insertDemoOrder(shopID: shopID, seed: DemoOrderSeed(
                         code: orderCodes.makeCode(), date: calendar.adding(days: item.days, to: today).description,
-                        confirmed: item.confirmed, cakes: item.cakes,
+                        status: item.status, cakes: item.cakes,
                         customerName: "Demo Customer \(index + 1)", customerPhone: "+8490000000\(index + 1)"
                     ), refs: refs)
                 }

@@ -13,6 +13,8 @@ struct AdminOrderRoutes: RouteCollection {
         orders.get(use: list)
         orders.get(":code", use: detail)
         orders.post(":code", "status", use: changeStatus)
+        orders.put(":code", "expected-delivery-date", use: moveDate)
+        orders.put(":code", "delivery-fee", use: correctFee)
     }
 
     private func service(_ req: Request) throws -> AdminOrderService {
@@ -44,8 +46,26 @@ struct AdminOrderRoutes: RouteCollection {
 
     private func changeStatus(_ req: Request) async throws -> Response {
         let service = try service(req), principal = try principal(req), code = try code(req)
+        let body = try body(req)
+        return try reply(try await service.changeStatus(code: code, body: body, principal: principal))
+    }
+
+    private func moveDate(_ req: Request) async throws -> Response {
+        let service = try service(req), principal = try principal(req), code = try code(req)
+        return try reply(try await service.moveDate(code: code, body: try body(req), principal: principal))
+    }
+
+    private func correctFee(_ req: Request) async throws -> Response {
+        let service = try service(req), principal = try principal(req), code = try code(req)
+        return try reply(try await service.correctFee(code: code, body: try body(req), principal: principal))
+    }
+
+    private func body(_ req: Request) throws -> [String: JSONValue] {
         guard let body = try? req.content.decode([String: JSONValue].self) else { throw APIError(.validationFailed) }
-        let result = try await service.changeStatus(code: code, body: body, principal: principal)
+        return body
+    }
+
+    private func reply(_ result: StatusChangeResult) throws -> Response {
         let response = Response(status: .ok)
         try response.content.encode(result.order)
         if result.replayed { response.headers.replaceOrAdd(name: "Idempotent-Replay", value: "true") }

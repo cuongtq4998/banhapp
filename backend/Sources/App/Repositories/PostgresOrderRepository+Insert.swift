@@ -58,7 +58,7 @@ extension PostgresOrderRepository {
         }
         try await sql.raw("""
             INSERT INTO order_event (order_id, event_type, from_status, to_status, actor_type)
-            VALUES (\(bind: order.orderID), 'created', NULL, 'New', 'customer')
+            VALUES (\(bind: order.orderID), 'created', NULL, \(bind: OrderStatus.received.rawValue), 'customer')
             """).run()
         return .created(inserted)
     }

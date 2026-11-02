@@ -7,19 +7,30 @@ struct OrderListQuery: Sendable, Equatable {
     static let pageSize = 50
     private static let allowedKeys: Set<String> = ["status", "date_preset", "delivery_date", "q", "cursor"]
 
-    enum StatusFilter: String, Sendable {
+    enum StatusFilter: Sendable, Equatable {
         case todo, all
-        case new = "New", confirmed = "Confirmed", completed = "Completed", cancelled = "Cancelled"
+        case only(OrderStatus)
+
+        /// Reads the query word; the old words are not accepted.
+        init?(word: String) {
+            switch word {
+            case Self.todoWord: self = .todo
+            case Self.allWord: self = .all
+            default:
+                guard let status = OrderStatus(rawValue: word) else { return nil }
+                self = .only(status)
+            }
+        }
+
+        private static let todoWord = "todo"
+        private static let allWord = "all"
 
         /// Statuses to match; nil means every status.
         var statuses: [OrderStatus]? {
             switch self {
-            case .todo: return [.new, .confirmed]
+            case .todo: return OrderStatus.open
             case .all: return nil
-            case .new: return [.new]
-            case .confirmed: return [.confirmed]
-            case .completed: return [.completed]
-            case .cancelled: return [.cancelled]
+            case .only(let status): return [status]
             }
         }
     }
@@ -44,7 +55,7 @@ struct OrderListQuery: Sendable, Equatable {
         }
         var query = OrderListQuery()
         if let text = values["status"] {
-            if let filter = StatusFilter(rawValue: text) { query.status = filter } else { fail("status", "STATUS_INVALID") }
+            if let filter = StatusFilter(word: text) { query.status = filter } else { fail("status", "STATUS_INVALID") }
         }
         if values["date_preset"] != nil, values["delivery_date"] != nil { fail("delivery_date", "DATE_FILTER_CONFLICT") }
         if let preset = values["date_preset"] {
