@@ -119,23 +119,26 @@ class AdminQABase: XCTestCase {
 
     func randomCode() -> String { "BT-" + String((0..<6).map { _ in codeAlphabet.randomElement()! }) }
 
-    /// Inserts a stored order by SQL (default: New, 2 cakes) and, for open orders, adds its cakes to day_load.
+    /// Inserts a stored order by SQL (default: Received, 2 cakes) and, for open orders, adds its cakes to day_load.
     @discardableResult
-    func seedOrder(status: String = "New", cakes: Int = 2, date: String, phone: String = "+84900000010", name: String = "Tran Thi B",
+    func seedOrder(status: String = "Received", cakes: Int = 2, date: String, phone: String = "+84900000010", name: String = "Tran Thi B",
                    placed: Date? = nil, reason: String? = nil, load: Bool = true) async throws -> String {
         let orderCode = randomCode(), id = UUID()
+        // Migration 0008 CHECKs: dated from scheduling on, final fee from DeliveryStarted on.
+        let dated = ["DeliveryDateScheduled", "DeliveryStarted", "Finished"].contains(status)
+        let fixed = ["DeliveryStarted", "Finished"].contains(status)
         let stamp = ISO8601DateFormatter().string(from: placed ?? clock.now().addingTimeInterval(-3_600))
         try await run("""
-            INSERT INTO customer_order (id, shop_id, order_code, status, cancel_reason, delivery_date, slot_id, slot_start_time, slot_end_time,
+            INSERT INTO customer_order (id, shop_id, order_code, status, cancel_reason, expected_delivery_date, delivery_fee_final_vnd, delivery_date, slot_id, slot_start_time, slot_end_time,
                 district_id, district_name, delivery_fee_vnd, items_subtotal_vnd, total_vnd, total_cakes, customer_name, customer_phone,
                 customer_address, note, idempotency_key, request_hash, client_platform, app_version, created_at)
-            VALUES (\(bind: id), \(bind: shopID), \(bind: orderCode), \(bind: status), \(bind: reason)::text, \(bind: date)::date, \(bind: slotID),
+            VALUES (\(bind: id), \(bind: shopID), \(bind: orderCode), \(bind: status), \(bind: reason)::text, \(bind: dated ? date : nil)::date, \(bind: fixed ? 20_000 : nil)::integer, \(bind: date)::date, \(bind: slotID),
                 '08:00', '10:00', \(bind: districtID), 'QA district', 20000, \(literal: cakes * 50_000), \(literal: cakes * 50_000 + 20_000), \(literal: cakes),
                 \(bind: name), \(bind: phone), '1 QA Street', 'QA note', \(bind: UUID()), \(bind: String(repeating: "a", count: 64)), 'ios', '1.0.0',
                 \(bind: stamp)::timestamptz)
             """)
         try await run("INSERT INTO customer_order_item (order_id, product_id, product_name, unit_price_vnd, quantity, line_total_vnd) VALUES (\(bind: id), \(bind: productID), 'QA cake', 50000, \(literal: cakes), \(literal: cakes * 50_000))")
-        if load && ["New", "Confirmed"].contains(status) { try await addLoad(date, cakes) }
+        if load && ["Received", "Processing", "DeliveryDateScheduled", "DeliveryStarted"].contains(status) { try await addLoad(date, cakes) }
         return orderCode
     }
 
@@ -160,8 +163,11 @@ class AdminQABase: XCTestCase {
     }
 
     func changeStatus(_ phone: QAPhone, _ code: String, from: String, to: String, reason: String? = nil) async throws -> QAReply {
-        var body = ["expected_status": from, "to_status": to]
+        var body: [String: Any] = ["expected_status": from, "to_status": to]
         if let reason { body["cancel_reason"] = reason }
+        // Each target carries its required field (api/09 10.13.1).
+        if to == "DeliveryDateScheduled" { body["expected_delivery_date"] = dayOffset(1) }
+        if to == "DeliveryStarted" { body["delivery_fee_vnd"] = 20_000 }
         return try await client.send("POST", "v1/admin/orders/\(code)/status", token: phone.access, json: body)
     }
 }

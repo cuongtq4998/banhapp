@@ -29,10 +29,10 @@ final class AdminPerformanceTests: AdminQABase {
 
     override func setUp() async throws {
         try await super.setUp()
-        try await bulk(count: 4_500, status: "Completed", daysAgoModulo: 85, olderThan: 0, offset: 0, reason: nil)
+        try await bulk(count: 4_500, status: "Finished", daysAgoModulo: 85, olderThan: 0, offset: 0, reason: nil)
         try await bulk(count: 3_500, status: "Cancelled", daysAgoModulo: 85, olderThan: 0, offset: 10_000, reason: "customer_asked")
-        try await bulk(count: 800, status: "New", daysAgoModulo: 20, olderThan: 0, offset: 20_000, reason: nil)
-        try await bulk(count: 200, status: "Confirmed", daysAgoModulo: 60, olderThan: 95, offset: 30_000, reason: nil) // open, older than 90 days
+        try await bulk(count: 800, status: "Received", daysAgoModulo: 20, olderThan: 0, offset: 20_000, reason: nil)
+        try await bulk(count: 200, status: "Processing", daysAgoModulo: 60, olderThan: 95, offset: 30_000, reason: nil) // open, older than 90 days
         try await run(SQLQueryString("INSERT INTO customer_order_item (order_id, product_id, product_name, unit_price_vnd, quantity, line_total_vnd) SELECT id, '\(productID.uuidString)', 'QA cake', 50000, 2, 100000 FROM customer_order WHERE shop_id = '\(shopID.uuidString)'"))
         try await run("ANALYZE customer_order")
         phone = try await owner()
@@ -54,7 +54,7 @@ final class AdminPerformanceTests: AdminQABase {
     func testTCB105_ListSearchAndDetailStayUnderTheTargetsWithNineThousandOrders() async throws {
         let total = try await count("SELECT count(*)::int AS n FROM customer_order WHERE shop_id = \(bind: shopID)")
         XCTAssertEqual(total, 9_000)
-        let probes = ["v1/admin/orders", "v1/admin/orders?status=all", "v1/admin/orders?status=Completed", "v1/admin/orders?q=Tran%20Thi%20123",
+        let probes = ["v1/admin/orders", "v1/admin/orders?status=all", "v1/admin/orders?status=Finished", "v1/admin/orders?q=Tran%20Thi%20123",
                       "v1/admin/orders?q=0900000", "v1/admin/orders?q=BT-AB", "v1/admin/orders?status=all&q=zzz", "v1/admin/orders?date_preset=today"]
         var report: [String] = []
         for probe in probes {
@@ -69,17 +69,17 @@ final class AdminPerformanceTests: AdminQABase {
         report.append("detail p95 \(Int(detail.p95 * 1000)) ms")
         XCTAssertLessThan(detail.p95, 0.5)
         let count = first.json["unfinished_count"] as? Int ?? -1
-        XCTAssertEqual(count, 1_000, "badge: 800 New + 200 old Confirmed, all due today or earlier")
+        XCTAssertEqual(count, 1_000, "badge: 800 Received + 200 old Processing, all due today or earlier")
         print("QA-PERF " + report.joined(separator: " | "))
     }
 
     func testTCB105b_StatusChangeP95AndOldOpenOrdersAreStillInTheDefaultList() async throws {
-        let rows = try await sql.raw("SELECT order_code FROM customer_order WHERE shop_id = \(bind: shopID) AND status = 'New' ORDER BY created_at LIMIT 30").all()
+        let rows = try await sql.raw("SELECT order_code FROM customer_order WHERE shop_id = \(bind: shopID) AND status = 'Received' ORDER BY created_at LIMIT 30").all()
         let codes = try rows.map { try $0.decode(column: "order_code", as: String.self) }
         var times: [Double] = []
         for code in codes {
             let started = Date()
-            let reply = try await changeStatus(phone, code, from: "New", to: "Confirmed")
+            let reply = try await changeStatus(phone, code, from: "Received", to: "Processing")
             times.append(Date().timeIntervalSince(started))
             XCTAssertEqual(reply.status, 200, reply.text)
         }
@@ -98,14 +98,15 @@ final class AdminPerformanceTests: AdminQABase {
             cursor = reply.json["next_cursor"] as? String
             pages += 1
         } while cursor != nil && pages < 40
-        XCTAssertEqual(seen.count, 1_000, "all open orders (800 New or confirmed now, 200 old Confirmed) in \(pages) pages")
+        XCTAssertEqual(seen.count, 1_000, "all open orders (800 Received or Processing now, 200 old Processing) in \(pages) pages")
     }
 
     /// TC-B106: the plan of the default list query on 9,000 rows (a copy of the service SQL, kept simple).
     func testTCB106_DefaultListQueryPlanUsesAnIndex() async throws {
         let rows = try await sql.raw(SQLQueryString("""
             EXPLAIN (ANALYZE, FORMAT TEXT) SELECT id FROM customer_order WHERE shop_id = '\(shopID.uuidString)' AND is_demo = false
-            AND status IN ('New', 'Confirmed') ORDER BY delivery_date, slot_start_time, created_at, id LIMIT 51
+            AND status IN ('Received', 'Processing', 'DeliveryDateScheduled', 'DeliveryStarted')
+            ORDER BY COALESCE(expected_delivery_date, delivery_date), slot_start_time, created_at, id LIMIT 51
             """)).all()
         let plan = try rows.map { try $0.decode(column: "QUERY PLAN", as: String.self) }.joined(separator: "\n")
         print("QA-PLAN\n" + plan)

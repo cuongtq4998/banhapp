@@ -57,11 +57,11 @@ final class DatabaseIntegrityTests: DatabaseTestBase {
         try await inRollback { tx in
             try await q.insertShopGraph(tx, accepted: 2)
             try await q.run(tx, q.orderInsert(cakes: 2))
-            try await q.run(tx, "INSERT INTO order_event (order_id, event_type, to_status, actor_type) VALUES (\(Ids.order), 'created', 'New', 'customer')")
+            try await q.run(tx, "INSERT INTO order_event (order_id, event_type, to_status, actor_type) VALUES (\(Ids.order), 'created', 'Received', 'customer')")
             try await q.expectRejected(tx, "UPDATE order_event SET to_status = 'Cancelled' WHERE order_id = \(Ids.order)")
             try await q.expectRejected(tx, "DELETE FROM order_event WHERE order_id = \(Ids.order)")
-            try await q.expectRejected(tx, "INSERT INTO order_event (order_id, event_type, to_status, actor_type) VALUES (\(Ids.order), 'deleted', 'New', 'customer')")
-            try await q.expectRejected(tx, "INSERT INTO order_event (order_id, event_type, to_status, actor_type) VALUES (\(Ids.order), 'created', 'New', 'robot')")
+            try await q.expectRejected(tx, "INSERT INTO order_event (order_id, event_type, to_status, actor_type) VALUES (\(Ids.order), 'deleted', 'Received', 'customer')")
+            try await q.expectRejected(tx, "INSERT INTO order_event (order_id, event_type, to_status, actor_type) VALUES (\(Ids.order), 'created', 'Received', 'robot')")
         }
     }
 

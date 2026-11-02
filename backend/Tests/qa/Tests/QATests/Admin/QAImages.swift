@@ -7,8 +7,15 @@ enum QAImages {
     /// A PNG signature with an IHDR of the given size; `pad` extra bytes follow so the file can be large.
     static func png(width: UInt32 = 800, height: UInt32 = 600, pad: Int = 0) -> Data {
         var bytes: [UInt8] = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]
-        bytes += be32(13) + Array("IHDR".utf8) + be32(width) + be32(height) + [8, 2, 0, 0, 0] + [0, 0, 0, 0]
-        bytes += be32(0) + Array("IEND".utf8) + [0xAE, 0x42, 0x60, 0x82]
+        // Separate appends keep the type checker fast.
+        bytes += be32(13)
+        bytes += Array("IHDR".utf8)
+        bytes += be32(width)
+        bytes += be32(height)
+        bytes += [8, 2, 0, 0, 0, 0, 0, 0, 0]
+        bytes += be32(0)
+        bytes += Array("IEND".utf8)
+        bytes += [0xAE, 0x42, 0x60, 0x82]
         return Data(bytes) + Data(repeating: 0, count: pad)
     }
 

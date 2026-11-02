@@ -57,3 +57,11 @@ Severity: high = wrong result or data loss in a Must flow; medium = a Must AC fa
 | X-4 | docs/test and design | `docs/design/admin-orders/11-traceability-questions-changelog.md` still says "AC-11, AC-12, AC-13, AC-47 and FR-6, FR-7, FR-8 have no UI by design"; correct for AC-13 only until D-1 is decided (the review account needs no screen, but its sign-in is the normal screen) | canvas-ui: no change unless D-1 adds UI |
 
 [v1.0 | 2026-11-01]
+
+## Round 37: QA package migration to the six statuses [v1.1 | 2026-11-02]
+
+| ID | Route | Steps | Expected | Actual |
+| -- | ----- | ----- | -------- | ------ |
+| D-37-1 | dev | Run `cd backend/Tests/qa && QA_ALLOW_DB_MUTATION=1 swift test` on the backend stage branch; test `ContractFixtureTests.testExtra_FixtureReadmeListsEveryFixture`. | `contracts/fixtures/README.md` describes every fixture in `contracts/fixtures/admin/`. | Seven fixtures are not listed: `order-detail-fee-corrected`, `order-detail-delivery-started-free`, `order-detail-delivery-started`, `order-detail-delivery-date-scheduled`, `error-validation-fee-invalid`, `error-validation-expected-date-too-far`, `error-order-state-changed-fee` (all `admin/*.json`). The test stays active; it is a documentation gap, not a behaviour defect. |
+
+Test-side notes (not defects): the cursor of ADR-0029 v1.8 is unsigned, so the cursor tamper test now breaks the version prefix instead of the last character; the status route answers `FIELD_NOT_ALLOWED` (api/09 10.13.2 note) where the old test expected `REASON_NOT_ALLOWED`.
