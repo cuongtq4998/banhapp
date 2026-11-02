@@ -24,3 +24,68 @@ Fake data only. This repository is public.
 | `order-created.json` | `POST /v1/orders` | 201 exchange: `status`, `response_headers`, `body` with `order_code` and `created_at` only |
 | `order-replay.json` | `POST /v1/orders` | 200 replay of the same key and body: same `body`, header `Idempotent-Replay: true` |
 | `order-error-*.json` | `POST /v1/orders` | One error envelope per code of api.md 4.3 (`validation-failed` with two `fields[]`, `price-changed`, `min-qty`, `date-lead`, `date-horizon`, `date-capacity`, `product-unavailable`, `slot-unavailable`, `district-unserved`, `idempotency-key-required`, `header-invalid`, `idempotency-key-reused`, `rate-limited`, `payload-too-large`, `ordering-paused`, `service-unavailable`, `internal-error`) with the `details` the document states. The backend tests compare real answers with these files, ignoring `request_id` |
+
+## admin/
+
+Admin sign-in and session exchanges (docs/system/api/05, api/06, api/08; admin-orders slice B1). Exchange files hold `request` (optional `headers`, `body`), `status` and `body`; token values are placeholders, so tests compare key sets and value types. `error-*.json` are error envelopes compared with the real answers, ignoring `request_id`.
+
+| File | Endpoint | Meaning |
+| ---- | -------- | ------- |
+| `code-request.json` | `POST /v1/auth/code-requests` | 202, same body for every address |
+| `session-created.json` | `POST /v1/auth/sessions` | 201 with tokens, `device_id`, `account`, `server_date` |
+| `refresh-ok.json` | `POST /v1/auth/refresh` | 200 with a new pair |
+| `me.json` | `GET /v1/admin/me` | 200 |
+| `error-unauthenticated`, `-access-token-expired`, `-session-revoked`, `-session-expired`, `-forbidden` | admin routes | 401 and 403 envelopes |
+| `error-code-invalid`, `-code-expired`, `-code-resend-wait`, `-code-request-limit`, `-validation-email` | `/v1/auth` | 422 and 429 envelopes; limits carry `retry_after_seconds` |
+| `orders-list.json` | `GET /v1/admin/orders` | 200 list: `items[]` (with `expected_delivery_date`, `list_date`), `next_cursor` (null at the end), `unfinished_count`, `server_date` |
+| `order-detail.json` | `GET /v1/admin/orders/{order_code}` | 200 detail: process fields, `allowed_actions`, `expected_date_range`, fee fields, `date_changes[]`, `fee_corrections[]`, `delivery_fee_entry`, `last_change` |
+| `order-status-change.json` | `POST /v1/admin/orders/{order_code}/status` | Request body and the 200 detail after cancelling |
+| `error-order-not-found`, `-status-transition-invalid`, `-cancel-reason-required`, `-order-state-changed` | status route | 404, 422 and 409 envelopes; the 409 carries `details.order` (the current detail) |
+| `order-detail-received.json` | `GET /v1/admin/orders/{order_code}` | 200 detail of a received order
+| `order-detail-delivery-date-scheduled.json` | `PUT /v1/admin/orders/{order_code}/expected-date` | 200 detail with two `date_changes`
+| `order-detail-delivery-started.json` | `GET /v1/admin/orders/{order_code}` | 200 detail, delivery started, fee 25 000
+| `order-detail-delivery-started-free.json` | `GET /v1/admin/orders/{order_code}` | 200 detail, delivery started, fee 0
+| `order-detail-fee-corrected.json` | `PUT /v1/admin/orders/{order_code}/delivery-fee` | 200 detail with two `fee_corrections`
+| `error-status-transition-invalid-cancel.json` | `POST .../status` | 422 envelope, cancel not allowed from this status
+| `error-order-state-changed-date.json` | `PUT .../expected-date` | 409 envelope; carries `details.order`
+| `error-order-state-changed-fee.json` | `PUT .../delivery-fee` | 409 envelope; carries `details.order`
+| `error-validation-expected-date-past.json` | `PUT .../expected-date` | 422 envelope; carries `details.expected_date_range`
+| `error-validation-expected-date-too-far.json` | `PUT .../expected-date` | 422 envelope; carries `details.expected_date_range`
+| `error-validation-fee-required.json` | `PUT .../delivery-fee` | 422 envelope, fee missing
+| `error-validation-fee-invalid.json` | `PUT .../delivery-fee` | 422 envelope, fee not a valid amount
+| `error-fee-correction-not-allowed.json` | `PUT .../delivery-fee` | 422 envelope, status does not allow a correction
+
+Owner settings and staff (docs/system/api/07; admin-orders slices B4 and B5), in `admin/`. Ids and addresses are placeholders; tests compare key sets and value kinds.
+
+| File | Endpoint | Meaning |
+| ---- | -------- | ------- |
+| `owner-settings.json` | `GET /v1/owner/settings` | 200 with `shop`, `ordering`, `cakes`, `districts`, `slots`, `cake_count_max`, `staff_count_max` |
+| `owner-shop-saved.json` | `PUT /v1/owner/settings/shop` | Request and the 200 section |
+| `owner-ordering-saved.json` | `PUT /v1/owner/settings/ordering` | 200 section plus `over_limit` and `count` true at save time |
+| `owner-ordering-impact.json` | `GET /v1/owner/settings/ordering/impact?daily_limit=60` | 200 preview, writes nothing |
+| `owner-district-created.json`, `owner-slot-created.json` | `POST /v1/owner/districts`, `/slots` | 201 |
+| `owner-staff-list.json`, `owner-staff-created.json`, `owner-staff-deactivated.json` | `/v1/owner/staff` | `{ accounts: [...] }` (owner first), 201 account, 200 account |
+| `error-settings-validation`, `-staff-validation` | settings and staff writes | 422 with every problem in `fields[]` (`ERR_FIELD_*` keys) |
+| `error-last-active-district`, `-last-active-slot`, `-slot-duplicate`, `-email-taken`, `-staff-limit-reached`, `-owner-protected` | districts, slots, staff | 409 and 422 envelopes |
+| `owner-cake-created.json`, `owner-cake-updated.json` | `POST /v1/owner/cakes` (multipart), `PATCH /v1/owner/cakes/{id}` | 201 and 200 cake; `image_url` of an uploaded cake is `/assets/cakes/<id>?v=<8 hex>`; `DELETE` answers 204 |
+| `error-cake-validation`, `-cake-name-taken` | `POST /v1/owner/cakes` | 422 with the `image` codes and `NAME_TAKEN` in `fields[]` |
+| `error-cake-limit-reached`, `-last-active-cake`, `-image-too-large` | cakes | 409 (13th cake, last active cake) and 413 envelopes |
+
+## customer/
+
+Customer order lookup by phone (docs/system/api/10, `POST /v1/orders/lookup`). Answers and errors come from the real route with a planted store and a fixed clock; `request_id` is a placeholder and `next_cursor` is an opaque value. Not repeated here: 413 uses `order-error-payload-too-large.json` and 503 uses `error-service-unavailable.json` (same envelopes on this route).
+
+| File | Route | Meaning |
+| ---- | ----- | ------- |
+| `customer/order-lookup-request.json` | `POST /v1/orders/lookup` | Request body with a fake phone, no cursor |
+| `customer/order-lookup-answer-open.json` | `POST /v1/orders/lookup` | 200, four open orders (Received, Processing, DeliveryDateScheduled, DeliveryStarted); the first three have the fee unknown so `amount_to_collect_vnd` is null; the last has a final fee 25000 |
+| `customer/order-lookup-answer-fee-zero.json` | `POST /v1/orders/lookup` | 200, Finished order with final fee 0, amount equals the subtotal |
+| `customer/order-lookup-answer-fee-corrected.json` | `POST /v1/orders/lookup` | 200, order whose fee was corrected; only the latest final fee (35000) is sent |
+| `customer/order-lookup-answer-cancelled.json` | `POST /v1/orders/lookup` | 200, Cancelled order keeps its items, no reason |
+| `customer/order-lookup-answer-empty.json` | `POST /v1/orders/lookup` | 200, `orders` empty, `next_cursor` null |
+| `customer/order-lookup-answer-page-one.json` | `POST /v1/orders/lookup` | 200, ten orders and a non-null `next_cursor` |
+| `customer/order-lookup-answer-last-page.json` | `POST /v1/orders/lookup` | 200, page two with the remaining two orders, `next_cursor` null |
+| `customer/error-lookup-phone-required.json` | `POST /v1/orders/lookup` | 422 `VALIDATION_FAILED`, field code `PHONE_REQUIRED` |
+| `customer/error-lookup-phone-invalid.json` | `POST /v1/orders/lookup` | 422 `VALIDATION_FAILED`, field code `PHONE_INVALID` |
+| `customer/error-lookup-cursor-invalid.json` | `POST /v1/orders/lookup` | 422 `VALIDATION_FAILED`, field code `CURSOR_INVALID` |
+| `customer/error-lookup-rate-limited.json` | `POST /v1/orders/lookup` | 429 `RATE_LIMITED` with `retry_after_seconds`; same body for the phone and address paths |

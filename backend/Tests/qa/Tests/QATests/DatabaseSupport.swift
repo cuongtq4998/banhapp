@@ -59,15 +59,33 @@ struct Q: Sendable {
         }
     }
 
+    /// The fields a move into `status` must carry (order-process.md section 3).
+    func extraSet(_ status: String) -> String {
+        switch status {
+        case "Cancelled": return ", cancel_reason = 'customer_asked'"
+        case "DeliveryDateScheduled": return ", expected_delivery_date = '2030-01-10'"
+        case "DeliveryStarted": return ", delivery_fee_final_vnd = 20000"
+        default: return ""
+        }
+    }
+
     func orderInsert(id: String = Ids.order, key: String = Ids.key, code: String = "'BT-ABC234'", cakes: Int = 2,
-                             date: String = "2030-01-10", status: String = "New",
+                             date: String = "2030-01-10", status: String = "Received",
                              phone: String = "+84901234567", subtotal: Int? = nil, total: Int? = nil) -> String {
         let sub = subtotal ?? cakes * 50000
+        // A Cancelled row must carry a reason (migration 0003 CHECK).
+        let reasonColumn = status == "Cancelled" ? ", cancel_reason" : ""
+        let reasonValue = status == "Cancelled" ? ", 'customer_asked'" : ""
+        // States after scheduling need an expected date; a final fee exists from DeliveryStarted on (migration 0008 CHECKs).
+        let dated = ["DeliveryDateScheduled", "DeliveryStarted", "Finished"].contains(status)
+        let feed = ["DeliveryStarted", "Finished"].contains(status)
+        let extraColumns = (dated ? ", expected_delivery_date" : "") + (feed ? ", delivery_fee_final_vnd" : "")
+        let extraValues = (dated ? ", '\(date)'" : "") + (feed ? ", 20000" : "")
         return """
-        INSERT INTO customer_order (id, shop_id, order_code, status, delivery_date, slot_id, slot_start_time, slot_end_time,
+        INSERT INTO customer_order (id, shop_id, order_code, status\(reasonColumn)\(extraColumns), delivery_date, slot_id, slot_start_time, slot_end_time,
             district_id, district_name, delivery_fee_vnd, items_subtotal_vnd, total_vnd, total_cakes, customer_name,
             customer_phone, customer_address, idempotency_key, request_hash, client_platform, app_version)
-        VALUES (\(id), \(Ids.shop), \(code), '\(status)', '\(date)', \(Ids.slot), '08:00', '10:00',
+        VALUES (\(id), \(Ids.shop), \(code), '\(status)'\(reasonValue)\(extraValues), '\(date)', \(Ids.slot), '08:00', '10:00',
             \(Ids.district), 'QA district', 20000, \(sub), \(total ?? sub + 20000), \(cakes), 'QA Customer',
             '\(phone)', '1 QA street', \(key), '\(String(repeating: "a", count: 64))', 'ios', '1.0.0')
         """

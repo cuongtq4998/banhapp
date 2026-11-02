@@ -19,7 +19,7 @@ final class OrderDatabaseTests: OrderDatabaseTestCase {
             FROM customer_order WHERE shop_id = \(bind: seed.shopID) AND order_code = \(bind: placed.orderCode)
             """).first()
         let row = try XCTUnwrap(found)
-        XCTAssertEqual(try row.decode(column: "status", as: String.self), "New")
+        XCTAssertEqual(try row.decode(column: "status", as: String.self), "Received")
         XCTAssertEqual(try row.decode(column: "payment_status", as: String.self), "unpaid")
         XCTAssertEqual(try row.decode(column: "customer_name", as: String.self), "Nguyễn Văn A")
         XCTAssertEqual(try row.decode(column: "customer_phone", as: String.self), "+84900000000")
@@ -37,7 +37,7 @@ final class OrderDatabaseTests: OrderDatabaseTestCase {
 
         let items = try await count("SELECT count(*)::int AS n FROM customer_order_item i JOIN customer_order o ON o.id = i.order_id WHERE o.shop_id = \(bind: seed.shopID) AND i.unit_price_vnd = 50000 AND i.quantity = 2 AND i.line_total_vnd = 100000 AND i.product_name = 'Bánh chuối'")
         XCTAssertEqual(items, 1)
-        let events = try await count("SELECT count(*)::int AS n FROM order_event e JOIN customer_order o ON o.id = e.order_id WHERE o.shop_id = \(bind: seed.shopID) AND e.event_type = 'created' AND e.from_status IS NULL AND e.to_status = 'New' AND e.actor_type = 'customer'")
+        let events = try await count("SELECT count(*)::int AS n FROM order_event e JOIN customer_order o ON o.id = e.order_id WHERE o.shop_id = \(bind: seed.shopID) AND e.event_type = 'created' AND e.from_status IS NULL AND e.to_status = 'Received' AND e.actor_type = 'customer'")
         XCTAssertEqual(events, 1)
         let counter = try await cakes(seed)
         XCTAssertEqual(counter, 2)

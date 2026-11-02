@@ -2,12 +2,12 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.5 |
-| Last updated | 2026-10-29 |
+| Version      | 1.20 [v1.20 | 2026-11-02] |
+| Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
-| Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0 |
-| Related      | architecture.md; api.md; order-lifecycle.md; ADR-0002, ADR-0008, ADR-0009, ADR-0013, ADR-0017 |
+| Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; product/admin-orders.md v1.6 (27 FR, 14 BR) [v1.9 | 2026-10-31] |
+| Related      | architecture.md; api.md; order-lifecycle.md; ADR-0002, ADR-0008, ADR-0009, ADR-0013, ADR-0017, ADR-0022, ADR-0025, ADR-0029 to ADR-0032 |
 
 This file is the index of the data model. The body lives in the folder `data-model/`, split by topic so that no file passes 200 lines (CLAUDE.md "Project rule: file size"). Section numbers are unchanged: "data-model.md section 5" still means the same text, found through the map below. [v1.4 | 2026-10-27]
 
@@ -25,13 +25,18 @@ This file is the index of the data model. The body lives in the folder `data-mod
 | 7 | Sensitive data | [data-model/03-constraints-rules-migrations.md](data-model/03-constraints-rules-migrations.md) |
 | 8 | Migrations | [data-model/03-constraints-rules-migrations.md](data-model/03-constraints-rules-migrations.md) |
 | 9 | Traceability | [data-model/03-constraints-rules-migrations.md](data-model/03-constraints-rules-migrations.md) |
+| 3.10 to 3.17 | `account`, `device_session` (with the push token), `auth_code` (with the attempt count), `security_event`, `settings_change`; sensitive data added; section 3.17 lists what v1.9 removed [v1.9 \| 2026-10-31] | [data-model/04-admin-accounts-sessions.md](data-model/04-admin-accounts-sessions.md) |
+| 15.1 | Database change policy [v1.17 \| 2026-11-02] | [data-model/05-admin-orders-cakes-settings.md](data-model/05-admin-orders-cakes-settings.md) |
+| 11 to 16 | Changes to `customer_order`, `order_event`, `product`, `product_image`, settings CHECKs, `day_load` and the daily limit, purge jobs, migrations `0002` and `0003`, traceability [v1.6 \| 2026-10-31] | [data-model/05-admin-orders-cakes-settings.md](data-model/05-admin-orders-cakes-settings.md) |
+| 18 | Migrations 0008 and 0009: split, order of application, failure state, checks [v1.20 | 2026-11-02] | [data-model/07-migrations-0008-0009.md](data-model/07-migrations-0008-0009.md) |
+| 17 | Order process columns, `order_expected_date_change`, migration 0008 [v1.18 \| 2026-11-02] | [data-model/06-order-process-migration.md](data-model/06-order-process-migration.md) (v1.2: `order_fee_correction`) |
 | 10 | Open questions and change log | this file |
 
 ## 10. Open Questions / Change log
 
 | ID | Question | Why it matters | Blocking | Class | Status | Answer |
 | -- | -------- | -------------- | -------- | ----- | ------ | ------ |
-| DM-Q1 | Retention period of customer contact data (BR-12) | Purge job and privacy text | No | business | Open (owner, already in PRD 12.1) | |
+| DM-Q1 | Retention period of customer contact data (BR-12) | Purge job and privacy text | No | business | Open: the owner decides later (2026-10-31); until then the 90-day rule of ADR-0029 is a display rule only and nothing is purged [v1.7 | 2026-10-31] | |
 | DM-Q2 | Database choice (ADR-0002) | Schema is written for PostgreSQL | No | technical | Closed: owner accepted PostgreSQL (2026-10-25) | Owner |
 
 | Version | Date | Change |
@@ -42,3 +47,18 @@ This file is the index of the data model. The body lives in the folder `data-mod
 | 1.3 | 2026-10-26 | QA findings DOC-1, DOC-5, DOC-6, DOC-7: `image_path` rule, products not limited to four, seed wording and fake phone rule, `note_max_length` constant. |
 | 1.4 | 2026-10-27 | Split into the folder `data-model/` (file size rule, 200 lines); this file became the index with a section map. No schema change. |
 | 1.5 | 2026-10-29 | Slice 3 resync (02 orders): the `created` event and the counter are written by the transaction inside `OrderRepository.insertOrder`; per-phone count reads `customer_order` of any status in the last 24 hours. No schema change. |
+| 1.6 | 2026-10-31 | admin-orders: new files 04 and 05. Tables `account`, `device_session`, `auth_code`, `auth_email_state`, `push_token`, `security_event`, `settings_change`, `product_image`; columns `cancel_reason`, `is_demo`, `order_event.reason/actor_name`, `product.removed_at/image_source`; CHECKs and triggers; per-phone count excludes cancelled orders except `fake_spam`; `day_load.capacity_limit` is a copy, not an authority; migrations 0002 and 0003; purge jobs. Answers TQ-5, TQ-7 to TQ-9. |
+| 1.8 | 2026-10-31 | Simplified for the owner directive and PRD v1.4 (BR-5, Q-20): table `auth_email_state` removed (attempts counted on `auth_code.wrong_count`, no address lock); table `push_token` merged into `device_session`; `device_session.app_version` and unused security event types removed; partial index for the Unfinished view. Sections 3.13 and 3.14 kept as stubs. Admin tables: 5 (was 7). |
+| 1.7 | 2026-10-31 | DM-Q1 (retention) recorded as still open, owner decides later; 90-day window stays display only. Stale "later slice" wording in file 02 removed. |
+| 1.9 | 2026-10-31 | Simplified for PRD v1.6 (27 FR, 14 BR): removed `account.backup_email*`, trigger `account_email_guard`, `auth_code.purpose` and `challenge_id`, `device_session.sign_in_method = recovery`, `revoked_by_owner` (now `signed_out_others`), three `security_event` types and `actor_account_id`, cancel reason `day_full`; Unfinished view support reduced to the open-orders partial index. FR and BR ids of the admin sections follow PRD v1.6. Admin tables still 5. |
+| 1.10 | 2026-11-01 | Aligned with built slices B2 and B3 (architecture/11): migration is `0003_admin_orders.sql` (section 11 only), capacity trigger has no `GREATEST` floor and what a cancel does to `day_load` is written, per-phone rule text agrees with the code, purge task confirmed NOT built (go-live gate), defect D-2 (`is_demo` and `day_load`). |
+| 1.11 | 2026-11-01 | Aligned with built slices B4 and B5 (architecture/12): `settings_change` and the BR-11 CHECKs are in `0004_admin_settings.sql` (not 0002); case-insensitive district name, slot renumbering, review accounts outside staff lists. |
+| 1.12 | 2026-11-01 | Aligned with built slice B6 (architecture/13): migration `0005_admin_cakes.sql` (section 12 and the D-2 trigger fix), cap trigger also fires on `UPDATE OF removed_at` when a cake is brought back, `product_image` checks, removal deletes the image. |
+| 1.13 | 2026-11-01 | Aligned with built slice B7 (architecture/14): `push_apns_environment` cleared with the token at every revoke; sending also needs a live refresh expiry. No migration. |
+| 1.14 | 2026-11-01 | Migration `0006_review_account.sql` (order_event rows of `is_demo` orders may be deleted); `DAY_LOAD_INCONSISTENT` rule of the cancel; `is_demo` rows skipped by the per-phone count (data-model/05 sections 11 and 15, architecture/16). |
+| 1.15 | 2026-11-02 | Section 14 (data-model/05): purge task built; DB tests not yet run; optional later index on `auth_code (expires_at)`. |
+| 1.16 | 2026-11-02 | Migration `0007_security_event_purge.sql` (being built, ADR-0032): `security_event` rows older than 180 days may be deleted, so the purge can work; sections 3.15 and 14 (data-model/04, 05). |
+| 1.17 | 2026-11-02 | Owner decision: `0007` also creates `security_event_archive` (append-only; the purge moves rows in one statement); new section 15.1 database change policy (numbered migrations, never edit, `pg_dump` before applying); sections 3.15, 14, 15, 15.1 (data-model/04, 05). Go-live gate still open. |
+| 1.18 | 2026-11-02 | Migration `0008_order_process.sql` (data-model/06, ADR-0033): six statuses on `customer_order`, three new columns, table `order_expected_date_change`; `order_event` is not rewritten (append-only), legacy status words in old events are mapped on read; names New, Confirmed, Completed in data-model/02, 03, 05 are the pre-0008 values. |
+| 1.19 | 2026-11-02 | Table `order_fee_correction` in migration 0008, stricter immutable trigger, date range enforced by the API (ADR-0033 v1.2); customer lookup adds no structure (ADR-0034). |
+| 1.20 | 2026-11-02 | Migration 0008 is split into `0008_order_process.sql` and `0009_order_process_records.sql` (200-line rule); new file data-model/07 (order of application, state if 0009 fails, checks). Lookup list reads `customer_order_item` in the same statement; no schema change (ADR-0034 v1.2). |

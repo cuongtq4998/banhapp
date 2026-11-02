@@ -15,7 +15,7 @@ Role: anonymous. Purpose: everything the app displays before ordering (FR-2, FR-
 | server_date | date | Today in shop time. Clients use it instead of the device date |
 | shop | object | `name`, `greeting`, `phone_contact` (E.164), `zalo_contact` |
 | settings | object | `min_qty`, `lead_days`, `max_days_ahead`, `max_qty_per_cake` (from `shop_setting`), `note_max_length` (a code constant, 200, the same bound as the `customer_order.note` column check; it is not a `shop_setting` column) [v1.6 \| 2026-10-26] |
-| products | Product[] | Every active product, ordered by `sort_order`: one to four are normal (the owner may deactivate a cake). The server never pads or truncates the list; zero active products answers 200 with `[]` and the apps show the error screen (owner decision 2026-10-26, PRD FR-3) | [v1.6 | 2026-10-26]
+| products | Product[] | Every active product, ordered by `sort_order`: one to twelve are normal (the owner adds, hides and removes cakes; hidden and removed cakes are not listed; `image_url` of an uploaded cake is `/assets/cakes/<product_id>?v=<8 hex>`, ADR-0025) [v1.13 | 2026-10-31]. The server never pads or truncates the list; zero active products answers 200 with `[]` and the apps show the error screen (owner decision 2026-10-26, PRD FR-3) | [v1.6 | 2026-10-26]
 | districts | District[] | Active districts, ordered |
 | slots | Slot[] | Active slots, ordered |
 

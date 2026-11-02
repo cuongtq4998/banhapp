@@ -8,11 +8,13 @@ final class OrderTriggerTests: DatabaseTestCase {
     func testStatusGuardAllowsOnlyTheLifecycleTransitions() async throws {
         try await withRolledBackTransaction { sql in
             let order = try await OrderFixture.insert(on: sql)
-            try await assertRejected(by: sql, "UPDATE customer_order SET status = 'Completed' WHERE id = \(bind: order.orderID)")
-            try await order.setStatus("Confirmed", on: sql)
-            try await assertRejected(by: sql, "UPDATE customer_order SET status = 'New' WHERE id = \(bind: order.orderID)")
-            try await order.setStatus("Completed", on: sql)
-            try await assertRejected(by: sql, "UPDATE customer_order SET status = 'Cancelled' WHERE id = \(bind: order.orderID)")
+            try await assertRejected(by: sql, "UPDATE customer_order SET status = 'Finished' WHERE id = \(bind: order.orderID)")
+            try await order.setStatus("Processing", on: sql)
+            try await assertRejected(by: sql, "UPDATE customer_order SET status = 'Received' WHERE id = \(bind: order.orderID)")
+            // order-process.md section 2: Processing only goes on to a date or Cancelled.
+            try await assertRejected(by: sql, "UPDATE customer_order SET status = 'Finished' WHERE id = \(bind: order.orderID)")
+            try await order.setStatus("Cancelled", on: sql)
+            try await assertRejected(by: sql, "UPDATE customer_order SET status = 'Received' WHERE id = \(bind: order.orderID)")
         }
     }
 
@@ -20,7 +22,7 @@ final class OrderTriggerTests: DatabaseTestCase {
         try await withRolledBackTransaction { sql in
             let order = try await OrderFixture.insert(on: sql)
             try await sql.raw("UPDATE customer_order SET payment_status = 'paid' WHERE id = \(bind: order.orderID)").run()
-            try await sql.raw("UPDATE customer_order SET status = 'New' WHERE id = \(bind: order.orderID)").run()
+            try await sql.raw("UPDATE customer_order SET status = 'Received' WHERE id = \(bind: order.orderID)").run()
             let events = try await order.events(on: sql)
             XCTAssertTrue(events.isEmpty)
         }
@@ -29,12 +31,12 @@ final class OrderTriggerTests: DatabaseTestCase {
     func testEveryStatusChangeWritesAnEventWithTheSystemActorByDefault() async throws {
         try await withRolledBackTransaction { sql in
             let order = try await OrderFixture.insert(on: sql)
-            try await order.setStatus("Confirmed", on: sql)
-            try await order.setStatus("Completed", on: sql)
+            try await order.setStatus("Processing", on: sql)
+            try await order.setStatus("Cancelled", on: sql)
             let events = try await order.events(on: sql)
             XCTAssertEqual(events, [
-                .init(fromStatus: "New", toStatus: "Confirmed", actorType: "system", actorID: nil),
-                .init(fromStatus: "Confirmed", toStatus: "Completed", actorType: "system", actorID: nil)
+                .init(fromStatus: "Received", toStatus: "Processing", actorType: "system", actorID: nil),
+                .init(fromStatus: "Processing", toStatus: "Cancelled", actorType: "system", actorID: nil)
             ])
         }
     }
@@ -43,12 +45,17 @@ final class OrderTriggerTests: DatabaseTestCase {
         try await withRolledBackTransaction { sql in
             let order = try await OrderFixture.insert(on: sql)
             let staffID = UUID()
+            // order_event.actor_id is a foreign key to account since migration 0003.
+            try await sql.raw("""
+                INSERT INTO account (id, shop_id, role, email, display_name)
+                VALUES (\(bind: staffID), \(bind: order.shopID), 'staff', \(bind: "\(staffID.uuidString.lowercased())@example.com"), 'Nhan Vien')
+                """).run()
             // `true` makes the setting local to the transaction.
             try await sql.raw("SELECT set_config('app.actor_type', 'staff', true)").run()
             try await sql.raw("SELECT set_config('app.actor_id', \(bind: staffID.uuidString), true)").run()
-            try await order.setStatus("Confirmed", on: sql)
+            try await order.setStatus("Processing", on: sql)
             let events = try await order.events(on: sql)
-            XCTAssertEqual(events, [.init(fromStatus: "New", toStatus: "Confirmed", actorType: "staff", actorID: staffID)])
+            XCTAssertEqual(events, [.init(fromStatus: "Received", toStatus: "Processing", actorType: "staff", actorID: staffID)])
         }
     }
 
@@ -58,7 +65,7 @@ final class OrderTriggerTests: DatabaseTestCase {
             let order = try await OrderFixture.insert(on: sql, totalCakes: 6)
             let before = try await order.cakesAccepted(on: sql)
             XCTAssertEqual(before, 6)
-            try await order.setStatus("Confirmed", on: sql)
+            try await order.setStatus("Processing", on: sql)
             let afterConfirm = try await order.cakesAccepted(on: sql)
             XCTAssertEqual(afterConfirm, 6)
             try await order.setStatus("Cancelled", on: sql)
@@ -107,8 +114,8 @@ final class OrderTriggerTests: DatabaseTestCase {
     func testOrderEventIsAppendOnly() async throws {
         try await withRolledBackTransaction { sql in
             let order = try await OrderFixture.insert(on: sql)
-            try await order.setStatus("Confirmed", on: sql)
-            try await assertRejected(by: sql, "UPDATE order_event SET to_status = 'Completed' WHERE order_id = \(bind: order.orderID)")
+            try await order.setStatus("Processing", on: sql)
+            try await assertRejected(by: sql, "UPDATE order_event SET to_status = 'Received' WHERE order_id = \(bind: order.orderID)")
             try await assertRejected(by: sql, "DELETE FROM order_event WHERE order_id = \(bind: order.orderID)")
         }
     }

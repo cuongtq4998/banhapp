@@ -5,7 +5,7 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 ## 7. Cross-cutting Concerns
 
 - Security and customer data: HTTPS only; no accounts; server computes all money; rate limits; personal data only in the order table and the device draft; no personal data in logs (auth.md, data-model.md section 7).
-- Observability: structured JSON logs with a request id, `/healthz`, uptime check and alerts (deployment.md section 7).
+- Observability: structured JSON logs with a request id, `/healthz`, uptime check and alerts (deployment.md section 7). Library log events are filtered by `RedactingLogHandler`, so no level exposes SQL, customer data or tokens (architecture/16) [v1.20 | 2026-11-01].
 - Error handling: machine-readable error codes mapped to Vietnamese message keys by the apps (api.md section 5). Entered data is never lost on error (FR-17).
 - Configuration: all shop parameters in database tables (ADR-0013); runtime settings in environment variables (deployment.md section 3).
 - Localization: Vietnamese only; strings in resource files keyed as in the UI document; server sends keys, not text (FR-14).
@@ -41,7 +41,7 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 | Later feature | Prepared by |
 | ------------- | ----------- |
 | Staff and owner login | Reserved `/v1/staff` prefix; `order_event.actor_type/actor_id`; auth.md placeholder |
-| Order list and statuses New, Confirmed, Completed, Cancelled | `customer_order.status`, transition trigger, indexes by shop and status |
+| Order list and the six statuses (order-process.md section 2) [v1.29 | 2026-11-02] | `customer_order.status`, transition trigger, indexes by shop and status |
 | Owner configuration of products, prices, districts, fees, limit, slots, shop info | Tables in data-model.md read at request time; `is_active`, `sort_order`; the same read path |
 | Payment | `customer_order.payment_status` placeholder, not exposed |
 | Push notifications | Not prepared beyond staff identity; needs a new ADR |

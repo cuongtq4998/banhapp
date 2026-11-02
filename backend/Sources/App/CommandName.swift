@@ -4,6 +4,12 @@ import Vapor
 /// uses `configureMigrator` instead of `configure`.
 let migrateCommandName = "migrate"
 
+/// Operator command that creates the owner account; uses `configureOwnerCommand`.
+let createOwnerCommandName = "create-owner"
+
+/// Operator command that switches the store-review account (ADR-0027); uses `configureReviewCommand`.
+let reviewAccountCommandName = "review-account"
+
 /// The command Vapor will run for `arguments` (the executable path first), or
 /// nil when none is named, in which case Vapor runs its default, `serve`.
 ///

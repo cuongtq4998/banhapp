@@ -49,6 +49,8 @@ Keyboards and input hints: name uses the name keyboard with sentence capitalisat
 
 ### 5.8 S-8 Order step 4: Review
 
+Superseded 2026-11-02 [v1.7 | 2026-11-02]: the fee and total rows, here and on S-7 and S-9, follow [part 12](12-fee-estimate-change.md): the fee is an estimate, there is no total with fee.
+
 - Purpose: show the full order before confirmation, state which data is collected and why, and confirm (FR-9, FR-10, FR-11 trigger, FR-16, FR-17).
 - Entry/Exit: from S-7. Exit to S-9 on success; Edit controls go to S-5, S-6 or S-7; back goes to S-7.
 - Layout: `TopBar`, `StepIndicator` (`STEP4`); `InlineMessage` area at the top for rule and send errors (hidden in Default); `GlassCard` "cakes": section title `REVIEW_SEC_CAKES`, one `SummaryRow` per cake with quantity above 0 (`REVIEW_ITEM` and line price), `COMMON_EDIT` control to S-5; `GlassCard` totals: `SummaryRow` Money `REVIEW_FEE`, `SummaryRow` Total `REVIEW_TOTAL`; `GlassCard` delivery: `REVIEW_DATE`, `REVIEW_TIME` (edit to S-6), `REVIEW_NAME`, `REVIEW_PHONE`, `REVIEW_ADDRESS` (address and district), `REVIEW_NOTE` only when a note was entered (edit to S-7); `NoticeText` `REVIEW_PRIVACY` [v1.6 | 2026-10-29] followed on the next line by a text link `REVIEW_PRIVACY_LINK` (same target and behaviour as `PRIVACY_LINK` on S-7, including `ERR_OPEN_PRIVACY`; the link is disabled while the order is sending); `BottomActionBar` with `PrimaryButton` `BTN_CONFIRM`.
@@ -78,14 +80,15 @@ Keyboards and input hints: name uses the name keyboard with sentence capitalisat
 
 - Purpose: tell the customer the order is received and give the order code (FR-11, FR-12).
 - Entry/Exit: from S-8 only. Exit to S-2. Back gesture and the Android back button also go to S-2; they never return to S-8 (prevents a second send). No other exit.
-- Layout: no `TopBar`; `StatusMark`; title `CONF_TITLE` (`type.title.large`); `GlassCard` with label `CONF_CODE_LABEL` and `OrderCodeDisplay`; message `CONF_MESSAGE`; row of two `ContactButton` (Zalo, Phone); `BottomActionBar` with `SecondaryButton` `CONF_BTN_HOME`.
-- Data shown: order code (unique per order, AC-16); the received-and-contact message. No tracking, no status, no cancel, no payment information, no order recap (AC-15, AC-25, AC-27).
+- Layout: no `TopBar`; `StatusMark`; title `CONF_TITLE` (`type.title.large`); `GlassCard` with label `CONF_CODE_LABEL` and `OrderCodeDisplay`; message `CONF_MESSAGE`; row of two `ContactButton` (Zalo, Phone); [v1.8 | 2026-11-02] `SecondaryButton` `T_FOLLOW_ORDER` ("Follow this order"); `BottomActionBar` with `SecondaryButton` `CONF_BTN_HOME`.
+- Data shown: order code (unique per order, AC-16); the received-and-contact message. No status, no cancel, no payment information, no order recap (AC-15, AC-25, AC-27). [v1.8 | 2026-11-02] Status is not shown here; the only tracking element is the `T_FOLLOW_ORDER` shortcut to S-10 (part 13).
 - Actions:
 
 | Action | Result | FR |
 | ------ | ------ | -- |
 | Tap Zalo / Phone | Same behaviour as S-2 (AC-17). | FR-12 |
 | Tap `CONF_BTN_HOME` | Clears flow data and goes to S-2. | FR-11 |
+| Tap `T_FOLLOW_ORDER` [v1.8 | 2026-11-02] | Opens S-10 with the order's phone filled (held in memory only, not stored) and runs the lookup at once; back from S-10 goes to S-2, never to S-8. Test id `order.confirm.follow`. | FR-22 |
 | Press and hold the code | Native text selection and copy (no extra copy button). | FR-11 |
 
 - States:

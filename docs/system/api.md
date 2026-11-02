@@ -2,12 +2,12 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.12 |
-| Last updated | 2026-10-29 |
+| Version      | 1.31 [v1.31 | 2026-11-02] |
+| Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
-| Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; data-model.md v1.0 |
-| Related      | order-lifecycle.md; auth.md; ADR-0008, ADR-0009, ADR-0010, ADR-0011, ADR-0014, ADR-0017, ADR-0019 |
+| Based on     | product/place-order.md v1.2; design/place-order-ui.md v1.0; data-model.md v1.0; product/admin-orders.md v1.6 (27 FR, 14 BR) [v1.16 | 2026-10-31] |
+| Related      | order-lifecycle.md; admin-order-handling.md; session-lifecycle.md; auth.md; ADR-0008, ADR-0009, ADR-0010, ADR-0011, ADR-0014, ADR-0017, ADR-0019, ADR-0022 to ADR-0031 |
 
 Decided: ADR-0010 is Accepted by the owner: option A, reject with `PRICE_CHANGED` and let the customer re-review (`expected_total_vnd` stays). [v1.1 | 2026-10-25] Backend framework is Vapor (ADR-0001); the conventions below are implemented as Vapor middleware. [v1.1 | 2026-10-25]
 
@@ -25,6 +25,12 @@ This file is the index of the API specification. The body lives in the folder `a
 | 4.4, 4.5, 4.6 | `GET /healthz`, `GET /privacy`, `GET /assets/*` | [api/04-ops-endpoints-errors-compatibility.md](api/04-ops-endpoints-errors-compatibility.md) |
 | 5 | Error catalogue | [api/04-ops-endpoints-errors-compatibility.md](api/04-ops-endpoints-errors-compatibility.md) |
 | 6, 7 | Compatibility policy, traceability check | [api/04-ops-endpoints-errors-compatibility.md](api/04-ops-endpoints-errors-compatibility.md) |
+| 9, endpoint index (admin), 10.1 to 10.5 | Admin conventions, sign-in, refresh [v1.16 \| 2026-10-31] | [api/05-admin-conventions-auth.md](api/05-admin-conventions-auth.md) |
+| 10.6 to 10.12 | Session, sign out other phones, push token, order list, detail, status change, push payload [v1.16 \| 2026-10-31] | [api/06-admin-orders-devices.md](api/06-admin-orders-devices.md) |
+| 10.13 to 10.19 | Owner settings, ordering rules, districts, slots, cakes, staff [v1.16 \| 2026-10-31] | [api/07-owner-settings-cakes-staff.md](api/07-owner-settings-cakes-staff.md) |
+| 10.13 | Order process of six steps, expected delivery date (today to +7), final fee and its correction [v1.25 \| 2026-11-02] | [api/09-order-process-api.md](api/09-order-process-api.md) |
+| 10.14 | Customer order lookup by phone [v1.30 \| 2026-11-02] | [api/10-customer-order-lookup.md](api/10-customer-order-lookup.md) |
+| 11 to 13 | Admin error catalogue, compatibility, traceability [v1.13 \| 2026-10-31] | [api/08-admin-errors-compatibility.md](api/08-admin-errors-compatibility.md) |
 | 8 | Open questions and change log | this file |
 
 ## 8. Open Questions / Change log
@@ -48,4 +54,23 @@ This file is the index of the API specification. The body lives in the folder `a
 | 1.9 | 2026-10-27 | Slice 2 gaps: `cakes` field error confirmed (`CAKES_INVALID`, `ERR_SERVER`), zero active products makes every `cakes` a 422, error responses carry no cache header except 404 (RFC 9110 15.1), field-level codes and the repository error name noted. Client address rule points to ADR-0019. (Version 1.8 above was UI TQ-9 and TQ-10.) |
 | 1.10 | 2026-10-27 | Split into the folder `api/` (file size rule, 200 lines); this file became the index with a section map. No contract change. The naming note in section 5 now points to the `DomainError` rule of ADR-0018. |
 | 1.11 | 2026-10-28 | Clarification only (ADR-0008 v1.1): key lifecycle and replay order in `POST /v1/orders`. No contract change. |
+| 1.13 | 2026-10-31 | admin-orders: new files 05 to 08 (sign-in by e-mail code, refresh, recovery, devices, push token, orders list/detail/status, owner settings, cakes with image upload, staff, backup e-mail; error codes). Prefixes `/v1/auth`, `/v1/admin`, `/v1/owner`; `/v1/staff` released. Place Order: per-phone limit ignores cancelled orders except `fake_spam` (api/03 step 7); catalog may list up to 12 cakes (api/02); uploaded images at `/assets/cakes/{id}`. |
 | 1.12 | 2026-10-29 | Resync with built slice 3: field-level `VALIDATION_FAILED` codes, paths and order (api/04 section 5); per-address limit counts replays; per-phone limit built (any status, 24 h, check-then-insert, `Retry-After` 3600); `X-App-Version` `N.N.N`; rule "items at most active products" removed; sorted JSON keys; transaction inside the repository. |
+| 1.14 | 2026-10-31 | Owner decisions and technical answers: one image route with its own exact body limit (5,308,416 bytes), per-client-address limits on all `/v1/auth` routes, device name format, ordering save returns `over_limit`, last write wins for settings, list paging consistency, offline sign-out, push delivery settings pointer. No new endpoint. |
+| 1.15 | 2026-10-31 | PRD v1.4: `CODE_LOCKED` removed (no address lock, a void code answers `CODE_EXPIRED`), recovery counted separately, new-device notice after sign-in; order list gains `view=unfinished` and `unfinished_count`; old unfinished orders reachable for detail and status change. No new endpoint. |
+| 1.16 | 2026-10-31 | PRD v1.6 simplification (27 FR, 14 BR). Removed: recovery endpoints, backup e-mail endpoints, device list and revoke, `DELETE /v1/admin/push-token`, `view=unfinished`, `date_from`, `date_to`, repeated `status`, response fields `new_count`, `server_time`, `has_backup_email`, `offer_device_list`, `order_window_days`, detail `history`, error `DEVICE_NOT_FOUND`, cancel reason `day_full`. Added: `DELETE /v1/admin/sessions/others`, list parameter `delivery_date`, status value `todo`, detail field `last_change`. One window rule: open orders of any age, finished orders 90 days (ADR-0029 v1.3). FR and BR ids of the admin files follow PRD v1.6. |
+| 1.17 | 2026-11-01 | Aligned with built slice B1: sign-in off (503) when not configured; field codes `EMAIL_INVALID`, `CODE_FORMAT`, `INSTALLATION_ID_INVALID`, `DEVICE_NAME_INVALID`; `device_id` upper-case vs lower-case in tokens; malformed or unknown refresh token is `SESSION_REVOKED`; grace anchored to the first rotation; `Retry-After` at most 3600; 240 and 401 limits dropped; push-token deferred; replay of a close beyond the window answers 200 (R-1). |
+| 1.18 | 2026-11-01 | Aligned with built slices B2 and B3 (architecture/11): `q` is 3 to 50 characters (was 2), opaque cursor and `CURSOR_INVALID`, field codes of the list and status change in api/08 section 11.1, status body field codes, items order, open defect D-1 (replay after the window). |
+| 1.19 | 2026-11-01 | Aligned with built slices B4 and B5 (architecture/12): staff list body, review accounts hidden, ordering `GET` without `over_limit`, field codes `BODY_EMPTY`, `FIELD_UNKNOWN`, `NAME_TAKEN` (districts), slot time codes, no-op staff `PATCH`, slot renumbering. |
+| 1.20 | 2026-11-01 | Aligned with built slice B6 (architecture/13): cake create error table (image codes and keys, `IMAGE_INVALID`, two 413 codes, 503 gate, repeated field `<FIELD>_INVALID`), `GET /assets/cakes/{id}` delivery, cakes list filter, `PATCH` rules; api/06 replay beyond the window now built (D-1). |
+| 1.21 | 2026-11-01 | Aligned with built slice B7 (architecture/14): 10.8 push token built (field codes `PLATFORM_MISMATCH`, `PLATFORM_INVALID`, `TOKEN_INVALID`, `APNS_ENVIRONMENT_INVALID`, `UNKNOWN_FIELD`); 10.12 FCM field path `android.notification.title_loc_key`; payload content. |
+| 1.22 | 2026-11-01 | `GET /v1/admin/me` also returns the caller's own `email` (own address only, never logged, `no-store`): api/05 index row, api/06 10.6; fixture `admin/me.json` and the backend to follow (architecture/15). |
+| 1.23 | 2026-11-01 | Review account and log redaction as built (architecture/16): api/05 section 9 logging row; api/06 10.11 cancel: 500 `INTERNAL_ERROR` with `details.reason = DAY_LOAD_INCONSISTENT`. No new route. |
+| 1.24 | 2026-11-02 | Order process of six steps (ADR-0033, api/09 section 10.13): status filter values, badge, detail fields in api/06 10.9 and 10.10, new field codes in api/08 11.1; `order_event` history keeps legacy words, mapped on read. |
+| 1.25 | 2026-11-02 | Date range today to +7, fee correction `PUT .../delivery-fee` (api/09 10.13.6, ADR-0033 v1.2); customer lookup `POST /v1/orders/lookup` by phone only with rate limits and minimum data (api/10 section 10.14, ADR-0034). |
+| 1.26 | 2026-11-02 | api/10 v1.2: lookup list carries order code and cake lines (ADR-0034 v1.2, owner decision); retention days never sent to the client. |
+| 1.27 | 2026-11-02 | `allowed_actions` vocabulary and action map (api/09 10.13.7, api/06 10.10); 90-day window rule and replay (order-process.md 4.1, ADR-0033 v1.4, ADR-0028 v1.6, ADR-0029 v1.7). |
+| 1.28 | 2026-11-02 | Slices S4 and S4b answers: cursor version marker, list filters match `list_date`, no merged history, date route check order and `STATUS_INVALID`, canonical `UNKNOWN_FIELD` (api/06 10.9, api/08 11.1, api/09 v1.5, ADR-0029 v1.8). |
+| 1.29 | 2026-11-02 | Six-status text in api/06 10.9 to 10.11 (window, examples, pairs by link to order-process.md section 2 and api/09 10.13.7), api/05 route table; api/08 11.1 states the validation `message_key` is `ERR_SERVER` (document and built code agree). |
+| 1.30 | 2026-11-02 | api/10 v1.4 and ADR-0034 v1.4 aligned with the built lookup: `LOOKUP_FLOOR_MS`, constants versus five settings, cursor format without version marker, unset secret rule. |
+| 1.31 | 2026-11-02 | api/10 v1.5: message key table of the lookup errors; api/08 11.1 notes the lookup route follows the same keys. |

@@ -1,0 +1,47 @@
+# ADR-0034: Customer order tracking by phone number only
+
+| Field    | Value |
+| -------- | ----- |
+| ADR      | 0034 |
+| Version  | 1.4 [v1.4 | 2026-11-02] (Decision 10; v1.3: Decision 9; v1.2: order code and cake lines, Decision 8, retention days not sent; v1.1: clarifications, Decision 7; v1.0: first version) |
+| Status   | Accepted as the owner's decision of 2026-11-02 (C); it affects customer data, so the residual risk in Consequences must be seen by the owner |
+| Date     | 2026-11-02 |
+| Decider  | owner (business choice); atlas-architect (mitigations) |
+| Based on | PRD place-order part 08 (FR-22 to FR-27, BR-16 to BR-18, AC-38 to AC-47), admin-orders FR-28 to FR-30; ADR-0030 (5 orders per phone), ADR-0019, ADR-0017 |
+
+## Context
+
+The customer must follow an order without signing in and without push. The PRD default was order code plus phone. The owner decided: the customer types a phone number only and sees that phone's orders.
+
+## Decision
+
+`POST /v1/orders/lookup` (api/10) takes a normalised phone and returns that phone's orders, newest first, paged. Mitigations are part of the decision, not options:
+
+1. Minimum data: order code and cake names with quantities (and unit prices) [v1.2 | 2026-11-02], phone masked, district only (no street address, no note, no customer name), no cancel reason, no staff names, no internal records.
+2. Same answer shape for a phone with orders and one without (200, `orders: []`); constant-ish timing by a minimum response time; no existence signal in headers, errors or limits.
+3. Rate limits per phone and per client address (and per installation if sent), counted whether or not orders exist; 429 identical for both cases.
+4. Page size 10, at most 5 pages (50 orders) per phone and window; opaque cursor bound to the phone by a keyed hash (no version number; format in api/10 10.14.3).
+5. No personal data in logs; the phone is never in a URL (POST body), responses `no-store`.
+6. Window: open orders at any age; `Finished` and `Cancelled` 30 days after `status_changed_at` (assumption of the owner, Q-O8). The count of days is an internal rule: the client is never sent it and no text names it [v1.2 | 2026-11-02].
+7. Clarifications [v1.1 | 2026-11-02]: a request with a valid cursor does not count against the per-phone limit (the first page did), it counts against address and installation limits; the client address comes only from the platform proxy header named in `CLIENT_ADDRESS_HEADER` with `TRUSTED_PROXY_HOPS`, never from a client-supplied header; the response floor must exceed the p99 of the one shared indexed query and an alert fires when it is exceeded; `as_of` is enough for the offline line; the app's 9 to 11 digit check is a hint only (api/10 10.14.5, 10.14.7).
+8. Content of the list [v1.2 | 2026-11-02]: owner decision of 2026-11-02: each order shows its code and its cake lines (name, quantity, unit price). Items come from `customer_order_item` in the same SQL statement as the page (lateral aggregate, no second round trip, no schema change; api/10 10.14.3).
+9. Details settled [v1.3 | 2026-11-02]: the retention edge is inclusive (`status_changed_at >= now - 30 x 24 h`); the cursor carries the placed time as integer microseconds; `amount_to_collect_vnd` is subtotal plus final fee, null before the final fee, never the estimate; `lookup_floor_exceeded` goes to a phone-free warning log line and an in-process count (deployment/03 7.1). No paid service.
+10. As built [v1.4 | 2026-11-02]: the floor variable is `LOOKUP_FLOOR_MS`. Page size 10, page cap 5, the three hourly budgets (10, 30, 20) and the one-hour window stay constants of `LookupPolicy` (simpler, reviewed code change, no drift); the only environment settings are `LOOKUP_KEY_SECRET`, `LOOKUP_RETENTION_DAYS`, `LOOKUP_FLOOR_MS`, `CLIENT_ADDRESS_HEADER`, `TRUSTED_PROXY_HOPS`. The lookup cursor carries no version marker: it is new, short-lived, and a format change invalidates old cursors with `CURSOR_INVALID` (the admin cursor's marker exists only because an older shape was in use). An unset `LOOKUP_KEY_SECRET` gives a random secret per process: cursors fail after a restart or on another instance; hosts must set it.
+
+## Rejected alternatives
+
+| Option | For | Against |
+| ------ | --- | ------- |
+| Order code plus phone (PRD default, BR-17) | Two factors; the code is a random secret the guesser lacks; per-pair wrong-try limit | Owner chose phone only; no "all my orders" without the phone anyway; code must be kept by the customer |
+| SMS one-time code | Proves the person holds the phone; strongest | Money (SMS provider, per-message cost) and a provider account; delay; needs owner approval (escalation case a); abuse for SMS pumping |
+| Orders kept on the device only | No server exposure | Lost on reinstall or another phone; the owner asked for lookup by phone |
+
+## Consequences
+
+Residual risk (owner to see): the phone number is the only secret. Anyone who knows or guesses a number can see that phone's cakes (names and quantities, added in v1.2: the purchase content is visible to anyone who knows the number, accepted by the owner on 2026-11-02, with the order codes, which are no secret from this route on), dates, district, fees and masked phone for the window. Per-address limits do not stop a distributed guesser; per-phone limits let an attacker block a victim's lookups for the rest of the window (the victim sees the wait message, can phone the shop). Neighbours and relatives who know the number see orders (possible surprise gift privacy). Upgrade path with no data change: require the order code as a second field (add `order_code` to the body; wrong pair gives the same empty answer), or an SMS code if the owner accepts the cost. Recommendation: accept phone-only for launch, watch 429 counts (deployment alert), and decide on the code requirement if abuse appears.
+
+Follow-up: tests of equal shape and timing band, limiter keys, log scan for phones, cursor reuse with another phone.
+
+## Sources
+
+OWASP guidance on user enumeration and rate limiting (https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html, from memory, not fetched; medium confidence).

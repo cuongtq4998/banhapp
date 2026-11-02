@@ -1,6 +1,6 @@
 # Place Order: Functional Requirements (section 5)
 
-Part of [Place Order](../place-order.md) (PRD v1.4.1). Holds: FR-1 to FR-21. [v1.4.1 | 2026-10-27]
+Part of [Place Order](../place-order.md) (PRD v1.13; content last changed in v1.7). Holds: FR-1 to FR-21. [v1.6 | 2026-10-31] [v1.13 | 2026-11-02]
 
 ## 5. Functional Requirements
 
@@ -8,13 +8,13 @@ Part of [Place Order](../place-order.md) (PRD v1.4.1). Holds: FR-1 to FR-21. [v1
 | -- | ----------- | -------- |
 | FR-1 | The system shall show a logo-only launch screen on app start, then the home screen. | Must |
 | FR-2 | The system shall show on the home screen the shop name, a short greeting, a Zalo contact button, a phone contact button, a "View products" button and a "Place order" button. | Must |
-| FR-3 | The system shall list the active cakes (1 to 4 are all normal; four at launch), each with picture, name, short description and current price. A cake that is not active (hidden by the shop) is not listed and cannot be ordered. When zero cakes are active the system shall show an Error state instead of a list and shall not let the customer start an order. [v1.4 | 2026-10-26] | Must |
+| FR-3 | The system shall list the active cakes (1 to 12 are all normal; four at launch) [v1.6 | 2026-10-31], each with picture, name, short description and current price. A cake that is not active (hidden by the shop) is not listed and cannot be ordered. When zero cakes are active the system shall show an Error state instead of a list and shall not let the customer start an order. [v1.4 | 2026-10-26] | Must |
 | FR-4 | The system shall show a detail view for each cake with a button that starts an order including that cake at quantity 1. [v1.1 | 2026-10-25] | Must |
 | FR-5 | The system shall let the customer choose a quantity per cake for any of the active cakes in one order. [v1.4 | 2026-10-26] | Must |
 | FR-6 | The system shall let the customer choose a receiving date; dates that cannot hold the whole order (BR-1), are earlier than the lead time (BR-2) or are later than the booking horizon (BR-8) shall not be selectable. [v1.1 | 2026-10-25] | Must |
 | FR-7 | The system shall let the customer choose a receiving time from one fixed list of delivery time slots that is the same for every date. [v1.1 | 2026-10-25] | Must |
 | FR-8 | The system shall collect the customer's name, phone number and delivery address, and the district from the served list (BR-3). | Must |
-| FR-9 | The system shall show a review of the order before confirmation: cakes, quantities, line prices, delivery fee, total, date, time, name, phone, address and note if entered. [v1.1 | 2026-10-25] | Must |
+| FR-9 | The system shall show a review of the order before confirmation: cakes, quantities, line prices, cake amount, the district fee as an estimate with the text that the final fee is told at delivery (not added to any total), date, time, name, phone, address and note if entered. Superseded 2026-11-02: "delivery fee, total". [v1.7 | 2026-11-02] | Must |
 | FR-10 | The system shall block confirmation and tell the customer the reason in Vietnamese when any ordering rule (BR-1 to BR-4, BR-8) is not met. [v1.1 | 2026-10-25] | Must |
 | FR-11 | The system shall, on confirmation, record the order and show only a confirmation screen with a unique order code and a message that the order is received and the shop will contact the customer (not that it is accepted). [v1.1 | 2026-10-25] | Must |
 | FR-12 | The system shall show Zalo and phone contact buttons on the confirmation screen. | Should |

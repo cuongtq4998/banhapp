@@ -65,7 +65,9 @@ struct OrderFixture {
     }
 
     func setStatus(_ status: String, on sql: any SQLDatabase) async throws {
-        try await sql.raw("UPDATE customer_order SET status = \(bind: status) WHERE id = \(bind: orderID)").run()
+        // A cancelled order always carries a reason (migration 0003 CHECK).
+        let reason: String? = status == "Cancelled" ? "customer_asked" : nil
+        try await sql.raw("UPDATE customer_order SET status = \(bind: status), cancel_reason = \(bind: reason)::text WHERE id = \(bind: orderID)").run()
     }
 
     func cakesAccepted(on sql: any SQLDatabase) async throws -> Int {

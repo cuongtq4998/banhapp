@@ -1,0 +1,14 @@
+{
+  "description": "GET /v1/owner/settings/ordering/impact?daily_limit=60: 200, writes nothing.",
+  "status": 200,
+  "body": {
+    "daily_limit": 60,
+    "over_limit": [
+      {
+        "date": "2026-11-05",
+        "cakes_accepted": 98
+      }
+    ],
+    "count": 1
+  }
+}

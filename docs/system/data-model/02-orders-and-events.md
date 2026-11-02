@@ -1,5 +1,7 @@
 # Data Model: Order entities, events, enumerations
 
+> Status values changed by migration 0008 [v1.8 | 2026-11-02]: `customer_order.status` is now Received, Processing, DeliveryDateScheduled, DeliveryStarted, Finished, Cancelled (data-model/06). `order_event` keeps the old words in old rows; new rows use the new words. The text below describes the pre-0008 values.
+
 Part of [data-model.md](../data-model.md) (index, version, change log), sections 3.7 to 3.9, 4. Moved from data-model.md v1.3 with the wording unchanged unless a line carries a newer label [v1.4 | 2026-10-27].
 
 ## 3. Entities (continued)
@@ -59,25 +61,25 @@ Purpose: append-only audit trail of an order's life.
 | ------ | ---- | ---- | ------- | ----------- | ----- |
 | id | bigint | no | identity | PK | |
 | order_id | uuid | no | | FK customer_order | |
-| event_type | text | no | | CHECK in `created`, `status_changed` | More types come with later slices |
+| event_type | text | no | | CHECK in `created`, `status_changed` | More types may be added by later features [v1.6 | 2026-10-31] |
 | from_status | text | yes | null | | Null for `created` |
 | to_status | text | no | | | |
 | actor_type | text | no | | CHECK in `customer`, `staff`, `owner`, `system` | `customer` for the `created` event (written by the application). Status-change events are written by trigger with `system` unless the transaction sets `app.actor_type` [v1.2 \| 2026-10-26] |
-| actor_id | uuid | yes | null | | Null for `customer` and `system`; staff id in the later slice, taken from `app.actor_id` [v1.2 \| 2026-10-26] |
+| actor_id | uuid | yes | null | | Null for `customer` and `system`; staff id by the admin status endpoint, taken from `app.actor_id` [v1.6 | 2026-10-31] [v1.2 \| 2026-10-26] |
 | created_at | timestamptz | no | now() | | |
 
-The table rejects UPDATE and DELETE by trigger (append-only).
+The table rejects UPDATE and DELETE by trigger (append-only). Exception [v1.14 | 2026-11-01]: DELETE of the events of an `is_demo` order is allowed (migration 0006, review account `off`).
 
-Who writes it [v1.2 | 2026-10-26]: the `created` row is inserted by the order transaction (opened inside `OrderRepository.insertOrder`, [v1.5 | 2026-10-29]); the per-phone limit counts rows of any status with `created_at` in the last 24 hours (served by the index `customer_order (customer_phone, created_at)`). Every later row is inserted by the trigger `customer_order_release_capacity` on any status change (not only cancellation), so no code path can skip the audit. The trigger reads the actor from the transaction settings `app.actor_type` and `app.actor_id` (set with `set_config(name, value, true)` in the same transaction, before the status update); when absent or empty the actor is `system` with a null id. An `app.actor_type` outside the CHECK list fails the update. `customer_order.updated_at` is not maintained by a trigger: the application sets it in the same statement.
+Who writes it [v1.2 | 2026-10-26]: the `created` row is inserted by the order transaction (opened inside `OrderRepository.insertOrder`, [v1.5 | 2026-10-29]); the per-phone limit counts orders with `created_at` in the last 24 hours that are not cancelled, or are cancelled with reason `fake_spam` (served by the index `customer_order (customer_phone, created_at)`; ADR-0030, data-model/05) [v1.6 | 2026-10-31]. Every later row is inserted by the trigger `customer_order_release_capacity` on any status change (not only cancellation), so no code path can skip the audit. The trigger reads the actor from the transaction settings `app.actor_type` and `app.actor_id` (set with `set_config(name, value, true)` in the same transaction, before the status update); when absent or empty the actor is `system` with a null id. An `app.actor_type` outside the CHECK list fails the update. `customer_order.updated_at` is not maintained by a trigger: the application sets it in the same statement.
 
 ## 4. Enumerations
 
 | Set | Value | Meaning |
 | --- | ----- | ------- |
 | customer_order.status | `New` | Received from the customer; the shop has not acted. Initial state |
-| | `Confirmed` | The shop accepted the order (later slice) |
-| | `Completed` | Delivered (later slice). Final |
-| | `Cancelled` | Cancelled by the shop (later slice). Final. Releases the date's capacity (BR-9) |
+| | `Confirmed` | The shop accepted the order (admin-orders) [v1.6 | 2026-10-31] |
+| | `Completed` | Delivered (admin-orders) [v1.6 | 2026-10-31]. Final |
+| | `Cancelled` | Cancelled by the shop (admin-orders) [v1.6 | 2026-10-31]. Final. Releases the date's capacity (BR-9) |
 | customer_order.payment_status | `unpaid` | Initial and only value used now |
 | | `paid` | Reserved for the payment feature |
 | order_event.actor_type | `customer`, `staff`, `owner`, `system` | Who caused the event |

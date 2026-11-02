@@ -12,11 +12,17 @@ struct RepositoryFactories: Sendable {
     var makeCatalogRepository: @Sendable (any Database) -> any CatalogRepository
     var makeAvailabilityRepository: @Sendable (any Database) -> any AvailabilityRepository
     var makeOrderRepository: @Sendable (any Database) -> any OrderRepository
+    var makeAdminSessionLookup: @Sendable (any Database) -> any AdminSessionLookup
+    var makeAuthStore: @Sendable (any Database) -> AuthStore
+    var makePushStore: @Sendable (any Database) -> PushStore
 
     static let postgres = RepositoryFactories(
         makeDatabaseProbe: { PostgresProbe(database: $0) },
         makeCatalogRepository: { PostgresCatalogRepository(database: $0) },
         makeAvailabilityRepository: { PostgresAvailabilityRepository(database: $0) },
-        makeOrderRepository: { PostgresOrderRepository(database: $0) }
+        makeOrderRepository: { PostgresOrderRepository(database: $0) },
+        makeAdminSessionLookup: { AuthStore(database: $0) },
+        makeAuthStore: { AuthStore(database: $0) },
+        makePushStore: { PushStore(database: $0) }
     )
 }

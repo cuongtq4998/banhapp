@@ -14,6 +14,9 @@ private let assetsDirectory = "assets/"
 /// process environment; nothing here reads it directly so tests can inject
 /// values.
 func configure(_ app: Application, config: AppConfig) async throws {
+    // First, so everything below (database, server, outbound clients) logs through the filter.
+    app.logger = app.logger.redacting()
+    app.http.server.configuration.logger = app.logger
     app.http.server.configuration.hostname = listenHostname
     app.http.server.configuration.port = config.port
     app.routes.defaultMaxBodySize = RequestLimits.maxBodySize
@@ -25,6 +28,9 @@ func configure(_ app: Application, config: AppConfig) async throws {
         orderCodes: RandomOrderCodeGenerator(),
         repositories: .postgres
     )
+    try configureAdminAuth(app, config: config)
+    try configurePush(app, config: config)
+    configureMaintenance(app)
 
     try registerRoutes(app, config: config)
 }
@@ -39,8 +45,49 @@ private func registerRoutes(_ app: Application, config: AppConfig) throws {
     try app.register(collection: CatalogRoutes(shopID: config.shopID, assets: assets))
     try app.register(collection: AvailabilityRoutes(shopID: config.shopID))
     try app.register(collection: OrderRoutes(shopID: config.shopID, policy: config.orders))
+    try app.register(collection: LookupRoutes())
     try app.register(collection: AssetRoutes(directory: assetsPath))
     try app.register(collection: PrivacyRoutes(directory: assetsPath))
+    try app.register(collection: AuthRoutes(shopID: config.shopID, trustProxy: config.trustProxy))
+    try app.register(collection: AdminRoutes())
+    try app.register(collection: PushTokenRoutes())
+    try app.register(collection: AdminOrderRoutes(shopID: config.shopID))
+    try app.register(collection: OwnerSettingsRoutes(shopID: config.shopID, assets: assets))
+    try app.register(collection: OwnerCakeRoutes(shopID: config.shopID, assets: assets))
+    try app.register(collection: CakeImageRoutes(shopID: config.shopID))
+    try app.register(collection: OwnerStaffRoutes(shopID: config.shopID))
+}
+
+/// Mail sender and sign-in settings. Without `AUTH_CODE_PEPPER` and
+/// `EMAIL_PROVIDER` the routes exist and answer 503.
+private func configureAdminAuth(_ app: Application, config: AppConfig) throws {
+    guard let admin = config.admin else {
+        app.logger.warning("Admin sign-in is not configured; /v1/auth answers SERVICE_UNAVAILABLE")
+        return
+    }
+    app.services.adminAuth = admin
+    switch admin.emailProvider {
+    case .console: app.services.email = try ConsoleEmailSender(stage: config.stage)
+    case .recording: app.services.email = RecordingEmailSender()
+    }
+}
+
+/// Builds the application for `create-owner`: the database and the command.
+func configureOwnerCommand(_ app: Application, config: OwnerCommandConfig) throws {
+    app.databases.use(
+        try .postgres(url: config.databaseURL, maxConnectionsPerEventLoop: MigrationConfig.poolSize),
+        as: .psql
+    )
+    app.asyncCommands.use(CreateOwnerCommand(shopID: config.shopID), as: createOwnerCommandName)
+}
+
+/// Builds the application for `review-account`: the database and the command.
+func configureReviewCommand(_ app: Application, config: ReviewCommandConfig) throws {
+    app.databases.use(
+        try .postgres(url: config.databaseURL, maxConnectionsPerEventLoop: MigrationConfig.poolSize),
+        as: .psql
+    )
+    app.asyncCommands.use(ReviewAccountCommand(config: config), as: reviewAccountCommandName)
 }
 
 /// Builds the application for `migrate`: the migration role's database and the
@@ -100,4 +147,10 @@ private func configureDatabase(_ app: Application, config: AppConfig) throws {
     }
     let perLoop = DatabasePoolSizing.connectionsPerLoop(poolMax: config.databasePoolMax, eventLoopCount: loopCount)
     app.databases.use(try .postgres(url: url, maxConnectionsPerEventLoop: perLoop), as: .psql)
+}
+
+/// Daily purge; off under tests so a moved test clock never purges shared rows.
+private func configureMaintenance(_ app: Application) {
+    guard app.environment != .testing else { return }
+    app.lifecycle.use(MaintenanceScheduler(policy: .standard))
 }

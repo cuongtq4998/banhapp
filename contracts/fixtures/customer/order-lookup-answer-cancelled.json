@@ -1,0 +1,33 @@
+{
+  "as_of" : "2026-11-02T05:00:00Z",
+  "next_cursor" : null,
+  "orders" : [
+    {
+      "amount_to_collect_vnd" : null,
+      "delivery_fee_estimate_vnd" : 20000,
+      "delivery_fee_final_vnd" : null,
+      "district_name" : "District 1",
+      "expected_delivery_date" : null,
+      "items" : [
+        {
+          "cake_name" : "Banh Mau",
+          "quantity" : 1,
+          "unit_price_vnd" : 50000
+        },
+        {
+          "cake_name" : "Banh Tra",
+          "quantity" : 2,
+          "unit_price_vnd" : 50000
+        }
+      ],
+      "items_subtotal_vnd" : 150000,
+      "order_code" : "BT-FIX001",
+      "phone_masked" : "+84 900 000 ***",
+      "placed_at" : "2026-11-02T04:59:59Z",
+      "requested_delivery_date" : "2026-11-05",
+      "slot_end_time" : "16:00",
+      "slot_start_time" : "14:00",
+      "status" : "Cancelled"
+    }
+  ]
+}

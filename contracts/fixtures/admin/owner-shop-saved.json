@@ -1,0 +1,18 @@
+{
+  "description": "PUT /v1/owner/settings/shop: 200 returns the section.",
+  "request": {
+    "body": {
+      "name": "Tiem Banh Mau",
+      "greeting": "Xin chao",
+      "phone_contact": "+84900000000",
+      "zalo_contact": "zalo.me/tiembanhmau"
+    }
+  },
+  "status": 200,
+  "body": {
+    "name": "Tiem Banh Mau",
+    "greeting": "Xin chao",
+    "phone_contact": "+84900000000",
+    "zalo_contact": "zalo.me/tiembanhmau"
+  }
+}

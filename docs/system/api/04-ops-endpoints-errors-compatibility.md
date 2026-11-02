@@ -91,7 +91,7 @@ A body that is not JSON, or not an object, is `VALIDATION_FAILED` without `field
 - A breaking change creates `/v2` and keeps `/v1` until the store statistics show old app versions are gone (a rule of thumb: at least 90 days after the new app release, unverified).
 - `X-App-Version` and `X-Platform` are logged to see which versions call the API. On `POST /v1/orders` `X-App-Version` must be `N.N.N`: three groups of 1 to 5 digits (no `v`, no suffix like `-beta`); `X-Platform` must be `ios` or `android`; a missing, repeated or other form answers 400 `HEADER_INVALID` (same pattern as the access log) [v1.12 | 2026-10-29].
 - The price acknowledgement field (`expected_total_vnd`) and `PRICE_CHANGED` are final (ADR-0010 Accepted) [v1.1 | 2026-10-25].
-- Staff endpoints will live under `/v1/staff` and need new documents sections; they will not change the customer endpoints.
+- Admin endpoints live under `/v1/auth`, `/v1/admin` and `/v1/owner` (api/05 to api/08); they do not change the customer endpoints except as listed in the v1.13 change log [v1.13 | 2026-10-31].
 
 ## 7. Traceability check
 

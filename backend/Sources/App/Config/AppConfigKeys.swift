@@ -16,6 +16,18 @@ extension AppConfig {
         static let orderingEnabled = "ORDERING_ENABLED"
         static let rateLimitOrderPerHour = "RATE_LIMIT_ORDER_PER_HOUR"
         static let orderMaxPerPhonePerDay = "ORDER_MAX_PER_PHONE_PER_DAY"
+        static let authCodePepper = "AUTH_CODE_PEPPER"
+        static let emailProvider = "EMAIL_PROVIDER"
+        static let emailMaxPerDay = "EMAIL_MAX_PER_DAY"
+        static let pushProvider = "PUSH_PROVIDER"
+        static let apnsKeyID = "APNS_KEY_ID"
+        static let apnsTeamID = "APNS_TEAM_ID"
+        static let apnsPrivateKey = "APNS_PRIVATE_KEY"
+        static let apnsTopic = "APNS_TOPIC"
+        static let fcmProjectID = "FCM_PROJECT_ID"
+        static let fcmServiceAccountJSON = "FCM_SERVICE_ACCOUNT_JSON"
+        static let reviewAccountEmail = "REVIEW_ACCOUNT_EMAIL"
+        static let reviewAccountCode = "REVIEW_ACCOUNT_CODE"
     }
 
     enum Default {

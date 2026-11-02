@@ -1,0 +1,17 @@
+{
+  "description": "POST /v1/owner/staff: 201.",
+  "request": {
+    "body": {
+      "name": "Nhan Vien A",
+      "email": "nhanvien.a@example.com"
+    }
+  },
+  "status": 201,
+  "body": {
+    "account_id": "5b0c2f6a-0000-4a00-8000-0000000000a2",
+    "name": "Nhan Vien A",
+    "email": "nhanvien.a@example.com",
+    "role": "staff",
+    "is_active": true
+  }
+}

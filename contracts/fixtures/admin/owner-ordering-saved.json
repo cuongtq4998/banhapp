@@ -1,0 +1,24 @@
+{
+  "description": "PUT /v1/owner/settings/ordering: 200 returns the section plus the list true at save time; cancels nothing.",
+  "request": {
+    "body": {
+      "daily_limit": 60,
+      "lead_days": 2,
+      "min_qty": 2
+    }
+  },
+  "status": 200,
+  "body": {
+    "daily_limit": 60,
+    "lead_days": 2,
+    "min_qty": 2,
+    "max_days_ahead": 30,
+    "over_limit": [
+      {
+        "date": "2026-11-05",
+        "cakes_accepted": 98
+      }
+    ],
+    "count": 1
+  }
+}

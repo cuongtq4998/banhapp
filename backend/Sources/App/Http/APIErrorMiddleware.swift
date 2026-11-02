@@ -22,7 +22,10 @@ struct APIErrorMiddleware: AsyncMiddleware {
         } catch {
             let apiError = APIError.from(error)
             request.answeredErrorCode = apiError.code
-            if apiError.code == .internalError {
+            if apiError.code == .internalError, case .string(let reason)? = apiError.details["reason"] {
+                // A handled 500 (fixed reason text, no data): the operator needs the reason, not a type name.
+                request.logger.error("Request failed", metadata: ["reason": .string(reason)])
+            } else if apiError.code == .internalError {
                 // Only the type name: descriptions of database or decoding
                 // errors can carry SQL text or customer input (auth.md log policy).
                 request.logger.error("Unhandled error", metadata: ["error_type": .string(String(reflecting: type(of: error)))])

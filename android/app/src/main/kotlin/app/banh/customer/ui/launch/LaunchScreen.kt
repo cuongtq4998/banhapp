@@ -13,11 +13,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
 import app.banh.customer.TestTags
 import app.banh.customer.data.Load
-import app.banh.customer.design.AppBackground
-import app.banh.customer.design.LocalReduceMotion
+import app.banh.core.design.AppBackground
+import app.banh.core.design.LocalReduceMotion
 import app.banh.customer.ui.common.LogoMark
-import app.banh.customer.design.Motion
-import app.banh.customer.design.Sizes
+import app.banh.core.design.Motion
+import app.banh.core.design.Sizes
 import kotlinx.coroutines.flow.Flow
 
 private const val LOGO_START_SCALE = 0.85f

@@ -1,0 +1,55 @@
+# API Specification: Owner settings, cakes, staff
+
+Part of [api.md](../api.md) (index, version, change log), sections 10.13 to 10.19. New in v1.13 [v1.13 | 2026-10-31]. FR and BR ids renumbered to PRD v1.6; backup e-mail removed [v1.16 | 2026-10-31]. All routes under `/v1/owner`: role owner only (staff get 403 `FORBIDDEN`). Every successful write is one transaction that also writes `settings_change` rows (BR-3) and changes nothing on refusal (BR-11). Validation errors list every problem in `fields[]` with codes `*_REQUIRED`, `*_INVALID`, `*_TOO_LONG`, `*_OUT_OF_RANGE` and message keys `ERR_FIELD_*`. Limits are those of BR-11 and BR-12. Changes apply to new orders only (BR-11). Built in slices B4 and B5 and, for cakes (10.17), B6; aligned with the code in v1.19 (architecture/12) and v1.20 (architecture/13) [v1.20 | 2026-11-01].
+
+Common rules of the built routes [v1.19 | 2026-11-01]: the body must be a JSON object. Unknown keys are field problems (`field` = the key, `FIELD_UNKNOWN`, `ERR_FIELD_INVALID`). A `PATCH` with `{}` is 422 `VALIDATION_FAILED`, field `body`, code `BODY_EMPTY`, `ERR_FIELD_REQUIRED`. Text is trimmed and NFC; control characters are `*_INVALID`. A value of the wrong JSON type is `*_INVALID`; absent or null in a required field is `*_REQUIRED`. Every write first locks the `shop_setting` row, so two owner devices are serialised.
+
+### 10.13 GET /v1/owner/settings
+
+200: `shop` (`name`, `greeting`, `phone_contact`, `zalo_contact`), `ordering` (`daily_limit`, `lead_days`, `min_qty`, fixed `max_days_ahead`), `cakes` (non-removed: `cake_id`, `name`, `description`, `price_vnd`, `is_active`, `image_url`), `districts` (`district_id`, `name`, `delivery_fee_vnd`, `is_active`), `slots` (`slot_id`, `start`, `end`, `is_active`; ordered by `start`, then `end`), districts ordered by `sort_order` [v1.19 | 2026-11-01], `cake_count_max: 12`, `staff_count_max: 30`. Staff cannot call it. The `cakes` list holds only cakes with `removed_at IS NULL`, ordered by `sort_order`, then id (built in B6) [v1.20 | 2026-11-01].
+
+### 10.14 PUT /v1/owner/settings/shop
+
+Body: `name` (1 to 100), `greeting` (1 to 300), `phone_contact` (E.164 as data-model 3.1), `zalo_contact` (3 to 100). All required (BR-11). 200 returns the section. Errors: 422 `VALIDATION_FAILED`.
+
+### 10.15 Ordering rules
+
+`PUT /v1/owner/settings/ordering` body `daily_limit` (1 to 9999), `lead_days` (0 to 14), `min_qty` (1 to 20 and at most `daily_limit`); all required; `min_qty` above `daily_limit` is `min_qty` `MIN_QTY_OUT_OF_RANGE`. `GET /v1/owner/settings/ordering` returns the four section fields only (`daily_limit`, `lead_days`, `min_qty`, `max_days_ahead`); `over_limit` and `count` exist only on the `PUT` answer [v1.19 | 2026-11-01]. The 200 response of the `PUT` carries `over_limit` and `count` computed at save time (the same shape as the preview), so the owner sees the true list even if orders arrived after the preview; the save itself always succeeds and cancels nothing when the limit is below accepted cakes (BR-11, data-model/05). The preview is advisory and needs no token (TQ-D5, R-23) [v1.14 | 2026-10-31]. Two owner devices: the last write wins; there is no version check, and every change is in `settings_change` with old and new value; the app reloads after a refusal (R-17, A-D2) [v1.14 | 2026-10-31]. `GET /v1/owner/settings/ordering/impact?daily_limit=60` returns `{ "daily_limit": 60, "over_limit": [ { "date": "2026-11-05", "cakes_accepted": 98 } ], "count": 1 }` for dates from the server date on; it writes nothing. The customer catalog `settings` object already carries `min_qty` and `lead_days` (api/02), so customer apps show current values after their next refresh (FR-22).
+
+### 10.16 Districts and slots
+
+`POST /v1/owner/districts` body `name` (1 to 100, unique ignoring letter case: 422 `VALIDATION_FAILED`, field `name`, code `NAME_TAKEN`, `ERR_FIELD_TAKEN` [v1.19 | 2026-11-01]), `delivery_fee_vnd` (1 to 10,000,000); 201 returns the district. `PATCH /v1/owner/districts/{id}` any of `name`, `delivery_fee_vnd`, `is_active`; 200. Deactivating the last active district: 409 `LAST_ACTIVE_DISTRICT`. A new district is last in order (`sort_order` max + 1). Slots: `POST /v1/owner/slots` body `start`, `end` (`HH:MM`, 00:00 to 23:59; a bad format is `START_INVALID` or `END_INVALID`; `end` not after `start` is `END_OUT_OF_RANGE`; no existing slot with the same pair: 422 `SLOT_DUPLICATE`, an error code of its own, not in `fields[]`); `PATCH /v1/owner/slots/{id}` any of `start`, `end`, `is_active`; last active: 409 `LAST_ACTIVE_SLOT`. In a `PATCH` the new values are merged with the stored ones before the checks. After every slot add or move the `sort_order` of all slots is renumbered by clock time, because the customer catalog sorts by `sort_order` first [v1.19 | 2026-11-01]. Unknown id: 404 `NOT_FOUND`. Earlier orders keep their snapshot of name, fee and slot.
+
+### 10.17 Cakes
+
+`POST /v1/owner/cakes` is `multipart/form-data` with text fields `name` (1 to 100, unique among non-removed, case-insensitive), `description` (1 to 300), `price_vnd` (1 to 100,000,000, a whole number) and file field `image` (exactly one, JPEG or PNG by signature, at most 5,242,880 bytes after the app re-encodes the picture as JPEG (ADR-0025 v1.1) [v1.14 | 2026-10-31], 200 to 4096 pixels on each side; ADR-0025). The cake is active at once. 201 returns the cake as in 10.13. The cake is added last in the order. Only the owner may call it; the role is checked before the body is read [v1.20 | 2026-11-01].
+
+Errors [v1.20 | 2026-11-01]:
+
+| Status | Code | Field and message key | When |
+| ------ | ---- | --------------------- | ---- |
+| 422 | `VALIDATION_FAILED` | `image` `IMAGE_REQUIRED` (`ERR_FIELD_REQUIRED`) | No file part `image`, or an empty one |
+| 422 | `VALIDATION_FAILED` | `image` `IMAGE_INVALID` (`ERR_FIELD_INVALID`) | Two or more file parts named `image` |
+| 422 | `VALIDATION_FAILED` | `image` `IMAGE_TYPE_UNSUPPORTED` (`ERR_FIELD_TYPE_UNSUPPORTED`) | Signature is not JPEG or PNG, or the header holds no size |
+| 422 | `VALIDATION_FAILED` | `image` `IMAGE_DIMENSIONS_INVALID` (`ERR_FIELD_DIMENSIONS_INVALID`) | A side under 200 or over 4096 pixels |
+| 422 | `VALIDATION_FAILED` | text field `<FIELD>_REQUIRED`, `_INVALID`, `_TOO_LONG`, `_OUT_OF_RANGE`, `FIELD_UNKNOWN` | As in the intro; a text field sent twice, or as a file, is `<FIELD>_INVALID`; a part named otherwise is `FIELD_UNKNOWN` |
+| 422 | `VALIDATION_FAILED` | `name` `NAME_TAKEN` (`ERR_FIELD_TAKEN`) | A live cake has that name (any letter case) |
+| 422 | `VALIDATION_FAILED` | none | Not `multipart/form-data` with a boundary, or the body cannot be parsed |
+| 413 | `IMAGE_TOO_LARGE` | `ERR_IMAGE_TOO_LARGE` | A file part over 5,242,880 bytes; answered before other field problems are listed |
+| 413 | `PAYLOAD_TOO_LARGE` | | `Content-Length` over 5,308,416 (refused before the body is read, after authentication and the role), or a body without a length that grows past it |
+| 409 | `CAKE_LIMIT_REACHED` | `ERR_CAKE_LIMIT` | 12 cakes not removed already (the 13th); a database trigger repeats the rule |
+| 503 | `SERVICE_UNAVAILABLE` | | Two uploads are already running and a place did not free within 5 s (`UploadGate`) |
+
+All problems of fields and image (except the 413 above) are listed together in one response. The request is atomic: nothing is stored on any error. A repeat after a lost response answers `NAME_TAKEN`; the client then reads 10.13.
+
+`PATCH /v1/owner/cakes/{id}` any of `name`, `description`, `price_vnd`, `is_active` (JSON; the image is not editable, key `image` is `FIELD_UNKNOWN`); 200 returns the cake. A new name taken by another live cake: 422 `NAME_TAKEN`. Hiding the last active cake: 409 `LAST_ACTIVE_CAKE`. A removed or unknown cake: 404 `NOT_FOUND`. `DELETE /v1/owner/cakes/{id}`: removal (BR-12), 204; the picture bytes are deleted; last active cake: 409 `LAST_ACTIVE_CAKE`; already removed: 404. Effects: the customer catalog drops the cake at its next request, orders containing it get `PRODUCT_UNAVAILABLE`, earlier orders keep stored name, quantity and price. Example create fields: `name=Banh Mau`, `description=Banh mau`, `price_vnd=150000`, `image=<JPEG 2 MB>`.
+
+`GET /assets/cakes/{id}?v=<8 hex>` (public, no token) returns the stored picture with its stored `Content-Type`, `X-Content-Type-Options: nosniff` and `Cache-Control: public, max-age=31536000, immutable`. `image_url` of a cake is this path with `v` = the first 8 hex characters of the SHA-256 of the bytes. A removed or unknown cake, or one without a stored picture, is 404 `NOT_FOUND`. It counts toward the shared read rate limit (api/01) [v1.20 | 2026-11-01].
+
+### 10.18 Staff
+
+`GET /v1/owner/staff` returns `{"accounts": [...]}`, owner first, then by name (case-insensitive), with: `account_id`, `name`, `email`, `role`, `is_active`. Review accounts (`kind = 'review'`, ADR-0027) are not listed, not counted toward the 30, and `PATCH` on one is 404 `NOT_FOUND`; their address still counts for `EMAIL_TAKEN` [v1.19 | 2026-11-01]. `POST /v1/owner/staff` body `name` (1 to 100), `email` (valid format; stored trimmed, NFC and lower case [v1.19 | 2026-11-01]); 201 returns the account. Errors: 422 `EMAIL_INVALID`; 409 `EMAIL_TAKEN` (already an account address, any letter case); 409 `STAFF_LIMIT_REACHED` (31st active). `PATCH /v1/owner/staff/{id}` body `is_active` only (other keys: `FIELD_UNKNOWN`); setting the state the account already has is 200 and writes nothing; unknown id 404 `NOT_FOUND`; reactivating when 30 are active: 409 `STAFF_LIMIT_REACHED` [v1.19 | 2026-11-01]. Deactivation revokes all sessions of that account in the same transaction, deletes their push tokens and answers 200 (FR-5); the owner account: 409 `OWNER_PROTECTED`. Reactivation lets the person sign in again. A staff e-mail is never written to a log, to `settings_change` (an account row holds `is_active` only) or to an error body.
+
+### 10.19 (removed) [v1.16 | 2026-10-31]
+
+`PUT /v1/owner/backup-email` and its confirmation are gone (P-1). Number kept so references stay valid.

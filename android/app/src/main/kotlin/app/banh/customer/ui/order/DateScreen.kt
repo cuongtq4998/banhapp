@@ -23,12 +23,12 @@ import app.banh.customer.data.Load
 import app.banh.customer.data.catalog.Catalog
 import app.banh.customer.ui.common.ErrorMessage
 import app.banh.customer.ui.common.ErrorState
-import app.banh.customer.design.GlassCard
+import app.banh.core.design.GlassCard
 import app.banh.customer.ui.common.InfoMessage
-import app.banh.customer.design.PrimaryButton
-import app.banh.customer.design.SecondaryButton
-import app.banh.customer.design.SkeletonBlock
-import app.banh.customer.design.Spacing
+import app.banh.core.design.PrimaryButton
+import app.banh.core.design.SecondaryButton
+import app.banh.core.design.SkeletonBlock
+import app.banh.core.design.Spacing
 import app.banh.customer.ui.common.loadingSemantics
 import app.banh.customer.order.DateCalendar
 import app.banh.customer.order.LoadedAvailability

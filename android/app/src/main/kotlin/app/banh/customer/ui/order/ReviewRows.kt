@@ -18,9 +18,9 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import app.banh.customer.R
-import app.banh.customer.design.ColorTokens
-import app.banh.customer.design.Spacing
-import app.banh.customer.design.bodyStrong
+import app.banh.core.design.ColorTokens
+import app.banh.core.design.Spacing
+import app.banh.core.design.bodyStrong
 import app.banh.customer.ui.common.formatMoney
 
 /** Section title with the Edit control that opens the step where the section's data was entered (AC-18). */

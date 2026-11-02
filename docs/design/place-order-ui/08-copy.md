@@ -79,7 +79,7 @@ All display text is Vietnamese. Data-source values (shop name, greeting, cake na
 | `FIELD_ADDRESS` | Địa chỉ giao hàng | S-7 |
 | `FIELD_DISTRICT` | Quận/huyện | S-7 |
 | `DISTRICT_PLACEHOLDER` | Chọn quận/huyện | S-7 |
-| `DISTRICT_FEE` | Phí giao hàng: {amount} | S-7 |
+| `DISTRICT_FEE` | Superseded 2026-11-02 by `DISTRICT_FEE_ESTIMATE` (part 12; also `REVIEW_FEE`, `REVIEW_TOTAL`) [v1.7 | 2026-11-02] | S-7 |
 | `DISTRICT_ERR` | Không tải được danh sách khu vực giao hàng. | S-7 |
 | `DISTRICT_EMPTY` | Hiện chưa có khu vực giao hàng nào. Vui lòng liên hệ cửa hàng. | S-7 |
 | `FIELD_NOTE` | Ghi chú (không bắt buộc) | S-7 |

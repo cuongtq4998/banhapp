@@ -2,12 +2,12 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.9 |
-| Last updated | 2026-10-27 |
+| Version      | 1.17 [v1.17 | 2026-11-02] |
+| Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect (design), forge-dev (keeps it true) |
-| Based on     | architecture.md v1.0; product/place-order.md v1.2 |
-| Related      | ADR-0001 to ADR-0005; auth.md; data-model.md |
+| Based on     | architecture.md v1.0; product/place-order.md v1.2; product/admin-orders.md v1.2 [v1.10 | 2026-10-31] |
+| Related      | ADR-0001 to ADR-0005; ADR-0021 to ADR-0027; auth.md; data-model.md |
 
 Provider names in the body are the free trial setup of ADR-0003 (Accepted for the trial; no spend). The repository holds only variable names; no hostnames, accounts or keys.
 
@@ -22,9 +22,11 @@ This file is the index of the deployment document. The body lives in the folder 
 | 4 | Build and release, CI, store submission, launch checklist | [deployment/02-build-release-infrastructure.md](deployment/02-build-release-infrastructure.md) |
 | 5 | Infrastructure | [deployment/02-build-release-infrastructure.md](deployment/02-build-release-infrastructure.md) |
 | 6 | Backup and restore | [deployment/03-operations-and-cost.md](deployment/03-operations-and-cost.md) |
-| 7 | Observability and alerts | [deployment/03-operations-and-cost.md](deployment/03-operations-and-cost.md) |
+| 7, 7.1, 7.2 | Observability and alerts, lookup floor, lookup settings checklist | [deployment/03-operations-and-cost.md](deployment/03-operations-and-cost.md) |
 | 8 | Rollback | [deployment/03-operations-and-cost.md](deployment/03-operations-and-cost.md) |
 | 9 | Cost notes | [deployment/03-operations-and-cost.md](deployment/03-operations-and-cost.md) |
+| 18 | Free-tier development mode and go-live gate [v1.11 | 2026-10-31] | [deployment/04-admin-delivery-config.md](deployment/04-admin-delivery-config.md) |
+| 11 to 17 | Admin configuration, environments, build and release, infrastructure (mail, push, images), backup addition, alerts, cost and launch checklist [v1.10 \| 2026-10-31] | [deployment/04-admin-delivery-config.md](deployment/04-admin-delivery-config.md) |
 | 10 | Open questions and change log | this file |
 
 ## 10. Open Questions / Change log
@@ -34,6 +36,7 @@ This file is the index of the deployment document. The body lives in the folder 
 | DP-Q1 | Owner approval of costs in section 9 and hosting choice (ADR-0003) | Money, customer data | No | business | Closed for the trial (free plans, 2026-10-25); paid path needs approval later | Owner |
 | DP-Q2 | Operator name and alert email | Alerts need an owner | Yes for launch | business | Open (owner) | |
 | DP-Q3 | Is a staging environment wanted before launch | Free on the trial plans; paid later | No | business | Resolved for the trial: yes, free | Architect |
+| DP-Q4 | Owner approval of the domain, mail provider account, paid hosting and store accounts for the admin apps (ADR-0003 v1.5, ADR-0023, ADR-0026) | Money | Yes for go-live with staff; no for building and testing | business | Owner decision 2026-10-31: free tier ONLY for now. Nothing paid is approved. Admin slices are built and tested with fakes; real go-live is blocked (deployment/04 section 18) [v1.11 | 2026-10-31] | Owner |
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
@@ -46,4 +49,12 @@ This file is the index of the deployment document. The body lives in the folder 
 | 1.6 | 2026-10-26 | DOC-1, DOC-3: `PUBLIC_ASSET_BASE_URL` rule, shared read budget wording, asset folder. |
 | 1.7 | 2026-10-26 | DOC-12: proxy-count assumption and client address rule (section 3.1), `TRUST_PROXY` needed from slice 1, `SHOP_ID` from slice 1 confirmed. |
 | 1.8 | 2026-10-27 | Section 3.1: one-proxy assumption contradicted by the host's articles; pointer to ADR-0019. |
+| 1.10 | 2026-10-31 | admin-orders: new file 04 (variables for auth, mail, push, images; admin CI and release; store notes; mail, push and image infrastructure; backup and restore addition; alerts; cost and launch checklist). Paid hosting is a go-live prerequisite for real use (ADR-0003 v1.4). Question DP-Q4 added. |
 | 1.9 | 2026-10-27 | Split into the folder `deployment/` (file size rule, 200 lines); this file became the index with a section map. No content change. |
+| 1.11 | 2026-10-31 | Owner decision: free tier only (DP-Q4 updated). deployment/04: `EmailSender` selection, new variable `RATE_LIMIT_AUTH_PER_HOUR_IP`, upload body limit, free-tier mode and go-live gate (section 18), launch checklist marked blocked. |
+| 1.12 | 2026-11-01 | Variable names `EMAIL_PROVIDER`, `EMAIL_MAX_PER_DAY`, `AUTH_CODE_PEPPER`; command `create-owner`; sign-in off when both secrets unset, start refused when only one is; admin limit variables dropped or fixed in code. |
+| 1.13 | 2026-11-01 | B7 alignment: `PUSH_PROVIDER` values `off`, `recording`, `live`; the six `live` values go together, a half-set configuration stops the start, `recording` refused in production (deployment/04, architecture/14). |
+| 1.14 | 2026-11-01 | Review account built (architecture/16): `review-account on|off`, both variables or none, production allowed, runbook note (sessions outlive the variables until `off`); `LOG_LEVEL` `debug`/`trace` safe because of `RedactingLogHandler` (deployment/01, deployment/04 sections 11 and 16). |
+| 1.16 | 2026-11-02 | Section 7.1 (deployment/03): sink and alert of `lookup_floor_exceeded`, p99 record table. |
+| 1.17 | 2026-11-02 | Section 7.2 (deployment/03): operator checklist for the five lookup settings, secret rule, proxy header rule. |
+| 1.15 | 2026-11-02 | Section 6 (deployment/03): mandatory `pg_dump` before applying migrations, pointer to data-model section 15.1. |
