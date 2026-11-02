@@ -2,9 +2,9 @@
 
 | Field        | Value                                                        |
 | ------------ | ------------------------------------------------------------ |
-| Version      | 1.6 [v1.6 | 2026-10-31]                                      |
-| Last updated | 2026-10-31                                                   |
-| Status       | Approved [v1.2 | 2026-10-25]. v1.3 clarifies wording only; no owner-decided number or rule changed. Items under "Added in v1.3, pending owner confirmation" (12.2) do not take effect until the owner confirms; FR-20 and FR-21 were confirmed on 2026-10-29 (v1.5), Q-O1 to Q-O5 remain pending. [v1.5 | 2026-10-29] v1.4 records the owner decision of 2026-10-26 on fewer than four active cakes (Q-15) and clarifies AC-29 (DOC-6). [v1.4 | 2026-10-26] |
+| Version      | 1.7 [v1.7 | 2026-11-02]                                      |
+| Last updated | 2026-11-02                                                   |
+| Status       | v1.7: PENDING OWNER APPROVAL for BR-3, BR-5, BR-9, FR-9, AC-11, AC-14, AC-28 (delivery fee estimate, cake amount, Admin Orders v1.10); all other ids stay Approved. [v1.7 | 2026-11-02] Earlier: Approved [v1.2 | 2026-10-25]. v1.3 clarifies wording only; no owner-decided number or rule changed. Items under "Added in v1.3, pending owner confirmation" (12.2) do not take effect until the owner confirms; FR-20 and FR-21 were confirmed on 2026-10-29 (v1.5), Q-O1 to Q-O5 remain pending. [v1.5 | 2026-10-29] v1.4 records the owner decision of 2026-10-26 on fewer than four active cakes (Q-15) and clarifies AC-29 (DOC-6). [v1.4 | 2026-10-26] |
 | Owner        | scribe-requirements                                          |
 | Based on     | docs/pipeline/place-order/00-request.md (2026-10-25)         |
 | Related      | UI mockups (reference only): https://claude.ai/artifact/HcWoUjBbqA9B1WUvZ3RKCb |
