@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Order tracking copy (S-10, S-11); keys are the copy keys of the design in lower case. No retention number. -->
+<resources>
+    <string name="t_track_entry">Theo dõi đơn</string>
+    <string name="t_track_title">Theo dõi đơn hàng</string>
+    <string name="t_track_help">Nhập số điện thoại bạn đã dùng để đặt bánh.</string>
+    <string name="t_f_phone">Số điện thoại</string>
+    <string name="t_track_submit">Xem đơn</string>
+    <string name="t_track_privacy">Chỉ hiển thị số điện thoại đã ẩn và quận.</string>
+    <string name="t_err_phone">Số điện thoại chưa đúng. Vui lòng kiểm tra lại.</string>
+    <string name="t_follow_order">Theo dõi đơn này</string>
+    <string name="t_result_for">Đơn của %1$s</string>
+    <string name="t_as_of">Cập nhật lúc %1$s</string>
+    <string name="t_stale_as_of">Dữ liệu lúc %1$s. Không có mạng.</string>
+    <string name="t_load_more">Đang tải thêm</string>
+    <string name="t_list_end_limit">Đang hiển thị 50 đơn mới nhất. Liên hệ cửa hàng nếu cần xem đơn cũ hơn.</string>
+    <string name="t_order_code">Mã đơn %1$s</string>
+    <string name="t_step_received">Đã nhận đơn</string>
+    <string name="t_step_processing">Đang xử lý</string>
+    <string name="t_step_scheduled">Đã hẹn ngày giao</string>
+    <string name="t_step_delivering">Đang giao</string>
+    <string name="t_step_finished">Đã hoàn thành</string>
+    <string name="t_requested">Bạn chọn: %1$s, %2$s</string>
+    <string name="t_expected">Dự kiến giao: %1$s</string>
+    <string name="t_expected_may_move">Ngày này có thể thay đổi. Cần hỏi thêm, vui lòng gọi cửa hàng.</string>
+    <string name="t_cake_line">%1$s x %2$s</string>
+    <string name="t_older_may_hidden">Đơn cũ hơn có thể không còn hiển thị. Vui lòng liên hệ cửa hàng nếu cần.</string>
+    <string name="t_cakes_total">Tiền bánh</string>
+    <string name="t_fee_estimate_line">Phí giao dự kiến: %1$s</string>
+    <string name="t_fee_real_at_delivery">Phí giao thực tế sẽ được báo khi giao hàng.</string>
+    <string name="t_total_pending">Tổng tiền sẽ được xác nhận khi có phí giao hàng.</string>
+    <string name="t_fee_final">Phí giao hàng</string>
+    <string name="t_fee_free">Miễn phí giao hàng</string>
+    <string name="t_total_collect">Cần thanh toán khi nhận</string>
+    <string name="t_status_cancelled">Đã hủy</string>
+    <string name="t_cancelled_contact">Vui lòng liên hệ cửa hàng nếu cần hỗ trợ.</string>
+    <string name="t_call_shop">Gọi cửa hàng</string>
+    <string name="t_zalo_shop">Nhắn Zalo</string>
+    <string name="t_empty_title">Không có đơn nào gần đây</string>
+    <string name="t_empty_body">Chúng tôi không thấy đơn nào cho số này. Bạn có thể đặt bánh hoặc liên hệ cửa hàng.</string>
+    <string name="t_order_now">Đặt bánh</string>
+    <string name="t_err_rate">Bạn thử quá nhiều lần. Vui lòng thử lại sau %1$s.</string>
+    <string name="t_err_generic">Không tải được đơn. Vui lòng thử lại.</string>
+    <string name="t_offline">Không có kết nối mạng.</string>
+    <string name="t_retry">Thử lại</string>
+</resources>
