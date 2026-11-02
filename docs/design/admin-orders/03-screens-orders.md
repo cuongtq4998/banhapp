@@ -2,6 +2,8 @@
 
 Part of the split UI specification; index: [admin-orders-ui.md](../admin-orders-ui.md). [v1.1 | 2026-10-31]
 
+Superseded 2026-11-02 [v1.4 | 2026-11-02]: the statuses (New, Confirmed, Completed), the action bar, the fee and total rows, the chips, the due-mark date and the cancel entry in this part are replaced by [part 12](12-order-process-screens.md) and its copy in [part 13](13-order-process-copy-a11y.md). Layout, search, paging, refresh and states not named there still hold.
+
 ### S-A3 Order list "To do"
 
 - Purpose: see what has to be done and find any order; first screen after sign-in (FR-9 to FR-13). Entry: sign-in, tab 1, app start with a session, notification foreground toast. Exit: S-A4 (row tap), S-A13 (staff account button), S-A6 (owner tab). [v1.1 | 2026-10-31]
