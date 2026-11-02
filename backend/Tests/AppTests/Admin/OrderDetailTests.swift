@@ -16,7 +16,8 @@ final class OrderDetailTests: AdminOrderTestCase {
         XCTAssertEqual(Set(body.keys), [
             "order_code", "status", "customer_name", "delivery_date", "slot", "total_cakes", "total_vnd", "district_name", "created_at",
             "customer_phone", "customer_address", "note", "items", "items_subtotal_vnd", "delivery_fee_vnd", "cancel_reason",
-            "allowed_actions", "last_change"
+            "allowed_actions", "last_change", "requested_delivery_date", "expected_delivery_date", "delivery_fee_estimate_vnd",
+            "delivery_fee_final_vnd", "amount_to_collect_vnd", "expected_date_range", "date_changes", "fee_corrections"
         ])
         XCTAssertEqual(body["customer_phone"] as? String, "+84900000010")
         XCTAssertEqual(body["customer_address"] as? String, "1 Test Street")
@@ -42,7 +43,7 @@ final class OrderDetailTests: AdminOrderTestCase {
         XCTAssertTrue(none["actor_name"] is NSNull)
         XCTAssertNotNil(none["at"] as? String)
         let eventTime = clock.now()
-        try await run("INSERT INTO order_event (order_id, event_type, to_status, actor_type, actor_name, created_at) SELECT id, 'status_changed', 'Confirmed', 'staff', 'Nhan Vien A', \(timestamp(eventTime)) FROM customer_order WHERE order_code = \(bind: orderCode)")
+        try await run("INSERT INTO order_event (order_id, event_type, to_status, actor_type, actor_name, created_at) SELECT id, 'status_changed', 'Processing', 'staff', 'Nhan Vien A', \(timestamp(eventTime)) FROM customer_order WHERE order_code = \(bind: orderCode)")
         let after = try await detail(staff, orderCode)
         let line = try XCTUnwrap(after.json["last_change"] as? [String: Any])
         XCTAssertEqual(line["actor_name"] as? String, "Nhan Vien A")
@@ -51,9 +52,15 @@ final class OrderDetailTests: AdminOrderTestCase {
 
     func testAllowedActionsFollowTheStatusAndFinalStatesHaveNone() async throws {
         let staff = try await phone(.staff)
-        let expected: [(String, [String])] = [("New", ["confirm", "cancel"]), ("Confirmed", ["complete", "cancel"]), ("Completed", []), ("Cancelled", [])]
+        let expected: [(String, [String])] = [
+            ("Received", ["cancel", "process"]), ("Processing", ["cancel", "schedule_delivery"]),
+            ("DeliveryDateScheduled", ["change_date", "start_delivery"]), ("DeliveryStarted", ["correct_fee", "finish"]),
+            ("Finished", []), ("Cancelled", [])
+        ]
         for (status, actions) in expected {
-            let orderCode = try await place(.init(status: status, reason: status == "Cancelled" ? "fake_spam" : nil))
+            let dated = ["DeliveryDateScheduled", "DeliveryStarted", "Finished"].contains(status)
+            let fee = ["DeliveryStarted", "Finished"].contains(status) ? 20_000 : nil
+            let orderCode = try await place(.init(status: status, reason: status == "Cancelled" ? "fake_spam" : nil, expectedDate: dated ? day(1) : nil, finalFee: fee))
             let reply = try await detail(staff, orderCode)
             XCTAssertEqual(reply.json["allowed_actions"] as? [String], actions, status)
             if status == "Cancelled" { XCTAssertEqual(reply.string("cancel_reason"), "fake_spam") }

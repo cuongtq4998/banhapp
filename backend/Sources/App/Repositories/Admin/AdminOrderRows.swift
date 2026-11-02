@@ -44,9 +44,11 @@ struct OrderDetailRow: Decodable, Sendable {
     let itemsSubtotalVND: Int
     let deliveryFeeVND: Int
     let cancelReason: String?
+    let expectedDeliveryDate: String?
+    let deliveryFeeFinalVND: Int?
 
     private enum CodingKeys: String, CodingKey {
-        case note, customerPhone = "customer_phone", customerAddress = "customer_address"
+        case note, expectedDeliveryDate = "expected_delivery_date", deliveryFeeFinalVND = "delivery_fee_final_vnd", customerPhone = "customer_phone", customerAddress = "customer_address"
         case itemsSubtotalVND = "items_subtotal_vnd", deliveryFeeVND = "delivery_fee_vnd", cancelReason = "cancel_reason"
     }
 }
@@ -68,6 +70,9 @@ struct OrderEventRow: Decodable, Sendable {
     let actorName: String?
     let fromStatus: String?
     let at: String
+
+    /// The from step with legacy words mapped (events are never rewritten).
+    var from: OrderStatus? { fromStatus.flatMap(OrderStatus.fromStored) }
 
     private enum CodingKeys: String, CodingKey {
         case at, actorID = "actor_id", actorName = "actor_name", fromStatus = "from_status"

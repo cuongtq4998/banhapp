@@ -39,10 +39,10 @@ enum OrderStatus: String, Codable, Sendable, CaseIterable {
     /// Actions the apps may offer, by status (all for owner and staff).
     var allowedActions: [OrderAction] {
         switch self {
-        case .received: return [.process, .cancel]
-        case .processing: return [.scheduleDelivery, .cancel]
-        case .deliveryDateScheduled: return [.startDelivery, .changeDate]
-        case .deliveryStarted: return [.finish, .correctFee]
+        case .received: return [.cancel, .process]
+        case .processing: return [.cancel, .scheduleDelivery]
+        case .deliveryDateScheduled: return [.changeDate, .startDelivery]
+        case .deliveryStarted: return [.correctFee, .finish]
         case .finished, .cancelled: return []
         }
     }

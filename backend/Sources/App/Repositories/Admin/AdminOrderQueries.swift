@@ -46,7 +46,7 @@ struct AdminOrderQueries: Sendable {
     func unfinishedCount(window: OrderWindow, today: BusinessDate) async throws -> Int {
         let row = try await sql.raw("""
             SELECT count(*)::int AS total FROM customer_order
-            WHERE \(window.predicate) AND status IN ('New', 'Confirmed') AND delivery_date <= \(bind: today.description)::date
+            WHERE \(window.predicate) AND status IN (\(unsafeRaw: OrderStatus.sqlList(OrderStatus.open))) AND delivery_date <= \(bind: today.description)::date
             """).first(decoding: CountResult.self)
         return row?.total ?? 0
     }
@@ -68,11 +68,12 @@ struct AdminOrderQueries: Sendable {
 
     /// The detail of an order id, with no window: used for the reply of a change
     /// that was just made or refused in the same transaction.
-    func detail(id: UUID) async throws -> OrderDetail? {
+    func detail(id: UUID, range: ExpectedDateRange) async throws -> OrderDetail? {
         guard let summary = try await sql.raw("SELECT \(summaryColumns) FROM customer_order WHERE id = \(bind: id)")
             .first(decoding: OrderSummaryRow.self),
             let more = try await sql.raw("""
-                SELECT customer_phone, customer_address, note, items_subtotal_vnd, delivery_fee_vnd, cancel_reason
+                SELECT customer_phone, customer_address, note, items_subtotal_vnd, delivery_fee_vnd, cancel_reason,
+                       expected_delivery_date::text AS expected_delivery_date, delivery_fee_final_vnd
                 FROM customer_order WHERE id = \(bind: id)
                 """).first(decoding: OrderDetailRow.self) else { return nil }
         let lines = try await sql.raw("""
@@ -87,7 +88,13 @@ struct AdminOrderQueries: Sendable {
             items: lines.map { OrderLine(productName: $0.productName, quantity: $0.quantity, unitPriceVND: $0.unitPriceVND, lineTotalVND: $0.lineTotalVND) },
             itemsSubtotalVND: more.itemsSubtotalVND, deliveryFeeVND: more.deliveryFeeVND, cancelReason: more.cancelReason,
             allowedActions: status?.allowedActions.map(\.rawValue) ?? [],
-            lastChange: OrderLastChange(actorName: last?.actorName, at: last?.at ?? summary.createdAt)
+            lastChange: OrderLastChange(actorName: last?.actorName, at: last?.at ?? summary.createdAt),
+            process: OrderProcessFields(
+                requestedDeliveryDate: summary.deliveryDate, expectedDeliveryDate: more.expectedDeliveryDate,
+                deliveryFeeEstimateVND: more.deliveryFeeVND, deliveryFeeFinalVND: more.deliveryFeeFinalVND,
+                amountToCollectVND: more.deliveryFeeFinalVND.map { more.itemsSubtotalVND + $0 }, expectedDateRange: range.view,
+                dateChanges: try await dateChanges(id: id), feeCorrections: try await feeCorrections(id: id)
+            )
         )
     }
 

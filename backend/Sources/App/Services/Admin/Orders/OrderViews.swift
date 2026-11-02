@@ -82,6 +82,7 @@ struct OrderDetail: Content, Equatable {
     let cancelReason: String?
     let allowedActions: [String]
     let lastChange: OrderLastChange
+    let process: OrderProcessFields
 
     enum CodingKeys: String, CodingKey {
         case customerPhone = "customer_phone", customerAddress = "customer_address", note, items
@@ -102,6 +103,7 @@ struct OrderDetail: Content, Equatable {
         try container.encode(cancelReason, forKey: .cancelReason)
         try container.encode(allowedActions, forKey: .allowedActions)
         try container.encode(lastChange, forKey: .lastChange)
+        try process.encode(to: encoder)
     }
 
     init(from decoder: any Decoder) throws {
@@ -116,15 +118,17 @@ struct OrderDetail: Content, Equatable {
         cancelReason = try container.decodeIfPresent(String.self, forKey: .cancelReason)
         allowedActions = try container.decode([String].self, forKey: .allowedActions)
         lastChange = try container.decode(OrderLastChange.self, forKey: .lastChange)
+        process = try OrderProcessFields(from: decoder)
     }
 
     init(
         summary: OrderSummary, customerPhone: String, customerAddress: String, note: String?, items: [OrderLine],
-        itemsSubtotalVND: Int, deliveryFeeVND: Int, cancelReason: String?, allowedActions: [String], lastChange: OrderLastChange
+        itemsSubtotalVND: Int, deliveryFeeVND: Int, cancelReason: String?, allowedActions: [String], lastChange: OrderLastChange,
+        process: OrderProcessFields
     ) {
         self.summary = summary; self.customerPhone = customerPhone; self.customerAddress = customerAddress
         self.note = note; self.items = items; self.itemsSubtotalVND = itemsSubtotalVND
         self.deliveryFeeVND = deliveryFeeVND; self.cancelReason = cancelReason
-        self.allowedActions = allowedActions; self.lastChange = lastChange
+        self.allowedActions = allowedActions; self.lastChange = lastChange; self.process = process
     }
 }
