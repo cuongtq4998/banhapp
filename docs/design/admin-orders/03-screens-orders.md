@@ -46,3 +46,7 @@ Superseded 2026-11-02 [v1.4 | 2026-11-02]: the statuses (New, Confirmed, Complet
 - Height (v1.2, found in the built apps: the content with the two buttons is taller than a half-height sheet and the buttons were cut off). iOS: the sheet opens at the large detent only (`presentationDetents([.large])`, drag indicator visible); a larger text size scrolls the content. Android: `ModalBottomSheet` with `skipPartiallyExpanded = true` (opens fully expanded). Both platforms: the two buttons are pinned in a bottom bar under the scrolling content (safe-area aware), so confirm and back are visible without scrolling at every text size; title, text and reasons scroll above the bar. The selected reason is marked by a filled radio (filled circle with check, `color.brand`) plus a tinted row, not by colour alone. [v1.2 | 2026-11-01]
 - Behaviour: success closes the sheet, S-A4 shows Cancelled with the reason card, `Toast` `A_STATUS_CHANGED`. `A_REASON_INTERNAL` sits under the list.
 - States: Default (nothing selected, confirm disabled); Loading (spinner in confirm); Empty N/A; Error (`InlineMessage` `A_ERR_STATUS`); Offline (`A_OFFLINE_SAVE`); Disabled (confirm until a reason); Success (close). Conflict as S-A4.
+
+### Pointer: date range and fee correction [v1.3 | 2026-11-02]
+
+The expected-date picker (today to today + 7, window owned by the server through `expected_date_range`) is specified as S-A14 and the fee correction as S-A16, both in [part 12](12-order-process-screens.md). The customer sees the result in tracking S-11 (`place-order-ui/13-order-tracking.md`).
