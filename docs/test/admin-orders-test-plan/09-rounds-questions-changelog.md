@@ -48,3 +48,4 @@ Backend and contracts: Pass with D-1 open. Whole feature: CONDITIONAL, not an un
 | 1.0 | 2026-10-31 | First version (early mode): 197 cases on PRD v1.2. |
 | 1.1 | 2026-10-31 | Reworked for PRD v1.5 (27 FR, 14 BR, 48 AC): 204 cases. |
 | 2.0 | 2026-11-01 | Execute mode, round 1 on 6852302: plan aligned to the built system (TC-B57, B60, B67, B68, B115, B116 rewritten; search minimum 3; field codes of api/08 11.1; D-1/D-2 fixes; push; /me e-mail). Parts 02 (AC to evidence), 10 (FR matrix, gaps), 11 (backend execution), 12 (client evidence) and the defect file added. 53 new QA tests; 18 old QA failures repaired in the tests. |
+| 2.1 | 2026-11-02 | Parts 13 to 16 added for PRD v1.10 (early mode, not run); questions Q-P1 to Q-P8 and DOC-1 to DOC-5 in part 16. Rounds, defects and verdict of round 1 above are unchanged and apply to the old statuses only. |

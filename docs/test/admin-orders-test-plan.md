@@ -2,11 +2,11 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 2.0 |
-| Last updated | 2026-11-01 |
-| Status       | Round 1 executed on commit 6852302; verdict conditional (part 09) |
+| Version      | 2.1 |
+| Last updated | 2026-11-02 |
+| Status       | Early mode for PRD v1.10 (parts 13 to 16, not run) [v2.1 | 2026-11-02]; round 1 executed on commit 6852302; verdict conditional (part 09) |
 | Owner        | probe-qa |
-| Based on     | product/admin-orders.md v1.6 (Approved; ids as v1.5) and parts 01 to 08; design/admin-orders-ui.md v1.3; system/api 05 to 08 (api v1.22), architecture 07 to 10, data-model 04 and 05, auth.md, ADR-0022 to ADR-0031; the code of feature/admin-orders at 6852302 |
+| Based on     | product/admin-orders.md v1.10 (Approved 2026-11-02; parts 13 to 16), place-order v1.7; earlier parts product/admin-orders.md v1.6 (Approved; ids as v1.5) and parts 01 to 08; design/admin-orders-ui.md v1.3; system/api 05 to 08 (api v1.22), architecture 07 to 10, data-model 04 and 05, auth.md, ADR-0022 to ADR-0031; the code of feature/admin-orders at 6852302 |
 | Related      | process/standards/11-test.md; test/admin-orders-defects.md; test/place-order-tests.md; backend/Tests/qa/Tests/QATests/Admin/ |
 
 Execute mode. The plan is split into parts of at most 200 lines (project file size rule). Case ids: TC-B (backend), TC-C (clients), TC-F (fixtures). Results are recorded per round with the commit. [v2.0 | 2026-11-01]
@@ -27,6 +27,10 @@ Execute mode. The plan is split into parts of at most 200 lines (project file si
 | [10-fr-matrix-and-gaps.md](admin-orders-test-plan/10-fr-matrix-and-gaps.md) | FR-1 to FR-27 to evidence; ACs with no automated evidence | none |
 | [11-execution-backend.md](admin-orders-test-plan/11-execution-backend.md) | Environment, results, the 18 old failures, QA tests per case, performance, observations | none |
 | [12-client-verification.md](admin-orders-test-plan/12-client-verification.md) | iOS and Android evidence and what is not covered | none |
+| [13-order-process-matrices.md](admin-orders-test-plan/13-order-process-matrices.md) | 4.19 Transition matrix, cancel by step, roles [v2.1 \| 2026-11-02] | TC-B201 to TC-B249, TC-C201 to TC-C207 |
+| [14-fee-date-capacity.md](admin-orders-test-plan/14-fee-date-capacity.md) | 4.20 to 4.22 Real fee, expected date, capacity [v2.1 \| 2026-11-02] | TC-B301 to TC-B365, TC-C301 to TC-C314 |
+| [15-list-migration-settings.md](admin-orders-test-plan/15-list-migration-settings.md) | 4.23 to 4.25 List and badge, migration, estimated fee settings [v2.1 \| 2026-11-02] | TC-B401 to TC-B458, TC-C401 to TC-C416 |
+| [16-trace-questions-v2-1.md](admin-orders-test-plan/16-trace-questions-v2-1.md) | 4.26 to 4.28 Changed ids to tests, superseded cases, questions Q-P1 to Q-P8, DOC-1 to DOC-5 [v2.1 \| 2026-11-02] | none |
 
 ## Totals (round 1, 6852302)
 
@@ -39,3 +43,4 @@ Planned: 204 cases (145 backend, 51 client x 2 platforms, 8 fixture). Executed e
 | 1.0 | 2026-10-31 | First version (197 cases, PRD v1.2). |
 | 1.1 | 2026-10-31 | Reworked for the simplified PRD v1.5. |
 | 2.0 | 2026-11-01 | Execute mode, round 1: see [part 09](admin-orders-test-plan/09-rounds-questions-changelog.md). |
+| 2.1 | 2026-11-02 | Early mode for PRD v1.10 and place-order v1.7: parts 13 to 16, transition, cancel and role matrices, fee, date, capacity, list, migration, settings tests; old cases listed as superseded in part 16. All new cases `Not run`. |
