@@ -1,6 +1,6 @@
 # API Specification: order process, expected date, final fee
 
-Part of [api.md](../api.md), section 10.13 (new). Version 1.4 [v1.4 | 2026-11-02]. Traces: FR-9, FR-13, FR-14, FR-16 to FR-19, FR-28 to FR-30, AC-26 to AC-29, AC-49 to AC-52; ADR-0033; order-process.md. Auth, rate limit, `no-store`: api/05. Status identifiers: `Received`, `Processing`, `DeliveryDateScheduled`, `DeliveryStarted`, `Finished`, `Cancelled`.
+Part of [api.md](../api.md), section 10.13 (new). Version 1.5 [v1.5 | 2026-11-02]. Traces: FR-9, FR-13, FR-14, FR-16 to FR-19, FR-28 to FR-30, AC-26 to AC-29, AC-49 to AC-52; ADR-0033; order-process.md. Auth, rate limit, `no-store`: api/05. Status identifiers: `Received`, `Processing`, `DeliveryDateScheduled`, `DeliveryStarted`, `Finished`, `Cancelled`.
 
 ## 10.13.1 POST /v1/admin/orders/{order_code}/status (changed)
 
@@ -17,7 +17,11 @@ Field codes in 422 `VALIDATION_FAILED` `fields[]` (api/08 11.1 style): `EXPECTED
 
 ## 10.13.2 PUT /v1/admin/orders/{order_code}/expected-delivery-date (new, FR-28)
 
-Body `{ "expected_status": "DeliveryDateScheduled", "previous_expected_delivery_date": "YYYY-MM-DD", "expected_delivery_date": "YYYY-MM-DD" }`. One transaction sets the actor settings and runs `UPDATE ... WHERE status = 'DeliveryDateScheduled' AND expected_delivery_date = :previous`, then inserts the change row. 200 with the order detail. Errors: 401/403; 404 `ORDER_NOT_FOUND`; 422 as above; 409 `ORDER_STATE_CHANGED` when status or stored date differs (detail returned; this also covers an order that already started delivery); replay per ADR-0033 Decision 2. The same date as stored by a stale view is 409; a no-op with a matching previous date is 422 `EXPECTED_DATE_UNCHANGED`. Range today to today + 7 inclusive checked on every move; `EXPECTED_DATE_PAST`, `EXPECTED_DATE_TOO_FAR`; a replay skips it. No daily-limit, lead or slot check.
+Body `{ "expected_status": "DeliveryDateScheduled", "previous_expected_delivery_date": "YYYY-MM-DD", "expected_delivery_date": "YYYY-MM-DD" }`. One transaction sets the actor settings and runs `UPDATE ... WHERE status = 'DeliveryDateScheduled' AND expected_delivery_date = :previous`, then inserts the change row. 200 with the order detail. Errors: 401/403; 404 `ORDER_NOT_FOUND`; 422 as above; 409 `ORDER_STATE_CHANGED` when status or stored date differs (detail returned; this also covers an order that already started delivery); replay per ADR-0033 Decision 2. The same date as stored by a stale view is 409; a no-op with a matching previous date is 422 `EXPECTED_DATE_UNCHANGED`.
+
+Check order [v1.28 | 2026-11-02] (same shape as the fee route, 10.13.6): session, role, body fields (unknown key `UNKNOWN_FIELD`; `previous_expected_delivery_date` then `expected_delivery_date`: `EXPECTED_DATE_REQUIRED`, `EXPECTED_DATE_INVALID`, each reported on its own key), `expected_status`, range (`EXPECTED_DATE_PAST`, `EXPECTED_DATE_TOO_FAR`, new date only), `EXPECTED_DATE_UNCHANGED` (body only, before the UPDATE, so it wins over 409), UPDATE (409 or replay). `expected_status` missing, not a string, or any value other than `DeliveryDateScheduled` is 422 `VALIDATION_FAILED`, field `expected_status`, code `STATUS_INVALID`, no write: a wrong value is a client defect, not a stale view; staleness is only the 409 of the UPDATE. Unlike the fee route there is no separate error code for it (10.13.6 keeps `FEE_CORRECTION_NOT_ALLOWED`, built).
+
+Unknown keys in both correction bodies are 422 `VALIDATION_FAILED`, field = the key, code `UNKNOWN_FIELD` (the canonical name, api/08 11.1); `FIELD_NOT_ALLOWED` is another code (a known key refused for this target, 10.13.1) and `FIELD_UNKNOWN` is the older name of the built owner and customer routes (api/04, api/07), kept there and not used by any admin order or device route. Range today to today + 7 inclusive checked on every move; `EXPECTED_DATE_PAST`, `EXPECTED_DATE_TOO_FAR`; a replay skips it. No daily-limit, lead or slot check.
 
 ## 10.13.3 Reads (changed)
 
@@ -27,7 +31,7 @@ Date window [v1.2 | 2026-11-02]: the server owns "shop today". The order detail 
 
 `GET /v1/admin/orders/{order_code}` adds: `requested_delivery_date` (the customer date, existing `delivery_date`), `expected_delivery_date`, `delivery_fee_estimate_vnd`, `delivery_fee_final_vnd` (null before entry), `items_subtotal_vnd`, `amount_to_collect_vnd` (null before entry), and `date_changes[]` (`old_date`, `new_date`, `changed_by_name`, `changed_at`, oldest first), `fee_corrections[]` (`old_fee_vnd`, `new_fee_vnd`, `changed_by_name`, `changed_at`, oldest first) [v1.1 | 2026-11-02].
 
-Last change and fee history [v1.4 | 2026-11-02]: `last_change` is `{ "actor_name", "at", "kind" }` where `kind` is `status`, `date` or `fee`, the latest of `order_event`, `order_expected_date_change` and `order_fee_correction` (order-process.md 4.2). Ties on `at`: `status`, then `date`, then `fee`, then the larger row id. `actor_name` is null only when the latest record is the customer's `created` event. `delivery_fee_entry` is `{ "entered_by_name", "entered_at" }` or null before the entry (and for backfilled legacy rows): the actor and time of the DeliveryDateScheduled to DeliveryStarted event. Fee history in the detail is that entry first, then `fee_corrections[]` oldest first; no new column.
+Last change and fee history [v1.4 | 2026-11-02]: `last_change` is `{ "actor_name", "at", "kind" }` where `kind` is `status`, `date` or `fee`, the latest of `order_event`, `order_expected_date_change` and `order_fee_correction` (order-process.md 4.2). Ties on `at`: `status`, then `date`, then `fee`, then the larger row id. `actor_name` is null only when the latest record is the customer's `created` event. `delivery_fee_entry` is `{ "entered_by_name", "entered_at" }` or null before the entry (and for backfilled legacy rows): the actor and time of the DeliveryDateScheduled to DeliveryStarted event. Fee history in the detail is that entry first, then `fee_corrections[]` oldest first; no new column. No merged status, date and fee history is returned (no field, no union query) [v1.5 | 2026-11-02]: `design/admin-orders/12` shows each record list on its own and the last change line only.
 
 Customer endpoints: unchanged (no status shown; `POST /v1/orders` still checks `expected_total_vnd` = cakes + estimate). Push: unchanged (new-order push only).
 
@@ -72,6 +76,7 @@ Computed from the status for owner and staff alike (the same roles as every stat
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.5 | 2026-11-02 | Date route check order and `STATUS_INVALID`; canonical `UNKNOWN_FIELD`; no merged history; list filters match `list_date`. |
 | 1.4 | 2026-11-02 | List item `list_date` rule; `last_change.kind` from three records; `delivery_fee_entry`. |
 | 1.3 | 2026-11-02 | Section 10.13.7: `allowed_actions` vocabulary, action to endpoint map, `to_status` to action. |
 | 1.2 | 2026-11-02 | 409 body, `expected_date_range` (server owns the window), FEE_UNCHANGED order, status-route fee refusal, clock source. |
