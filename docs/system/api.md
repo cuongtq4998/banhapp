@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.25 [v1.25 | 2026-11-02] |
+| Version      | 1.26 [v1.26 | 2026-11-02] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -68,3 +68,4 @@ This file is the index of the API specification. The body lives in the folder `a
 | 1.23 | 2026-11-01 | Review account and log redaction as built (architecture/16): api/05 section 9 logging row; api/06 10.11 cancel: 500 `INTERNAL_ERROR` with `details.reason = DAY_LOAD_INCONSISTENT`. No new route. |
 | 1.24 | 2026-11-02 | Order process of six steps (ADR-0033, api/09 section 10.13): status filter values, badge, detail fields in api/06 10.9 and 10.10, new field codes in api/08 11.1; `order_event` history keeps legacy words, mapped on read. |
 | 1.25 | 2026-11-02 | Date range today to +7, fee correction `PUT .../delivery-fee` (api/09 10.13.6, ADR-0033 v1.2); customer lookup `POST /v1/orders/lookup` by phone only with rate limits and minimum data (api/10 section 10.14, ADR-0034). |
+| 1.26 | 2026-11-02 | api/10 v1.2: lookup list carries order code and cake lines (ADR-0034 v1.2, owner decision); retention days never sent to the client. |

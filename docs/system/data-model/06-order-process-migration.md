@@ -1,6 +1,6 @@
 # Data Model: order process columns and migration 0008
 
-Part of [data-model.md](../data-model.md). Version 1.3 [v1.3 | 2026-11-02]. Traces: BR-2, BR-9, BR-11, BR-15, BR-17, FR-28 to FR-30, AC-49 to AC-53; ADR-0033.
+Part of [data-model.md](../data-model.md). Version 1.4 [v1.4 | 2026-11-02]. Traces: BR-2, BR-9, BR-11, BR-15, BR-17, FR-28 to FR-30, AC-49 to AC-53; ADR-0033.
 
 ## 1. New columns on `customer_order` [v1.0 | 2026-11-02]
 
@@ -26,7 +26,9 @@ Part of [data-model.md](../data-model.md). Version 1.3 [v1.3 | 2026-11-02]. Trac
 
 Index `(order_id, id)`. Insert-only (a trigger refuses UPDATE and DELETE). Part of PII retention like `order_event` (BR-12 placeholder; name is staff data, not customer data).
 
-## 3. Migration plan: `backend/db/migrations/0008_order_process.sql`
+## 3. Migration plan: 0008 and 0009 [v1.4 | 2026-11-02]
+
+The plan is split into two files and two transactions: see data-model/07 (which step is in which file, order of application, failure state, checks). Steps 1 to 6 below (without the two tables) are `0008_order_process.sql`; the tables, functions, triggers and recreated trigger functions are `0009_order_process_records.sql`.
 
 Forward-only; 0001 to 0007 are never edited (policy 15.1 in data-model/05).
 
@@ -83,7 +85,7 @@ Replacement of `customer_order_immutable` (step 6): `delivery_fee_final_vnd` may
 
 Date range rule: today to today + 7 is enforced by the API only (needs the Vietnam calendar date at request time; a CHECK cannot use the clock). No column or setting is added for it; the table `order_expected_date_change` records every accepted value.
 
-Customer lookup (ADR-0034, api/10): no new table or column. It reads `customer_order` by `customer_phone` with the existing index `(customer_phone, created_at)` and `status_changed_at` for the 30-day window; rows with a purged phone never match.
+Customer lookup (ADR-0034 v1.2, api/10): no new table or column; the cake lines come from `customer_order_item` by the lateral aggregate in api/10 10.14.3. It reads `customer_order` by `customer_phone` with the existing index `(customer_phone, created_at)` and `status_changed_at` for the 30-day window; rows with a purged phone never match.
 
 Step 9 of the migration checks that the table `order_fee_correction` exists with its CHECKs and trigger.
 
@@ -102,6 +104,7 @@ Confirmed against `backend/db/migrations/0008_order_process.sql` (forge-dev):
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.4 | 2026-11-02 | Plan split into 0008 and 0009 (data-model/07); lookup reads items in one statement, no schema change. |
 | 1.3 | 2026-11-02 | Document matches 0008 as written: step order, old open index dropped, status default, insert-only function, stricter immutable rule (section 7). |
 | 1.2 | 2026-11-02 | Table `order_fee_correction`, stricter immutable trigger, date range rule (API only), no new structure for customer lookup. |
 | 1.1 | 2026-11-02 | `order_event` is not remapped (append-only kept); legacy words mapped on read; sections 4 and 5. |
