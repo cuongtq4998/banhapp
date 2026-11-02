@@ -49,6 +49,8 @@ Keyboards and input hints: name uses the name keyboard with sentence capitalisat
 
 ### 5.8 S-8 Order step 4: Review
 
+Superseded 2026-11-02 [v1.7 | 2026-11-02]: the fee and total rows, here and on S-7 and S-9, follow [part 12](12-fee-estimate-change.md): the fee is an estimate, there is no total with fee.
+
 - Purpose: show the full order before confirmation, state which data is collected and why, and confirm (FR-9, FR-10, FR-11 trigger, FR-16, FR-17).
 - Entry/Exit: from S-7. Exit to S-9 on success; Edit controls go to S-5, S-6 or S-7; back goes to S-7.
 - Layout: `TopBar`, `StepIndicator` (`STEP4`); `InlineMessage` area at the top for rule and send errors (hidden in Default); `GlassCard` "cakes": section title `REVIEW_SEC_CAKES`, one `SummaryRow` per cake with quantity above 0 (`REVIEW_ITEM` and line price), `COMMON_EDIT` control to S-5; `GlassCard` totals: `SummaryRow` Money `REVIEW_FEE`, `SummaryRow` Total `REVIEW_TOTAL`; `GlassCard` delivery: `REVIEW_DATE`, `REVIEW_TIME` (edit to S-6), `REVIEW_NAME`, `REVIEW_PHONE`, `REVIEW_ADDRESS` (address and district), `REVIEW_NOTE` only when a note was entered (edit to S-7); `NoticeText` `REVIEW_PRIVACY` [v1.6 | 2026-10-29] followed on the next line by a text link `REVIEW_PRIVACY_LINK` (same target and behaviour as `PRIVACY_LINK` on S-7, including `ERR_OPEN_PRIVACY`; the link is disabled while the order is sending); `BottomActionBar` with `PrimaryButton` `BTN_CONFIRM`.

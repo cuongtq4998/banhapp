@@ -35,6 +35,15 @@ Part of the split UI specification; index: [admin-orders-ui.md](../admin-orders-
 | FR-27, BR-8 | AC-46 | S-A5 (reason list only) | Counting is server behaviour |
 | BR-3 | AC-47 | None (record only; `A_LAST_CHANGED` shows the last change) | |
 
+PRD v1.10 changes [v1.4 | 2026-11-02]: FR-9, FR-10, FR-13, AC-52 to S-A3 (part 12, 5.16); FR-14, AC-51, BR-15 to S-A4 (5.12); FR-16 to FR-19, AC-26 to AC-29 to S-A4, S-A5 (5.12, 5.17); FR-28, AC-49 to S-A14 (5.13); FR-29, AC-50, BR-11, AC-41 to S-A15 and S-A4 cakes card (5.14); FR-23, AC-37, AC-40 to S-A10 (5.18); BR-2, BR-8, BR-9 as above. Question numbering: B-D1 to B-D3 and TQ-D9 below.
+
+| ID | Question | Class | Status |
+| -- | -------- | ----- | ------ |
+| B-D1 | May the expected date be set in the past or only from today? Is there a latest date? (UI assumes from the server today, no limit.) | business | Open, non-blocking |
+| B-D2 | Is a reason required when the expected date moves? (UI assumes none.) | business | Open, non-blocking |
+| B-D3 | Does the date filter use the list date (expected, else requested)? (UI assumes yes.) | business | Open, non-blocking |
+| TQ-D9 | Orders stored under the old fee rule: how are they shown (fee as entered)? Does the list response carry the list date and the expected date? | technical | Open, non-blocking |
+
 Every FR with UI impact has a screen; AC-11, AC-12, AC-13, AC-47 and FR-6, FR-7, FR-8 have no UI by design. Check done on 2026-10-31 against all 27 FR and 48 AC of the v1.5 text.
 
 ## 11. Assets
@@ -66,6 +75,7 @@ Assumptions: A-D1 search combines with the status and date filters. A-D2 setting
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.4 | 2026-11-02 | PRD v1.10: order process of five steps, cancel only at steps 1 and 2, S-A14 and S-A15 sheets, `OrderStepper`, fee pending or real, list chips and labels, due marks by expected date; new parts 12 and 13; questions B-D1 to B-D3, TQ-D9. |
 | 1.3 | 2026-11-01 | Findings from built Android part 2: Save on forms stays enabled once anything is typed and lists all errors at once (contradiction removed in parts 4 and 5); new keys `A_ERR_IMG_DIM_SMALL`, `A_ERR_IMG_DIM_LARGE` (picture side under 200 or over 4096 px), `A_UNDERSTOOD` (single button of the second limit warning); S-A6 account card accepted; extra Android test ids listed in 9.2. |
 | 1.2 | 2026-11-01 | Findings from the built part-1 apps: S-A5 large detent and expanded sheet with pinned buttons; per-platform test ids (new section 9.2) and the ids the apps added; search limit 50; S-A13 always shows the e-mail (`GET /v1/admin/me` field `email`); date picker in the shop time zone Asia/Ho_Chi_Minh; new copy key `A_DATE_PICK_OK`. |
 | 1.1 | 2026-10-31 | Simplified to match PRD v1.6 (27 FR, 14 BR, 48 AC): 20 screens to 13. Removed recovery, devices, backup e-mail, date sheet, history, Unfinished view and chip, banner, notification hint and priming card. Added "Sign out all other phones", one "To do" list with tab badge and red due marks, single status and date filter, four cancel reasons, Settings of five entries, "how a day works" flows. Voided code shares the expired-code text. Design system part 7 v1.6. |

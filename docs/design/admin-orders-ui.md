@@ -2,11 +2,11 @@
 
 | Field        | Value                                                                 |
 | ------------ | --------------------------------------------------------------------- |
-| Version      | 1.2 [v1.2 | 2026-11-01]                                              |
-| Last updated | 2026-11-01                                                            |
+| Version      | 1.4 [v1.4 | 2026-11-02] (1.3 is in the part 11 log)                 |
+| Last updated | 2026-11-02                                                            |
 | Status       | Draft                                                                 |
 | Owner        | canvas-ui                                                             |
-| Based on     | product/admin-orders.md v1.6 (simplified text of v1.5, approved by the owner 2026-10-31) [v1.1 | 2026-10-31] |
+| Based on     | product/admin-orders.md v1.10 (approved by the owner 2026-11-02; order process and delivery fee, section 16) [v1.4 | 2026-11-02] |
 | Related      | design/design-system.md v1.6 (part 7 for the admin app); design/place-order-ui.md (Customer app); design/reference/ (board screens A1 to A4, reference only); docs/system/auth.md; docs/system/order-lifecycle.md |
 
 This specification is split into parts of at most 200 lines each (project file size rule). This file is the index. Section numbers follow standard 02. Screen IDs use the prefix `S-A` (admin) to stay apart from the Customer app `S-1` to `S-9`. IDs were renumbered in v1.1 (20 screens became 13); the mapping to the v1.0 ids is in part 1, section 5.1. [v1.1 | 2026-10-31]
@@ -27,6 +27,9 @@ This specification is split into parts of at most 200 lines each (project file s
 | 10 | [Accessibility, test identifiers](admin-orders/10-accessibility-test-ids.md) | 9, 9.1 |
 | 11 | [Traceability (FR and AC), assets, open questions, change log](admin-orders/11-traceability-questions-changelog.md) | 10, 11, 12 |
 
+| 12 | [Order process and delivery fee: steps, S-A4 revised, S-A14 schedule date, S-A15 fee, stepper, list labels](admin-orders/12-order-process-screens.md) [v1.4 | 2026-11-02] | 5.12 to 5.18 |
+| 13 | [Order process: copy keys, accessibility, test ids](admin-orders/13-order-process-copy-a11y.md) [v1.4 | 2026-11-02] | 8.8, 9.3, 9.4 |
+
 Quick finds: copy keys (`A_*`) in parts 8 and 9 (deleted keys are listed at the top of each); test identifiers (`admin.*`) in part 10; questions Q-D and TQ-D in part 11; tokens and components in [design-system part 7](design-system/07-admin-additions.md).
 
 Ready gate status: every FR and AC of the PRD with UI impact is traced (part 11); every screen lists the six states or "N/A" with a reason; no blocking question is open (Q-D3 to Q-D5 and TQ-D1 to TQ-D8 are non-blocking, with a proposal in each). [v1.1 | 2026-10-31]
@@ -35,6 +38,7 @@ Ready gate status: every FR and AC of the PRD with UI impact is traced (part 11)
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.4 | 2026-11-02 | PRD v1.10 (order process, delivery fee): five steps, cancel only at steps 1 and 2 with the reason shown, new sheets S-A14 (schedule date) and S-A15 (real fee at Start delivery), `OrderStepper`, list labels and chips, fee shown as pending or real, due marks by expected date. New parts 12 and 13; part 3 carries a pointer. |
 | 1.2 | 2026-11-01 | Built-app findings: S-A5 height, per-platform test ids (part 10, 9.2), search 50 characters, S-A13 e-mail, date picker time zone, `A_DATE_PICK_OK`. See part 11. |
 | 1.1 | 2026-10-31 | Simplified to PRD v1.6: 13 screens (was 20), flows per user type, deleted unused copy keys and test identifiers. See part 11. |
 | 1.0 | 2026-10-31 | First version: 20 screens for the Admin app on iOS and Android, based on PRD v1.2. |
