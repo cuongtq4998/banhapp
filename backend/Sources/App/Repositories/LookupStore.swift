@@ -31,8 +31,9 @@ struct PostgresLookupStore: LookupStore {
     func fetchPage(phone: String, cursor: LookupCursor?, windowStart: Date, limit: Int) async throws -> [LookupRow] {
         guard let sql = database as? any SQLDatabase else { throw APIError(.serviceUnavailable) }
         // Same statement for every phone; the cursor test is a no-op when absent.
+        // Integer microseconds: a Double date would blur equal timestamps.
         let hasCursor = cursor != nil
-        let at = cursor?.placedAt ?? Date.distantFuture
+        let atMicros = cursor?.placedAtMicroseconds ?? 0
         let after = cursor?.orderID ?? UUID()
         return try await translatingDatabaseErrors {
             try await sql.raw("""
@@ -49,7 +50,7 @@ struct PostgresLookupStore: LookupStore {
                     FROM customer_order_item WHERE order_id = o.id) i ON true
                 WHERE o.customer_phone = \(bind: phone)
                   AND (o.status NOT IN ('Finished', 'Cancelled') OR o.status_changed_at >= \(bind: windowStart))
-                  AND (\(bind: !hasCursor) OR (o.created_at, o.id) < (\(bind: at), \(bind: after)))
+                  AND (\(bind: !hasCursor) OR (o.created_at, o.id) < (timestamptz 'epoch' + \(bind: atMicros) * interval '1 microsecond', \(bind: after)))
                 ORDER BY o.created_at DESC, o.id DESC
                 LIMIT \(bind: limit)
                 """).all(decoding: LookupRow.self)
