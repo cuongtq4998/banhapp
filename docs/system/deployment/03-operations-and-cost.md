@@ -44,6 +44,25 @@ p99 record: after each deploy that touches the lookup SQL, and before go-live, r
 | ---- | ----------- | -------------- | ------------------ | ---------- |
 | (to measure) | staging | | | 250 |
 
+### 7.2 Lookup settings: operator checklist [v1.4 | 2026-11-02]
+
+Source of the rules: api/10 10.14.5 (v1.4) and ADR-0034. Names only; values live in the host, never in the repository.
+
+| Variable | Default | Rule |
+| -------- | ------- | ---- |
+| `LOOKUP_KEY_SECRET` | none (random per process) | Set in the host, the same value on every instance. Unset: every cursor fails with 422 `CURSOR_INVALID` after each restart, and a cursor from one instance fails on another. A rotation has the same effect |
+| `LOOKUP_RETENTION_DAYS` | 30 | Positive integer; a malformed value keeps 30 |
+| `LOOKUP_FLOOR_MS` | 250 | 0 or more; keep above the p99 of section 7.1 |
+| `CLIENT_ADDRESS_HEADER` | empty (socket peer address) | The one header the host platform's proxy sets |
+| `TRUSTED_PROXY_HOPS` | 1 | Positive; counts entries from the right that belong to trusted proxies |
+
+Checklist before go-live and after each host or proxy change:
+
+1. Set `LOOKUP_KEY_SECRET` (placeholder name only in `.env.example`).
+2. Set `CLIENT_ADDRESS_HEADER` and `TRUSTED_PROXY_HOPS` for the host platform. The owner or operator must verify the real header and hop count on the chosen host: this depends on the paid hosting, not yet approved (DP-Q4), so no value is recorded here. Never trust a client-supplied `X-Forwarded-For`: only the header named above is read, from the right.
+3. Check from outside that two different callers do not share one address (a wrong setting makes all callers share one limit bucket).
+4. Measure the p99 (section 7.1) and set `LOOKUP_FLOOR_MS` above it before go-live.
+
 Cold starts on the free trial [v1.1 | 2026-10-25]: the Render service sleeps after 15 idle minutes and takes about 1 minute to wake; the Neon database suspends after 5 idle minutes and resumes in about 0.5 s to a few seconds (docs). The apps cope: the catalogue request at launch wakes the server; the 10-second order timeout leads to `ERR_TIMEOUT` and a same-key retry that creates one order. `/healthz` is shallow for monitors (no database query) so an uptime pinger never keeps the database awake or burns CU-hours; the database check is a separate `GET /healthz?deep=1` used by the operator and by deploy verification only: the staging smoke step in `backend.yml` calls it once per deploy, which resumes Neon for a few CU-seconds, an accepted cost; no monitor, alert or host check may use it [v1.2 | 2026-10-26]. The Render health-check path is set to `/healthz` (shallow; the setting is a platform console step, not verified here). An optional keep-warm ping of `/healthz` in business hours (07:00 to 22:00, about 450 hours per month) fits the 750 Render hours; whether Render's terms allow pings is unverified, so it is off by default.
 
 ## 8. Rollback
