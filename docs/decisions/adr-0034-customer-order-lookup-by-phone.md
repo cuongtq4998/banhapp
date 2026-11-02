@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0034 |
-| Version  | 1.3 [v1.3 | 2026-11-02] (Decision 9; v1.2: order code and cake lines, Decision 8, retention days not sent; v1.1: clarifications, Decision 7; v1.0: first version) |
+| Version  | 1.4 [v1.4 | 2026-11-02] (Decision 10; v1.3: Decision 9; v1.2: order code and cake lines, Decision 8, retention days not sent; v1.1: clarifications, Decision 7; v1.0: first version) |
 | Status   | Accepted as the owner's decision of 2026-11-02 (C); it affects customer data, so the residual risk in Consequences must be seen by the owner |
 | Date     | 2026-11-02 |
 | Decider  | owner (business choice); atlas-architect (mitigations) |
@@ -20,12 +20,13 @@ The customer must follow an order without signing in and without push. The PRD d
 1. Minimum data: order code and cake names with quantities (and unit prices) [v1.2 | 2026-11-02], phone masked, district only (no street address, no note, no customer name), no cancel reason, no staff names, no internal records.
 2. Same answer shape for a phone with orders and one without (200, `orders: []`); constant-ish timing by a minimum response time; no existence signal in headers, errors or limits.
 3. Rate limits per phone and per client address (and per installation if sent), counted whether or not orders exist; 429 identical for both cases.
-4. Page size 10, at most 5 pages (50 orders) per phone and window; opaque cursor bound to the phone.
+4. Page size 10, at most 5 pages (50 orders) per phone and window; opaque cursor bound to the phone by a keyed hash (no version number; format in api/10 10.14.3).
 5. No personal data in logs; the phone is never in a URL (POST body), responses `no-store`.
 6. Window: open orders at any age; `Finished` and `Cancelled` 30 days after `status_changed_at` (assumption of the owner, Q-O8). The count of days is an internal rule: the client is never sent it and no text names it [v1.2 | 2026-11-02].
 7. Clarifications [v1.1 | 2026-11-02]: a request with a valid cursor does not count against the per-phone limit (the first page did), it counts against address and installation limits; the client address comes only from the platform proxy header named in `CLIENT_ADDRESS_HEADER` with `TRUSTED_PROXY_HOPS`, never from a client-supplied header; the response floor must exceed the p99 of the one shared indexed query and an alert fires when it is exceeded; `as_of` is enough for the offline line; the app's 9 to 11 digit check is a hint only (api/10 10.14.5, 10.14.7).
 8. Content of the list [v1.2 | 2026-11-02]: owner decision of 2026-11-02: each order shows its code and its cake lines (name, quantity, unit price). Items come from `customer_order_item` in the same SQL statement as the page (lateral aggregate, no second round trip, no schema change; api/10 10.14.3).
 9. Details settled [v1.3 | 2026-11-02]: the retention edge is inclusive (`status_changed_at >= now - 30 x 24 h`); the cursor carries the placed time as integer microseconds; `amount_to_collect_vnd` is subtotal plus final fee, null before the final fee, never the estimate; `lookup_floor_exceeded` goes to a phone-free warning log line and an in-process count (deployment/03 7.1). No paid service.
+10. As built [v1.4 | 2026-11-02]: the floor variable is `LOOKUP_FLOOR_MS`. Page size 10, page cap 5, the three hourly budgets (10, 30, 20) and the one-hour window stay constants of `LookupPolicy` (simpler, reviewed code change, no drift); the only environment settings are `LOOKUP_KEY_SECRET`, `LOOKUP_RETENTION_DAYS`, `LOOKUP_FLOOR_MS`, `CLIENT_ADDRESS_HEADER`, `TRUSTED_PROXY_HOPS`. The lookup cursor carries no version marker: it is new, short-lived, and a format change invalidates old cursors with `CURSOR_INVALID` (the admin cursor's marker exists only because an older shape was in use). An unset `LOOKUP_KEY_SECRET` gives a random secret per process: cursors fail after a restart or on another instance; hosts must set it.
 
 ## Rejected alternatives
 

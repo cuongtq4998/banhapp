@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.29 [v1.29 | 2026-11-02] |
+| Version      | 1.30 [v1.30 | 2026-11-02] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -29,7 +29,7 @@ This file is the index of the API specification. The body lives in the folder `a
 | 10.6 to 10.12 | Session, sign out other phones, push token, order list, detail, status change, push payload [v1.16 \| 2026-10-31] | [api/06-admin-orders-devices.md](api/06-admin-orders-devices.md) |
 | 10.13 to 10.19 | Owner settings, ordering rules, districts, slots, cakes, staff [v1.16 \| 2026-10-31] | [api/07-owner-settings-cakes-staff.md](api/07-owner-settings-cakes-staff.md) |
 | 10.13 | Order process of six steps, expected delivery date (today to +7), final fee and its correction [v1.25 \| 2026-11-02] | [api/09-order-process-api.md](api/09-order-process-api.md) |
-| 10.14 | Customer order lookup by phone [v1.25 \| 2026-11-02] | [api/10-customer-order-lookup.md](api/10-customer-order-lookup.md) |
+| 10.14 | Customer order lookup by phone [v1.30 \| 2026-11-02] | [api/10-customer-order-lookup.md](api/10-customer-order-lookup.md) |
 | 11 to 13 | Admin error catalogue, compatibility, traceability [v1.13 \| 2026-10-31] | [api/08-admin-errors-compatibility.md](api/08-admin-errors-compatibility.md) |
 | 8 | Open questions and change log | this file |
 
@@ -72,3 +72,4 @@ This file is the index of the API specification. The body lives in the folder `a
 | 1.27 | 2026-11-02 | `allowed_actions` vocabulary and action map (api/09 10.13.7, api/06 10.10); 90-day window rule and replay (order-process.md 4.1, ADR-0033 v1.4, ADR-0028 v1.6, ADR-0029 v1.7). |
 | 1.28 | 2026-11-02 | Slices S4 and S4b answers: cursor version marker, list filters match `list_date`, no merged history, date route check order and `STATUS_INVALID`, canonical `UNKNOWN_FIELD` (api/06 10.9, api/08 11.1, api/09 v1.5, ADR-0029 v1.8). |
 | 1.29 | 2026-11-02 | Six-status text in api/06 10.9 to 10.11 (window, examples, pairs by link to order-process.md section 2 and api/09 10.13.7), api/05 route table; api/08 11.1 states the validation `message_key` is `ERR_SERVER` (document and built code agree). |
+| 1.30 | 2026-11-02 | api/10 v1.4 and ADR-0034 v1.4 aligned with the built lookup: `LOOKUP_FLOOR_MS`, constants versus five settings, cursor format without version marker, unset secret rule. |
