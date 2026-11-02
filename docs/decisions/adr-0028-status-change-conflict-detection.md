@@ -4,7 +4,7 @@
 | -------- | ----- |
 | ADR      | 0028 |
 | Version  | 1.5 [v1.5 | 2026-11-01] (deviation D-1 fixed in slice B6; earlier: built in B3, replay beyond the window, R-1) |
-| Status   | Accepted (no money, no new customer data) |
+| Status   | Accepted; the allowed pairs and the compare key are superseded in part by ADR-0033 [v1.6 | 2026-11-02]; Accepted (no money, no new customer data) |
 | Date     | 2026-10-31 |
 | Decider  | atlas-architect |
 | Based on | PRD admin-orders v1.6 FR-16 to FR-19, BR-2, AC-25 to AC-29 (ids as in product/admin-orders/08, section 15); TQ-5; order-lifecycle.md |

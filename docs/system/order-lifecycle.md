@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.7 [v1.7 | 2026-10-31] |
+| Version      | 1.8 [v1.8 | 2026-11-02] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -96,6 +96,8 @@ Idempotency key [v1.3 | 2026-10-28]: replaced on every change of the request bod
 | BR-12 Retention | `pii_purged_at` placeholder (data-model.md) |
 
 ## 6. State Machine
+
+Superseded 2026-11-02 [v1.8 | 2026-11-02]: the statuses, transitions and rules below are replaced by the six-step process in order-process.md (ADR-0033). Kept as history of the four-status model.
 
 ```mermaid
 stateDiagram-v2
