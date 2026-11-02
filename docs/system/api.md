@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.28 [v1.28 | 2026-11-02] |
+| Version      | 1.29 [v1.29 | 2026-11-02] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -71,3 +71,4 @@ This file is the index of the API specification. The body lives in the folder `a
 | 1.26 | 2026-11-02 | api/10 v1.2: lookup list carries order code and cake lines (ADR-0034 v1.2, owner decision); retention days never sent to the client. |
 | 1.27 | 2026-11-02 | `allowed_actions` vocabulary and action map (api/09 10.13.7, api/06 10.10); 90-day window rule and replay (order-process.md 4.1, ADR-0033 v1.4, ADR-0028 v1.6, ADR-0029 v1.7). |
 | 1.28 | 2026-11-02 | Slices S4 and S4b answers: cursor version marker, list filters match `list_date`, no merged history, date route check order and `STATUS_INVALID`, canonical `UNKNOWN_FIELD` (api/06 10.9, api/08 11.1, api/09 v1.5, ADR-0029 v1.8). |
+| 1.29 | 2026-11-02 | Six-status text in api/06 10.9 to 10.11 (window, examples, pairs by link to order-process.md section 2 and api/09 10.13.7), api/05 route table; api/08 11.1 states the validation `message_key` is `ERR_SERVER` (document and built code agree). |
