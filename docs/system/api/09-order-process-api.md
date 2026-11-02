@@ -1,6 +1,6 @@
 # API Specification: order process, expected date, final fee
 
-Part of [api.md](../api.md), section 10.13 (new). Version 1.3 [v1.3 | 2026-11-02]. Traces: FR-9, FR-13, FR-14, FR-16 to FR-19, FR-28 to FR-30, AC-26 to AC-29, AC-49 to AC-52; ADR-0033; order-process.md. Auth, rate limit, `no-store`: api/05. Status identifiers: `Received`, `Processing`, `DeliveryDateScheduled`, `DeliveryStarted`, `Finished`, `Cancelled`.
+Part of [api.md](../api.md), section 10.13 (new). Version 1.4 [v1.4 | 2026-11-02]. Traces: FR-9, FR-13, FR-14, FR-16 to FR-19, FR-28 to FR-30, AC-26 to AC-29, AC-49 to AC-52; ADR-0033; order-process.md. Auth, rate limit, `no-store`: api/05. Status identifiers: `Received`, `Processing`, `DeliveryDateScheduled`, `DeliveryStarted`, `Finished`, `Cancelled`.
 
 ## 10.13.1 POST /v1/admin/orders/{order_code}/status (changed)
 
@@ -21,11 +21,13 @@ Body `{ "expected_status": "DeliveryDateScheduled", "previous_expected_delivery_
 
 ## 10.13.3 Reads (changed)
 
-`GET /v1/admin/orders`: `status` accepts `todo` (default, the four open steps), the six names, `all`; items add `expected_delivery_date` (null), `list_date`; `unfinished_count` per order-process.md section 4.
+`GET /v1/admin/orders`: `status` accepts `todo` (default, the four open steps), the six names, `all`; items add `expected_delivery_date` (`YYYY-MM-DD` or null) and `list_date` (`YYYY-MM-DD`, never null: `COALESCE(expected_delivery_date, delivery_date)`), next to the existing `delivery_date` (the requested date) [v1.4 | 2026-11-02]. Sort, cursor, the red mark (`list_date <= server_date` on an open item) and `unfinished_count` all use `list_date` (order-process.md section 4); the apps refresh from page 1 after any status or date change.
 
 Date window [v1.2 | 2026-11-02]: the server owns "shop today". The order detail and every 409 `details.order` add `expected_date_range` `{ "min": "YYYY-MM-DD", "max": "YYYY-MM-DD" }` (shop today and today + 7, Vietnam calendar, computed at response time); the 422 `EXPECTED_DATE_PAST`/`EXPECTED_DATE_TOO_FAR` answers carry the same object in `details`. The client limits its picker to that object and never computes the window from the device clock; if the detail is older than the day, the server check still decides. "Shop today" is read once per request from an injectable server clock in `Asia/Ho_Chi_Minh` (no DST), the same function for range checks and list queries.
 
 `GET /v1/admin/orders/{order_code}` adds: `requested_delivery_date` (the customer date, existing `delivery_date`), `expected_delivery_date`, `delivery_fee_estimate_vnd`, `delivery_fee_final_vnd` (null before entry), `items_subtotal_vnd`, `amount_to_collect_vnd` (null before entry), and `date_changes[]` (`old_date`, `new_date`, `changed_by_name`, `changed_at`, oldest first), `fee_corrections[]` (`old_fee_vnd`, `new_fee_vnd`, `changed_by_name`, `changed_at`, oldest first) [v1.1 | 2026-11-02].
+
+Last change and fee history [v1.4 | 2026-11-02]: `last_change` is `{ "actor_name", "at", "kind" }` where `kind` is `status`, `date` or `fee`, the latest of `order_event`, `order_expected_date_change` and `order_fee_correction` (order-process.md 4.2). Ties on `at`: `status`, then `date`, then `fee`, then the larger row id. `actor_name` is null only when the latest record is the customer's `created` event. `delivery_fee_entry` is `{ "entered_by_name", "entered_at" }` or null before the entry (and for backfilled legacy rows): the actor and time of the DeliveryDateScheduled to DeliveryStarted event. Fee history in the detail is that entry first, then `fee_corrections[]` oldest first; no new column.
 
 Customer endpoints: unchanged (no status shown; `POST /v1/orders` still checks `expected_total_vnd` = cakes + estimate). Push: unchanged (new-order push only).
 
@@ -70,6 +72,7 @@ Computed from the status for owner and staff alike (the same roles as every stat
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.4 | 2026-11-02 | List item `list_date` rule; `last_change.kind` from three records; `delivery_fee_entry`. |
 | 1.3 | 2026-11-02 | Section 10.13.7: `allowed_actions` vocabulary, action to endpoint map, `to_status` to action. |
 | 1.2 | 2026-11-02 | 409 body, `expected_date_range` (server owns the window), FEE_UNCHANGED order, status-route fee refusal, clock source. |
 | 1.1 | 2026-11-02 | Date range today to today + 7 (`EXPECTED_DATE_TOO_FAR`); fee correction endpoint 10.13.6 and `fee_corrections[]`. |
