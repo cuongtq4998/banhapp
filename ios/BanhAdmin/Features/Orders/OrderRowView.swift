@@ -32,6 +32,8 @@ struct OrderRowView: View {
         .padding(Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
         .glassSurface(cornerRadius: Radius.cardRow)
+        // Blank areas of the card are not hit-testable by default, so a tap off the text did nothing.
+        .contentShape(RoundedRectangle(cornerRadius: Radius.cardRow))
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isButton)
         .accessibilityHint(Text(AStrings.rowHintA11y))
