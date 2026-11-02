@@ -43,3 +43,14 @@ Statuses: New, Confirmed, Completed, Cancelled (BR-2, FR-14, FR-16 to FR-19, PO 
 | atlas-architect | Status model and transition table (docs/system/order-lifecycle.md), new fields (expected delivery date, real fee, fee entered by and when), whether the stored district fee stays, total definition, API (new transitions, fee entry, date change, stale-view rules), migration of existing orders and old statuses, record (BR-3) for date moves, capacity rule if the date moves, notification content. |
 | forge-dev | Backend transition checks, new endpoints, migration, admin and customer apps (iOS, Android), contracts and fixtures, 90-day and unfinished queries. |
 | probe-qa | Rewrite or add tests for AC-26 to AC-29, AC-37, AC-40, AC-41, PO AC-11, PO AC-14, PO AC-28, PO AC-35, PO AC-36; new matrix of transitions and cancel by step; fee known only at delivery start; date move of 1 to 2 days. |
+
+### 16.5 Owner decisions 1 to 3 of 2026-11-02 and their impact [v1.12 | 2026-11-02]
+
+Decisions (Approved, owner answer 2026-11-02): (1) a customer refusing the cakes at the door after cancel is locked changes nothing in the app, a stated limit (BR-16, AC-54, Q-39); (2) expected delivery date at most 1 week, read as today to today + 7 inclusive, to confirm (BR-15, FR-28, AC-49, Q-40); (3) the real fee can be corrected by staff and owner while Delivery started, recorded, not after Finished (BR-17, FR-30, AC-53, Q-41). Decision 4 (customer tracking screen) is Draft: Place Order part 08.
+
+| Agent | Impact |
+| ----- | ------ |
+| canvas-ui | Detail: date picker limited to today to today + 7 with a message naming the limit; fee field editable at Delivery started with a Correct action and a confirm; fee read-only at Finished; no cancel or refusal control from Delivery date scheduled. New customer tracking screen, My orders list and lookup form (Draft, Place Order 08). |
+| atlas-architect | Date range rule on the shop calendar (Vietnam time); fee correction endpoint, record with old and new fee (BR-3), stale-view rule, rejection after Finished; no refusal status; read-only customer endpoint by code and phone with masking and rate limit (Draft, needs owner answers Q-O6 to Q-O12). |
+| forge-dev | Backend checks for the 7-day range and the fee correction; admin apps (iOS, Android); contracts and fixtures; customer tracking only after the owner approves 08. |
+| probe-qa | Boundary tests for the date (today, today + 7, today + 8, yesterday; each change checked on its day), fee correction by role and status (0, 10 000 000, out of range, after Finished), record content, absence of cancel after scheduled; tracking tests only after approval. |
