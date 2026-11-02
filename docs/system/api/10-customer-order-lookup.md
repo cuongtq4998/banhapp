@@ -1,6 +1,6 @@
 # API Specification: customer order lookup by phone
 
-Part of [api.md](../api.md), section 10.14 (new). Version 1.0 [v1.0 | 2026-11-02]. Traces: FR-22 to FR-27 (place-order 08), BR-16 to BR-18, AC-38 to AC-47, FR-28 to FR-30; ADR-0034, ADR-0017, ADR-0019. No sign-in, no push to customers.
+Part of [api.md](../api.md), section 10.14 (new). Version 1.1 [v1.1 | 2026-11-02]. Traces: FR-22 to FR-27 (place-order 08), BR-16 to BR-18, AC-38 to AC-47, FR-28 to FR-30; ADR-0034, ADR-0017, ADR-0019. No sign-in, no push to customers.
 
 ## 10.14.1 POST /v1/orders/lookup
 
@@ -34,15 +34,17 @@ Street address, ward, note, customer name, `cancel_reason`, staff names or ids, 
 
 ## 10.14.4 Same shape, timing, no enumeration
 
-A phone with no orders, a purged phone and an unused number all return 200 `{ "orders": [], "next_cursor": null, "as_of": ... }` (same headers, same field set). Both paths run the same indexed query and mapping; the handler waits until a minimum duration (`LOOKUP_MIN_RESPONSE_MS`, default 250) has passed before answering, so the empty and non-empty cases are not told apart by time within normal load. Rate-limit counters ignore whether orders exist. Only a malformed phone differs (422), which says nothing about the number being in use.
+A phone with no orders, a purged phone and an unused number all return 200 `{ "orders": [], "next_cursor": null, "as_of": ... }` (same headers, same field set). Both paths run the same indexed query and mapping; the handler waits until a minimum duration (`LOOKUP_MIN_RESPONSE_MS`, default 250) has passed before answering, so the empty and non-empty cases are not told apart by time within normal load. The floor is measured from request start and must stay above the p99 of the indexed query (`LIMIT 11`, same SQL and mapping on both paths) [v1.1 | 2026-11-02]; deployment.md records the measured p99 and the counter `lookup_floor_exceeded` (no phone) alerts when an answer was slower than the floor, because only then time leaks. Residual: under load above the floor, a non-empty answer can be slower (accepted, ADR-0034). Rate-limit counters ignore whether orders exist. Only a malformed phone differs (422), which says nothing about the number being in use.
 
 ## 10.14.5 Rate limits (fixed windows, in-memory, numbers are configuration)
 
 | Key | Default | Notes |
 | --- | ------- | ----- |
-| Normalised phone (keyed hash, never the digits) | 10 lookups per hour | Every request counts (empty or not, page 2 and later count); blocks guessing of one number |
+| Normalised phone (keyed hash, never the digits) | 10 lookups per hour | Every request without a cursor counts (empty or not); a request with a valid cursor does not count here [v1.1 | 2026-11-02]: it proves a first page was already counted for that phone (cursor bound by keyed hash), and 5 pages would otherwise use half the budget. It counts against the address and installation limits |
 | Client address (ADR-0019 model) | 30 lookups per hour | Distributed guessers pass; watch 429 volume |
 | Installation id, if sent | 20 per hour | Cosmetic: a caller can omit or change it; address and phone limits carry the protection |
+
+Client address [v1.1 | 2026-11-02]: config `CLIENT_ADDRESS_HEADER` (empty by default: use the socket peer address) names the one header set by the platform proxy, and `TRUSTED_PROXY_HOPS` (default 1) says how many entries from the right belong to trusted proxies. Only that header is read; any client-supplied `X-Forwarded-For` or similar value to the left of the trusted hops is ignored, never used as a key. A wrong setting makes all callers share one address; deployment.md checks it after each deploy. The rule applies to every limiter (ADR-0019).
 
 Excess: 429 `RATE_LIMITED` with `Retry-After` (whole seconds, at least 1, at most 3600); the body does not say which key tripped and is the same whether the phone has orders or not. A 429 does not count. Limits run before the database query. Restart clears the counters (accepted, as ADR-0017). Side effect: someone can use up a victim's per-phone budget (ADR-0034 consequences).
 
@@ -59,7 +61,7 @@ No 404 and no 401 exist on this route.
 
 ## 10.14.7 Headers, privacy, logging
 
-Response: `Cache-Control: no-store`, `Content-Type: application/json`, no `ETag`, no CDN caching (personal data). Logs hold method, route template, status, duration and the limiter decision only: never the body, the phone, the cursor, order codes of the answer or the installation id (extends data-model/03 server log rule). Limiter keys are keyed hashes (secret `LOOKUP_KEY_SECRET`, name only in `.env.example`, rotated by deployment.md procedure). Monitoring counts 429 by key type, not by value. Customer apps do not store the answer beyond the last read for the offline view (FR-26) and show it with its `as_of` time.
+Response: `Cache-Control: no-store`, `Content-Type: application/json`, no `ETag`, no CDN caching (personal data). Logs hold method, route template, status, duration and the limiter decision only: never the body, the phone, the cursor, order codes of the answer or the installation id (extends data-model/03 server log rule). Limiter keys are keyed hashes (secret `LOOKUP_KEY_SECRET`, name only in `.env.example`, rotated by deployment.md procedure). Monitoring counts 429 by key type, not by value. Customer apps do not store the answer beyond the last read for the offline view (FR-26) and show it with its `as_of` time [v1.1 | 2026-11-02]: `as_of` (server time of the read) is enough; the app stores it with the answer and shows that value, never the device clock. The app may check 9 to 11 digits before calling as a hint only (the server 422 `PHONE_INVALID` decides; an invalid number is never sent, so it costs no limit). The app adds no artificial wait: the 250 ms floor is the server's; the spinner shows while the request runs.
 
 ## 10.14.8 Fixtures (forge-dev, `contracts/fixtures/customer/`)
 
@@ -69,4 +71,5 @@ Response: `Cache-Control: no-store`, `Content-Type: application/json`, no `ETag`
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.1 | 2026-11-02 | Cursor pages not counted per phone, client address rule, timing floor above p99, as_of, client digit hint. |
 | 1.0 | 2026-11-02 | First version (ADR-0034). |

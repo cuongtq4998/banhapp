@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0033 |
-| Version  | 1.2 [v1.2 | 2026-11-02] (date range, fee correction; v1.1: event history kept, cutover decision) |
+| Version  | 1.3 [v1.3 | 2026-11-02] (clarifications, Decision 12; v1.2: date range, fee correction; v1.1: event history kept, cutover decision) |
 | Status   | Accepted (the owner approved the PRD change on 2026-11-02; no money, no new customer data) |
 | Date     | 2026-11-02 |
 | Decider  | atlas-architect |
@@ -27,6 +27,7 @@ The order process grows from four statuses to six. Two new facts are stored: an 
 
 9. Expected date range [v1.2 | 2026-11-02] (owner decision A): the date must be from the shop's today to today + 7 inclusive, "today" on the Asia/Ho_Chi_Minh calendar, never in the past. Checked on every entry and every move, in the API only (a CHECK cannot use the clock). Moves are unlimited. Codes `EXPECTED_DATE_PAST`, `EXPECTED_DATE_TOO_FAR`. An idempotent replay (Decision 2) is answered 200 before the range is checked again, so a retry after midnight is not refused.
 10. Fee correction [v1.2 | 2026-11-02] (owner decision B): staff and owner (the same roles as every status change, api/05) may change `delivery_fee_final_vnd` only while status is `DeliveryStarted`, any number of times, 0 to 10 000 000. Compare key `(status = 'DeliveryStarted', delivery_fee_final_vnd = :previous_delivery_fee_vnd)`; zero rows updated is 409 `ORDER_STATE_CHANGED` with the current detail (this also answers an order that is already `Finished`: nothing can change after Finished, the database trigger refuses it too). Each correction inserts one row in `order_fee_correction` (account id and name snapshot, time, old fee, new fee) in the same transaction; the first fee entry is not a correction. Replay: zero rows, current fee equals the requested fee, and the latest correction row has the same account and `old = previous` returns 200 `Idempotent-Replay: true`. No `order_event` row is written (the record is the correction table, merged into the history by time). The customer sees only the latest fee.
+12. Clarifications [v1.3 | 2026-11-02]: (a) the server owns the date window and returns it as `expected_date_range` (api/09); the client never uses the device clock for it. (b) The 409 on fee correction returns the full current order detail. (c) `FEE_UNCHANGED` (body-only check, new equals previous) is answered before the UPDATE and so before 409. (d) A fee sent on the status route for `DeliveryStarted` to `DeliveryStarted` is 422 `STATUS_TRANSITION_INVALID`. (e) "Shop today" comes from one injectable server clock in `Asia/Ho_Chi_Minh`, read once per request. (f) Migration 0008 as written is described in data-model/06 section 7; the sample seed changes in slice S2 or later.
 11. Customer tracking reads these fields through a separate endpoint: ADR-0034.
 
 ## Old clients
