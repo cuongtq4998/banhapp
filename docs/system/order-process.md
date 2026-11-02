@@ -2,7 +2,7 @@
 
 | Field | Value |
 | ----- | ----- |
-| Version | 1.0 [v1.0 | 2026-11-02] |
+| Version | 1.1 [v1.1 | 2026-11-02] |
 | Status | Draft |
 | Owner | atlas-architect |
 | Based on | product/admin-orders.md v1.10 (BR-2, BR-9, BR-11, BR-15, FR-13, FR-16 to FR-19, FR-28, FR-29); ADR-0033 |
@@ -66,8 +66,20 @@ Cursor note: the sort key now changes when a date moves, so a page can repeat or
 
 Filter values of `GET /v1/admin/orders?status=`: `todo` (the four open steps, default), each of the six names, `all` (api/09).
 
-## 5. Change log
+## 5. Answers for forge-dev [v1.1 | 2026-11-02]
+
+- Estimate and `total_vnd`: `delivery_fee_vnd` and `total_vnd` are the stored estimate made at order time, unchanged, immutable; the real fee is `delivery_fee_final_vnd` (ADR-0033 Decision 4).
+- Amount to collect: `items_subtotal_vnd + delivery_fee_final_vnd` once the fee exists. Old orders with no real fee: rows that migrate to `Finished` are backfilled with fee = estimate, so they show `items_subtotal_vnd + delivery_fee_vnd`. Old open orders (Processing and earlier) have no fee until staff enter it; the amount shows empty until then.
+- Events: a status change writes one `order_event` (`status_changed`, new words). The fee entry is part of the DeliveryDateScheduled to DeliveryStarted event (fee stored on the order). The first date entry and every move write an `order_expected_date_change` row, not an `order_event` row. History = both merged by time; legacy words mapped on read (data-model/06 section 5).
+- Skip: "Delivery date scheduled" cannot be skipped; Processing to DeliveryStarted is `STATUS_TRANSITION_INVALID`, so the date always exists before a fee.
+- After delivery started: the date may not move (409 `ORDER_STATE_CHANGED`, the order is no longer DeliveryDateScheduled).
+- Stale date move: compare key `(status, previous_expected_delivery_date)`; two staff moving at once, the second gets 409 with the current detail (ADR-0033 Decision 2).
+- Push text: no new push per step (ADR-0024). Existing new-order text: `backend/Sources/App/Services/Admin/Push/PushSender.swift` (arguments order code, cakes, display date); sent from the order placement path. Nothing to change there.
+- Old admin builds and cutover: ADR-0033 Old clients; no `APP_UPDATE_REQUIRED` is built.
+
+## 6. Change log
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.1 | 2026-11-02 | Section 5 answers; `order_event` history is kept, not remapped. |
 | 1.0 | 2026-11-02 | First version (ADR-0033). |
