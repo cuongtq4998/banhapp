@@ -1,6 +1,6 @@
 # Place Order: Business Rules (section 6)
 
-Part of [Place Order](../place-order.md) (PRD v1.6). Holds: BR-1 to BR-14. [v1.6 | 2026-10-31]
+Part of [Place Order](../place-order.md) (PRD v1.13; content last changed in v1.7; BR-15 to BR-18 are in part 08). Holds: BR-1 to BR-14. [v1.6 | 2026-10-31] [v1.13 | 2026-11-02]
 
 ## 6. Business Rules
 

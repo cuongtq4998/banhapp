@@ -1,6 +1,6 @@
 # Place Order: Overview and Scope (sections 1 to 4)
 
-Part of [Place Order](../place-order.md) (PRD v1.12). [v1.12 | 2026-11-02] Holds: Summary, Background & Problem, Goals G-1 to G-3, Non-goals, Users & Scenarios. [v1.6 | 2026-10-31]
+Part of [Place Order](../place-order.md) (PRD v1.13). [v1.13 | 2026-11-02] Holds: Summary, Background & Problem, Goals G-1 to G-3, Non-goals, Users & Scenarios. [v1.6 | 2026-10-31]
 
 ## 1. Summary
 
