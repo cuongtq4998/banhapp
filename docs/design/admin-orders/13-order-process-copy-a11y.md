@@ -45,6 +45,18 @@ Part of the split UI specification; index: [admin-orders-ui.md](../admin-orders-
 | `A_F_FEE_ESTIMATE` | Phí dự kiến (đồng) | S-A10 label (replaces `A_F_FEE`) |
 | `A_FEE_EFFECT_ESTIMATE` | Khách chỉ thấy đây là phí dự kiến. Phí thật nhập khi bắt đầu giao. | S-A10 note (replaces `A_FEE_EFFECT`) |
 | `A_FEE_ESTIMATE_TAG` | dự kiến | S-A10 row tag |
+| `A_DATE_LIMIT_HELP` | Chỉ chọn được từ {first} đến {last} (tối đa 7 ngày kể từ hôm nay). | Date range line [v1.5 | 2026-11-02] |
+| `A_ERR_DATE_PAST` | Ngày giao không được là ngày đã qua. Vui lòng chọn lại. | EXPECTED_DATE_PAST |
+| `A_ERR_DATE_TOO_FAR` | Ngày giao chỉ được hẹn trong vòng 7 ngày kể từ hôm nay. | EXPECTED_DATE_TOO_FAR |
+| `A_FEE_CORRECT` | Sửa phí | Correct fee action |
+| `A_FEE_CORRECT_TITLE` | Sửa phí giao đơn {code} | S-A16 title |
+| `A_FEE_PREVIOUS` | Phí hiện tại | Previous fee |
+| `A_FEE_CORRECT_SAVE` | Lưu phí mới | Save |
+| `A_ERR_FEE_SAME` | Phí mới trùng phí hiện tại. | Same value |
+| `A_FEE_HISTORY` | Lịch sử sửa phí | History heading |
+| `A_FEE_CHANGE_LINE` | {old} thành {new} | History line |
+| `A_FEE_CORRECTED` | Đã sửa phí giao hàng. | Toast |
+| `A_FEE_CONFLICT` | Phí đã được người khác sửa thành {fee}. Vui lòng xem lại. | 409 message |
 
 Existing keys `A_FEE`, `A_TOTAL`, `A_CONFLICT`, `A_ERR_STATUS`, `A_OFFLINE_SAVE`, `A_BACK`, `A_STATUS_CHANGED`, `A_STATUS_CANCELLED`, `A_DUE_TODAY`, `A_OVERDUE` stay. `A_TOTAL` is used only where the PRD still allows a total: not before the fee is entered (superseded by `A_TOTAL_COLLECT`). Deleted keys: `A_STATUS_NEW`, `A_STATUS_CONFIRMED`, `A_STATUS_COMPLETED`, `A_CONFIRM_ORDER`, `A_COMPLETE_ORDER`, `A_COMPLETE_TITLE`, `A_COMPLETE_BODY`, `A_COMPLETE_YES`, `A_F_FEE`, `A_FEE_EFFECT`. Vietnamese wording is a draft for the native review in Q-D3.
 
@@ -59,4 +71,4 @@ Existing keys `A_FEE`, `A_TOTAL`, `A_CONFLICT`, `A_ERR_STATUS`, `A_OFFLINE_SAVE`
 
 ## 9.4 Test identifiers added (platform deviations are listed per part 10, 9.2)
 
-`admin.order.stepper` and `admin.order.step.<1..5>`; `admin.order.expectedDate`; `admin.order.requestedDate`; `admin.order.fee` (value or pending text); `admin.order.feeEstimate`; `admin.order.totalCollect`; `admin.order.cancelBlocked`; actions `admin.order.process`, `admin.order.schedule`, `admin.order.changeDate`, `admin.order.startDelivery`, `admin.order.finish` (replace `confirm` and `complete`); sheet S-A14 `admin.schedule.sheet`, `.picker`, `.save`, `.back`; sheet S-A15 `admin.fee.sheet`, `.field`, `.error`, `.total`, `.confirm`, `.back`; list chips `admin.orders.filter.<received|processing|scheduled|delivering|finished|cancelled|todo|all>`; row `admin.orders.row.expected`. [v1.4 | 2026-11-02]
+`admin.order.stepper` and `admin.order.step.<1..5>`; `admin.order.expectedDate`; `admin.order.requestedDate`; `admin.order.fee` (value or pending text); `admin.order.feeEstimate`; `admin.order.totalCollect`; `admin.order.cancelBlocked`; actions `admin.order.process`, `admin.order.schedule`, `admin.order.changeDate`, `admin.order.startDelivery`, `admin.order.finish` (replace `confirm` and `complete`); sheet S-A14 `admin.schedule.sheet`, `.picker`, `.save`, `.back`; sheet S-A15 `admin.fee.sheet`, `.field`, `.error`, `.total`, `.confirm`, `.back`; S-A14 `.limit` (range line); S-A16 `admin.feeFix.sheet`, `.previous`, `.field`, `.error`, `.total`, `.save`, `.back`, action `admin.order.feeCorrect`, history `admin.order.feeHistory`, `admin.order.feeHistory.row.<n>`, message `admin.order.feeConflict`; list chips `admin.orders.filter.<received|processing|scheduled|delivering|finished|cancelled|todo|all>`; row `admin.orders.row.expected`. [v1.4 | 2026-11-02]

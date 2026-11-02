@@ -33,6 +33,7 @@ Quick finds: copy keys (Vietnamese text) are in part 8; test identifiers (`home.
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.8 | 2026-11-02 | DRAFT: customer order tracking by phone (S-10, S-11, "Follow this order" on S-9) in new parts 13 and 14; Draft until the owner approves place-order part 08. |
 | 1.7 | 2026-11-02 | PRD v1.7: delivery fee shown as an estimate with the "told at delivery" notice; no total with fee; new part 12 (copy keys, ids). Parts 5 and 8 carry a pointer. Questions PQ-1 to PQ-3 in part 12. |
 | 1.6 | 2026-10-29 | OQ-1 answered: S-7 privacy card (FR-20, AC-30), S-8 reminder link, new copy keys and test ids (parts 5, 8, 9, 10, 11). |
 | 1.5 | 2026-10-29 | Slice 2 queries answered: new copy keys, {max} note length, canonical S-5 to S-8 test identifiers (parts 9, 9b), `DETAIL_BTN_ORDER` decision, owner question OQ-1 (part 11). |
