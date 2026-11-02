@@ -38,6 +38,14 @@ struct FeeCorrectionView: Content, Equatable {
     }
 }
 
+/// Who entered the delivery fee when delivery started, and when.
+struct DeliveryFeeEntryView: Content, Equatable {
+    let enteredByName: String
+    let enteredAt: String
+
+    enum CodingKeys: String, CodingKey { case enteredByName = "entered_by_name", enteredAt = "entered_at" }
+}
+
 /// The detail fields added by the order process (api/09 10.13.3), written
 /// flat next to the other detail fields.
 struct OrderProcessFields: Content, Equatable {
@@ -49,12 +57,14 @@ struct OrderProcessFields: Content, Equatable {
     let expectedDateRange: DateRangeView
     let dateChanges: [DateChangeView]
     let feeCorrections: [FeeCorrectionView]
+    let deliveryFeeEntry: DeliveryFeeEntryView?
 
     enum CodingKeys: String, CodingKey {
         case requestedDeliveryDate = "requested_delivery_date", expectedDeliveryDate = "expected_delivery_date"
         case deliveryFeeEstimateVND = "delivery_fee_estimate_vnd", deliveryFeeFinalVND = "delivery_fee_final_vnd"
         case amountToCollectVND = "amount_to_collect_vnd", expectedDateRange = "expected_date_range"
         case dateChanges = "date_changes", feeCorrections = "fee_corrections"
+        case deliveryFeeEntry = "delivery_fee_entry"
     }
 
     // Null keys stay present: clients read them as "not entered yet".
@@ -68,5 +78,6 @@ struct OrderProcessFields: Content, Equatable {
         try container.encode(expectedDateRange, forKey: .expectedDateRange)
         try container.encode(dateChanges, forKey: .dateChanges)
         try container.encode(feeCorrections, forKey: .feeCorrections)
+        try container.encode(deliveryFeeEntry, forKey: .deliveryFeeEntry)
     }
 }

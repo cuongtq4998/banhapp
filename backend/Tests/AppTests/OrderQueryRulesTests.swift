@@ -43,7 +43,7 @@ final class OrderQueryRulesTests: XCTestCase {
     }
 
     func testCursorRoundTripsAndRejectsForgeries() throws {
-        let cursor = OrderCursor(deliveryDate: "2026-11-10", slotStart: "08:00:00", createdAt: "2026-11-01T03:00:00.123456Z", id: UUID().uuidString.lowercased())
+        let cursor = OrderCursor(listDate: "2026-11-10", slotStart: "08:00:00", createdAt: "2026-11-01T03:00:00.123456Z", id: UUID().uuidString.lowercased())
         XCTAssertEqual(OrderCursor(token: cursor.token), cursor)
         XCTAssertFalse(cursor.token.contains("=") || cursor.token.contains("+") || cursor.token.contains("/"))
         for token in ["", "!!!", Data("a|b|c|d".utf8).base64EncodedString(), Data("2026-11-10|08:00:00|x|y".utf8).base64EncodedString(),

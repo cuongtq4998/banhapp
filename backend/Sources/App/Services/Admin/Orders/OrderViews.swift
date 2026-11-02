@@ -12,6 +12,8 @@ struct OrderSummary: Content, Equatable {
     let status: String
     let customerName: String
     let deliveryDate: String
+    let expectedDeliveryDate: String?
+    let listDate: String
     let slot: OrderSlot
     let totalCakes: Int
     let totalVND: Int
@@ -20,8 +22,25 @@ struct OrderSummary: Content, Equatable {
 
     enum CodingKeys: String, CodingKey {
         case orderCode = "order_code", status, customerName = "customer_name", deliveryDate = "delivery_date"
+        case expectedDeliveryDate = "expected_delivery_date", listDate = "list_date"
         case slot, totalCakes = "total_cakes", totalVND = "total_vnd", districtName = "district_name"
         case createdAt = "created_at"
+    }
+
+    // The expected date key stays present as null: clients read it as "not set".
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(orderCode, forKey: .orderCode)
+        try container.encode(status, forKey: .status)
+        try container.encode(customerName, forKey: .customerName)
+        try container.encode(deliveryDate, forKey: .deliveryDate)
+        try container.encode(expectedDeliveryDate, forKey: .expectedDeliveryDate)
+        try container.encode(listDate, forKey: .listDate)
+        try container.encode(slot, forKey: .slot)
+        try container.encode(totalCakes, forKey: .totalCakes)
+        try container.encode(totalVND, forKey: .totalVND)
+        try container.encode(districtName, forKey: .districtName)
+        try container.encode(createdAt, forKey: .createdAt)
     }
 }
 
@@ -59,15 +78,19 @@ struct OrderLine: Content, Equatable {
 /// The single line "last changed by <name>, <time>" (FR-14). The name is null
 /// when the customer placed the order and nobody changed it.
 struct OrderLastChange: Content, Equatable {
+    enum Kind: String, Codable, Sendable { case status, date, fee }
+
     let actorName: String?
     let at: String
+    let kind: Kind
 
-    enum CodingKeys: String, CodingKey { case actorName = "actor_name", at }
+    enum CodingKeys: String, CodingKey { case actorName = "actor_name", at, kind }
 
     func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(actorName, forKey: .actorName)
         try container.encode(at, forKey: .at)
+        try container.encode(kind, forKey: .kind)
     }
 }
 

@@ -1,16 +1,17 @@
 import Foundation
 
-/// Keyset position of the list (ADR-0029): the four sort keys of the last row,
+/// Keyset position of the list (ADR-0029): the four sort keys
+/// (list date first, order-process.md section 4) of the last row,
 /// as the database printed them, in an opaque base64url string. The keys of an
 /// order never change, so a page never repeats a row.
 struct OrderCursor: Sendable, Equatable {
-    let deliveryDate: String
+    let listDate: String
     let slotStart: String
     let createdAt: String
     let id: String
 
     var token: String {
-        let joined = [deliveryDate, slotStart, createdAt, id].joined(separator: "|")
+        let joined = [listDate, slotStart, createdAt, id].joined(separator: "|")
         return Data(joined.utf8).base64EncodedString()
             .replacingOccurrences(of: "+", with: "-").replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "")
@@ -26,11 +27,11 @@ struct OrderCursor: Sendable, Equatable {
               Self.matches(parts[1], #"^\d\d:\d\d:\d\d$"#),
               Self.matches(parts[2], #"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{6}Z$"#),
               UUID(uuidString: parts[3]) != nil else { return nil }
-        (deliveryDate, slotStart, createdAt, id) = (parts[0], parts[1], parts[2], parts[3])
+        (listDate, slotStart, createdAt, id) = (parts[0], parts[1], parts[2], parts[3])
     }
 
-    init(deliveryDate: String, slotStart: String, createdAt: String, id: String) {
-        (self.deliveryDate, self.slotStart, self.createdAt, self.id) = (deliveryDate, slotStart, createdAt, id)
+    init(listDate: String, slotStart: String, createdAt: String, id: String) {
+        (self.listDate, self.slotStart, self.createdAt, self.id) = (listDate, slotStart, createdAt, id)
     }
 
     private static func matches(_ text: String, _ pattern: String) -> Bool {

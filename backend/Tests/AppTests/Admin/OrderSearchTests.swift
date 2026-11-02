@@ -68,11 +68,11 @@ final class OrderSearchTests: AdminOrderTestCase {
     }
 
     func testSearchCombinesWithFiltersAsAnd() async throws {
-        let done = try await place(.init(status: "Completed", name: "Tran Van Done"))
+        let done = try await place(.init(status: "Finished", name: "Tran Van Done"))
         try await expectCodes(staff, "q=tran", [target])
         let both = Set(try await listCodes(staff, "q=tran&status=all"))
         XCTAssertEqual(both, [target, done])
-        try await expectCodes(staff, "q=tran&status=Completed", [done])
-        try await expectCodes(staff, "q=tran&status=Completed&delivery_date=2031-01-01", [])
+        try await expectCodes(staff, "q=tran&status=Finished", [done])
+        try await expectCodes(staff, "q=tran&status=Finished&delivery_date=2031-01-01", [])
     }
 }

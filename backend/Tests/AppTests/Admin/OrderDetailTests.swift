@@ -17,7 +17,7 @@ final class OrderDetailTests: AdminOrderTestCase {
             "order_code", "status", "customer_name", "delivery_date", "slot", "total_cakes", "total_vnd", "district_name", "created_at",
             "customer_phone", "customer_address", "note", "items", "items_subtotal_vnd", "delivery_fee_vnd", "cancel_reason",
             "allowed_actions", "last_change", "requested_delivery_date", "expected_delivery_date", "delivery_fee_estimate_vnd",
-            "delivery_fee_final_vnd", "amount_to_collect_vnd", "expected_date_range", "date_changes", "fee_corrections"
+            "delivery_fee_final_vnd", "amount_to_collect_vnd", "expected_date_range", "date_changes", "fee_corrections", "list_date", "delivery_fee_entry"
         ])
         XCTAssertEqual(body["customer_phone"] as? String, "+84900000010")
         XCTAssertEqual(body["customer_address"] as? String, "1 Test Street")

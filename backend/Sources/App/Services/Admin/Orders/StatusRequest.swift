@@ -22,27 +22,21 @@ struct StatusRequest: Sendable, Equatable {
         .cancelled: reasonKey, .deliveryDateScheduled: dateKey, .deliveryStarted: feeKey
     ]
 
-    private static func invalid(_ field: String, _ code: String) -> APIError {
-        APIError(.validationFailed, fields: [.init(field: field, code: code, messageKey: APIErrorCode.genericMessageKey)])
-    }
+    private static func invalid(_ field: String, _ code: String) -> APIError { CorrectionFields.invalid(field, code) }
 
     private static func status(_ body: [String: JSONValue], _ key: String) throws -> OrderStatus {
         guard case .string(let text)? = body[key], let value = OrderStatus(rawValue: text) else { throw invalid(key, "STATUS_INVALID") }
         return value
     }
 
-    private static func isPresent(_ value: JSONValue?) -> Bool {
-        if case nil = value { return false }
-        if case .null? = value { return false }
-        return true
-    }
+    private static func isPresent(_ value: JSONValue?) -> Bool { CorrectionFields.isPresent(value) }
 
     /// - Throws: `VALIDATION_FAILED` for unknown fields, bad enums, a missing
     ///   or malformed extra and an extra the target does not take;
     ///   `CANCEL_REASON_REQUIRED` for a missing or unknown reason on a cancel;
     ///   `STATUS_TRANSITION_INVALID` for a pair the process forbids.
     static func parse(_ body: [String: JSONValue]) throws -> StatusRequest {
-        if let unknown = body.keys.filter({ !allowedKeys.contains($0) }).sorted().first { throw invalid(unknown, "UNKNOWN_FIELD") }
+        try CorrectionFields.rejectUnknown(body, allowed: allowedKeys)
         let expected = try status(body, "expected_status"), target = try status(body, "to_status")
         let own = extraKey[target]
         if let foreign = [reasonKey, dateKey, feeKey].filter({ $0 != own && isPresent(body[$0]) }).first {
