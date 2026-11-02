@@ -2,7 +2,7 @@
 
 | Field | Value |
 | ----- | ----- |
-| Version | 1.5 [v1.5 | 2026-11-02] |
+| Version | 1.6 [v1.6 | 2026-11-02] |
 | Status | Draft |
 | Owner | atlas-architect |
 | Based on | product/admin-orders.md v1.10 (BR-2, BR-9, BR-11, BR-15, FR-13, FR-16 to FR-19, FR-28, FR-29); ADR-0033 |
@@ -65,7 +65,7 @@ open OR (status IN ('Finished','Cancelled') AND created_at >= :now - interval '9
 ORDER BY list_date, slot_start, created_at, id
 ```
 
-Predicate and keys [v1.5 | 2026-11-02] (PRD BR-9 v1.11, owner decision Q-37): the red marks, the badge (`unfinished_count`) and the list order all use the same list date, `COALESCE(expected_delivery_date, delivery_date)`: the expected date when set, otherwise the requested date. Badge = count of orders with `status IN` the four open steps AND list date `<= :today` (shop today, `Asia/Ho_Chi_Minh`), whatever the filters, search or window; Finished and Cancelled never count. The old test `delivery_date <= today` is replaced. The list sort key is `(list_date, slot_start_time, created_at, id)` and the cursor encodes exactly those four values (the list date, not the raw `delivery_date`); the keyset predicate compares the same expression, so it uses the index below. Slot times are never moved by a date move.
+Predicate and keys [v1.5 | 2026-11-02] (PRD BR-9 v1.11, owner decision Q-37): the red marks, the badge (`unfinished_count`) and the list order all use the same list date, `COALESCE(expected_delivery_date, delivery_date)`: the expected date when set, otherwise the requested date. Badge = count of orders with `status IN` the four open steps AND list date `<= :today` (shop today, `Asia/Ho_Chi_Minh`), whatever the filters, search or window; Finished and Cancelled never count. The old test `delivery_date <= today` is replaced. The list sort key is `(list_date, slot_start_time, created_at, id)` and the cursor encodes exactly those four values (the list date, not the raw `delivery_date`) behind a version marker: the payload is `2|<list_date>|<slot_start>|<created_at>|<id>`, five parts, the first the integer `2`; a payload without the marker (the four-part cursor of an earlier release, requested date first) or with another version is refused as `CURSOR_INVALID` [v1.6 | 2026-11-02]; the list filters `delivery_date` and `date_preset` match the list date too (api/06 10.9); the keyset predicate compares the same expression, so it uses the index below. Slot times are never moved by a date move.
 
 Cursor note: the sort key now changes when a date moves, so a page can repeat or skip a row across pages; the apps refresh from page 1 after any status or date change (R-14 stays: list is the truth). Index: partial `customer_order_open_list_idx ON (shop_id, (COALESCE(expected_delivery_date, delivery_date)), slot_start_time, created_at, id) WHERE status IN (open four)` replaces the use of `customer_order_shop_date_status_idx` for the open view.
 
@@ -100,6 +100,7 @@ Filter values of `GET /v1/admin/orders?status=`: `todo` (the four open steps, de
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.6 | 2026-11-02 | Cursor version marker (an earlier cursor answers `CURSOR_INVALID`); `delivery_date` and `date_preset` match the list date. |
 | 1.5 | 2026-11-02 | Badge, red mark and sort use the list date (exact predicate, cursor key); section 4.2 last change from three records and fee entry actor from the event (no column). |
 | 1.4 | 2026-11-02 | Section 4.1: one window rule (now minus 90 x 24 hours from placed time), use on every read and write path, replay beyond the window, repeats of schedule, start and fee correction. Header corrected (was 1.2). |
 | 1.3 | 2026-11-02 | FEE_UNCHANGED before 409; shop today from the injectable server clock (api/09). |
