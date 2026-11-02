@@ -2,9 +2,9 @@
 
 | Field        | Value                                                                 |
 | ------------ | --------------------------------------------------------------------- |
-| Version      | 1.8 [v1.8 | 2026-11-01]                                               |
-| Last updated | 2026-11-01                                                            |
-| Status       | Approved. The owner accepted the simplification proposals P-1 to P-4 (Q-25 to Q-28) on 2026-10-31 (v1.6). v1.7 only clarifies wording to match the built system (new-device notice, labels). One non-blocking business question is open: Q-29 (free delivery). v1.8 closes technical questions TQ-5 to TQ-8, TQ-11 to TQ-13; TQ-1, TQ-2 and TQ-3 stay open (real e-mail delivery, store delivery and fees, live push). [v1.8 | 2026-11-01] |
+| Version      | 1.9 [v1.9 | 2026-11-02]                                               |
+| Last updated | 2026-11-02                                                            |
+| Status       | Approved. The owner accepted the simplification proposals P-1 to P-4 (Q-25 to Q-28) on 2026-10-31 (v1.6). v1.7 only clarifies wording to match the built system (new-device notice, labels). v1.9 (2026-11-02) records the owner input on the delivery fee and the five-step order process: it conflicts with earlier decisions (09 section 16.2) and Q-30 to Q-36 are open, so BR-2, BR-8, BR-11, FR-16 to FR-18 and AC-26 to AC-29, AC-40, AC-41 stay as written until answered; Q-29 is answered. [v1.9 | 2026-11-02] Earlier: one non-blocking business question was open: Q-29 (free delivery). v1.8 closes technical questions TQ-5 to TQ-8, TQ-11 to TQ-13; TQ-1, TQ-2 and TQ-3 stay open (real e-mail delivery, store delivery and fees, live push). [v1.8 | 2026-11-01] |
 | Owner        | scribe-requirements                                                   |
 | Based on     | docs/pipeline/admin-orders/00-request.md (2026-10-31); docs/product/place-order.md v1.6 |
 | Related      | docs/system/order-lifecycle.md; docs/system/auth.md; docs/system/data-model.md; docs/design/reference/screens/ (A1 to A4, reference only) |
@@ -22,6 +22,7 @@ This document is split into parts of at most 200 lines each. Cite ids (FR-n, BR-
 | [05-acceptance-criteria-settings-notifications.md](admin-orders/05-acceptance-criteria-settings-notifications.md) | 7 Acceptance Criteria: settings, notifications, privacy, cross-feature | AC-32 to AC-48 [v1.5 | 2026-10-31] |
 | [06-nfr-dependencies-assumptions-sources.md](admin-orders/06-nfr-dependencies-assumptions-sources.md) | 8 Non-functional, 9 Impact, 10 Assumptions, 11 Sources | A-1 to A-11, S-2 to S-6 |
 | [07-open-questions.md](admin-orders/07-open-questions.md) | 12 Open Questions, 13 Change log | Q-1 to Q-29, TQ-1 to TQ-13 [v1.8 | 2026-11-01] |
+| [09-order-process-and-delivery-fee.md](admin-orders/09-order-process-and-delivery-fee.md) | 16 Owner input of 2026-11-02: five-step process, delivery fee known at delivery start, conflicts, impact | OD-1 to OD-3, C-1 to C-8, Q-30 to Q-36 [v1.9 | 2026-11-02] |
 | [08-deferred-and-id-mapping.md](admin-orders/08-deferred-and-id-mapping.md) | 14 Deferred, 15 Mapping of v1.4 ids to v1.5 ids | P-1 to P-4, D-3 to D-8 [v1.5 | 2026-10-31] |
 
 ## Summary of v1.5
