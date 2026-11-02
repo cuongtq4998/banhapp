@@ -34,6 +34,16 @@ Alerts (every alert has an owner and an action):
 | Nightly backup failed | Workflow failure | Operator | Re-run; fix credentials; do not skip two nights |
 | Database nearing free limit | Storage above 80% of 1 GB, or CU-hours above 80 in the month | Operator | Plan upgrade (owner approval) |
 
+### 7.1 Lookup floor and p99 [v1.3 | 2026-11-02]
+
+Sink of `lookup_floor_exceeded` (api/10 10.14.4): when an answer takes longer than `LOOKUP_FLOOR_MS`, the handler writes one warning log line `lookup_floor_exceeded` with `duration_ms` and `floor_ms` only (no phone, cursor, order code or key) and adds one to an in-process count. The count is not served on `/healthz` or any other route (a public number would help a timing guesser); it exists for tests. The host's log search is the sink; no new service, no cost. Alert: 5 or more such lines in 15 minutes, or any line in a window where the p99 record is stale; the operator reads it with the other log alerts above (the free host has no mail alerting: a daily look at the log until the paid path, owner approval needed for any alerting service). Action: raise `LOOKUP_FLOOR_MS` above the new p99, redeploy.
+
+p99 record: after each deploy that touches the lookup SQL, and before go-live, run 200 requests each for an empty and a non-empty fake phone against staging and write the p99 of the answer before the floor in this table (fake data, no phone). The floor must exceed the larger value with margin.
+
+| Date | Environment | p99 empty (ms) | p99 non-empty (ms) | Floor (ms) |
+| ---- | ----------- | -------------- | ------------------ | ---------- |
+| (to measure) | staging | | | 250 |
+
 Cold starts on the free trial [v1.1 | 2026-10-25]: the Render service sleeps after 15 idle minutes and takes about 1 minute to wake; the Neon database suspends after 5 idle minutes and resumes in about 0.5 s to a few seconds (docs). The apps cope: the catalogue request at launch wakes the server; the 10-second order timeout leads to `ERR_TIMEOUT` and a same-key retry that creates one order. `/healthz` is shallow for monitors (no database query) so an uptime pinger never keeps the database awake or burns CU-hours; the database check is a separate `GET /healthz?deep=1` used by the operator and by deploy verification only: the staging smoke step in `backend.yml` calls it once per deploy, which resumes Neon for a few CU-seconds, an accepted cost; no monitor, alert or host check may use it [v1.2 | 2026-10-26]. The Render health-check path is set to `/healthz` (shallow; the setting is a platform console step, not verified here). An optional keep-warm ping of `/healthz` in business hours (07:00 to 22:00, about 450 hours per month) fits the 750 Render hours; whether Render's terms allow pings is unverified, so it is off by default.
 
 ## 8. Rollback
