@@ -1,7 +1,7 @@
 import XCTVapor
 @testable import App
 
-/// The list cursor: four keys, other filters, damaged and old-shaped tokens.
+/// The list cursor: version, four keys, other filters, damaged and old tokens.
 final class OrderCursorTests: AdminOrderTestCase {
     private func firstCursor(_ staff: Phone, _ query: String = "") async throws -> String {
         let reply = try await list(staff, query)
@@ -47,27 +47,44 @@ final class OrderCursorTests: AdminOrderTestCase {
         let staff = try await seedPage()
         let token = try await firstCursor(staff), good = try XCTUnwrap(OrderCursor(token: token))
         func encode(_ text: String) -> String { OrderCursor(listDate: "", slotStart: "", createdAt: "", id: "").tokenFor(text) }
-        let bad = ["", "abc", "!!!!", encode("only|three|parts"), encode("2026-13-01|08:00:00|\(good.createdAt)|\(good.id)"),
-                   encode("\(good.listDate)|8:00|\(good.createdAt)|\(good.id)"), encode("\(good.listDate)|08:00:00|yesterday|\(good.id)"),
-                   encode("\(good.listDate)|08:00:00|\(good.createdAt)|not-a-uuid"), encode("\(good.listDate)|08:00:00|\(good.createdAt)|\(good.id)|extra"),
+        let bad = ["", "abc", "!!!!", encode("only|three|parts"), encode("2|2026-13-01|08:00:00|\(good.createdAt)|\(good.id)"),
+                   encode("2|\(good.listDate)|8:00|\(good.createdAt)|\(good.id)"), encode("2|\(good.listDate)|08:00:00|yesterday|\(good.id)"),
+                   encode("2|\(good.listDate)|08:00:00|\(good.createdAt)|not-a-uuid"), encode("2|\(good.listDate)|08:00:00|\(good.createdAt)|\(good.id)|extra"),
                    String(good.token.dropLast(3)) + "!!!"]
         for bogus in bad {
             let reply = try await list(staff, "cursor=\(bogus)")
             XCTAssertEqual(reply.status, .unprocessableEntity, bogus)
             XCTAssertEqual(refusal(reply), "CURSOR_INVALID", bogus)
         }
-        let injected = try await list(staff, "cursor=\(encode("\(good.listDate)|08:00:00|\(good.createdAt)|\(good.id)' OR 1=1"))")
+        let injected = try await list(staff, "cursor=\(encode("2|\(good.listDate)|08:00:00|\(good.createdAt)|\(good.id)' OR 1=1"))")
         XCTAssertEqual(injected.status, .unprocessableEntity)
     }
 
-    /// Open decision: a version marker for cursors. Until it is decided an
-    /// old cursor (requested date first) has the same shape and is accepted.
-    func testKnownGapCursorVersionMarkerOldShapedCursorIsAccepted() async throws {
+    private func rejectsToken(_ staff: Phone, _ text: String) async throws {
+        let token = OrderCursor(listDate: "", slotStart: "", createdAt: "", id: "").tokenFor(text)
+        let reply = try await list(staff, "cursor=\(token)")
+        XCTAssertEqual(reply.status, .unprocessableEntity, text)
+        XCTAssertEqual(refusal(reply), "CURSOR_INVALID", text)
+    }
+
+    func testOldFourPartCursorIsRefusedWithCursorInvalid() async throws {
         let staff = try await seedPage()
-        let token = try await firstCursor(staff), current = try XCTUnwrap(OrderCursor(token: token))
-        let old = OrderCursor(listDate: day(2), slotStart: current.slotStart, createdAt: current.createdAt, id: current.id)
-        let reply = try await list(staff, "cursor=\(old.token)")
-        XCTAssertEqual(reply.status, .ok, "change to 422 when the marker is decided")
+        let token = try await firstCursor(staff), good = try XCTUnwrap(OrderCursor(token: token))
+        try await rejectsToken(staff, "\(good.listDate)|\(good.slotStart)|\(good.createdAt)|\(good.id)")
+    }
+
+    func testCursorWithAnotherVersionNumberIsRefused() async throws {
+        let staff = try await seedPage()
+        let token = try await firstCursor(staff), good = try XCTUnwrap(OrderCursor(token: token))
+        let rest = "\(good.listDate)|\(good.slotStart)|\(good.createdAt)|\(good.id)"
+        for version in ["1", "3", "0", "-2", "02x"] { try await rejectsToken(staff, "\(version)|\(rest)") }
+    }
+
+    func testCursorWithANonIntegerVersionIsRefused() async throws {
+        let staff = try await seedPage()
+        let token = try await firstCursor(staff), good = try XCTUnwrap(OrderCursor(token: token))
+        let rest = "\(good.listDate)|\(good.slotStart)|\(good.createdAt)|\(good.id)"
+        for version in ["", "two", "2.0", " 2"] { try await rejectsToken(staff, "\(version)|\(rest)") }
     }
 }
 

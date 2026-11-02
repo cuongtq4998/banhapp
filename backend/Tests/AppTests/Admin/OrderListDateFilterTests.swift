@@ -1,11 +1,10 @@
 import XCTVapor
 @testable import App
 
-/// Pins how the date filters work today; see the test name before changing it.
+/// The date filters match the list date, not the requested date.
 final class OrderListDateFilterTests: AdminOrderTestCase {
-    /// Open decision: whether the date filters match the requested date or
-    /// the list date. Today both `delivery_date` and `date_preset` match list_date.
-    func testCurrentBehaviourDateAndPresetFiltersMatchTheListDateNotTheRequestedDate() async throws {
+    /// Both `delivery_date` and `date_preset` match list_date.
+    func testDateAndPresetFiltersMatchTheListDateNotTheRequestedDate() async throws {
         let staff = try await phone(.staff)
         let moved = try await place(.init(status: "DeliveryDateScheduled", date: day(0), expectedDate: day(1)))
         let plain = try await place(.init(date: day(1)))

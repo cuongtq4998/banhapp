@@ -3,7 +3,7 @@ import Fluent
 import FluentSQL
 @testable import App
 
-/// Migration 0003 (data-model/05 section 11): cancel_reason checks, the
+/// Migrations 0003 and 0008 (data-model/05 section 11, 06 section 9): cancel_reason checks, the
 /// immutable reason, event reason and actor, the search fold and the indexes.
 final class OrderMigrationTests: AdminOrderTestCase {
     private func rejected(_ statement: SQLQueryString, _ message: String = "") async throws {
@@ -62,20 +62,22 @@ final class OrderMigrationTests: AdminOrderTestCase {
         XCTAssertEqual(try row?.decode(column: "b", as: String.self), "tran")
     }
 
-    func testTheDefaultListCanUseTheOpenOrdersIndexAndTheWindowIndexExists() async throws {
+    func testTheDefaultListUsesTheOpenListIndexAndTheWindowIndexExists() async throws {
         try await place()
         let shop = shopID
         let plan: String = try await app.db.transaction { handle in
             let sql = try XCTUnwrap(handle as? any SQLDatabase)
             try await sql.raw("SET LOCAL enable_seqscan = off").run()
             let rows = try await sql.raw("""
-                EXPLAIN SELECT id FROM customer_order WHERE shop_id = \(bind: shop) AND status IN ('New', 'Confirmed')
-                ORDER BY delivery_date, slot_start_time, created_at, id LIMIT 51
+                EXPLAIN SELECT id FROM customer_order WHERE shop_id = \(bind: shop) AND status IN (\(unsafeRaw: OrderStatus.sqlList(OrderStatus.open)))
+                ORDER BY \(unsafeRaw: OrderListDate.sql), slot_start_time, created_at, id LIMIT 51
                 """).all()
             return try rows.map { try $0.decode(column: "QUERY PLAN", as: String.self) }.joined(separator: "\n")
         }
-        XCTAssertTrue(plan.contains("Index"), plan)
-        let indexes = try await count("SELECT count(*)::int AS n FROM pg_indexes WHERE indexname IN ('customer_order_shop_created_idx', 'customer_order_open_idx')")
-        XCTAssertEqual(indexes, 2)
+        XCTAssertTrue(plan.contains("customer_order_open_list_idx"), plan)
+        let present = try await count("SELECT count(*)::int AS n FROM pg_indexes WHERE indexname IN ('customer_order_open_list_idx', 'customer_order_shop_created_idx')")
+        XCTAssertEqual(present, 2)
+        let gone = try await count("SELECT count(*)::int AS n FROM pg_indexes WHERE indexname = 'customer_order_open_idx'")
+        XCTAssertEqual(gone, 0)
     }
 }
