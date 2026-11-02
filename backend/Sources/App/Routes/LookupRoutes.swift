@@ -62,7 +62,7 @@ struct LookupRoutes: RouteCollection {
     }
 
     private static func invalid(_ field: String, _ code: String) -> APIError {
-        APIError(.validationFailed, fields: [.init(field: field, code: code, messageKey: "error.\(code.lowercased())")])
+        APIError(.validationFailed, fields: [.init(field: field, code: code, messageKey: "ERR_FIELD_" + (code.split(separator: "_").last ?? "INVALID"))])
     }
 
     /// Same duration for empty and full answers; a slow one is counted.

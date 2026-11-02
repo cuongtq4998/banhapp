@@ -70,3 +70,22 @@ Owner settings and staff (docs/system/api/07; admin-orders slices B4 and B5), in
 | `owner-cake-created.json`, `owner-cake-updated.json` | `POST /v1/owner/cakes` (multipart), `PATCH /v1/owner/cakes/{id}` | 201 and 200 cake; `image_url` of an uploaded cake is `/assets/cakes/<id>?v=<8 hex>`; `DELETE` answers 204 |
 | `error-cake-validation`, `-cake-name-taken` | `POST /v1/owner/cakes` | 422 with the `image` codes and `NAME_TAKEN` in `fields[]` |
 | `error-cake-limit-reached`, `-last-active-cake`, `-image-too-large` | cakes | 409 (13th cake, last active cake) and 413 envelopes |
+
+## customer/
+
+Customer order lookup by phone (docs/system/api/10, `POST /v1/orders/lookup`). Answers and errors come from the real route with a planted store and a fixed clock; `request_id` is a placeholder and `next_cursor` is an opaque value. Not repeated here: 413 uses `order-error-payload-too-large.json` and 503 uses `error-service-unavailable.json` (same envelopes on this route).
+
+| File | Route | Meaning |
+| ---- | ----- | ------- |
+| `customer/order-lookup-request.json` | `POST /v1/orders/lookup` | Request body with a fake phone, no cursor |
+| `customer/order-lookup-answer-open.json` | `POST /v1/orders/lookup` | 200, four open orders (Received, Processing, DeliveryDateScheduled, DeliveryStarted); the first three have the fee unknown so `amount_to_collect_vnd` is null; the last has a final fee 25000 |
+| `customer/order-lookup-answer-fee-zero.json` | `POST /v1/orders/lookup` | 200, Finished order with final fee 0, amount equals the subtotal |
+| `customer/order-lookup-answer-fee-corrected.json` | `POST /v1/orders/lookup` | 200, order whose fee was corrected; only the latest final fee (35000) is sent |
+| `customer/order-lookup-answer-cancelled.json` | `POST /v1/orders/lookup` | 200, Cancelled order keeps its items, no reason |
+| `customer/order-lookup-answer-empty.json` | `POST /v1/orders/lookup` | 200, `orders` empty, `next_cursor` null |
+| `customer/order-lookup-answer-page-one.json` | `POST /v1/orders/lookup` | 200, ten orders and a non-null `next_cursor` |
+| `customer/order-lookup-answer-last-page.json` | `POST /v1/orders/lookup` | 200, page two with the remaining two orders, `next_cursor` null |
+| `customer/error-lookup-phone-required.json` | `POST /v1/orders/lookup` | 422 `VALIDATION_FAILED`, field code `PHONE_REQUIRED` |
+| `customer/error-lookup-phone-invalid.json` | `POST /v1/orders/lookup` | 422 `VALIDATION_FAILED`, field code `PHONE_INVALID` |
+| `customer/error-lookup-cursor-invalid.json` | `POST /v1/orders/lookup` | 422 `VALIDATION_FAILED`, field code `CURSOR_INVALID` |
+| `customer/error-lookup-rate-limited.json` | `POST /v1/orders/lookup` | 429 `RATE_LIMITED` with `retry_after_seconds`; same body for the phone and address paths |
