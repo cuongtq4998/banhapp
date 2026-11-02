@@ -1,6 +1,6 @@
 # Place Order: Open Questions and Launch Data (section 12)
 
-Part of [Place Order](../place-order.md) (PRD v1.12). Holds: Q-1 to Q-15, Q-T1 to Q-T6, section 12.2 (Q-O1 to Q-O12, N-1, N-2), section 12.1 launch data. [v1.12 | 2026-11-02]
+Part of [Place Order](../place-order.md) (PRD v1.13). Holds: Q-1 to Q-15, Q-T1 to Q-T6, section 12.2 (Q-O1 to Q-O12, N-1, N-2), section 12.1 launch data. [v1.13 | 2026-11-02]
 
 ## 12. Open Questions
 

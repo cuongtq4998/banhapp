@@ -1,6 +1,6 @@
 # Place Order: Non-functional, Dependencies, Assumptions, Sources (sections 8 to 11)
 
-Part of [Place Order](../place-order.md) (PRD v1.6). Holds: Non-functional, Impact & Dependencies, Assumptions A-1 to A-9, Research & Sources S-1 to S-3. [v1.6 | 2026-10-31]
+Part of [Place Order](../place-order.md) (PRD v1.13) [v1.13 | 2026-11-02]. Holds: Non-functional, Impact & Dependencies, Assumptions A-1 to A-9, Research & Sources S-1 to S-3. [v1.6 | 2026-10-31]
 
 ## 8. Non-functional
 

@@ -1,6 +1,6 @@
 # Place Order: Acceptance Criteria (section 7)
 
-Part of [Place Order](../place-order.md) (PRD v1.6). Holds: AC-1 to AC-34 (listed in the order AC-1 to AC-29, AC-32 to AC-34, AC-30, AC-31, as in v1.4). [v1.4.1 | 2026-10-27]
+Part of [Place Order](../place-order.md) (PRD v1.13; AC-38 to AC-49 are in part 08) [v1.13 | 2026-11-02]. Holds: AC-1 to AC-34 (listed in the order AC-1 to AC-29, AC-32 to AC-34, AC-30, AC-31, as in v1.4). [v1.4.1 | 2026-10-27]
 
 ## 7. Acceptance Criteria
 

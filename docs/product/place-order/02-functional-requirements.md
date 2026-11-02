@@ -1,6 +1,6 @@
 # Place Order: Functional Requirements (section 5)
 
-Part of [Place Order](../place-order.md) (PRD v1.6). Holds: FR-1 to FR-21. [v1.6 | 2026-10-31]
+Part of [Place Order](../place-order.md) (PRD v1.13; content last changed in v1.7). Holds: FR-1 to FR-21. [v1.6 | 2026-10-31] [v1.13 | 2026-11-02]
 
 ## 5. Functional Requirements
 
