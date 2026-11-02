@@ -1,6 +1,6 @@
 # API Specification: Admin error catalogue, compatibility, traceability
 
-Part of [api.md](../api.md) (index, version, change log), sections 11 to 13. Section 11.1 (order list and status field codes) added in v1.18 [v1.18 | 2026-11-01]. New in v1.13 [v1.13 | 2026-10-31]; `CODE_LOCKED` removed in v1.15 [v1.15 | 2026-10-31] (no address lock, Q-20); `DEVICE_NOT_FOUND` removed and `EMAIL_TAKEN` narrowed in v1.16 [v1.16 | 2026-10-31]. The envelope, `message_key` rules and unknown-code behaviour of section 5 apply. Message keys belong to the admin UI document (canvas-ui); keys below are proposed names until that document lists them.
+Part of [api.md](../api.md) (index, version, change log), sections 11 to 13. Validation `message_key` stated in 11.1 in v1.29 [v1.29 | 2026-11-02]. Section 11.1 (order list and status field codes) added in v1.18 [v1.18 | 2026-11-01]. New in v1.13 [v1.13 | 2026-10-31]; `CODE_LOCKED` removed in v1.15 [v1.15 | 2026-10-31] (no address lock, Q-20); `DEVICE_NOT_FOUND` removed and `EMAIL_TAKEN` narrowed in v1.16 [v1.16 | 2026-10-31]. The envelope, `message_key` rules and unknown-code behaviour of section 5 apply. Message keys belong to the admin UI document (canvas-ui); keys below are proposed names until that document lists them.
 
 ## 11. Admin error catalogue
 
@@ -32,7 +32,7 @@ Field-level codes in `fields[]` (owner routes, v1.19: `BODY_EMPTY` on field `bod
 
 ### 11.1 Field codes of the order list and the status change [v1.18 | 2026-11-01]
 
-All of these arrive as 422 `VALIDATION_FAILED` with the defect in `fields[]` (`field`, `code`, `message_key` = `ERR_SERVER` until the UI lists a key). One response lists every defect found in the query; a client shows at most the first and treats any of them as a programming error, because the apps build these requests from fixed choices.
+All of these arrive as 422 `VALIDATION_FAILED` with the defect in `fields[]` (`field`, `code`, `message_key`). Decision [v1.29 | 2026-11-02]: the key is `ERR_SERVER` at the top level and in every `fields[]` entry of every admin validation error, until the UI document lists a per-field key; there is no `ERR_VALIDATION`. This matches api/04 section 5 (`VALIDATION_FAILED` is `ERR_SERVER`), the built backend and the fixtures `contracts/fixtures/admin/error-validation-*.json`; no code or fixture changes. Exceptions that carry their own key are the codes listed in section 11 and the owner field codes with `ERR_FIELD_*` below. One response lists every defect found in the query; a client shows at most the first and treats any of them as a programming error, because the apps build these requests from fixed choices.
 
 | Code | Field | Meaning |
 | ---- | ----- | ------- |
