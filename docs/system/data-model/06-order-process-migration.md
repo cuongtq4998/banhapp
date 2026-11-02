@@ -1,6 +1,6 @@
 # Data Model: order process columns and migration 0008
 
-Part of [data-model.md](../data-model.md). Version 1.1 [v1.1 | 2026-11-02]. Traces: BR-2, BR-9, BR-11, BR-15, FR-28, FR-29, AC-49 to AC-52; ADR-0033.
+Part of [data-model.md](../data-model.md). Version 1.2 [v1.2 | 2026-11-02]. Traces: BR-2, BR-9, BR-11, BR-15, BR-17, FR-28 to FR-30, AC-49 to AC-53; ADR-0033.
 
 ## 1. New columns on `customer_order` [v1.0 | 2026-11-02]
 
@@ -61,9 +61,34 @@ Step 7 counts `customer_order` only. Step 1 stops writing events during the rema
 
 Legacy mapping on read (one shared function, API side, and the apps for unknown words): `New` to Received, `Confirmed` to Processing, `Completed` to Finished; `Cancelled` and the new words as they are. The history in the order detail shows the mapped label; the stored word is never changed. Date moves are rows of `order_expected_date_change`, not `order_event` rows; the history is the merge of both by time. A fee entry is part of the `DeliveryDateScheduled` to `DeliveryStarted` event (the fee is stored on the order with `delivery_fee_set_at`).
 
-## 6. Change log
+## 6. Fee correction record and date rule [v1.2 | 2026-11-02]
+
+New table `order_fee_correction` in the same file 0008 (one numbered file, forward-only, `pg_dump` first, nothing in 0001 to 0007 edited; FR-30, BR-17):
+
+| Column | Type | Rule |
+| ------ | ---- | ---- |
+| id | bigint identity | PK |
+| order_id | uuid | FK `customer_order`, ON DELETE RESTRICT |
+| old_fee_vnd | integer not null | CHECK 0 to 10 000 000 |
+| new_fee_vnd | integer not null | CHECK 0 to 10 000 000; CHECK `new_fee_vnd <> old_fee_vnd` |
+| changed_by_account_id | uuid null | FK `account`; null if the account is removed (name kept) |
+| changed_by_name | text not null | Account name snapshot (`app.actor_name`) |
+| changed_at | timestamptz | default now() |
+
+Index `(order_id, id)`. Insert-only: a trigger refuses UPDATE and DELETE (same function as `order_expected_date_change`). Insert and fee update run in one transaction.
+
+Replacement of `customer_order_immutable` (step 6): `delivery_fee_final_vnd` may change only when OLD.status = NEW.status = `DeliveryStarted` and OLD value is not null (correction), or when the status changes `DeliveryDateScheduled` to `DeliveryStarted` (first entry). Any change of `delivery_fee_final_vnd` or `expected_delivery_date` on a row whose OLD.status is `Finished` or `Cancelled` raises an exception. Fee stays CHECK 0 to 10 000 000.
+
+Date range rule: today to today + 7 is enforced by the API only (needs the Vietnam calendar date at request time; a CHECK cannot use the clock). No column or setting is added for it; the table `order_expected_date_change` records every accepted value.
+
+Customer lookup (ADR-0034, api/10): no new table or column. It reads `customer_order` by `customer_phone` with the existing index `(customer_phone, created_at)` and `status_changed_at` for the 30-day window; rows with a purged phone never match.
+
+Step 7 of the migration adds: the table `order_fee_correction` exists with its CHECKs and trigger.
+
+## 7. Change log
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.2 | 2026-11-02 | Table `order_fee_correction`, stricter immutable trigger, date range rule (API only), no new structure for customer lookup. |
 | 1.1 | 2026-11-02 | `order_event` is not remapped (append-only kept); legacy words mapped on read; sections 4 and 5. |
 | 1.0 | 2026-11-02 | First version. |

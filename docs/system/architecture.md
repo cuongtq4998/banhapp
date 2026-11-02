@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.22 [v1.22 | 2026-11-02] |
+| Version      | 1.23 [v1.23 | 2026-11-02] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -61,3 +61,4 @@ This file is the index of the architecture document. The body lives in the folde
 | 1.20 | 2026-11-01 | New file architecture/16 (section 32): review account built (stale "deferred" text fixed in auth, architecture/07, 10 to 14, deployment/04, ADR-0027 v1.3); migration 0006; `DAY_LOAD_INCONSISTENT`; log redaction; status of TQ-1 to TQ-13; two open recommendations. |
 | 1.21 | 2026-11-02 | Maintenance purge task built (architecture/07, 10, 11 27.2, 12, 14): periods 24 h, 30 days, 180 days; DB tests not yet run, so the go-live gate stays open. |
 | 1.22 | 2026-11-02 | Order process design (ADR-0033): order-process.md, data-model/06, api/09; `order_event` stays append-only, legacy status words mapped on read; hard cutover of backend and admin apps, no `APP_UPDATE_REQUIRED`. |
+| 1.23 | 2026-11-02 | Date range, fee correction (ADR-0033 v1.2); customer order lookup by phone only, api/10, ADR-0034; mitigations: rate limits, equal answer shape, minimum data, no personal data in logs. |

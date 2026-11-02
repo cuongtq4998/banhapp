@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0033 |
-| Version  | 1.1 [v1.1 | 2026-11-02] (event history kept, cutover decision) |
+| Version  | 1.2 [v1.2 | 2026-11-02] (date range, fee correction; v1.1: event history kept, cutover decision) |
 | Status   | Accepted (the owner approved the PRD change on 2026-11-02; no money, no new customer data) |
 | Date     | 2026-11-02 |
 | Decider  | atlas-architect |
@@ -25,6 +25,10 @@ The order process grows from four statuses to six. Two new facts are stored: an 
 7. Cancel is allowed only from `Received` and `Processing`.
 8. Migration `0008_order_process.sql`, forward-only, preceded by `pg_dump` (data-model/06). It is not additive: the status values change, so the old backend release cannot run on it (see Old clients).
 
+9. Expected date range [v1.2 | 2026-11-02] (owner decision A): the date must be from the shop's today to today + 7 inclusive, "today" on the Asia/Ho_Chi_Minh calendar, never in the past. Checked on every entry and every move, in the API only (a CHECK cannot use the clock). Moves are unlimited. Codes `EXPECTED_DATE_PAST`, `EXPECTED_DATE_TOO_FAR`. An idempotent replay (Decision 2) is answered 200 before the range is checked again, so a retry after midnight is not refused.
+10. Fee correction [v1.2 | 2026-11-02] (owner decision B): staff and owner (the same roles as every status change, api/05) may change `delivery_fee_final_vnd` only while status is `DeliveryStarted`, any number of times, 0 to 10 000 000. Compare key `(status = 'DeliveryStarted', delivery_fee_final_vnd = :previous_delivery_fee_vnd)`; zero rows updated is 409 `ORDER_STATE_CHANGED` with the current detail (this also answers an order that is already `Finished`: nothing can change after Finished, the database trigger refuses it too). Each correction inserts one row in `order_fee_correction` (account id and name snapshot, time, old fee, new fee) in the same transaction; the first fee entry is not a correction. Replay: zero rows, current fee equals the requested fee, and the latest correction row has the same account and `old = previous` returns 200 `Idempotent-Replay: true`. No `order_event` row is written (the record is the correction table, merged into the history by time). The customer sees only the latest fee.
+11. Customer tracking reads these fields through a separate endpoint: ADR-0034.
+
 ## Old clients
 
 Admin apps decode the status string; an unknown value (`Received`) breaks old builds. `APP_UPDATE_REQUIRED` is not defined (api/08 section 12). Customer apps never read the status and the `POST /v1/orders` contract does not change. Plan: ship backend, iOS and Android admin apps together; both admin apps are in limited distribution (ADR-0026), so the operator updates the few devices before the cutover. Query for forge-dev: apps must treat an unknown status as a neutral label, not a crash. [v1.1 | 2026-11-02] Hard cutover decision: no `APP_UPDATE_REQUIRED` is built. Reason: old builds cannot be given new behaviour after the fact, and the status field is the only break; backend, iOS and Android admin apps ship together and the few devices are updated before the cutover (ADR-0026). An old build that still connects shows its generic error state for unknown words; staff must update. New builds map unknown words to a neutral label and legacy event words per data-model/06 section 5. Revisit only if the operator cannot reach every device.
@@ -32,6 +36,8 @@ Admin apps decode the status string; an unknown value (`Received`) breaks old bu
 ## Consequences
 
 Positive: customer API untouched; capacity logic untouched. Negative: a hard cutover for admin apps; two fee fields to explain. Follow-up: concurrency tests (two date moves, move against start delivery), migration test with rows in every old status, test restore of the dump.
+
+Rejected for the range: a CHECK on the table (depends on `now()`, not immutable, breaks restores) and a stored limit setting (the owner fixed 7 days; no setting asked).
 
 ## Sources
 
