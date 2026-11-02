@@ -1,6 +1,6 @@
 # System Architecture: Slice B6 alignment, document corrections, defects D-1 and D-2 closed
 
-Part of [architecture.md](../architecture.md) (index, version, change log), section 29. New in v1.17 [v1.17 | 2026-11-01]. Slice B6 (cakes with images) is built; where the code was the better choice the system documents now follow it. Sources read: `backend/db/migrations/0005_admin_cakes.sql`, `Routes/Admin/OwnerCakeRoutes.swift`, `Routes/CakeImageRoutes.swift`, `Http/UploadSizeGuard.swift`, `Http/RequestLimits.swift`, `Services/Admin/Settings/Cake*`, `ImageInspector`, `MultipartFields`, `UploadGate`, `Repositories/Admin/SettingsWriter+Cakes.swift`, `SettingsQueries.swift`, `contracts/fixtures/admin/owner-cake-*` and `error-cake-*`, `AdminOrderService.changeStatus`. Format as in [12-b4b5-alignment.md](12-b4b5-alignment.md).
+Part of [architecture.md](../architecture.md) (index, version, change log), section 29. New in v1.17 [v1.17 | 2026-11-01]; last changed in v1.21 (section 29.4, purge task built) [v1.21 | 2026-11-02]. Slice B6 (cakes with images) is built; where the code was the better choice the system documents now follow it. Sources read: `backend/db/migrations/0005_admin_cakes.sql`, `Routes/Admin/OwnerCakeRoutes.swift`, `Routes/CakeImageRoutes.swift`, `Http/UploadSizeGuard.swift`, `Http/RequestLimits.swift`, `Services/Admin/Settings/Cake*`, `ImageInspector`, `MultipartFields`, `UploadGate`, `Repositories/Admin/SettingsWriter+Cakes.swift`, `SettingsQueries.swift`, `contracts/fixtures/admin/owner-cake-*` and `error-cake-*`, `AdminOrderService.changeStatus`. Format as in [12-b4b5-alignment.md](12-b4b5-alignment.md).
 
 ## 29.1 Decisions and corrections
 
@@ -38,4 +38,4 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 
 ## 29.4 Open defects
 
-None for forge-dev from B6. The QA package has two known failing tests (dev guide), neither caused by B5 or B6. Query for the requirements agent: none. Still open from earlier: purge task, push token route (built in B7), review-account sign-in (built, architecture/16) [v1.20 | 2026-11-01].
+None for forge-dev from B6. The QA package has two known failing tests (dev guide), neither caused by B5 or B6. Query for the requirements agent: none. Earlier open items: push token route (built in B7), review-account sign-in (built, architecture/16) [v1.20 | 2026-11-01]; purge task (built, architecture/11 section 27.2 and data-model/05 section 14; its database tests have not run yet, so the go-live gate stays open) [v1.21 | 2026-11-02].

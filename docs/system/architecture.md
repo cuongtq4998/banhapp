@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.20 [v1.20 | 2026-11-01] |
+| Version      | 1.21 [v1.21 | 2026-11-02] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect |
@@ -26,7 +26,7 @@ This file is the index of the architecture document. The body lives in the folde
 | 16 to 22 | Admin apps: scope, context, components, flows, integrations, quality, risks [v1.10 \| 2026-10-31] | [architecture/07-admin-orders.md](architecture/07-admin-orders.md) |
 | 24 | Admin technical answers (UI questions TQ-D1 to TQ-D7, QA review items, measurable targets) [v1.11 | 2026-10-31] | [architecture/08-admin-technical-answers.md](architecture/08-admin-technical-answers.md) |
 | 26 | Slice B1 alignment: dropped and deferred items, `Retry-After` rule, review findings [v1.14 | 2026-11-01] | [architecture/10-b1-alignment.md](architecture/10-b1-alignment.md) |
-| 27 | Slices B2 and B3 alignment: decisions, document corrections, purge task not built, open defects [v1.15 | 2026-11-01] | [architecture/11-b2b3-alignment.md](architecture/11-b2b3-alignment.md) |
+| 27 | Slices B2 and B3 alignment: decisions, document corrections, purge task built, tests pending, open defects [v1.15 | 2026-11-01] | [architecture/11-b2b3-alignment.md](architecture/11-b2b3-alignment.md) |
 | 28 | Slices B4 and B5 alignment: staff list, settings field codes, migration `0004`, slot order [v1.16 | 2026-11-01] | [architecture/12-b4b5-alignment.md](architecture/12-b4b5-alignment.md) |
 | 29 | Slice B6 alignment: image codes, upload limits and gate, image delivery, cap trigger, D-1 and D-2 fixed [v1.17 | 2026-11-01] | [architecture/13-b6-alignment.md](architecture/13-b6-alignment.md) |
 | 30 | Slice B7 alignment: push token route, dispatch, `PUSH_PROVIDER`, APNs and FCM clients (unverified), `swift-crypto` dependency [v1.18 | 2026-11-01] | [architecture/14-b7-alignment.md](architecture/14-b7-alignment.md) |
@@ -59,3 +59,4 @@ This file is the index of the architecture document. The body lives in the folde
 | 1.18 | 2026-11-01 | New file architecture/14 (section 30): alignment with built slice B7; push token route built; `PUSH_PROVIDER` values `off`, `recording`, `live`; dispatch rules; `swift-crypto` direct dependency; defects for forge. |
 | 1.19 | 2026-11-01 | New file architecture/15 (section 31): alignment with the built iOS and Android admin apps part 1; `GET /v1/admin/me` returns own `email`; ADR-0021 v1.1 as built, iOS duplication recorded; section 15.1; session handling differences. |
 | 1.20 | 2026-11-01 | New file architecture/16 (section 32): review account built (stale "deferred" text fixed in auth, architecture/07, 10 to 14, deployment/04, ADR-0027 v1.3); migration 0006; `DAY_LOAD_INCONSISTENT`; log redaction; status of TQ-1 to TQ-13; two open recommendations. |
+| 1.21 | 2026-11-02 | Maintenance purge task built (architecture/07, 10, 11 27.2, 12, 14): periods 24 h, 30 days, 180 days; DB tests not yet run, so the go-live gate stays open. |

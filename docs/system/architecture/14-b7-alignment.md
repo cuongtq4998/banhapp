@@ -42,4 +42,4 @@ Part of [architecture.md](../architecture.md) (index, version, change log), sect
 | D-4 | The new-order dispatch has no outbox (BR-9, R-AO-3): a process end between commit and send loses the push. Accepted in ADR-0024; the counter that decides on an outbox ("orders without a push record") has no data source yet | Low |
 | D-5 | `PUSH_PROVIDER=off` logs a warning on every start including local runs and tests that use no provider | Info |
 
-Still open from earlier: purge task. The review account was built afterwards (architecture/16) [v1.20 | 2026-11-01]. Query for other agents: none.
+Purge task: built later [v1.21 | 2026-11-02], DB tests pending (architecture/11 27.2). The review account was built afterwards (architecture/16) [v1.20 | 2026-11-01]. Query for other agents: none.
