@@ -3,7 +3,7 @@
     "code": "STATUS_TRANSITION_INVALID",
     "message_key": "ERR_ORDER_STATUS_INVALID",
     "details": {
-      "status": "New"
+      "status": "Received"
     }
   },
   "request_id": "7f1c1a52-0c1e-4d6c-9a54-2d7f3d6a0031"
