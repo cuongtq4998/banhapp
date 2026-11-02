@@ -1,6 +1,6 @@
 # API Specification: order process, expected date, final fee
 
-Part of [api.md](../api.md), section 10.13 (new). Version 1.5 [v1.5 | 2026-11-02]. Traces: FR-9, FR-13, FR-14, FR-16 to FR-19, FR-28 to FR-30, AC-26 to AC-29, AC-49 to AC-52; ADR-0033; order-process.md. Auth, rate limit, `no-store`: api/05. Status identifiers: `Received`, `Processing`, `DeliveryDateScheduled`, `DeliveryStarted`, `Finished`, `Cancelled`.
+Part of [api.md](../api.md), section 10.13 (new). Version 1.6 [v1.6 | 2026-11-02]. Traces: FR-9, FR-13, FR-14, FR-16 to FR-19, FR-28 to FR-30, AC-26 to AC-29, AC-49 to AC-52; ADR-0033; order-process.md. Auth, rate limit, `no-store`: api/05. Status identifiers: `Received`, `Processing`, `DeliveryDateScheduled`, `DeliveryStarted`, `Finished`, `Cancelled`.
 
 ## 10.13.1 POST /v1/admin/orders/{order_code}/status (changed)
 
@@ -29,7 +29,7 @@ Unknown keys in both correction bodies are 422 `VALIDATION_FAILED`, field = the 
 
 Date window [v1.2 | 2026-11-02]: the server owns "shop today". The order detail and every 409 `details.order` add `expected_date_range` `{ "min": "YYYY-MM-DD", "max": "YYYY-MM-DD" }` (shop today and today + 7, Vietnam calendar, computed at response time); the 422 `EXPECTED_DATE_PAST`/`EXPECTED_DATE_TOO_FAR` answers carry the same object in `details`. The client limits its picker to that object and never computes the window from the device clock; if the detail is older than the day, the server check still decides. "Shop today" is read once per request from an injectable server clock in `Asia/Ho_Chi_Minh` (no DST), the same function for range checks and list queries.
 
-`GET /v1/admin/orders/{order_code}` adds: `requested_delivery_date` (the customer date, existing `delivery_date`), `expected_delivery_date`, `delivery_fee_estimate_vnd`, `delivery_fee_final_vnd` (null before entry), `items_subtotal_vnd`, `amount_to_collect_vnd` (null before entry), and `date_changes[]` (`old_date`, `new_date`, `changed_by_name`, `changed_at`, oldest first), `fee_corrections[]` (`old_fee_vnd`, `new_fee_vnd`, `changed_by_name`, `changed_at`, oldest first) [v1.1 | 2026-11-02].
+`GET /v1/admin/orders/{order_code}` adds: `requested_delivery_date` (the customer date, existing `delivery_date`), `expected_delivery_date`, `delivery_fee_estimate_vnd`, `delivery_fee_final_vnd` (null before entry), `items_subtotal_vnd`, `amount_to_collect_vnd` (null before entry; rule [v1.3 | 2026-11-02]: `items_subtotal_vnd + delivery_fee_final_vnd` when the final fee is not null, a fee of 0 gives the subtotal, never the estimate; same as api/10 10.14.1), and `date_changes[]` (`old_date`, `new_date`, `changed_by_name`, `changed_at`, oldest first), `fee_corrections[]` (`old_fee_vnd`, `new_fee_vnd`, `changed_by_name`, `changed_at`, oldest first) [v1.1 | 2026-11-02].
 
 Last change and fee history [v1.4 | 2026-11-02]: `last_change` is `{ "actor_name", "at", "kind" }` where `kind` is `status`, `date` or `fee`, the latest of `order_event`, `order_expected_date_change` and `order_fee_correction` (order-process.md 4.2). Ties on `at`: `status`, then `date`, then `fee`, then the larger row id. `actor_name` is null only when the latest record is the customer's `created` event. `delivery_fee_entry` is `{ "entered_by_name", "entered_at" }` or null before the entry (and for backfilled legacy rows): the actor and time of the DeliveryDateScheduled to DeliveryStarted event. Fee history in the detail is that entry first, then `fee_corrections[]` oldest first; no new column. No merged status, date and fee history is returned (no field, no union query) [v1.5 | 2026-11-02]: `design/admin-orders/12` shows each record list on its own and the last change line only.
 
@@ -76,6 +76,7 @@ Computed from the status for owner and staff alike (the same roles as every stat
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.6 | 2026-11-02 | Amount-to-collect rule stated (same as api/10). |
 | 1.5 | 2026-11-02 | Date route check order and `STATUS_INVALID`; canonical `UNKNOWN_FIELD`; no merged history; list filters match `list_date`. |
 | 1.4 | 2026-11-02 | List item `list_date` rule; `last_change.kind` from three records; `delivery_fee_entry`. |
 | 1.3 | 2026-11-02 | Section 10.13.7: `allowed_actions` vocabulary, action to endpoint map, `to_status` to action. |

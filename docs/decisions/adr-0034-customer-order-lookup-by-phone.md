@@ -3,7 +3,7 @@
 | Field    | Value |
 | -------- | ----- |
 | ADR      | 0034 |
-| Version  | 1.2 [v1.2 | 2026-11-02] (order code and cake lines, Decision 8, retention days not sent; v1.1: clarifications, Decision 7; v1.0: first version) |
+| Version  | 1.3 [v1.3 | 2026-11-02] (Decision 9; v1.2: order code and cake lines, Decision 8, retention days not sent; v1.1: clarifications, Decision 7; v1.0: first version) |
 | Status   | Accepted as the owner's decision of 2026-11-02 (C); it affects customer data, so the residual risk in Consequences must be seen by the owner |
 | Date     | 2026-11-02 |
 | Decider  | owner (business choice); atlas-architect (mitigations) |
@@ -25,6 +25,7 @@ The customer must follow an order without signing in and without push. The PRD d
 6. Window: open orders at any age; `Finished` and `Cancelled` 30 days after `status_changed_at` (assumption of the owner, Q-O8). The count of days is an internal rule: the client is never sent it and no text names it [v1.2 | 2026-11-02].
 7. Clarifications [v1.1 | 2026-11-02]: a request with a valid cursor does not count against the per-phone limit (the first page did), it counts against address and installation limits; the client address comes only from the platform proxy header named in `CLIENT_ADDRESS_HEADER` with `TRUSTED_PROXY_HOPS`, never from a client-supplied header; the response floor must exceed the p99 of the one shared indexed query and an alert fires when it is exceeded; `as_of` is enough for the offline line; the app's 9 to 11 digit check is a hint only (api/10 10.14.5, 10.14.7).
 8. Content of the list [v1.2 | 2026-11-02]: owner decision of 2026-11-02: each order shows its code and its cake lines (name, quantity, unit price). Items come from `customer_order_item` in the same SQL statement as the page (lateral aggregate, no second round trip, no schema change; api/10 10.14.3).
+9. Details settled [v1.3 | 2026-11-02]: the retention edge is inclusive (`status_changed_at >= now - 30 x 24 h`); the cursor carries the placed time as integer microseconds; `amount_to_collect_vnd` is subtotal plus final fee, null before the final fee, never the estimate; `lookup_floor_exceeded` goes to a phone-free warning log line and an in-process count (deployment/03 7.1). No paid service.
 
 ## Rejected alternatives
 
