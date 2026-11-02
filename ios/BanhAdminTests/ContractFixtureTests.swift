@@ -31,7 +31,7 @@ struct ContractFixtureTests {
         #expect(page.unfinishedCount == 1)
         let detail = try decode(OrderDetail.self, "order-detail")
         #expect(detail.lastChange.actorName == nil)
-        #expect(detail.allowedActions == ["confirm", "cancel"])
+        #expect(detail.allowedActions == [.cancel, .process])
         #expect(try decode(OrderDetail.self, "order-status-change").cancelReason == "customer_asked")
     }
 
@@ -43,7 +43,7 @@ struct ContractFixtureTests {
         #expect(error.code == "ORDER_STATE_CHANGED")
         guard case .service(_, _, _, let details) = error, let order = details["order"] else { Issue.record("no order"); return }
         let current = try APIClient.decoder.decode(OrderDetail.self, from: JSONEncoder().encode(order))
-        #expect(current.status == .confirmed)
+        #expect(current.status == .processing)
     }
 
     @Test func httpOrdersApiTurnsA409IntoAConflictOutcome() async throws {
@@ -55,9 +55,9 @@ struct ContractFixtureTests {
         }
         let client = APIClient(baseURL: URL(string: "http://stub.invalid")!, appVersion: "1.0.0", transport: transport)
         let api = HTTPOrdersAPI(client: client, session: SessionManager(client: client, store: InMemoryTokenStore(refreshToken: "rt")))
-        let outcome = try await api.changeStatus(code: "BT-7K3M9Q", expected: .new, to: .confirmed, reason: nil)
+        let outcome = try await api.changeStatus(code: "BT-7K3M9Q", StatusRequest(expected: .received, target: .processing))
         guard case .conflict(let current) = outcome else { Issue.record("expected conflict"); return }
-        #expect(current.status == .confirmed)
+        #expect(current.status == .processing)
         let sent = transport.requests.last?.httpBody.map { String(decoding: $0, as: UTF8.self) } ?? ""
         #expect(sent.contains("expected_status"))
     }

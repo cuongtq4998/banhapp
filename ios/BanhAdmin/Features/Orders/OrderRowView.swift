@@ -41,9 +41,9 @@ struct OrderRowView: View {
 extension OrderStatus {
     var tone: StatusBadge.Tone {
         switch self {
-        case .new: .new
-        case .confirmed: .confirmed
-        case .completed: .completed
+        case .received, .unknown: .new
+        case .processing, .deliveryDateScheduled, .deliveryStarted: .confirmed
+        case .finished: .completed
         case .cancelled: .cancelled
         }
     }

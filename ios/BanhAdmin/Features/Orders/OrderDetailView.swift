@@ -20,11 +20,11 @@ struct OrderDetailView: View {
             .sensoryFeedback(.error, trigger: model.failureCount)
             .sheet(isPresented: $model.showsCancelSheet) { CancelSheet(model: model) }
             .alert(
-                AStrings.completeTitle(code: model.code), isPresented: $model.showsCompleteDialog
+                AStrings.completeTitle(code: model.code), isPresented: $model.showsFinishDialog
             ) {
                 Button(String(localized: AStrings.back), role: .cancel) {}
                     .accessibilityIdentifier(AdminID.detailCompleteBack)
-                Button(String(localized: AStrings.completeYes)) { Task { await model.complete() } }
+                Button(String(localized: AStrings.completeYes)) { Task { await model.finish() } }
                     .accessibilityIdentifier(AdminID.detailCompleteYes)
             } message: {
                 Text(AStrings.completeBody)
@@ -98,26 +98,29 @@ struct OrderDetailView: View {
     }
 }
 
-/// The bottom bar: New (cancel, confirm), Confirmed (cancel, complete), none for finished orders.
+/// The bottom bar: only the actions the server allows (the sheets for dates and fees are a later slice).
 private struct ActionBar: View {
     @Bindable var model: OrderDetailViewModel
     let detail: OrderDetail
 
     var body: some View {
-        if detail.status == .new || detail.status == .confirmed {
+        if detail.allows(.cancel) || detail.allows(.process) || detail.allows(.finish) {
             AdaptiveStack(spacing: Spacing.md) {
-                ActionButton(title: AStrings.cancelOrder, emphasis: .destructive) { model.showsCancelSheet = true }
-                    .disabled(model.isBusy)
-                    .accessibilityIdentifier(AdminID.detailCancel)
-                if detail.status == .new {
-                    ActionButton(title: AStrings.confirmOrder, showsProgress: model.running == .confirm) {
-                        Task { await model.confirm() }
+                if detail.allows(.cancel) {
+                    ActionButton(title: AStrings.cancelOrder, emphasis: .destructive) { model.showsCancelSheet = true }
+                        .disabled(model.isBusy)
+                        .accessibilityIdentifier(AdminID.detailCancel)
+                }
+                if detail.allows(.process) {
+                    ActionButton(title: AStrings.confirmOrder, showsProgress: model.running == .process) {
+                        Task { await model.process() }
                     }
                     .disabled(model.isBusy)
                     .accessibilityIdentifier(AdminID.detailConfirm)
-                } else {
-                    ActionButton(title: AStrings.completeOrder, showsProgress: model.running == .complete) {
-                        model.showsCompleteDialog = true
+                }
+                if detail.allows(.finish) {
+                    ActionButton(title: AStrings.completeOrder, showsProgress: model.running == .finish) {
+                        model.showsFinishDialog = true
                     }
                     .disabled(model.isBusy)
                     .accessibilityIdentifier(AdminID.detailComplete)

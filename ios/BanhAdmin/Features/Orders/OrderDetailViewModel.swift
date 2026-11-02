@@ -2,7 +2,7 @@ import BanhCore
 import Foundation
 import Observation
 
-/// S-A4 and S-A5: one order and the three status actions (FR-14 to FR-19).
+/// S-A4 and S-A5: one order and its actions; the buttons come only from `allowed_actions`.
 @Observable
 final class OrderDetailViewModel {
     enum State: Equatable {
@@ -13,7 +13,7 @@ final class OrderDetailViewModel {
         case failed(LoadFailure)
     }
 
-    enum Action: Equatable { case confirm, complete, cancel }
+    enum Action: Equatable { case process, scheduleDelivery, startDelivery, finish, cancel, changeDate, correctFee }
 
     /// The text above the action bar after a refused or failed action.
     enum ActionMessage: Equatable {
@@ -26,12 +26,16 @@ final class OrderDetailViewModel {
     private(set) var state: State = .loading
     private(set) var running: Action?
     private(set) var actionMessage: ActionMessage?
+    /// The refusal shown inside the open date or fee sheet.
+    private(set) var entryError: EntryError?
     /// A confirmation sentence for the toast and a counter for the success haptic.
     var toast: String?
     private(set) var successCount = 0
     private(set) var failureCount = 0
-    var showsCompleteDialog = false
+    var showsFinishDialog = false
     var showsCancelSheet = false
+    var dateEntry: DateEntry?
+    var feeEntry: FeeEntryState?
 
     private let api: any OrdersAPI
     private let onChanged: () -> Void
@@ -67,27 +71,83 @@ final class OrderDetailViewModel {
         }
     }
 
-    func confirm() async { await perform(.confirm, to: .confirmed, reason: nil) }
-    func complete() async { showsCompleteDialog = false; await perform(.complete, to: .completed, reason: nil) }
-    func cancel(reason: CancelReason) async { await perform(.cancel, to: .cancelled, reason: reason) }
+    // MARK: Sheets
 
-    private func perform(_ action: Action, to target: OrderStatus, reason: CancelReason?) async {
-        guard let current = detail, !isBusy else { return }
+    func openScheduleSheet() {
+        guard let detail, detail.allows(.scheduleDelivery) else { return }
+        entryError = nil
+        dateEntry = DateEntry(range: detail.expectedDateRange, current: nil)
+    }
+
+    func openChangeDateSheet() {
+        guard let detail, detail.allows(.changeDate) else { return }
+        entryError = nil
+        dateEntry = DateEntry(range: detail.expectedDateRange, current: detail.expectedDeliveryDate)
+    }
+
+    func openStartDeliverySheet() {
+        guard let detail, detail.allows(.startDelivery) else { return }
+        entryError = nil
+        feeEntry = FeeEntryState(previous: nil, cakesSubtotalVnd: detail.itemsSubtotalVnd)
+    }
+
+    func openCorrectFeeSheet() {
+        guard let detail, detail.allows(.correctFee) else { return }
+        entryError = nil
+        feeEntry = FeeEntryState(previous: detail.deliveryFeeFinalVnd, cakesSubtotalVnd: detail.itemsSubtotalVnd)
+    }
+
+    // MARK: Actions
+
+    func process() async { await status(.process, to: .processing) }
+    func finish() async { showsFinishDialog = false; await status(.finish, to: .finished) }
+    func cancel(reason: CancelReason) async { await status(.cancel, to: .cancelled, reason: reason) }
+
+    func scheduleDelivery() async {
+        guard let date = dateEntry, date.canSave else { return }
+        await status(.scheduleDelivery, to: .deliveryDateScheduled, date: date.chosen)
+    }
+
+    func startDelivery() async {
+        guard let entry = feeEntry, entry.canSave, let fee = entry.fee else { return }
+        await status(.startDelivery, to: .deliveryStarted, fee: fee)
+    }
+
+    func changeDate() async {
+        guard let entry = dateEntry, entry.canSave, let previous = entry.current else { return }
+        await perform(.changeDate) { try await api.changeExpectedDate(code: code, previous: previous, to: entry.chosen) }
+    }
+
+    func correctFee() async {
+        guard let entry = feeEntry, entry.canSave, let fee = entry.fee, let previous = entry.previous else { return }
+        await perform(.correctFee) { try await api.correctFee(code: code, previous: previous, to: fee) }
+    }
+
+    private func status(
+        _ action: Action, to target: OrderStatus, reason: CancelReason? = nil, date: String? = nil, fee: Int? = nil
+    ) async {
+        guard let current = detail else { return }
+        let request = StatusRequest(expected: current.status, target: target, reason: reason, expectedDeliveryDate: date, deliveryFeeVnd: fee)
+        await perform(action) { try await api.changeStatus(code: code, request) }
+    }
+
+    private func perform(_ action: Action, _ call: () async throws -> StatusChangeOutcome) async {
+        guard detail != nil, !isBusy else { return }
         running = action
         actionMessage = nil
+        entryError = nil
         defer { running = nil }
         do {
-            switch try await api.changeStatus(code: code, expected: current.status, to: target, reason: reason) {
+            switch try await call() {
             case .changed(let updated):
                 state = .loaded(updated)
-                showsCancelSheet = false
+                closeSheets()
                 successCount += 1
                 toast = String(localized: AStrings.statusChanged)
                 onChanged()
             case .conflict(let latest):
                 state = .loaded(latest)
-                showsCancelSheet = false
-                showsCompleteDialog = false
+                closeSheets()
                 actionMessage = .conflict(latest.status)
                 failureCount += 1
                 onChanged()
@@ -98,18 +158,28 @@ final class OrderDetailViewModel {
         }
     }
 
+    private func closeSheets() {
+        showsCancelSheet = false
+        showsFinishDialog = false
+        dateEntry = nil
+        feeEntry = nil
+    }
+
     private func handle(actionError error: Error) async {
         let api = error as? APIError
         if api?.isConnectivity == true {
             actionMessage = .offline
         } else if api?.httpStatus == 404 {
             state = .gone
-            showsCancelSheet = false
-        } else if api?.code == "STATUS_TRANSITION_INVALID" {
+            closeSheets()
+        } else if let api, case let refusal = EntryError(api), refusal == .transitionInvalid || refusal == .feeCorrectionNotAllowed {
             // The pair is no longer allowed: show what the order is now.
             await load()
             if let latest = detail { actionMessage = .conflict(latest.status) }
-            showsCancelSheet = false
+            closeSheets()
+            failureCount += 1
+        } else if let api, case let refusal = EntryError(api), refusal != .other {
+            entryError = refusal
             failureCount += 1
         } else {
             actionMessage = .failed

@@ -149,7 +149,7 @@ final class StubAdminTransport: HTTPTransport, @unchecked Sendable {
         default: value("delivery_date")
         }
         let rows = mode == AdminLaunch.modeEmpty ? [] : orders
-            .filter { status == "all" || (status == "todo" ? $0.status.isOpen : $0.status.rawValue == status) }
+            .filter { status == "all" || (status == "todo" ? $0.status.isOpen : $0.status.wireValue == status) }
             .filter { day == nil || $0.deliveryDate == day }
             .filter { order in value("q").map { StubOrderData.matches(order, query: $0) } ?? true }
             .sorted { ($0.deliveryDate, $0.slot.start, $0.createdAt) < ($1.deliveryDate, $1.slot.start, $1.createdAt) }
@@ -161,15 +161,15 @@ final class StubAdminTransport: HTTPTransport, @unchecked Sendable {
     }
 
     private func changeStatus(_ index: Int, _ json: [String: Any]) -> (Int, Data) {
-        guard let expected = (json["expected_status"] as? String).flatMap(OrderStatus.init(rawValue:)),
-              let target = (json["to_status"] as? String).flatMap(OrderStatus.init(rawValue:))
+        guard let expected = (json["expected_status"] as? String).flatMap(OrderStatus.init(word:)),
+              let target = (json["to_status"] as? String).flatMap(OrderStatus.init(word:))
         else { return StubReply.error(422, "VALIDATION_FAILED", "ERR_VALIDATION") }
-        if mode == AdminLaunch.modeConflict, orders[index].status == .new { orders[index] = StubOrderData.changed(orders[index], to: .confirmed, reason: nil) }
+        if mode == AdminLaunch.modeConflict, orders[index].status == .received { orders[index] = StubOrderData.changed(orders[index], to: .processing, reason: nil) }
         guard orders[index].status == expected else {
             return StubReply.error(409, "ORDER_STATE_CHANGED", "ERR_ORDER_STATE_CHANGED", details: ["order": StubReply.object(orders[index])])
         }
         let reason = (json["cancel_reason"] as? String).flatMap(CancelReason.init(rawValue:))
-        let allowed: [OrderStatus: [OrderStatus]] = [.new: [.confirmed, .cancelled], .confirmed: [.completed, .cancelled]]
+        let allowed: [OrderStatus: [OrderStatus]] = [.received: [.processing, .cancelled], .processing: [.cancelled]]
         guard allowed[expected]?.contains(target) == true else {
             return StubReply.error(422, "STATUS_TRANSITION_INVALID", "ERR_STATUS_TRANSITION_INVALID")
         }

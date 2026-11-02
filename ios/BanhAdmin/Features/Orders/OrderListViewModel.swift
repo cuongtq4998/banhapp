@@ -59,7 +59,7 @@ final class OrderListViewModel {
     }
 
     func due(for row: OrderSummary) -> DueState? {
-        DueState.of(status: row.status, deliveryDate: row.deliveryDate, serverDate: serverDate)
+        DueState.of(status: row.status, deliveryDate: row.listDate, serverDate: serverDate)
     }
 
     private var query: OrderQuery {

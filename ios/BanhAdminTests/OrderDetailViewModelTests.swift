@@ -9,15 +9,15 @@ struct OrderDetailViewModelTests {
         OrderDetailViewModel(code: "BT-7K3M9Q", api: api, onChanged: changed)
     }
 
-    @Test func confirmSendsTheExpectedStatusAndUpdatesInPlace() async {
+    @Test func processSendsTheExpectedStatusAndUpdatesInPlace() async {
         let api = FakeOrdersAPI()
         let counter = EndedFlag()
         let model = make(api) { counter.set() }
         await model.load()
-        await model.confirm()
-        #expect(api.statusCalls.first?.expected == .new)
-        #expect(api.statusCalls.first?.target == .confirmed)
-        #expect(model.detail?.status == .confirmed)
+        await model.process()
+        #expect(api.statusCalls.first?.expected == .received)
+        #expect(api.statusCalls.first?.target == .processing)
+        #expect(model.detail?.status == .processing)
         #expect(model.toast != nil)
         #expect(counter.value)
     }
@@ -36,15 +36,15 @@ struct OrderDetailViewModelTests {
 
     @Test func conflictShowsTheCurrentStatusAndClosesSheetsAndDialogs() async {
         let api = FakeOrdersAPI()
-        api.outcome = .success(.conflict(TestData.detail(status: .confirmed)))
+        api.outcome = .success(.conflict(TestData.detail(status: .processing)))
         let model = make(api)
         await model.load()
         model.showsCancelSheet = true
-        model.showsCompleteDialog = true
-        await model.confirm()
-        #expect(model.detail?.status == .confirmed)
-        #expect(model.actionMessage == .conflict(.confirmed))
-        #expect(!model.showsCancelSheet && !model.showsCompleteDialog)
+        model.showsFinishDialog = true
+        await model.process()
+        #expect(model.detail?.status == .processing)
+        #expect(model.actionMessage == .conflict(.processing))
+        #expect(!model.showsCancelSheet && !model.showsFinishDialog)
         #expect(model.toast == nil)
     }
 
@@ -53,8 +53,8 @@ struct OrderDetailViewModelTests {
         api.outcome = .failure(APIError.networkUnavailable)
         let model = make(api)
         await model.load()
-        await model.confirm()
-        #expect(model.detail?.status == .new)
+        await model.process()
+        #expect(model.detail?.status == .received)
         #expect(model.actionMessage == .offline)
     }
 
@@ -63,7 +63,7 @@ struct OrderDetailViewModelTests {
         api.outcome = .failure(APIError.service(code: "INTERNAL_ERROR", messageKey: "K", httpStatus: 500, details: [:]))
         let model = make(api)
         await model.load()
-        await model.complete()
+        await model.finish()
         #expect(model.actionMessage == .failed)
     }
 

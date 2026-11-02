@@ -18,7 +18,7 @@ struct OrderListSessionEndedTests {
         let ended = EndedFlag()
         await session.setOnEnded { ended.set() }
         let model = OrderListViewModel(api: HTTPOrdersAPI(client: client, session: session), debounce: .milliseconds(1))
-        model.select(status: .confirmed)
+        model.select(status: .processing)
         for _ in 0..<50 where !ended.value { try await Task.sleep(for: .milliseconds(20)) }
         #expect(ended.value, "the 401 reached the session manager and ended the session")
         #expect(store.refreshToken == nil)

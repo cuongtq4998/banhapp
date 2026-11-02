@@ -5,10 +5,10 @@ import Testing
 
 struct MiscTests {
     @Test func dueStateOnlyForOpenOrdersOnOrBeforeTheServerDate() {
-        #expect(DueState.of(status: .new, deliveryDate: "2026-11-02", serverDate: "2026-11-02") == .today)
-        #expect(DueState.of(status: .confirmed, deliveryDate: "2026-10-31", serverDate: "2026-11-02") == .overdue(days: 2))
-        #expect(DueState.of(status: .new, deliveryDate: "2026-11-03", serverDate: "2026-11-02") == nil)
-        #expect(DueState.of(status: .completed, deliveryDate: "2026-10-01", serverDate: "2026-11-02") == nil)
+        #expect(DueState.of(status: .received, deliveryDate: "2026-11-02", serverDate: "2026-11-02") == .today)
+        #expect(DueState.of(status: .processing, deliveryDate: "2026-10-31", serverDate: "2026-11-02") == .overdue(days: 2))
+        #expect(DueState.of(status: .received, deliveryDate: "2026-11-03", serverDate: "2026-11-02") == nil)
+        #expect(DueState.of(status: .finished, deliveryDate: "2026-10-01", serverDate: "2026-11-02") == nil)
         #expect(DueState.of(status: .cancelled, deliveryDate: "2026-10-01", serverDate: "2026-11-02") == nil)
     }
 
@@ -29,7 +29,7 @@ struct MiscTests {
     }
 
     @Test func queryItemsFollowTheContract() {
-        let query = OrderQuery(status: .new, date: .day("2026-11-04"), search: "abc", cursor: "c")
+        let query = OrderQuery(status: .received, date: .day("2026-11-04"), search: "abc", cursor: "c")
         let names = query.items.map(\.name)
         #expect(names == ["status", "delivery_date", "q", "cursor"])
     }

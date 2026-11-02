@@ -50,11 +50,11 @@ struct OrderListViewModelTests {
         api.pages = [TestData.page(["BT-7K3M9Q"])]
         let model = model(api)
         await model.reload()
-        model.select(status: .confirmed)
+        model.select(status: .processing)
         model.select(date: .tomorrow)
         try? await Task.sleep(for: .milliseconds(100))
         let items = api.queries.last?.items ?? []
-        #expect(items.contains(URLQueryItem(name: "status", value: "Confirmed")))
+        #expect(items.contains(URLQueryItem(name: "status", value: "Processing")))
         #expect(items.contains(URLQueryItem(name: "date_preset", value: "tomorrow")))
         #expect(!items.contains { $0.name == "cursor" })
     }
@@ -81,8 +81,8 @@ struct OrderListViewModelTests {
     @Test func dueMarkUsesTheServerDate() async {
         let api = FakeOrdersAPI()
         api.pages = [OrderPage(items: [
-            TestData.summary("BT-7K3M9Q", date: "2026-11-02"), TestData.summary("BT-4H8N2P", status: .confirmed, date: "2026-10-31"),
-            TestData.summary("BT-9D6R3T", date: "2026-11-03"), TestData.summary("BT-6F3J8M", status: .completed, date: "2026-10-30"),
+            TestData.summary("BT-7K3M9Q", date: "2026-11-02"), TestData.summary("BT-4H8N2P", status: .processing, date: "2026-10-31"),
+            TestData.summary("BT-9D6R3T", date: "2026-11-03"), TestData.summary("BT-6F3J8M", status: .finished, date: "2026-10-30"),
         ], nextCursor: nil, unfinishedCount: 2, serverDate: "2026-11-02")]
         let model = model(api)
         await model.reload()
@@ -105,7 +105,7 @@ struct OrderListViewModelTests {
         let model = model(api)
         await model.reload()
         #expect(model.emptyKind == .todo)
-        model.select(status: .new)
+        model.select(status: .received)
         #expect(model.emptyKind == .filtered)
         model.searchText = "abc"
         #expect(model.emptyKind == .search)

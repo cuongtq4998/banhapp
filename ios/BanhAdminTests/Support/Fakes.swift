@@ -8,8 +8,10 @@ final class FakeOrdersAPI: OrdersAPI, @unchecked Sendable {
     private var seen: [OrderQuery] = []
     var pages: [OrderPage] = []
     var detail: Result<OrderDetail, Error> = .success(TestData.detail())
-    var outcome: Result<StatusChangeOutcome, Error> = .success(.changed(TestData.detail(status: .confirmed)))
-    var statusCalls: [(expected: OrderStatus, target: OrderStatus, reason: CancelReason?)] = []
+    var outcome: Result<StatusChangeOutcome, Error> = .success(.changed(TestData.detail(status: .processing)))
+    var statusCalls: [StatusRequest] = []
+    var dateCalls: [(previous: String, date: String)] = []
+    var feeCalls: [(previous: Int, fee: Int)] = []
 
     var queries: [OrderQuery] { lock.withLock { seen } }
 
@@ -22,8 +24,18 @@ final class FakeOrdersAPI: OrdersAPI, @unchecked Sendable {
 
     func order(code: String) async throws -> OrderDetail { try detail.get() }
 
-    func changeStatus(code: String, expected: OrderStatus, to target: OrderStatus, reason: CancelReason?) async throws -> StatusChangeOutcome {
-        statusCalls.append((expected, target, reason))
+    func changeStatus(code: String, _ request: StatusRequest) async throws -> StatusChangeOutcome {
+        statusCalls.append(request)
+        return try outcome.get()
+    }
+
+    func changeExpectedDate(code: String, previous: String, to date: String) async throws -> StatusChangeOutcome {
+        dateCalls.append((previous, date))
+        return try outcome.get()
+    }
+
+    func correctFee(code: String, previous: Int, to fee: Int) async throws -> StatusChangeOutcome {
+        feeCalls.append((previous, fee))
         return try outcome.get()
     }
 }
@@ -37,10 +49,10 @@ struct FakeAuth: AuthService {
 }
 
 enum TestData {
-    static func summary(_ code: String, status: OrderStatus = .new, date: String = "2026-11-02") -> OrderSummary {
+    static func summary(_ code: String, status: OrderStatus = .received, date: String = "2026-11-02") -> OrderSummary {
         OrderSummary(
             orderCode: code, status: status, customerName: "Tran Thi B", deliveryDate: date,
-            slot: DeliverySlot(start: "08:00", end: "10:00"), totalCakes: 2, totalVnd: 120_000,
+            expectedDeliveryDate: nil, listDate: date, slot: DeliverySlot(start: "08:00", end: "10:00"), totalCakes: 2, totalVnd: 120_000,
             districtName: "Quan An Phu", createdAt: "2026-10-31T03:15:09Z"
         )
     }
@@ -49,13 +61,16 @@ enum TestData {
         OrderPage(items: codes.map { summary($0) }, nextCursor: next, unfinishedCount: unfinished, serverDate: "2026-11-02")
     }
 
-    static func detail(status: OrderStatus = .new) -> OrderDetail {
+    static func detail(status: OrderStatus = .received, actions: [OrderAction] = []) -> OrderDetail {
         OrderDetail(
             orderCode: "BT-7K3M9Q", status: status, customerName: "Tran Thi B", deliveryDate: "2026-11-02",
-            slot: DeliverySlot(start: "08:00", end: "10:00"), totalCakes: 2, totalVnd: 120_000, districtName: "Quan An Phu",
+            requestedDeliveryDate: "2026-11-02", expectedDeliveryDate: "2026-11-04", listDate: "2026-11-04", slot: DeliverySlot(start: "08:00", end: "10:00"), totalCakes: 2, totalVnd: 120_000, districtName: "Quan An Phu",
             createdAt: "2026-10-31T03:15:09Z", customerPhone: "+84900000010", customerAddress: "1 Test Street", note: nil,
-            items: [], itemsSubtotalVnd: 100_000, deliveryFeeVnd: 20_000, cancelReason: nil, allowedActions: [],
-            lastChange: LastChange(actorName: nil, at: "2026-10-31T03:15:09Z")
+            items: [], itemsSubtotalVnd: 100_000, deliveryFeeVnd: 20_000, deliveryFeeEstimateVnd: 20_000, deliveryFeeFinalVnd: nil,
+            amountToCollectVnd: nil, deliveryFeeEntry: nil, cancelReason: nil,
+            expectedDateRange: DateRange(min: "2026-11-02", max: "2026-11-09"), allowedActions: actions,
+            dateChanges: [], feeCorrections: [],
+            lastChange: LastChange(actorName: nil, at: "2026-10-31T03:15:09Z", kind: nil)
         )
     }
 }

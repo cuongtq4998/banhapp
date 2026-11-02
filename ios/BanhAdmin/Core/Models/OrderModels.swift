@@ -1,15 +1,47 @@
 import BanhCore
 import Foundation
 
-/// Order statuses of the contract (api/06 10.9). The raw values are the wire values.
-nonisolated enum OrderStatus: String, Codable, Equatable, Sendable, CaseIterable {
-    case new = "New"
-    case confirmed = "Confirmed"
-    case completed = "Completed"
-    case cancelled = "Cancelled"
+/// Order statuses of the contract (api/09 10.13). An unknown word is kept, never a crash.
+nonisolated enum OrderStatus: Codable, Equatable, Hashable, Sendable {
+    case received, processing, deliveryDateScheduled, deliveryStarted, finished, cancelled
+    case unknown(String)
 
-    /// New and Confirmed orders still have to be handled; only they can be due.
-    var isOpen: Bool { self == .new || self == .confirmed }
+    static let known: [OrderStatus] = [.received, .processing, .deliveryDateScheduled, .deliveryStarted, .finished, .cancelled]
+    private static let legacyWords = ["New": "Received", "Confirmed": "Processing", "Completed": "Finished"]
+
+    /// The wire word; for `.unknown` the raw text.
+    var wireValue: String {
+        switch self {
+        case .received: "Received"
+        case .processing: "Processing"
+        case .deliveryDateScheduled: "DeliveryDateScheduled"
+        case .deliveryStarted: "DeliveryStarted"
+        case .finished: "Finished"
+        case .cancelled: "Cancelled"
+        case .unknown(let word): word
+        }
+    }
+
+    init(word: String) {
+        self = Self.known.first { $0.wireValue == word } ?? .unknown(word)
+    }
+
+    /// History rows written before the rename carry the old words; only they use this.
+    init(historyWord word: String) {
+        self.init(word: Self.legacyWords[word] ?? word)
+    }
+
+    init(from decoder: Decoder) throws {
+        self.init(word: try decoder.singleValueContainer().decode(String.self))
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(wireValue)
+    }
+
+    /// Only open orders can be due; an unknown status is not marked.
+    var isOpen: Bool { [.received, .processing, .deliveryDateScheduled, .deliveryStarted].contains(self) }
 }
 
 nonisolated struct DeliverySlot: Codable, Equatable, Sendable {
@@ -25,6 +57,9 @@ nonisolated struct OrderSummary: Codable, Equatable, Sendable, Identifiable {
     let status: OrderStatus
     let customerName: String
     let deliveryDate: String
+    let expectedDeliveryDate: String?
+    /// The date the server sorts and marks by (api/09 10.13.3).
+    let listDate: String
     let slot: DeliverySlot
     let totalCakes: Int
     let totalVnd: Int
@@ -39,34 +74,6 @@ nonisolated struct OrderItem: Codable, Equatable, Sendable {
     let quantity: Int
     let unitPriceVnd: Int
     let lineTotalVnd: Int
-}
-
-nonisolated struct LastChange: Codable, Equatable, Sendable {
-    /// Nil when the customer placed the order and nobody changed it.
-    let actorName: String?
-    let at: String
-}
-
-/// `GET /v1/admin/orders/{code}` and the answer of a status change.
-nonisolated struct OrderDetail: Codable, Equatable, Sendable {
-    let orderCode: String
-    let status: OrderStatus
-    let customerName: String
-    let deliveryDate: String
-    let slot: DeliverySlot
-    let totalCakes: Int
-    let totalVnd: Int
-    let districtName: String
-    let createdAt: String
-    let customerPhone: String
-    let customerAddress: String
-    let note: String?
-    let items: [OrderItem]
-    let itemsSubtotalVnd: Int
-    let deliveryFeeVnd: Int
-    let cancelReason: String?
-    let allowedActions: [String]
-    let lastChange: LastChange
 }
 
 nonisolated struct OrderPage: Codable, Equatable, Sendable {

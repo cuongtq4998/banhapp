@@ -28,10 +28,11 @@ extension AStrings {
 
     static func status(_ status: OrderStatus) -> LocalizedStringResource {
         switch status {
-        case .new: statusNew
-        case .confirmed: statusConfirmed
-        case .completed: statusCompleted
+        case .received: statusNew
+        case .processing, .deliveryDateScheduled, .deliveryStarted: statusConfirmed
+        case .finished: statusCompleted
         case .cancelled: statusCancelled
+        case .unknown: statusNew
         }
     }
 
