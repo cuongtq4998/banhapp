@@ -19,6 +19,11 @@ struct AppServices: Sendable {
     var pushRetryDelays: [Duration] = PushDispatcher.defaultRetryDelays
     /// Mail and other work that runs after the response; tests `drain()` it.
     var background = BackgroundWork()
+    var lookup = LookupPolicy(environment: ProcessInfo.processInfo.environment)
+    /// Limiters live as long as the services value, so counters persist.
+    var lookupGuard = LookupGuard(policy: LookupPolicy(environment: ProcessInfo.processInfo.environment))
+    var lookupMetrics = LookupMetrics()
+    var makeLookupStore: @Sendable (any Database) -> any LookupStore = { PostgresLookupStore(database: $0) }
 
     /// Derived from `clock`, so replacing the clock also moves the calendar.
     var calendar: ShopCalendar { ShopCalendar(clock: clock) }
