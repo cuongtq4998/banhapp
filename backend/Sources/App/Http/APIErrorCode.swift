@@ -38,6 +38,7 @@ enum APIErrorCode: String, CaseIterable, Sendable {
     case orderStateChanged = "ORDER_STATE_CHANGED"
     case statusTransitionInvalid = "STATUS_TRANSITION_INVALID"
     case cancelReasonRequired = "CANCEL_REASON_REQUIRED"
+    case feeCorrectionNotAllowed = "FEE_CORRECTION_NOT_ALLOWED"
     // Owner settings and staff (api/08 section 11).
     case lastActiveDistrict = "LAST_ACTIVE_DISTRICT"
     case lastActiveSlot = "LAST_ACTIVE_SLOT"
@@ -57,7 +58,7 @@ enum APIErrorCode: String, CaseIterable, Sendable {
             return .unauthorized
         case .forbidden: return .forbidden
         case .codeResendWait, .codeRequestLimit: return .tooManyRequests
-        case .statusTransitionInvalid, .cancelReasonRequired, .slotDuplicate:
+        case .statusTransitionInvalid, .cancelReasonRequired, .feeCorrectionNotAllowed, .slotDuplicate:
             return .unprocessableEntity
         case .lastActiveDistrict, .lastActiveSlot, .lastActiveCake, .cakeLimitReached, .emailTaken, .staffLimitReached, .ownerProtected:
             return .conflict
@@ -98,6 +99,7 @@ enum APIErrorCode: String, CaseIterable, Sendable {
         case .orderStateChanged: return "ERR_ORDER_STATE_CHANGED"
         case .statusTransitionInvalid: return "ERR_ORDER_STATUS_INVALID"
         case .cancelReasonRequired: return "ERR_CANCEL_REASON_REQUIRED"
+        case .feeCorrectionNotAllowed: return "ERR_FEE_CORRECTION_NOT_ALLOWED"
         case .lastActiveDistrict: return "ERR_LAST_ACTIVE_DISTRICT"
         case .lastActiveSlot: return "ERR_LAST_ACTIVE_SLOT"
         case .slotDuplicate: return "ERR_SLOT_DUPLICATE"

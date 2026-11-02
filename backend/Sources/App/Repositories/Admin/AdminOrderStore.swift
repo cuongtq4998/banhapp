@@ -39,9 +39,7 @@ struct AdminOrderWriter: Sendable {
     /// fee of the move goes in the same UPDATE, so no order holds a step
     /// without its field.
     func move(id: UUID, request: StatusRequest, actor: OrderActor) async throws -> Bool {
-        try await sql.raw("SELECT set_config('app.actor_type', \(bind: actor.type), true)").run()
-        try await sql.raw("SELECT set_config('app.actor_id', \(bind: actor.id.uuidString), true)").run()
-        try await sql.raw("SELECT set_config('app.actor_name', \(bind: actor.name), true)").run()
+        try await setActor(actor)
         do {
             let rows = try await sql.raw("""
                 UPDATE customer_order SET status = \(bind: request.target.rawValue), cancel_reason = \(bind: request.reason?.rawValue)::text,
@@ -60,6 +58,13 @@ struct AdminOrderWriter: Sendable {
             // The surrounding transaction rolls back, so the order stays as it was.
             throw APIError(.internalError, details: ["reason": .string(Self.dayLoadInconsistent)])
         }
+    }
+
+    /// Transaction-local settings the immutable triggers read.
+    func setActor(_ actor: OrderActor) async throws {
+        try await sql.raw("SELECT set_config('app.actor_type', \(bind: actor.type), true)").run()
+        try await sql.raw("SELECT set_config('app.actor_id', \(bind: actor.id.uuidString), true)").run()
+        try await sql.raw("SELECT set_config('app.actor_name', \(bind: actor.name), true)").run()
     }
 
     /// The first date entry is a record row with no old date.

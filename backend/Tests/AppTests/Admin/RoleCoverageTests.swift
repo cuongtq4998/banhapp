@@ -83,8 +83,11 @@ final class RoleCoverageTests: AdminRouteTestCase {
         }
     }
 
-    func testNoOrderEditOrDeleteRouteExists() {
+    /// Only the two corrections of api/09 are PUT routes; no PATCH or DELETE.
+    func testOnlyTheTwoCorrectionsAreEditRoutes() {
         let paths = app.routes.all.map { "\($0.method) \($0.path.map(\.description).joined(separator: "/"))" }
-        XCTAssertFalse(paths.contains { $0.hasPrefix("PUT v1/admin/orders") || $0.hasPrefix("PATCH v1/admin/orders") || $0.hasPrefix("DELETE v1/admin/orders") })
+        let puts = paths.filter { $0.hasPrefix("PUT v1/admin/orders") }.sorted()
+        XCTAssertEqual(puts, ["PUT v1/admin/orders/:code/delivery-fee", "PUT v1/admin/orders/:code/expected-delivery-date"])
+        XCTAssertFalse(paths.contains { $0.hasPrefix("PATCH v1/admin/orders") || $0.hasPrefix("DELETE v1/admin/orders") })
     }
 }

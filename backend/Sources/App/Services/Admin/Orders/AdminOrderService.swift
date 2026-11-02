@@ -15,7 +15,7 @@ struct AdminOrderService: Sendable {
     let calendar: ShopCalendar
     let shopID: UUID
 
-    private func window(_ principal: AdminPrincipal) -> OrderWindow {
+    func window(_ principal: AdminPrincipal) -> OrderWindow {
         OrderWindow(shopID: shopID, now: calendar.clock.now(), demoOnly: principal.isReview)
     }
 
@@ -32,7 +32,7 @@ struct AdminOrderService: Sendable {
         )
     }
 
-    private func range(_ window: OrderWindow) -> ExpectedDateRange {
+    func range(_ window: OrderWindow) -> ExpectedDateRange {
         ExpectedDateRange(today: calendar.businessDate(of: window.now), calendar: calendar)
     }
 
@@ -92,7 +92,7 @@ struct AdminOrderService: Sendable {
         return true
     }
 
-    private static func json(_ detail: OrderDetail) throws -> JSONValue {
+    static func json(_ detail: OrderDetail) throws -> JSONValue {
         try JSONDecoder().decode(JSONValue.self, from: JSONEncoder().encode(detail))
     }
 }
