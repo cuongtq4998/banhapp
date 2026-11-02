@@ -30,6 +30,7 @@ func configure(_ app: Application, config: AppConfig) async throws {
     )
     try configureAdminAuth(app, config: config)
     try configurePush(app, config: config)
+    configureMaintenance(app)
 
     try registerRoutes(app, config: config)
 }
@@ -145,4 +146,10 @@ private func configureDatabase(_ app: Application, config: AppConfig) throws {
     }
     let perLoop = DatabasePoolSizing.connectionsPerLoop(poolMax: config.databasePoolMax, eventLoopCount: loopCount)
     app.databases.use(try .postgres(url: url, maxConnectionsPerEventLoop: perLoop), as: .psql)
+}
+
+/// Daily purge; off under tests so a moved test clock never purges shared rows.
+private func configureMaintenance(_ app: Application) {
+    guard app.environment != .testing else { return }
+    app.lifecycle.use(MaintenanceScheduler(policy: .standard))
 }
