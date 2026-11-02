@@ -2,7 +2,7 @@
 
 | Field        | Value |
 | ------------ | ----- |
-| Version      | 1.16 [v1.16 | 2026-11-02] |
+| Version      | 1.17 [v1.17 | 2026-11-02] |
 | Last updated | 2026-10-31 |
 | Status       | Draft |
 | Owner        | atlas-architect (design), forge-dev (keeps it true) |
@@ -22,7 +22,7 @@ This file is the index of the deployment document. The body lives in the folder 
 | 4 | Build and release, CI, store submission, launch checklist | [deployment/02-build-release-infrastructure.md](deployment/02-build-release-infrastructure.md) |
 | 5 | Infrastructure | [deployment/02-build-release-infrastructure.md](deployment/02-build-release-infrastructure.md) |
 | 6 | Backup and restore | [deployment/03-operations-and-cost.md](deployment/03-operations-and-cost.md) |
-| 7 | Observability and alerts | [deployment/03-operations-and-cost.md](deployment/03-operations-and-cost.md) |
+| 7, 7.1, 7.2 | Observability and alerts, lookup floor, lookup settings checklist | [deployment/03-operations-and-cost.md](deployment/03-operations-and-cost.md) |
 | 8 | Rollback | [deployment/03-operations-and-cost.md](deployment/03-operations-and-cost.md) |
 | 9 | Cost notes | [deployment/03-operations-and-cost.md](deployment/03-operations-and-cost.md) |
 | 18 | Free-tier development mode and go-live gate [v1.11 | 2026-10-31] | [deployment/04-admin-delivery-config.md](deployment/04-admin-delivery-config.md) |
@@ -56,4 +56,5 @@ This file is the index of the deployment document. The body lives in the folder 
 | 1.13 | 2026-11-01 | B7 alignment: `PUSH_PROVIDER` values `off`, `recording`, `live`; the six `live` values go together, a half-set configuration stops the start, `recording` refused in production (deployment/04, architecture/14). |
 | 1.14 | 2026-11-01 | Review account built (architecture/16): `review-account on|off`, both variables or none, production allowed, runbook note (sessions outlive the variables until `off`); `LOG_LEVEL` `debug`/`trace` safe because of `RedactingLogHandler` (deployment/01, deployment/04 sections 11 and 16). |
 | 1.16 | 2026-11-02 | Section 7.1 (deployment/03): sink and alert of `lookup_floor_exceeded`, p99 record table. |
+| 1.17 | 2026-11-02 | Section 7.2 (deployment/03): operator checklist for the five lookup settings, secret rule, proxy header rule. |
 | 1.15 | 2026-11-02 | Section 6 (deployment/03): mandatory `pg_dump` before applying migrations, pointer to data-model section 15.1. |

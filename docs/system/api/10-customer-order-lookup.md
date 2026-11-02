@@ -62,6 +62,18 @@ Excess: 429 `RATE_LIMITED` with `Retry-After` (whole seconds, at least 1, at mos
 | 429 | `RATE_LIMITED` | 10.14.5 |
 | 503 | `SERVICE_UNAVAILABLE` | database down (api/04) |
 
+Message keys [v1.5 | 2026-11-02] (convention of api/04 section 5 and api/08 11.1):
+
+| Status | Code | Top-level key | Field code | Field key |
+| ------ | ---- | ------------- | ---------- | --------- |
+| 422 | `VALIDATION_FAILED` | `ERR_SERVER` | `PHONE_REQUIRED` | `ERR_FIELD_REQUIRED` |
+| 422 | `VALIDATION_FAILED` | `ERR_SERVER` | `PHONE_INVALID` | `ERR_FIELD_INVALID` |
+| 422 | `VALIDATION_FAILED` | `ERR_SERVER` | `CURSOR_INVALID` | `ERR_FIELD_INVALID` |
+| 422 | `VALIDATION_FAILED` | `ERR_SERVER` | `FIELD_UNKNOWN` | `ERR_SERVER` (no per-field key listed) |
+| 429 | `RATE_LIMITED` | `ERR_RATE_LIMITED` | none | none |
+| 413 | `PAYLOAD_TOO_LARGE` | per api/04 section 5 | none | none |
+| 503 | `SERVICE_UNAVAILABLE` | per api/04 section 5 | none | none |
+
 No 404 and no 401 exist on this route.
 
 ## 10.14.7 Headers, privacy, logging
@@ -76,6 +88,7 @@ Response: `Cache-Control: no-store`, `Content-Type: application/json`, no `ETag`
 
 | Version | Date | Change |
 | ------- | ---- | ------ |
+| 1.5 | 2026-11-02 | Message key table of the route errors (10.14.6); deployment.md section 7.2 holds the operator checklist for the five settings. |
 | 1.4 | 2026-11-02 | Truth about the built code: `LOOKUP_FLOOR_MS`; page size, page cap and budgets are constants, five environment settings listed; cursor format as built, no version marker; unset secret behaviour. |
 | 1.3 | 2026-11-02 | Inclusive window edge and predicate, one amount-to-collect rule, cursor time as integer microseconds, floor-exceeded sink. |
 | 1.2 | 2026-11-02 | Order code and cake lines in the list (owner decision), items query without extra round trip, retention days never sent to the client, fixtures. |
